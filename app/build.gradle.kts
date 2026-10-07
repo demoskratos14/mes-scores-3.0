@@ -108,7 +108,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     // org.json est fourni par Android au runtime, mais ses classes sont de simples coquilles vides
     // dans les tests unitaires JVM : cette version réelle permet de tester le format JSON du journal.
-    testImplementation("org.json:json:20240303")
+    testImplementation("org.json:json:20260814")
     // Robolectric simule Android sur la JVM : permet de tester ce qui passe par les SharedPreferences
     // (GameRepository, GameHistoryRepository, TournamentViewModel) sans émulateur.
     testImplementation("org.robolectric:robolectric:4.14.1")
