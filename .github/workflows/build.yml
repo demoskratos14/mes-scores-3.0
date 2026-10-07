@@ -34,7 +34,7 @@ jobs:
           # platform-tools ; build-tools et platforms sont téléchargés par Gradle/AGP au besoin.
           packages: "platform-tools"
 
-      # Pas de "gradle-version" ici : on utilise le wrapper du dépôt (Gradle 8.9, voir
+      # Pas de "gradle-version" ici : on utilise le wrapper du dépôt (Gradle 9.8.1, voir
       # gradle/wrapper/gradle-wrapper.properties), pour avoir la même version qu'en local.
       - name: Préparer Gradle
         uses: gradle/actions/setup-gradle@v4
