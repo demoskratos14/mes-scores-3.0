@@ -1,0 +1,28 @@
+# Mises à jour automatiques : Dependabot ouvre une pull request quand une dépendance sort
+# une nouvelle version. Les versions Gradle sont lues dans build.gradle.kts, app/build.gradle.kts
+# (plugins, BOM Compose, bibliothèques AndroidX) et gradle/wrapper/gradle-wrapper.properties.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    groups:
+      # Kotlin et son plugin Compose partagent le même numéro de version : on les met à jour ensemble.
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+      # Compose (BOM) et les bibliothèques AndroidX voisines dans une seule pull request.
+      androidx:
+        patterns:
+          - "androidx.*"
+
+  # Les actions du workflow (checkout, setup-java, upload-artifact...) vieillissent aussi.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      timezone: "Europe/Paris"
