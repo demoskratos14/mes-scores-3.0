@@ -1,0 +1,109 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Construire aussi l'APK release signé (nécessite les secrets de signature)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer le JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Préparer le SDK Android
+        uses: android-actions/setup-android@v3
+        with:
+          # Par défaut, cette action essaie aussi d'installer le paquet "tools" (ancien outillage
+          # Android retiré du dépôt Google), ce qui fait échouer l'étape. On ne demande donc que
+          # platform-tools ; build-tools et platforms sont téléchargés par Gradle/AGP au besoin.
+          packages: "platform-tools"
+
+      # Pas de "gradle-version" ici : on utilise le wrapper du dépôt (Gradle 8.9, voir
+      # gradle/wrapper/gradle-wrapper.properties), pour avoir la même version qu'en local.
+      - name: Préparer Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Rendre gradlew exécutable
+        run: chmod +x gradlew
+
+      # Les tests (Tarot, règles de fin de partie, championnat) tournent avant l'APK :
+      # une régression bloque le workflow au lieu de passer inaperçue.
+      - name: Lancer les tests unitaires
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Publier le rapport de tests (en cas d'échec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Rapport de tests"
+          path: app/build/reports/tests/
+          if-no-files-found: ignore
+
+      # Lint Android : API dépréciées, problèmes d'accessibilité, ressources inutilisées, etc.
+      # Les erreurs bloquent le workflow ; les avertissements restent consultables dans le rapport.
+      - name: Lancer le lint
+        run: ./gradlew lintDebug --stacktrace
+
+      - name: Publier le rapport de lint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Rapport de lint"
+          path: app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+
+      - name: Construire l'APK (debug)
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Publier l'APK debug
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Mes scores (debug)"
+          path: "app/build/outputs/apk/debug/Mes scores-debug.apk"
+          if-no-files-found: error
+
+      # La release est minifiée par R8 (isMinifyEnabled) : une règle manquante peut casser l'APK release
+      # sans jamais gêner le debug. On la construit donc à chaque push, non signée (aucun secret requis),
+      # pour que le problème se voie tout de suite et non au moment de publier.
+      # Quand la release signée est demandée, l'étape ci-dessous la construit déjà : pas de doublon.
+      - name: Vérifier que la release (R8) se construit
+        if: ${{ !inputs.release }}
+        run: ./gradlew assembleRelease --stacktrace
+
+      # --- Release signée : uniquement à la demande (Actions > Run workflow > release) ---
+      # Secrets à créer dans Settings > Secrets and variables > Actions :
+      #   KEYSTORE_BASE64 (le fichier .jks encodé en base64), KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+      - name: Construire l'APK (release signé)
+        if: ${{ inputs.release }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          KEYSTORE_FILE="$RUNNER_TEMP/release.jks" ./gradlew assembleRelease --stacktrace
+
+      - name: Publier l'APK release
+        if: ${{ inputs.release }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Mes scores (release)"
+          path: "app/build/outputs/apk/release/Mes scores-release.apk"
+          if-no-files-found: error
