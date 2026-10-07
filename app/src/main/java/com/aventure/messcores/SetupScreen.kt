@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import org.json.JSONArray
 
 @Composable
@@ -204,8 +205,7 @@ private fun loadLastPlayerNames(context: Context): List<String> = try {
 }
 
 private fun saveLastPlayerNames(context: Context, names: List<String>) {
-    context.getSharedPreferences(SETUP_PREFS, Context.MODE_PRIVATE)
-        .edit()
-        .putString(KEY_LAST_NAMES, JSONArray(names).toString())
-        .apply()
+    context.getSharedPreferences(SETUP_PREFS, Context.MODE_PRIVATE).edit {
+        putString(KEY_LAST_NAMES, JSONArray(names).toString())
+    }
 }

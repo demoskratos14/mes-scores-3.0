@@ -4,7 +4,7 @@ Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux
 
 - Identifiant : `com.aventure.messcores`
 - minSdk 26, compileSdk/targetSdk 37
-- Kotlin 2.3.10 (plugin Compose), Android Gradle Plugin 9.2.1, Gradle 9.4.1 (via le wrapper) ; `gradle.properties` garde `android.builtInKotlin=false` et `android.newDsl=false` (à migrer avant AGP 10)
+- Kotlin 2.3.10 (plugin Compose), Android Gradle Plugin 9.2.1, Gradle 9.8.1 (via le wrapper) ; `gradle.properties` garde `android.builtInKotlin=false` et `android.newDsl=false` (à migrer avant AGP 10)
 
 ## Compiler
 
@@ -26,7 +26,7 @@ Les tests unitaires (`app/src/test/`) couvrent notamment les noms en double (`Pl
 Sous Linux/macOS, si `gradlew` n'est pas exécutable après un clonage : `chmod +x gradlew`
 (ou, une fois pour toutes : `git update-index --chmod=+x gradlew`).
 
-Pour régénérer le wrapper : `gradle wrapper --gradle-version 9.4.1`.
+Pour régénérer le wrapper : `gradle wrapper --gradle-version 9.8.1`.
 
 ## GitHub Actions
 

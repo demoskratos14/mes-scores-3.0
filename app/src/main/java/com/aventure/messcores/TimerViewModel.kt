@@ -169,7 +169,7 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        super.onCleared()
+        // ViewModel.onCleared() est vide : pas d'appel à super.
         tickJob?.cancel()
         cancelAlarm()
     }
