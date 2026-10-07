@@ -49,7 +49,7 @@ jobs:
 
       - name: Publier le rapport de tests (en cas d'échec)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "Rapport de tests"
           path: app/build/reports/tests/
@@ -62,7 +62,7 @@ jobs:
 
       - name: Publier le rapport de lint
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "Rapport de lint"
           path: app/build/reports/lint-results-debug.html
@@ -72,7 +72,7 @@ jobs:
         run: ./gradlew assembleDebug --stacktrace
 
       - name: Publier l'APK debug
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "Mes scores (debug)"
           path: "app/build/outputs/apk/debug/Mes scores-debug.apk"
@@ -102,7 +102,7 @@ jobs:
 
       - name: Publier l'APK release
         if: ${{ inputs.release }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "Mes scores (release)"
           path: "app/build/outputs/apk/release/Mes scores-release.apk"
