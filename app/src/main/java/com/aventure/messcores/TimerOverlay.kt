@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -87,6 +88,7 @@ private fun spokenTime(context: Context, ms: Long, roundUp: Boolean = false): St
 @Composable
 fun TimerOverlay(viewModel: TimerViewModel) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     // rememberSaveable : la fenêtre du minuteur reste ouverte après une rotation de l'écran.
     var showDialog by rememberSaveable { mutableStateOf(false) }
     val displayMillis = if (viewModel.mode == TimerMode.STOPWATCH) {
@@ -118,11 +120,11 @@ fun TimerOverlay(viewModel: TimerViewModel) {
         contentAlignment = Alignment.BottomEnd
     ) {
         // TalkBack : sans ces précisions, le badge est lu « 05:00 » sans dire que c'est un bouton.
-        val badgeDescription = context.getString(
+        val badgeDescription = resources.getString(
             R.string.timer_badge_description,
-            context.getString(if (viewModel.mode == TimerMode.STOPWATCH) R.string.timer_stopwatch else R.string.timer_countdown),
+            resources.getString(if (viewModel.mode == TimerMode.STOPWATCH) R.string.timer_stopwatch else R.string.timer_countdown),
             spokenTime(context, displayMillis, roundUp = viewModel.mode == TimerMode.COUNTDOWN),
-            context.getString(
+            resources.getString(
                 when {
                     viewModel.justFinished -> R.string.timer_status_finished
                     viewModel.isRunning -> R.string.timer_status_running

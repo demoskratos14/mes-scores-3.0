@@ -3,6 +3,7 @@ package com.aventure.messcores
 import androidx.compose.ui.res.stringResource
 import android.content.Context
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -103,6 +104,8 @@ fun NewTarotRoundScreen(
     val multiplier = multipliers.getOrElse(multiplierIndex) { multipliers.first() }
 
     val context = LocalContext.current
+
+    val resources = LocalResources.current
 
     // ----- Calcul (voir TarotScoring.kt) -----
     val required = tarotRequiredPoints(bouts)
@@ -247,9 +250,9 @@ fun NewTarotRoundScreen(
                         ) {
                             Text(
                                 text = if (success) {
-                                    context.resources.getQuantityString(R.plurals.tarot_contract_success, result.difference, result.difference)
+                                    resources.getQuantityString(R.plurals.tarot_contract_success, result.difference, result.difference)
                                 } else {
-                                    context.resources.getQuantityString(R.plurals.tarot_contract_failed, -result.difference, -result.difference)
+                                    resources.getQuantityString(R.plurals.tarot_contract_failed, -result.difference, -result.difference)
                                 },
                                 fontWeight = FontWeight.Bold
                             )
@@ -272,16 +275,16 @@ fun NewTarotRoundScreen(
                         val unit = result?.unit ?: return@Button
                         val attackers = setOfNotNull(takerId, partner)
                         val team = attackers.joinToString(" + ") { players[it] }
-                        val label = context.getString(
+                        val label = resources.getString(
                             R.string.tarot_label,
                             team,
                             multiplier.label,
                             context.quantity(R.plurals.tarot_bouts, bouts),
                             pointsMade,
-                            context.getString(if (success) R.string.tarot_label_success else R.string.tarot_label_failed),
+                            resources.getString(if (success) R.string.tarot_label_success else R.string.tarot_label_failed),
                             when {
-                                slamSucceeded -> context.getString(R.string.tarot_label_slam)
-                                defenseSlamActive -> context.getString(R.string.tarot_label_defense_slam)
+                                slamSucceeded -> resources.getString(R.string.tarot_label_slam)
+                                defenseSlamActive -> resources.getString(R.string.tarot_label_defense_slam)
                                 else -> ""
                             }
                         )

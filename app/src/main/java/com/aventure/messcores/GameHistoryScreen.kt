@@ -36,6 +36,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,6 +61,7 @@ fun GameHistoryScreen(
 ) {
     var games by remember { mutableStateOf(repository.listGames()) }
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     // Résultat du dernier export/import, affiché sous les boutons.
     var status by remember { mutableStateOf<String?>(null) }
@@ -75,10 +77,10 @@ fun GameHistoryScreen(
                     try {
                         val json = repository.exportJson()
                         context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(json.toByteArray(Charsets.UTF_8)) }
-                            ?: throw IOException(context.getString(R.string.history_stream_unavailable))
-                        context.getString(R.string.history_export_ok, context.quantity(R.plurals.games_count, repository.listGames().size))
+                            ?: throw IOException(resources.getString(R.string.history_stream_unavailable))
+                        resources.getString(R.string.history_export_ok, context.quantity(R.plurals.games_count, repository.listGames().size))
                     } catch (e: Exception) {
-                        context.getString(R.string.history_export_failed, e.message ?: context.getString(R.string.error_unknown))
+                        resources.getString(R.string.history_export_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }
                 }
             }
@@ -92,12 +94,12 @@ fun GameHistoryScreen(
                 val message = withContext(Dispatchers.IO) {
                     try {
                         val text = context.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
-                            ?: throw IOException(context.getString(R.string.history_file_unreadable))
+                            ?: throw IOException(resources.getString(R.string.history_file_unreadable))
                         var error: JournalBackup.ImportError? = null
                         val summary = repository.importJson(text) { error = it }
                         if (summary == null) importErrorText(context, error) else importMessage(context, summary)
                     } catch (e: Exception) {
-                        context.getString(R.string.history_import_failed, e.message ?: context.getString(R.string.error_unknown))
+                        resources.getString(R.string.history_import_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }
                 }
                 games = repository.listGames()
