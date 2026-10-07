@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.aventure.messcores"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.aventure.messcores"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
     }
@@ -47,10 +49,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
     }
@@ -68,9 +66,6 @@ android {
         abortOnError = true
         warningsAsErrors = false
         htmlReport = true
-        // Versions des bibliothèques et targetSdk : leur montée de version exige un compileSdk et un AGP plus récents,
-        // à faire en une étape à part (avec test sur appareil). En attendant, on évite le bruit dans le rapport.
-        disable += setOf("GradleDependency", "OldTargetApi")
     }
 
     // Renomme le fichier APK généré : "Mes scores-debug.apk", "Mes scores-release.apk", etc.
@@ -83,13 +78,20 @@ android {
     }
 }
 
+// Kotlin : le DSL kotlinOptions est supprimé depuis Kotlin 2.2, on utilise compilerOptions.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
-    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.core:core-ktx:1.19.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
+    implementation("androidx.activity:activity-compose:1.13.0")
 
     // Compose
-    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -97,8 +99,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // ViewModel + Navigation en Compose
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
-    implementation("androidx.navigation:navigation-compose:2.8.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+    implementation("androidx.navigation:navigation-compose:2.10.2")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 
