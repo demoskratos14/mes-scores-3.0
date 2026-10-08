@@ -30,6 +30,18 @@ class GameCategoryTest {
     }
 
     @Test
+    fun lesOnzeJeuxDeDesSontProposesEtDansLeurRubrique() {
+        val dice = builtIns.filter { it.category() == GameCategory.DICE }.map { it.id }.toSet()
+        assertEquals(
+            setOf(
+                "builtin_yams", "builtin_421", "builtin_cdc", "builtin_dixmille", "builtin_cochon", "builtin_zombie",
+                "builtin_shutbox", "builtin_bunco", "builtin_kot", "builtin_mexicain", "builtin_qwixx"
+            ),
+            dice
+        )
+    }
+
+    @Test
     fun seulsLesJeuxAPaquetSpecialSontDansAutres() {
         // Un nouveau jeu prédéfini oublié dans GameCategory.kt atterrirait dans « Autres » : on le détecte ici.
         val others = builtIns.filter { it.category() == GameCategory.OTHER }.map { it.id }.toSet()

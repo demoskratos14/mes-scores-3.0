@@ -69,6 +69,74 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_uno_2_title, R.string.rules_uno_2_body),
         RulesSection(R.string.rules_uno_3_title, R.string.rules_uno_3_body),
         RulesSection(R.string.rules_uno_4_title, R.string.rules_uno_4_body)
+    ),
+    "builtin_yams" to listOf(
+        RulesSection(R.string.rules_yams_1_title, R.string.rules_yams_1_body),
+        RulesSection(R.string.rules_yams_2_title, R.string.rules_yams_2_body),
+        RulesSection(R.string.rules_yams_3_title, R.string.rules_yams_3_body),
+        RulesSection(R.string.rules_yams_4_title, R.string.rules_yams_4_body),
+        RulesSection(R.string.rules_yams_5_title, R.string.rules_yams_5_body)
+    ),
+    "builtin_421" to listOf(
+        RulesSection(R.string.rules_421_1_title, R.string.rules_421_1_body),
+        RulesSection(R.string.rules_421_2_title, R.string.rules_421_2_body),
+        RulesSection(R.string.rules_421_3_title, R.string.rules_421_3_body),
+        RulesSection(R.string.rules_421_4_title, R.string.rules_421_4_body),
+        RulesSection(R.string.rules_421_5_title, R.string.rules_421_5_body)
+    ),
+    "builtin_cdc" to listOf(
+        RulesSection(R.string.rules_cdc_1_title, R.string.rules_cdc_1_body),
+        RulesSection(R.string.rules_cdc_2_title, R.string.rules_cdc_2_body),
+        RulesSection(R.string.rules_cdc_3_title, R.string.rules_cdc_3_body),
+        RulesSection(R.string.rules_cdc_4_title, R.string.rules_cdc_4_body),
+        RulesSection(R.string.rules_cdc_5_title, R.string.rules_cdc_5_body)
+    ),
+    "builtin_dixmille" to listOf(
+        RulesSection(R.string.rules_dixmille_1_title, R.string.rules_dixmille_1_body),
+        RulesSection(R.string.rules_dixmille_2_title, R.string.rules_dixmille_2_body),
+        RulesSection(R.string.rules_dixmille_3_title, R.string.rules_dixmille_3_body),
+        RulesSection(R.string.rules_dixmille_4_title, R.string.rules_dixmille_4_body)
+    ),
+    "builtin_cochon" to listOf(
+        RulesSection(R.string.rules_cochon_1_title, R.string.rules_cochon_1_body),
+        RulesSection(R.string.rules_cochon_2_title, R.string.rules_cochon_2_body),
+        RulesSection(R.string.rules_cochon_3_title, R.string.rules_cochon_3_body)
+    ),
+    "builtin_zombie" to listOf(
+        RulesSection(R.string.rules_zombie_1_title, R.string.rules_zombie_1_body),
+        RulesSection(R.string.rules_zombie_2_title, R.string.rules_zombie_2_body),
+        RulesSection(R.string.rules_zombie_3_title, R.string.rules_zombie_3_body),
+        RulesSection(R.string.rules_zombie_4_title, R.string.rules_zombie_4_body)
+    ),
+    "builtin_shutbox" to listOf(
+        RulesSection(R.string.rules_shutbox_1_title, R.string.rules_shutbox_1_body),
+        RulesSection(R.string.rules_shutbox_2_title, R.string.rules_shutbox_2_body),
+        RulesSection(R.string.rules_shutbox_3_title, R.string.rules_shutbox_3_body),
+        RulesSection(R.string.rules_shutbox_4_title, R.string.rules_shutbox_4_body)
+    ),
+    "builtin_bunco" to listOf(
+        RulesSection(R.string.rules_bunco_1_title, R.string.rules_bunco_1_body),
+        RulesSection(R.string.rules_bunco_2_title, R.string.rules_bunco_2_body),
+        RulesSection(R.string.rules_bunco_3_title, R.string.rules_bunco_3_body)
+    ),
+    "builtin_kot" to listOf(
+        RulesSection(R.string.rules_kot_1_title, R.string.rules_kot_1_body),
+        RulesSection(R.string.rules_kot_2_title, R.string.rules_kot_2_body),
+        RulesSection(R.string.rules_kot_3_title, R.string.rules_kot_3_body),
+        RulesSection(R.string.rules_kot_4_title, R.string.rules_kot_4_body)
+    ),
+    "builtin_mexicain" to listOf(
+        RulesSection(R.string.rules_mexicain_1_title, R.string.rules_mexicain_1_body),
+        RulesSection(R.string.rules_mexicain_2_title, R.string.rules_mexicain_2_body),
+        RulesSection(R.string.rules_mexicain_3_title, R.string.rules_mexicain_3_body),
+        RulesSection(R.string.rules_mexicain_4_title, R.string.rules_mexicain_4_body)
+    ),
+    "builtin_qwixx" to listOf(
+        RulesSection(R.string.rules_qwixx_1_title, R.string.rules_qwixx_1_body),
+        RulesSection(R.string.rules_qwixx_2_title, R.string.rules_qwixx_2_body),
+        RulesSection(R.string.rules_qwixx_3_title, R.string.rules_qwixx_3_body),
+        RulesSection(R.string.rules_qwixx_4_title, R.string.rules_qwixx_4_body),
+        RulesSection(R.string.rules_qwixx_5_title, R.string.rules_qwixx_5_body)
     )
 )
 
