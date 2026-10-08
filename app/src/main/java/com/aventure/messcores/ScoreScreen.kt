@@ -67,6 +67,9 @@ private val RANK_ROW_HEIGHT = 40.dp
 private val NAME_ROW_HEIGHT = 48.dp
 private val TOTAL_ROW_HEIGHT = 56.dp
 private val LABEL_COLUMN_WIDTH = 80.dp
+// Les noms de catégories (« Grande suite ») sont plus longs que « Manche 12 » : colonne plus large.
+private val SHEET_LABEL_COLUMN_WIDTH = 112.dp
+private val BONUS_ROW_HEIGHT = 48.dp
 private val MIN_PLAYER_COLUMN_WIDTH = 28.dp
 private val MAX_PLAYER_COLUMN_WIDTH = 128.dp
 
@@ -88,6 +91,9 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
     val hasCustomMultipliers = multipliers.size > 1
     // Un peu plus de hauteur par case quand le sélecteur de règle est affiché.
     val scoreRowHeight = if (hasCustomMultipliers) 92.dp else 72.dp
+    // Feuille de catégories (Yams) : une ligne par catégorie au lieu de manches numérotées.
+    val sheetRows = viewModel.sheetRows
+    val labelColumnWidth = if (sheetRows != null) SHEET_LABEL_COLUMN_WIDTH else LABEL_COLUMN_WIDTH
 
     KeepScreenOn()
     val context = LocalContext.current
@@ -170,7 +176,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                 val playerColumnWidth: Dp = if (players.isEmpty()) {
                     MAX_PLAYER_COLUMN_WIDTH
                 } else {
-                    val available = maxWidth - LABEL_COLUMN_WIDTH - 16.dp
+                    val available = maxWidth - labelColumnWidth - 16.dp
                     (available / players.size).coerceIn(MIN_PLAYER_COLUMN_WIDTH, MAX_PLAYER_COLUMN_WIDTH)
                 }
 
@@ -178,8 +184,8 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                     // ----- En-tête fixe : rang + nom (toujours visible au-dessus des manches) -----
                     Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
                         Column {
-                            Box(Modifier.width(LABEL_COLUMN_WIDTH).height(RANK_ROW_HEIGHT))
-                            Box(Modifier.width(LABEL_COLUMN_WIDTH).height(NAME_ROW_HEIGHT))
+                            Box(Modifier.width(labelColumnWidth).height(RANK_ROW_HEIGHT))
+                            Box(Modifier.width(labelColumnWidth).height(NAME_ROW_HEIGHT))
                         }
                         players.forEachIndexed { playerIndex, name ->
                             val rank = viewModel.rankOf(playerIndex, ranks)
@@ -233,14 +239,26 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                             Column {
                                 scores.forEachIndexed { index, _ ->
                                     Box(
-                                        modifier = Modifier.width(LABEL_COLUMN_WIDTH).height(scoreRowHeight),
+                                        modifier = Modifier.width(labelColumnWidth).height(scoreRowHeight),
                                         contentAlignment = Alignment.CenterStart
                                     ) {
-                                        Text(stringResource(R.string.score_round_n, index + 1))
+                                        val rowLabel = sheetRows?.getOrNull(index)
+                                        Text(
+                                            if (rowLabel != null) stringResource(rowLabel.label)
+                                            else stringResource(R.string.score_round_n, index + 1)
+                                        )
+                                    }
+                                }
+                                if (sheetRows != null) {
+                                    Box(
+                                        modifier = Modifier.width(labelColumnWidth).height(BONUS_ROW_HEIGHT),
+                                        contentAlignment = Alignment.CenterStart
+                                    ) {
+                                        Text(stringResource(R.string.sheet_bonus), style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
                                 Box(
-                                    modifier = Modifier.width(LABEL_COLUMN_WIDTH).height(TOTAL_ROW_HEIGHT),
+                                    modifier = Modifier.width(labelColumnWidth).height(TOTAL_ROW_HEIGHT),
                                     contentAlignment = Alignment.CenterStart
                                 ) {
                                     Text(stringResource(R.string.score_total), fontWeight = FontWeight.Bold)
@@ -255,7 +273,11 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                             modifier = Modifier.width(playerColumnWidth).height(scoreRowHeight),
                                             contentAlignment = Alignment.Center
                                         ) {
+                                            val rowLabel = sheetRows?.getOrNull(roundIndex)
+                                            val rowLabelText = rowLabel?.let { stringResource(it.label) }
                                             ScoreCell(
+                                                choices = rowLabel?.options,
+                                                title = rowLabelText,
                                                 cell = round[playerIndex],
                                                 allowNegative = viewModel.gameRules.allowNegativeScores,
                                                 multipliers = multipliers,
@@ -266,6 +288,21 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                                 onMultiplierPicked = { id ->
                                                     viewModel.setMultiplier(roundIndex, playerIndex, id)
                                                 }
+                                            )
+                                        }
+                                    }
+                                    if (sheetRows != null) {
+                                        val upper = viewModel.sheetUpperTotalFor(playerIndex)
+                                        val bonus = viewModel.sheetBonusFor(playerIndex)
+                                        Box(
+                                            modifier = Modifier.width(playerColumnWidth).height(BONUS_ROW_HEIGHT),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = if (bonus > 0) "+$bonus" else "$upper/${ScoreSheets.UPPER_BONUS_THRESHOLD}",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = playerTextColor(color)
                                             )
                                         }
                                     }
@@ -323,6 +360,8 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
  */
 @Composable
 private fun ScoreCell(
+    choices: List<Int>? = null,
+    title: String? = null,
     cell: CellState,
     allowNegative: Boolean,
     multipliers: List<ScoreMultiplier>,
@@ -385,8 +424,20 @@ private fun ScoreCell(
         }
     }
 
-    if (showDialog) {
+    if (showDialog && choices != null) {
+        ScoreChoiceDialog(
+            title = title ?: stringResource(R.string.score_enter_title),
+            options = choices,
+            current = cell.baseValue,
+            onPick = { value ->
+                showDialog = false
+                onValueEntered(value, false)
+            },
+            onDismiss = { showDialog = false }
+        )
+    } else if (showDialog) {
         ScoreInputDialog(
+            title = title,
             initialValue = cell.baseValue,
             initialNegative = cell.isNegative,
             allowNegative = allowNegative,
@@ -402,6 +453,7 @@ private fun ScoreCell(
 /** Fenêtre de saisie d'un score : champ numérique plein format + bascule +/− éventuelle. */
 @Composable
 private fun ScoreInputDialog(
+    title: String?,
     initialValue: Int?,
     initialNegative: Boolean,
     allowNegative: Boolean,
@@ -422,7 +474,7 @@ private fun ScoreInputDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.score_enter_title)) },
+        title = { Text(title ?: stringResource(R.string.score_enter_title)) },
         text = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (allowNegative) {
@@ -456,6 +508,47 @@ private fun ScoreInputDialog(
         },
         confirmButton = {
             TextButton(onClick = { confirm() }) { Text(stringResource(R.string.common_ok)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+        }
+    )
+}
+
+/**
+ * Fenêtre de saisie à boutons, pour les catégories à score fixe d'une feuille (ex : « Full » = 25) :
+ * toucher une valeur la saisit ; 0 barre la case ; « Effacer » la vide.
+ */
+@Composable
+private fun ScoreChoiceDialog(
+    title: String,
+    options: List<Int>,
+    current: Int?,
+    onPick: (Int?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                options.chunked(3).forEach { rowOptions ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        rowOptions.forEach { value ->
+                            val label = if (value == 0) stringResource(R.string.sheet_cross_out) else value.toString()
+                            if (value == current) {
+                                Button(onClick = { onPick(value) }, modifier = Modifier.weight(1f)) { Text(label, maxLines = 1) }
+                            } else {
+                                OutlinedButton(onClick = { onPick(value) }, modifier = Modifier.weight(1f)) { Text(label, maxLines = 1) }
+                            }
+                        }
+                        repeat(3 - rowOptions.size) { Spacer(modifier = Modifier.weight(1f)) }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onPick(null) }) { Text(stringResource(R.string.sheet_clear)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }

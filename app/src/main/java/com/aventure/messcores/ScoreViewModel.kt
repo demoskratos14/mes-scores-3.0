@@ -170,7 +170,7 @@ class ScoreViewModel : ViewModel() {
         _counters.clear()
         _teamRounds.clear()
         when (rules.scoreMode) {
-            ScoreMode.TABLE -> repeat(INITIAL_ROUNDS) { addRound() }
+            ScoreMode.TABLE -> repeat(sheetRows?.size ?: INITIAL_ROUNDS) { addRound() }
             ScoreMode.COUNTER -> repeat(playerNames.size) { _counters.add(0) }
             ScoreMode.VARIABLE_TEAMS -> Unit
         }
@@ -197,7 +197,7 @@ class ScoreViewModel : ViewModel() {
             ScoreMode.TABLE -> {
                 val rounds = saved.cellSnapshots
                 if (rounds.isNullOrEmpty()) {
-                    repeat(INITIAL_ROUNDS) { addRound() }
+                    repeat(sheetRows?.size ?: INITIAL_ROUNDS) { addRound() }
                 } else {
                     rounds.forEach { roundSnapshot ->
                         val row = mutableStateListOf<CellState>()
@@ -307,7 +307,8 @@ class ScoreViewModel : ViewModel() {
      * Renvoie vrai si une manche a été ajoutée.
      */
     fun notifyCellChanged(round: Int): Boolean {
-        if (isGameOver()) return false
+        // Une feuille de catégories a un nombre fixe de lignes : jamais de manche ajoutée.
+        if (sheetRows != null || isGameOver()) return false
         if (round == _scores.lastIndex && _scores[round].any { it.baseValue != null }) {
             addRound()
             return true
@@ -351,6 +352,21 @@ class ScoreViewModel : ViewModel() {
         val base = cell.baseValue ?: return null
         return effectiveValue(base, cell.isNegative, cell.multiplierId)
     }
+
+    // ---------- Feuille de catégories (Yams) ----------
+
+    /** Lignes de la feuille de catégories du jeu en cours, ou null pour un tableau de manches classique. */
+    val sheetRows: List<SheetRow>? get() = ScoreSheets.rows(gameRules.sheet)
+
+    private fun sheetValuesFor(player: Int): List<Int?> =
+        _scores.map { round -> round.getOrNull(player)?.let { effectiveValue(it) } }
+
+    /** Total de la partie haute d'un joueur (0 hors feuille de catégories). */
+    fun sheetUpperTotalFor(player: Int): Int = ScoreSheets.upperTotal(gameRules.sheet, sheetValuesFor(player))
+
+    /** Bonus de la partie haute d'un joueur (0 hors feuille de catégories). */
+    fun sheetBonusFor(player: Int): Int =
+        if (sheetRows == null) 0 else ScoreSheets.bonus(gameRules.sheet, sheetValuesFor(player))
 
     // ---------- Mode COUNTER ----------
 
@@ -423,7 +439,7 @@ class ScoreViewModel : ViewModel() {
     /** Total cumulé d'un joueur, calculé en parcourant les manches. */
     private fun computeTotal(player: Int): Int = when (gameRules.scoreMode) {
         ScoreMode.TABLE ->
-            _scores.sumOf { round -> round.getOrNull(player)?.let { effectiveValue(it) } ?: 0 }
+            _scores.sumOf { round -> round.getOrNull(player)?.let { effectiveValue(it) } ?: 0 } + sheetBonusFor(player)
         ScoreMode.COUNTER ->
             _counters.getOrNull(player) ?: 0
         ScoreMode.VARIABLE_TEAMS ->
@@ -496,6 +512,10 @@ class ScoreViewModel : ViewModel() {
 
     /** Vrai si la condition de fin de partie définie par les règles du jeu est atteinte. */
     fun isGameOver(): Boolean {
+        // Feuille de catégories : terminée quand toutes les cases de tous les joueurs sont remplies.
+        if (sheetRows != null) {
+            return _scores.isNotEmpty() && _scores.all { round -> round.all { it.baseValue != null } }
+        }
         val condition = gameRules.endCondition
         val rawStop = when (condition.type) {
             EndConditionType.NONE -> false

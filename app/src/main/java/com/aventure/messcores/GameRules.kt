@@ -78,6 +78,7 @@ data class ScoreMultiplier(
  * @param endCondition détermine quand la partie est considérée comme terminée.
  * @param minPlayers nombre minimum de joueurs pour créer une feuille de score.
  * @param maxPlayers nombre maximum de joueurs pour créer une feuille de score.
+ * @param sheet identifiant d'une feuille de catégories (ex : Yams) en mode TABLE ; null sinon.
  */
 data class GameRules(
     val id: String,
@@ -88,7 +89,9 @@ data class GameRules(
     val scoreMode: ScoreMode = ScoreMode.TABLE,
     val endCondition: EndCondition = EndCondition(),
     val minPlayers: Int = DEFAULT_MIN_PLAYERS,
-    val maxPlayers: Int = DEFAULT_MAX_PLAYERS
+    val maxPlayers: Int = DEFAULT_MAX_PLAYERS,
+    /** Feuille de catégories fixes (voir [ScoreSheets]), ou null pour un tableau de manches classique. */
+    val sheet: String? = null
 ) {
     /** Sérialise cette règle en JSON, pour la sauvegarde dans les SharedPreferences. */
     fun toJson(): JSONObject {
@@ -102,6 +105,7 @@ data class GameRules(
         obj.put("scoreMode", scoreMode.name)
         obj.put("minPlayers", minPlayers)
         obj.put("maxPlayers", maxPlayers)
+        sheet?.let { obj.put("sheet", it) }
 
         val multipliersArray = JSONArray()
         multipliers.forEach { m ->
@@ -199,7 +203,8 @@ data class GameRules(
                 scoreMode = scoreMode,
                 endCondition = endCondition,
                 minPlayers = obj.optInt("minPlayers", DEFAULT_MIN_PLAYERS),
-                maxPlayers = obj.optInt("maxPlayers", DEFAULT_MAX_PLAYERS)
+                maxPlayers = obj.optInt("maxPlayers", DEFAULT_MAX_PLAYERS),
+                sheet = obj.optString("sheet", "").ifBlank { null }
             )
         }
     }

@@ -109,18 +109,20 @@ data class SavedGame(
     /** Total de chaque joueur au moment de l'enregistrement (même index que [players]). */
     fun totals(): List<Int> = when (gameRules.scoreMode) {
         ScoreMode.TABLE -> players.indices.map { p ->
-            cellSnapshots.orEmpty().fold(0) { acc, round ->
+            // Score de chaque manche (ou catégorie) pour ce joueur ; null = case vide.
+            val values = cellSnapshots.orEmpty().map { round ->
                 val cell = round.getOrNull(p)
                 val base = cell?.baseValue
                 if (cell == null || base == null) {
-                    acc
+                    null
                 } else {
                     val rule = gameRules.multipliers.find { it.id == cell.multiplierId }
                         ?: GameRules.NORMAL_MULTIPLIER
                     val magnitude = base * rule.factor + rule.bonus
-                    acc + if (cell.isNegative) -magnitude else magnitude
+                    if (cell.isNegative) -magnitude else magnitude
                 }
             }
+            values.sumOf { it ?: 0 } + ScoreSheets.bonus(gameRules.sheet, values)
         }
         ScoreMode.COUNTER -> players.indices.map { counters?.getOrNull(it) ?: 0 }
         ScoreMode.VARIABLE_TEAMS -> players.indices.map { p ->
