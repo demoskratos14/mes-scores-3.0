@@ -249,7 +249,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                         )
                                     }
                                 }
-                                if (sheetRows != null) {
+                                if (viewModel.sheetHasBonus) {
                                     Box(
                                         modifier = Modifier.width(labelColumnWidth).height(BONUS_ROW_HEIGHT),
                                         contentAlignment = Alignment.CenterStart
@@ -278,6 +278,8 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                             ScoreCell(
                                                 choices = rowLabel?.options,
                                                 title = rowLabelText,
+                                                hint = rowLabel?.hint?.let { stringResource(it) },
+                                                zeroCrossesOut = rowLabel?.zeroCrossesOut ?: true,
                                                 cell = round[playerIndex],
                                                 allowNegative = viewModel.gameRules.allowNegativeScores,
                                                 multipliers = multipliers,
@@ -291,7 +293,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                             )
                                         }
                                     }
-                                    if (sheetRows != null) {
+                                    if (viewModel.sheetHasBonus) {
                                         val upper = viewModel.sheetUpperTotalFor(playerIndex)
                                         val bonus = viewModel.sheetBonusFor(playerIndex)
                                         Box(
@@ -362,6 +364,8 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
 private fun ScoreCell(
     choices: List<Int>? = null,
     title: String? = null,
+    hint: String? = null,
+    zeroCrossesOut: Boolean = true,
     cell: CellState,
     allowNegative: Boolean,
     multipliers: List<ScoreMultiplier>,
@@ -428,6 +432,8 @@ private fun ScoreCell(
         ScoreChoiceDialog(
             title = title ?: stringResource(R.string.score_enter_title),
             options = choices,
+            hint = hint,
+            zeroCrossesOut = zeroCrossesOut,
             current = cell.baseValue,
             onPick = { value ->
                 showDialog = false
@@ -523,6 +529,8 @@ private fun ScoreInputDialog(
 private fun ScoreChoiceDialog(
     title: String,
     options: List<Int>,
+    hint: String?,
+    zeroCrossesOut: Boolean,
     current: Int?,
     onPick: (Int?) -> Unit,
     onDismiss: () -> Unit
@@ -535,7 +543,7 @@ private fun ScoreChoiceDialog(
                 options.chunked(3).forEach { rowOptions ->
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         rowOptions.forEach { value ->
-                            val label = if (value == 0) stringResource(R.string.sheet_cross_out) else value.toString()
+                            val label = if (value == 0 && zeroCrossesOut) stringResource(R.string.sheet_cross_out) else value.toString()
                             if (value == current) {
                                 Button(onClick = { onPick(value) }, modifier = Modifier.weight(1f)) { Text(label, maxLines = 1) }
                             } else {
@@ -544,6 +552,9 @@ private fun ScoreChoiceDialog(
                         }
                         repeat(3 - rowOptions.size) { Spacer(modifier = Modifier.weight(1f)) }
                     }
+                }
+                if (hint != null) {
+                    Text(hint, style = MaterialTheme.typography.bodySmall)
                 }
             }
         },

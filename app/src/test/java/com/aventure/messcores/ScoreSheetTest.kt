@@ -112,4 +112,72 @@ class ScoreSheetTest {
         assertTrue(vm.isGameOver())
         assertEquals(listOf(0), vm.winners())
     }
+
+    @Test
+    fun laFeuilleQwixxAQuatreCouleursEtLesPenalitesSansBonus() {
+        val rows = ScoreSheets.rows(ScoreSheets.QWIXX)!!
+        assertEquals(5, rows.size)
+        // 1 + 2 + … + n pour n croix, jusqu'à 78 points avec 12 croix.
+        assertEquals(listOf(0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78), rows.first().options)
+        assertEquals(listOf(0, -5, -10, -15, -20), rows.last().options)
+        assertFalse(ScoreSheets.hasBonus(ScoreSheets.QWIXX))
+        assertTrue(ScoreSheets.hasBonus(ScoreSheets.YAMS))
+        assertEquals(0, ScoreSheets.bonus(ScoreSheets.QWIXX, listOf(78, 78, 78, 78, 0)))
+    }
+
+    @Test
+    fun leTotalQwixxSoustraitLesPenalites() {
+        val qwixx = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().first { it.id == "builtin_qwixx" }
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben"), qwixx) }
+        assertEquals(5, vm.scores.size)
+        vm.setCell(0, 0, 21, false)
+        vm.setCell(1, 0, 10, false)
+        vm.setCell(2, 0, 6, false)
+        vm.setCell(3, 0, 3, false)
+        vm.setCell(4, 0, -10, false)
+        assertEquals(30, vm.totalFor(0))
+        assertEquals(0, vm.sheetBonusFor(0))
+        assertFalse(vm.sheetHasBonus)
+        assertFalse(vm.isGameOver())
+    }
+
+    @Test
+    fun lesAutresJeuxDeDesPredefinisOntLesBonnesRegles() {
+        val games = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().associateBy { it.id }
+        assertEquals(10000, games.getValue("builtin_dixmille").endCondition.scoreThreshold)
+        assertEquals(100, games.getValue("builtin_cochon").endCondition.scoreThreshold)
+        assertTrue(games.getValue("builtin_zombie").endCondition.tieBreakOnEqualLeaders)
+        assertTrue(games.getValue("builtin_shutbox").lowestWins)
+        assertEquals(ScoreMode.COUNTER, games.getValue("builtin_kot").scoreMode)
+        assertEquals(ScoreMode.COUNTER, games.getValue("builtin_mexicain").scoreMode)
+        assertTrue(games.getValue("builtin_mexicain").lowestWins)
+        assertEquals(ScoreSheets.QWIXX, games.getValue("builtin_qwixx").sheet)
+        // Chaque identifiant est unique.
+        assertEquals(games.size, GameRepository(RuntimeEnvironment.getApplication()).builtInGames().size)
+    }
+
+    @Test
+    fun kingOfTokyoSArreteA20PointsDeVictoire() {
+        val kot = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().first { it.id == "builtin_kot" }
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben"), kot) }
+        repeat(19) { vm.incrementCounter(0, 1) }
+        assertFalse(vm.isGameOver())
+        vm.incrementCounter(0, 1)
+        assertTrue(vm.isGameOver())
+        assertEquals(listOf(0), vm.winners())
+    }
+
+    @Test
+    fun zombieDiceDepartageLesEgalitesApres13Cerveaux() {
+        val zombie = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().first { it.id == "builtin_zombie" }
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben"), zombie) }
+        vm.setCell(0, 0, 13, false)
+        vm.setCell(0, 1, 13, false)
+        // Égalité en tête : on ne s'arrête pas, une manche décisive est nécessaire.
+        assertFalse(vm.isGameOver())
+        vm.setCell(1, 0, 2, false)
+        vm.setCell(1, 1, 1, false)
+        assertTrue(vm.isGameOver())
+        assertEquals(listOf(0), vm.winners())
+    }
 }

@@ -358,6 +358,9 @@ class ScoreViewModel : ViewModel() {
     /** Lignes de la feuille de catégories du jeu en cours, ou null pour un tableau de manches classique. */
     val sheetRows: List<SheetRow>? get() = ScoreSheets.rows(gameRules.sheet)
 
+    /** Vrai si la feuille de catégories du jeu a une ligne « Bonus » (partie haute du Yams). */
+    val sheetHasBonus: Boolean get() = ScoreSheets.hasBonus(gameRules.sheet)
+
     private fun sheetValuesFor(player: Int): List<Int?> =
         _scores.map { round -> round.getOrNull(player)?.let { effectiveValue(it) } }
 

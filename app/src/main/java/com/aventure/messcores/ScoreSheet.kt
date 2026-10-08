@@ -8,12 +8,16 @@ import androidx.annotation.StringRes
  * @param options scores proposés en boutons dans la fenêtre de saisie (0 sert à « barrer » la case) ;
  *   null si le score est libre (somme des dés), saisi au clavier.
  * @param upper vrai pour la partie haute, dont le total donne droit au bonus.
+ * @param hint texte d'aide affiché sous les boutons de saisie (ex : table croix → points), ou null.
+ * @param zeroCrossesOut vrai si le bouton 0 s'affiche « Barrer » (Yams), faux s'il s'affiche « 0 ».
  */
 data class SheetRow(
     val id: String,
     @StringRes val label: Int,
     val options: List<Int>?,
-    val upper: Boolean = false
+    val upper: Boolean = false,
+    @StringRes val hint: Int? = null,
+    val zeroCrossesOut: Boolean = true
 )
 
 /**
@@ -22,6 +26,7 @@ data class SheetRow(
  */
 object ScoreSheets {
     const val YAMS = "yams"
+    const val QWIXX = "qwixx"
 
     /** Total de la partie haute à atteindre pour avoir le bonus. */
     const val UPPER_BONUS_THRESHOLD = 63
@@ -43,11 +48,28 @@ object ScoreSheets {
         SheetRow("chance", R.string.sheet_yams_chance, null)
     )
 
+    // Qwixx : points d'une couleur = 1 + 2 + … + n pour n croix (le cadenas compte comme une croix), jusqu'à 12.
+    private val qwixxPoints = (0..12).map { it * (it + 1) / 2 }
+    private val qwixxRows: List<SheetRow> = listOf(
+        SheetRow("red", R.string.sheet_qwixx_red, qwixxPoints, hint = R.string.sheet_qwixx_hint, zeroCrossesOut = false),
+        SheetRow("yellow", R.string.sheet_qwixx_yellow, qwixxPoints, hint = R.string.sheet_qwixx_hint, zeroCrossesOut = false),
+        SheetRow("green", R.string.sheet_qwixx_green, qwixxPoints, hint = R.string.sheet_qwixx_hint, zeroCrossesOut = false),
+        SheetRow("blue", R.string.sheet_qwixx_blue, qwixxPoints, hint = R.string.sheet_qwixx_hint, zeroCrossesOut = false),
+        SheetRow(
+            "penalties", R.string.sheet_qwixx_penalties, listOf(0, -5, -10, -15, -20),
+            hint = R.string.sheet_qwixx_penalty_hint, zeroCrossesOut = false
+        )
+    )
+
     /** Lignes de la feuille [sheetId], ou null si ce n'est pas une feuille de catégories. */
     fun rows(sheetId: String?): List<SheetRow>? = when (sheetId) {
         YAMS -> yamsRows
+        QWIXX -> qwixxRows
         else -> null
     }
+
+    /** Vrai si la feuille a une partie haute donnant un bonus (Yams, pas Qwixx). */
+    fun hasBonus(sheetId: String?): Boolean = rows(sheetId)?.any { it.upper } == true
 
     /** Total de la partie haute d'un joueur ; [rowValues] donne le score de chaque ligne (null = vide). */
     fun upperTotal(sheetId: String?, rowValues: List<Int?>): Int {
@@ -57,5 +79,5 @@ object ScoreSheets {
 
     /** Bonus de la partie haute (35 points dès 63), ou 0. */
     fun bonus(sheetId: String?, rowValues: List<Int?>): Int =
-        if (rows(sheetId) != null && upperTotal(sheetId, rowValues) >= UPPER_BONUS_THRESHOLD) UPPER_BONUS else 0
+        if (hasBonus(sheetId) && upperTotal(sheetId, rowValues) >= UPPER_BONUS_THRESHOLD) UPPER_BONUS else 0
 }
