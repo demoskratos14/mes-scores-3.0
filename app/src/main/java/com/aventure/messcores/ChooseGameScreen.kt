@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
@@ -55,14 +57,14 @@ fun ChooseGameScreen(
     var selectedId by rememberSaveable { mutableStateOf("builtin_generic") }
     val selected = games.firstOrNull { it.id == selectedId } ?: games.first()
     val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
+    var expandedCategory by remember { mutableStateOf<GameCategory?>(null) }
     var longGame by remember { mutableStateOf(false) }
     var genericMode by remember { mutableStateOf(ScoreMode.TABLE) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Card(
@@ -75,40 +77,51 @@ fun ChooseGameScreen(
             ) {
                 Text(stringResource(R.string.choose_title), style = MaterialTheme.typography.headlineMedium)
 
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = selected.name,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.choose_game_label)) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        games.forEach { game ->
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(game.name)
-                                        Text(
-                                            text = ruleSummary(context, game),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                // Un menu déroulant par rubrique : chaque liste reste courte. Le jeu choisi s'affiche
+                // dans le menu de sa rubrique, les autres menus restent vides.
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GameCategory.entries.forEach { category ->
+                        val inCategory = games.filter { it.category() == category }
+                        if (inCategory.isNotEmpty()) {
+                            val isOpen = expandedCategory == category
+                            ExposedDropdownMenuBox(
+                                expanded = isOpen,
+                                onExpandedChange = { expandedCategory = if (it) category else null }
+                            ) {
+                                OutlinedTextField(
+                                    value = if (selected.category() == category) selected.name else "",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text(stringResource(category.label)) },
+                                    placeholder = { Text(stringResource(R.string.choose_pick)) },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isOpen) },
+                                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth()
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = isOpen,
+                                    onDismissRequest = { expandedCategory = null }
+                                ) {
+                                    inCategory.forEach { game ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Column {
+                                                    Text(game.name)
+                                                    Text(
+                                                        text = ruleSummary(context, game),
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            },
+                                            onClick = {
+                                                selectedId = game.id
+                                                errorMessage = null
+                                                expandedCategory = null
+                                            }
                                         )
                                     }
-                                },
-                                onClick = {
-                                    selectedId = game.id
-                                    errorMessage = null
-                                    expanded = false
                                 }
-                            )
+                            }
                         }
                     }
                 }
