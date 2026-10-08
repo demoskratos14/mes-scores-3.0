@@ -25,7 +25,7 @@
     <string name="quit_save_and_quit">Enregistrer et quitter</string>
     <string name="quit_continue">Continuer la partie</string>
     <string name="choose_title">Quel jeu ?</string>
-    <string name="choose_game_label">Jeu</string>
+    <string name="choose_pick">Choisir un jeu</string>
     <string name="choose_long_game">Partie longue</string>
     <string name="choose_end_1000">Fin à 1000 points</string>
     <string name="choose_end_500">Fin à 500 points</string>
@@ -515,4 +515,9 @@
     <string name="rules_qwixx_4_body">Pour chaque couleur : 1 croix = 1 point, 2 croix = 3 points, 3 croix = 6 points, et ainsi de suite (1 + 2 + 3 +…), jusqu\'à 78 points pour 12 croix. Chaque pénalité fait perdre 5 points.</string>
     <string name="rules_qwixx_5_title">Dans l\'appli</string>
     <string name="rules_qwixx_5_body">À la fin de la partie, touche la case de chaque couleur pour choisir les points correspondant au nombre de croix, puis celle des pénalités. La partie est terminée quand toutes les cases sont remplies.</string>
+
+    <string name="category_classic">Classique</string>
+    <string name="category_cards">Jeux de cartes</string>
+    <string name="category_dice">Jeux de dés</string>
+    <string name="category_other">Autres</string>
 </resources>
