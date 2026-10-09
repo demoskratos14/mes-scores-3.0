@@ -1,4 +1,6 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:locale="fr"
+    tools:ignore="Typos,TypographyDashes">
     <string name="app_name">Mes Scores</string>
 
     <string name="common_ok">OK</string>
