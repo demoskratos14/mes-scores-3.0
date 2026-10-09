@@ -137,6 +137,49 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_qwixx_3_title, R.string.rules_qwixx_3_body),
         RulesSection(R.string.rules_qwixx_4_title, R.string.rules_qwixx_4_body),
         RulesSection(R.string.rules_qwixx_5_title, R.string.rules_qwixx_5_body)
+    ),
+    "builtin_coinche" to listOf(
+        RulesSection(R.string.rules_coinche_1_title, R.string.rules_coinche_1_body),
+        RulesSection(R.string.rules_coinche_2_title, R.string.rules_coinche_2_body),
+        RulesSection(R.string.rules_coinche_3_title, R.string.rules_coinche_3_body),
+        RulesSection(R.string.rules_coinche_4_title, R.string.rules_coinche_4_body)
+    ),
+    "builtin_president" to listOf(
+        RulesSection(R.string.rules_president_1_title, R.string.rules_president_1_body),
+        RulesSection(R.string.rules_president_2_title, R.string.rules_president_2_body),
+        RulesSection(R.string.rules_president_3_title, R.string.rules_president_3_body),
+        RulesSection(R.string.rules_president_4_title, R.string.rules_president_4_body),
+        RulesSection(R.string.rules_president_5_title, R.string.rules_president_5_body)
+    ),
+    "builtin_coeurs" to listOf(
+        RulesSection(R.string.rules_coeurs_1_title, R.string.rules_coeurs_1_body),
+        RulesSection(R.string.rules_coeurs_2_title, R.string.rules_coeurs_2_body),
+        RulesSection(R.string.rules_coeurs_3_title, R.string.rules_coeurs_3_body),
+        RulesSection(R.string.rules_coeurs_4_title, R.string.rules_coeurs_4_body)
+    ),
+    "builtin_pique" to listOf(
+        RulesSection(R.string.rules_pique_1_title, R.string.rules_pique_1_body),
+        RulesSection(R.string.rules_pique_2_title, R.string.rules_pique_2_body),
+        RulesSection(R.string.rules_pique_3_title, R.string.rules_pique_3_body),
+        RulesSection(R.string.rules_pique_4_title, R.string.rules_pique_4_body)
+    ),
+    "builtin_gin" to listOf(
+        RulesSection(R.string.rules_gin_1_title, R.string.rules_gin_1_body),
+        RulesSection(R.string.rules_gin_2_title, R.string.rules_gin_2_body),
+        RulesSection(R.string.rules_gin_3_title, R.string.rules_gin_3_body),
+        RulesSection(R.string.rules_gin_4_title, R.string.rules_gin_4_body)
+    ),
+    "builtin_huit" to listOf(
+        RulesSection(R.string.rules_huit_1_title, R.string.rules_huit_1_body),
+        RulesSection(R.string.rules_huit_2_title, R.string.rules_huit_2_body),
+        RulesSection(R.string.rules_huit_3_title, R.string.rules_huit_3_body),
+        RulesSection(R.string.rules_huit_4_title, R.string.rules_huit_4_body)
+    ),
+    "builtin_cribbage" to listOf(
+        RulesSection(R.string.rules_cribbage_1_title, R.string.rules_cribbage_1_body),
+        RulesSection(R.string.rules_cribbage_2_title, R.string.rules_cribbage_2_body),
+        RulesSection(R.string.rules_cribbage_3_title, R.string.rules_cribbage_3_body),
+        RulesSection(R.string.rules_cribbage_4_title, R.string.rules_cribbage_4_body)
     )
 )
 

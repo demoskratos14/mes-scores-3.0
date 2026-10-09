@@ -12,7 +12,10 @@ enum class GameCategory(@StringRes val label: Int) {
 
 // Jeux de cartes classiques (cartes à nombre et figures, quel que soit le paquet : 32, 52, 78…).
 // Skyjo et Uno ont des paquets spéciaux : ils vont dans « Autres ».
-private val CARD_GAMES = setOf("builtin_tarot", "builtin_belote", "builtin_rami")
+private val CARD_GAMES = setOf(
+    "builtin_tarot", "builtin_belote", "builtin_rami", "builtin_coinche", "builtin_president",
+    "builtin_coeurs", "builtin_pique", "builtin_gin", "builtin_huit", "builtin_cribbage"
+)
 
 private val DICE_GAMES = setOf(
     "builtin_yams", "builtin_421", "builtin_cdc", "builtin_dixmille", "builtin_cochon", "builtin_zombie",

@@ -180,4 +180,42 @@ class ScoreSheetTest {
         assertTrue(vm.isGameOver())
         assertEquals(listOf(0), vm.winners())
     }
+
+    @Test
+    fun lesJeuxDeCartesAjoutesOntLesBonnesRegles() {
+        val games = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().associateBy { it.id }
+
+        val coinche = games.getValue("builtin_coinche")
+        assertEquals(listOf(1, 2, 4), coinche.multipliers.map { it.factor })
+        assertEquals(1000, coinche.endCondition.scoreThreshold)
+
+        val coeurs = games.getValue("builtin_coeurs")
+        assertTrue(coeurs.lowestWins)
+        assertEquals(100, coeurs.endCondition.scoreThreshold)
+
+        assertEquals(500, games.getValue("builtin_pique").endCondition.scoreThreshold)
+        assertEquals(2, games.getValue("builtin_gin").maxPlayers)
+        assertTrue(games.getValue("builtin_huit").lowestWins)
+        assertTrue(games.getValue("builtin_president").allowNegativeScores)
+        assertTrue(games.getValue("builtin_cribbage").endCondition.stopImmediately)
+    }
+
+    @Test
+    fun leCribbageSArreteDesQuUnJoueurAtteint121() {
+        val cribbage = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().first { it.id == "builtin_cribbage" }
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben"), cribbage) }
+        vm.setCell(0, 0, 100, false)
+        assertFalse(vm.isGameOver())
+        vm.setCell(1, 0, 21, false)
+        assertTrue(vm.isGameOver())
+    }
+
+    @Test
+    fun coeursSArreteA100EtLePlusPetitScoreGagne() {
+        val coeurs = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().first { it.id == "builtin_coeurs" }
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben", "Chloé"), coeurs) }
+        for (player in 0..2) vm.setCell(0, player, listOf(100, 20, 30)[player], false)
+        assertTrue(vm.isGameOver())
+        assertEquals(listOf(1), vm.winners())
+    }
 }

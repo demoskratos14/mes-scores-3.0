@@ -18,7 +18,10 @@ class GameCategoryTest {
         val byId = builtIns.associate { it.id to it.category() }
         assertEquals(GameCategory.CLASSIC, byId.getValue("builtin_generic"))
         // Cartes classiques (nombres et figures, 32 / 52 / 78 cartes) seulement.
-        for (id in listOf("builtin_tarot", "builtin_belote", "builtin_rami")) {
+        for (id in listOf(
+            "builtin_tarot", "builtin_belote", "builtin_rami", "builtin_coinche", "builtin_president",
+            "builtin_coeurs", "builtin_pique", "builtin_gin", "builtin_huit", "builtin_cribbage"
+        )) {
             assertEquals(id, GameCategory.CARDS, byId.getValue(id))
         }
         // Paquets spéciaux : Autres.
