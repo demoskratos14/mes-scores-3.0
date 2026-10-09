@@ -328,66 +328,82 @@
     <plurals name="players_count">
         <item quantity="one">%d joueur</item>
         <item quantity="other">%d joueurs</item>
+        <item quantity="many">%d de joueurs</item>
     </plurals>
     <plurals name="games_count">
         <item quantity="one">%d partie</item>
         <item quantity="other">%d parties</item>
+        <item quantity="many">%d de parties</item>
     </plurals>
     <plurals name="victories_count">
         <item quantity="one">%d victoire</item>
         <item quantity="other">%d victoires</item>
+        <item quantity="many">%d de victoires</item>
     </plurals>
     <plurals name="matches_count">
         <item quantity="one">%d match</item>
         <item quantity="other">%d matchs</item>
+        <item quantity="many">%d de matchs</item>
     </plurals>
     <plurals name="history_import_added">
         <item quantity="one">%d partie ajoutée</item>
         <item quantity="other">%d parties ajoutées</item>
+        <item quantity="many">%d de parties ajoutées</item>
     </plurals>
     <plurals name="history_import_updated">
         <item quantity="one">%d partie mise à jour</item>
         <item quantity="other">%d parties mises à jour</item>
+        <item quantity="many">%d de parties mises à jour</item>
     </plurals>
     <plurals name="history_import_unchanged">
         <item quantity="one">%d partie déjà à jour</item>
         <item quantity="other">%d parties déjà à jour</item>
+        <item quantity="many">%d de parties déjà à jour</item>
     </plurals>
     <plurals name="history_import_invalid">
         <item quantity="one">%d partie illisible (ignorée)</item>
         <item quantity="other">%d parties illisibles (ignorées)</item>
+        <item quantity="many">%d de parties illisibles (ignorées)</item>
     </plurals>
     <plurals name="history_import_dropped">
         <item quantity="one">%1$d partie ancienne supprimée (limite de %2$d)</item>
         <item quantity="other">%1$d parties anciennes supprimées (limite de %2$d)</item>
+        <item quantity="many">%1$d de parties anciennes supprimées (limite de %2$d)</item>
     </plurals>
     <plurals name="stats_finished_count">
         <item quantity="one">%d partie terminée</item>
         <item quantity="other">%d parties terminées</item>
+        <item quantity="many">%d de parties terminées</item>
     </plurals>
     <plurals name="stats_in_progress_ignored">
         <item quantity="one">" (%d partie en cours ignorée)"</item>
         <item quantity="other">" (%d parties en cours ignorées)"</item>
+        <item quantity="many">" (%d de parties en cours ignorées)"</item>
     </plurals>
     <plurals name="tarot_bouts">
         <item quantity="one">%d bout</item>
         <item quantity="other">%d bouts</item>
+        <item quantity="many">%d de bouts</item>
     </plurals>
     <plurals name="tarot_contract_success">
         <item quantity="one">Contrat réussi de %d point</item>
         <item quantity="other">Contrat réussi de %d points</item>
+        <item quantity="many">Contrat réussi de %d de points</item>
     </plurals>
     <plurals name="tarot_contract_failed">
         <item quantity="one">Contrat chuté de %d point</item>
         <item quantity="other">Contrat chuté de %d points</item>
+        <item quantity="many">Contrat chuté de %d de points</item>
     </plurals>
     <plurals name="spoken_minutes">
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
+        <item quantity="many">%d de minutes</item>
     </plurals>
     <plurals name="spoken_seconds">
         <item quantity="one">%d seconde</item>
         <item quantity="other">%d secondes</item>
+        <item quantity="many">%d de secondes</item>
     </plurals>
 
     <string name="game_yams">Yams</string>
