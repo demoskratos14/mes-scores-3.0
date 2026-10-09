@@ -37,6 +37,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -249,20 +250,6 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                         )
                                     }
                                 }
-                                if (viewModel.sheetHasBonus) {
-                                    Box(
-                                        modifier = Modifier.width(labelColumnWidth).height(BONUS_ROW_HEIGHT),
-                                        contentAlignment = Alignment.CenterStart
-                                    ) {
-                                        Text(stringResource(R.string.sheet_bonus), style = MaterialTheme.typography.bodySmall)
-                                    }
-                                }
-                                Box(
-                                    modifier = Modifier.width(labelColumnWidth).height(TOTAL_ROW_HEIGHT),
-                                    contentAlignment = Alignment.CenterStart
-                                ) {
-                                    Text(stringResource(R.string.score_total), fontWeight = FontWeight.Bold)
-                                }
                             }
 
                             players.forEachIndexed { playerIndex, _ ->
@@ -293,6 +280,33 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                             )
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    // ----- Pied fixe : bonus et total toujours visibles sous les manches qui défilent -----
+                    HorizontalDivider()
+                    Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
+                        Column {
+                                if (viewModel.sheetHasBonus) {
+                                    Box(
+                                        modifier = Modifier.width(labelColumnWidth).height(BONUS_ROW_HEIGHT),
+                                        contentAlignment = Alignment.CenterStart
+                                    ) {
+                                        Text(stringResource(R.string.sheet_bonus), style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                                Box(
+                                    modifier = Modifier.width(labelColumnWidth).height(TOTAL_ROW_HEIGHT),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Text(stringResource(R.string.score_total), fontWeight = FontWeight.Bold)
+                                }
+                        }
+                        players.forEachIndexed { playerIndex, _ ->
+                            val color = playerColors.getOrElse(playerIndex) { Color.Black }
+                            Column {
                                     if (viewModel.sheetHasBonus) {
                                         val upper = viewModel.sheetUpperTotalFor(playerIndex)
                                         val bonus = viewModel.sheetBonusFor(playerIndex)
@@ -321,7 +335,6 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                             color = playerTextColor(color)
                                         )
                                     }
-                                }
                             }
                         }
                     }
