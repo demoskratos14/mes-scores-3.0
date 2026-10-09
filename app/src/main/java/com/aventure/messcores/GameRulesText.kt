@@ -180,6 +180,29 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_cribbage_2_title, R.string.rules_cribbage_2_body),
         RulesSection(R.string.rules_cribbage_3_title, R.string.rules_cribbage_3_body),
         RulesSection(R.string.rules_cribbage_4_title, R.string.rules_cribbage_4_body)
+    ),
+    "builtin_milleb" to listOf(
+        RulesSection(R.string.rules_milleb_1_title, R.string.rules_milleb_1_body),
+        RulesSection(R.string.rules_milleb_2_title, R.string.rules_milleb_2_body),
+        RulesSection(R.string.rules_milleb_3_title, R.string.rules_milleb_3_body),
+        RulesSection(R.string.rules_milleb_4_title, R.string.rules_milleb_4_body)
+    ),
+    "builtin_sixqp" to listOf(
+        RulesSection(R.string.rules_sixqp_1_title, R.string.rules_sixqp_1_body),
+        RulesSection(R.string.rules_sixqp_2_title, R.string.rules_sixqp_2_body),
+        RulesSection(R.string.rules_sixqp_3_title, R.string.rules_sixqp_3_body),
+        RulesSection(R.string.rules_sixqp_4_title, R.string.rules_sixqp_4_body)
+    ),
+    "builtin_papayoo" to listOf(
+        RulesSection(R.string.rules_papayoo_1_title, R.string.rules_papayoo_1_body),
+        RulesSection(R.string.rules_papayoo_2_title, R.string.rules_papayoo_2_body),
+        RulesSection(R.string.rules_papayoo_3_title, R.string.rules_papayoo_3_body)
+    ),
+    "builtin_cabo" to listOf(
+        RulesSection(R.string.rules_cabo_1_title, R.string.rules_cabo_1_body),
+        RulesSection(R.string.rules_cabo_2_title, R.string.rules_cabo_2_body),
+        RulesSection(R.string.rules_cabo_3_title, R.string.rules_cabo_3_body),
+        RulesSection(R.string.rules_cabo_4_title, R.string.rules_cabo_4_body)
     )
 )
 

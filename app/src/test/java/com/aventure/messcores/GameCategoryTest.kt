@@ -36,7 +36,10 @@ class GameCategoryTest {
     fun seulsLesJeuxAPaquetSpecialSontDansAutres() {
         // Un nouveau jeu prédéfini oublié dans GameCategory.kt atterrirait dans « Autres » : on le détecte ici.
         val others = builtIns.filter { it.category() == GameCategory.OTHER }.map { it.id }.toSet()
-        assertEquals(setOf("builtin_skyjo", "builtin_uno"), others)
+        assertEquals(
+            setOf("builtin_skyjo", "builtin_uno", "builtin_milleb", "builtin_sixqp", "builtin_papayoo", "builtin_cabo"),
+            others
+        )
     }
 
     @Test

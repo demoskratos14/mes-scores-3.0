@@ -160,6 +160,45 @@ class GameRepository(private val context: Context) {
             endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 121, stopImmediately = true)
         ),
         GameRules(
+            id = "builtin_milleb",
+            name = context.getString(R.string.game_milleb),
+            minPlayers = 2,
+            maxPlayers = 6,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 5000, stopImmediately = false)
+        ),
+        GameRules(
+            id = "builtin_sixqp",
+            name = context.getString(R.string.game_sixqp),
+            minPlayers = 2,
+            maxPlayers = 10,
+            lowestWins = true,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 66, stopImmediately = false)
+        ),
+        GameRules(
+            id = "builtin_papayoo",
+            name = context.getString(R.string.game_papayoo),
+            minPlayers = 3,
+            maxPlayers = 8,
+            lowestWins = true,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_cabo",
+            name = context.getString(R.string.game_cabo),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = true,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 101, stopImmediately = false)
+        ),
+        GameRules(
             id = "builtin_yams",
             name = context.getString(R.string.game_yams),
             minPlayers = 1,

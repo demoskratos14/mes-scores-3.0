@@ -588,4 +588,39 @@
     <string name="rules_cribbage_3_body">Quinze (cartes totalisant 15) : 2 points. Paire : 2 points ; brelan : 6 points ; carré : 12 points. Suite de 3 cartes ou plus : 1 point par carte. Couleur : 4 points pour 4 cartes de la même couleur dans la main, 5 si la carte retournée est aussi de cette couleur. Valet de la même couleur que la carte retournée (« nob ») : 1 point. Figures = 10 points, as = 1 point.</string>
     <string name="rules_cribbage_4_title">Dans l\'appli</string>
     <string name="rules_cribbage_4_body">Saisis, dans la colonne de chaque joueur, les points marqués à chaque phase (pegging, main, crib) comme une ligne du tableau.</string>
+
+    <string name="game_milleb">Mille Bornes</string>
+    <string name="game_sixqp">6 qui prend !</string>
+    <string name="game_papayoo">Papayoo</string>
+    <string name="game_cabo">Cabo</string>
+    <string name="rules_milleb_1_title">But du jeu</string>
+    <string name="rules_milleb_1_body">Parcourir 1 000 bornes (kilomètres) avant les autres équipes, en posant des cartes de distance et en gênant ses adversaires. Une partie se joue en plusieurs donnes : la première équipe à atteindre 5 000 points au total gagne. L\'appli termine la manche en cours puis annonce le gagnant.</string>
+    <string name="rules_milleb_2_title">Le tour de jeu</string>
+    <string name="rules_milleb_2_body">On pioche une carte puis on en joue ou on en défausse une. Pour avancer, il faut d\'abord un feu vert. Les attaques (accident, panne d\'essence, crevaison, limite de vitesse, feu rouge) bloquent les adversaires ; les parades les débloquent ; les bottes (as du volant, camion-citerne, increvable, prioritaire) les protègent pour toujours. Il est interdit de dépasser 1 000 bornes.</string>
+    <string name="rules_milleb_3_title">Les points</string>
+    <string name="rules_milleb_3_body">Chaque borne parcourue vaut 1 point. Bonus : 100 points par botte posée (300 de plus pour les quatre) ; 300 points par coup fourré (parade immédiate à une attaque grâce à la botte correspondante) ; 400 points pour une étape terminée (1 000 bornes) ; 300 points si l\'étape est terminée après la fin de la pioche (« action différée »), ou sans avoir joué de carte de 200 bornes (« voyage sans 200 »), ou si l\'équipe a joué l\'extension à 1 000 bornes (200 points) ; 500 points si l\'équipe adverse n\'a posé aucune borne (« capot »). Tu peux jouer par équipes de 2 en saisissant deux « joueurs ».</string>
+    <string name="rules_milleb_4_title">Dans l\'appli</string>
+    <string name="rules_milleb_4_body">À la fin de chaque donne, saisis dans la colonne de chaque équipe ses points (distance et bonus). Les valeurs exactes des bonus varient selon l\'édition : adapte-les à la règle de ta boîte.</string>
+    <string name="rules_sixqp_1_title">But du jeu</string>
+    <string name="rules_sixqp_1_body">Ramasser le moins de têtes de bœuf possible. La partie se termine quand un joueur atteint 66 têtes de bœuf (ou plus) : le joueur qui en a le moins gagne. L\'appli termine la manche en cours puis annonce le gagnant.</string>
+    <string name="rules_sixqp_2_title">Le tour de jeu</string>
+    <string name="rules_sixqp_2_body">Les 104 cartes sont numérotées de 1 à 104. Chacun reçoit 10 cartes et 4 cartes sont posées en colonnes sur la table. À chaque tour, tous les joueurs choisissent une carte en secret et la dévoilent ensemble. En commençant par la plus petite, chaque carte se pose en bout de la colonne dont la dernière carte est la plus proche en dessous. Si la carte est plus petite que toutes les cartes de bout de colonne, le joueur choisit une colonne à ramasser.</string>
+    <string name="rules_sixqp_3_title">Les têtes de bœuf</string>
+    <string name="rules_sixqp_3_body">Celui qui pose la 6e carte d\'une colonne ramasse les 5 autres cartes, et leurs têtes de bœuf. Chaque carte vaut 1 tête de bœuf, sauf : les multiples de 5 (2 têtes), les multiples de 10 (3 têtes), les multiples de 11 (5 têtes) et le 55 (7 têtes).</string>
+    <string name="rules_sixqp_4_title">Dans l\'appli</string>
+    <string name="rules_sixqp_4_body">À la fin de chaque manche (10 tours), saisis dans la colonne de chaque joueur le nombre de têtes de bœuf ramassées. Le classement met en tête le plus petit total.</string>
+    <string name="rules_papayoo_1_title">But du jeu</string>
+    <string name="rules_papayoo_1_body">Ramasser le moins de points possible. À chaque manche, chaque carte Payoo ramassée vaut le nombre de points écrit dessus, et le Papayoo (le 7 de la couleur désignée par le dé) vaut 40 points. Les parties se jouent en autant de manches que de joueurs : le plus petit total gagne.</string>
+    <string name="rules_papayoo_2_title">Le tour de jeu</string>
+    <string name="rules_papayoo_2_body">Au début de chaque manche, chaque joueur donne quelques cartes à son voisin, puis un dé désigne la couleur du Papayoo. On joue ensuite comme à la belote, sans atout : on fournit la couleur demandée si on le peut, et le plus gros pli ramasse les cartes.</string>
+    <string name="rules_papayoo_3_title">Dans l\'appli</string>
+    <string name="rules_papayoo_3_body">À la fin de chaque manche, saisis dans la colonne de chaque joueur les points ramassés. L\'appli ne termine pas la partie : à vous d\'arrêter après autant de manches que de joueurs. Le détail des cartes et du nombre de cartes données dépend de la boîte : vérifie la règle de ton exemplaire.</string>
+    <string name="rules_cabo_1_title">But du jeu</string>
+    <string name="rules_cabo_1_body">Avoir la plus petite somme de cartes en main à la fin de chaque manche. La partie se termine quand un joueur dépasse 100 points (l\'appli s\'arrête à 101 et plus) : le joueur qui a le moins de points gagne.</string>
+    <string name="rules_cabo_2_title">Le tour de jeu</string>
+    <string name="rules_cabo_2_body">Chaque joueur a 4 cartes devant lui, qu\'il ne regarde pas (sauf deux au début). À son tour, il pioche une carte, puis la garde en échange d\'une des siennes ou la défausse. Certaines cartes défaussées permettent de regarder une carte, ou d\'échanger des cartes avec un adversaire. Quand un joueur pense avoir la plus petite main, il dit « Cabo » : chacun joue encore un tour, puis on dévoile les cartes.</string>
+    <string name="rules_cabo_3_title">Les points</string>
+    <string name="rules_cabo_3_body">On additionne la valeur des cartes de chaque joueur (les valeurs sont écrites sur les cartes). Celui qui a dit Cabo marque 0 s\'il a la plus petite main, sinon il marque sa somme plus 10 points de pénalité. Les autres marquent leur somme. Si un joueur atteint exactement 100 points, son score retombe à 50 (règle de la boîte).</string>
+    <string name="rules_cabo_4_title">Dans l\'appli</string>
+    <string name="rules_cabo_4_body">À la fin de chaque manche, saisis dans la colonne de chaque joueur sa somme. Si un joueur atteint pile 100, corrige sa case pour le ramener à 50.</string>
 </resources>

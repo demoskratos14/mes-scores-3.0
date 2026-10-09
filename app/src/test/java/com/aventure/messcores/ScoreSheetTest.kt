@@ -218,4 +218,29 @@ class ScoreSheetTest {
         assertTrue(vm.isGameOver())
         assertEquals(listOf(1), vm.winners())
     }
+
+    @Test
+    fun lesJeuxACartesSpecialesOntLesBonnesRegles() {
+        val games = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().associateBy { it.id }
+        assertEquals(5000, games.getValue("builtin_milleb").endCondition.scoreThreshold)
+        assertEquals(66, games.getValue("builtin_sixqp").endCondition.scoreThreshold)
+        assertTrue(games.getValue("builtin_sixqp").lowestWins)
+        assertTrue(games.getValue("builtin_papayoo").lowestWins)
+        assertEquals(EndConditionType.NONE, games.getValue("builtin_papayoo").endCondition.type)
+        // Cabo : la partie s'arrête quand on dépasse 100 (pile 100 = retour à 50, saisi à la main).
+        assertEquals(101, games.getValue("builtin_cabo").endCondition.scoreThreshold)
+    }
+
+    @Test
+    fun caboNeSArretePasAPile100() {
+        val cabo = GameRepository(RuntimeEnvironment.getApplication()).builtInGames().first { it.id == "builtin_cabo" }
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben"), cabo) }
+        vm.setCell(0, 0, 100, false)
+        vm.setCell(0, 1, 40, false)
+        assertFalse(vm.isGameOver())
+        vm.setCell(1, 0, 1, false)
+        vm.setCell(1, 1, 20, false)
+        assertTrue(vm.isGameOver())
+        assertEquals(listOf(1), vm.winners())
+    }
 }
