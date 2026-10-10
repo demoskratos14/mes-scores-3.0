@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -60,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
@@ -255,6 +258,12 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                             players.forEachIndexed { playerIndex, _ ->
                                 val color = playerColors.getOrElse(playerIndex) { Color.Black }
                                 Column {
+                                    // Bowling : score cumulé de ce joueur après chaque frame.
+                                    val bowlingCumulative = if (viewModel.gameRules.sheet == ScoreSheets.BOWLING) {
+                                        BowlingScoring.cumulative(scores.map { it.getOrNull(playerIndex)?.baseValue })
+                                    } else {
+                                        null
+                                    }
                                     scores.forEachIndexed { roundIndex, round ->
                                         Box(
                                             modifier = Modifier.width(playerColumnWidth).height(scoreRowHeight),
@@ -268,6 +277,10 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                                 hint = rowLabel?.hint?.let { stringResource(it) },
                                                 zeroCrossesOut = rowLabel?.zeroCrossesOut ?: true,
                                                 bidScoring = viewModel.gameRules.bidScoring,
+                                                bowlingFrame = if (bowlingCumulative != null) roundIndex else null,
+                                                display = bowlingCumulative?.let {
+                                                    BowlingScoring.display(round[playerIndex].baseValue, it.getOrNull(roundIndex))
+                                                },
                                                 cell = round[playerIndex],
                                                 allowNegative = viewModel.gameRules.allowNegativeScores,
                                                 multipliers = multipliers,
@@ -426,6 +439,8 @@ private fun ScoreCell(
     hint: String? = null,
     zeroCrossesOut: Boolean = true,
     bidScoring: String? = null,
+    bowlingFrame: Int? = null,
+    display: String? = null,
     cell: CellState,
     allowNegative: Boolean,
     multipliers: List<ScoreMultiplier>,
@@ -475,7 +490,16 @@ private fun ScoreCell(
                 .clickable(onClickLabel = stringResource(R.string.score_enter), role = Role.Button) { showDialog = true },
             contentAlignment = Alignment.Center
         ) {
-            if (base != null) {
+            if (display != null) {
+                Text(
+                    text = display,
+                    color = playerTextColor(playerColor),
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2
+                )
+            } else if (base != null) {
                 Text(
                     text = (if (cell.isNegative) "−" else "") + base,
                     color = playerTextColor(playerColor),
@@ -498,6 +522,16 @@ private fun ScoreCell(
             onPick = { value ->
                 showDialog = false
                 onValueEntered(value, false)
+            },
+            onDismiss = { showDialog = false }
+        )
+    } else if (showDialog && bowlingFrame != null) {
+        BowlingFrameDialog(
+            frame = bowlingFrame,
+            title = title,
+            onConfirm = { code ->
+                showDialog = false
+                onValueEntered(code, false)
             },
             onDismiss = { showDialog = false }
         )
@@ -685,6 +719,62 @@ private fun BidScoreDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+        }
+    )
+}
+
+/**
+ * Saisie d'une frame de bowling lancer par lancer : les boutons proposent seulement le nombre de
+ * quilles encore debout. La frame est enregistrée quand tous ses lancers sont saisis.
+ */
+@Composable
+private fun BowlingFrameDialog(
+    frame: Int,
+    title: String?,
+    onConfirm: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val rolls = remember { mutableStateListOf<Int>() }
+    val maxNext = BowlingScoring.maxNextRoll(frame, rolls)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title ?: stringResource(R.string.score_enter_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = if (rolls.isEmpty()) stringResource(R.string.bowling_roll_hint) else BowlingScoring.notation(rolls),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                if (maxNext != null) {
+                    Text(stringResource(R.string.bowling_next_roll, rolls.size + 1), style = MaterialTheme.typography.bodyMedium)
+                    (0..maxNext).toList().chunked(4).forEach { rowValues ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            rowValues.forEach { pins ->
+                                OutlinedButton(
+                                    onClick = { rolls.add(pins) },
+                                    modifier = Modifier.weight(1f),
+                                    contentPadding = PaddingValues(0.dp)
+                                ) { Text(pins.toString(), maxLines = 1) }
+                            }
+                            repeat(4 - rowValues.size) { Spacer(modifier = Modifier.weight(1f)) }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = maxNext == null && rolls.isNotEmpty(),
+                onClick = { onConfirm(BowlingScoring.encode(rolls)) }
+            ) { Text(stringResource(R.string.common_ok)) }
+        },
+        dismissButton = {
+            Row {
+                if (rolls.isNotEmpty()) {
+                    TextButton(onClick = { rolls.removeAt(rolls.lastIndex) }) { Text(stringResource(R.string.bowling_undo)) }
+                }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+            }
         }
     )
 }

@@ -472,7 +472,7 @@ class ScoreViewModel : ViewModel() {
     /** Total cumulé d'un joueur, calculé en parcourant les manches. */
     private fun computeTotal(player: Int): Int = when (gameRules.scoreMode) {
         ScoreMode.TABLE ->
-            _scores.sumOf { round -> round.getOrNull(player)?.let { effectiveValue(it) } ?: 0 } + sheetBonusFor(player)
+            gameRules.tableTotal(sheetValuesFor(player))
         ScoreMode.COUNTER ->
             _counters.getOrNull(player) ?: 0
         ScoreMode.VARIABLE_TEAMS ->
@@ -556,6 +556,8 @@ class ScoreViewModel : ViewModel() {
 
     /** Vrai si la condition de fin de partie définie par les règles du jeu est atteinte. */
     fun isGameOver(): Boolean {
+        // Fléchettes : terminée dès qu'un joueur arrive à 0 pile.
+        if (gameRules.countdownFrom != null) return _scores.isNotEmpty() && totals.any { it == 0 }
         // Phase 10 : terminée dès qu'un joueur a terminé la dernière phase.
         gameRules.phases?.let { last -> return _phases.any { it > last } }
         // Feuille de catégories : terminée quand toutes les cases de tous les joueurs sont remplies.

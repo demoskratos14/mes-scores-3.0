@@ -257,6 +257,100 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_phase10_2_title, R.string.rules_phase10_2_body),
         RulesSection(R.string.rules_phase10_3_title, R.string.rules_phase10_3_body),
         RulesSection(R.string.rules_phase10_4_title, R.string.rules_phase10_4_body)
+    ),
+    "builtin_splendor" to listOf(
+        RulesSection(R.string.rules_splendor_1_title, R.string.rules_splendor_1_body),
+        RulesSection(R.string.rules_splendor_2_title, R.string.rules_splendor_2_body),
+        RulesSection(R.string.rules_splendor_3_title, R.string.rules_splendor_3_body)
+    ),
+    "builtin_dixit" to listOf(
+        RulesSection(R.string.rules_dixit_1_title, R.string.rules_dixit_1_body),
+        RulesSection(R.string.rules_dixit_2_title, R.string.rules_dixit_2_body),
+        RulesSection(R.string.rules_dixit_3_title, R.string.rules_dixit_3_body),
+        RulesSection(R.string.rules_dixit_4_title, R.string.rules_dixit_4_body)
+    ),
+    "builtin_ttr" to listOf(
+        RulesSection(R.string.rules_ttr_1_title, R.string.rules_ttr_1_body),
+        RulesSection(R.string.rules_ttr_2_title, R.string.rules_ttr_2_body),
+        RulesSection(R.string.rules_ttr_3_title, R.string.rules_ttr_3_body)
+    ),
+    "builtin_azul" to listOf(
+        RulesSection(R.string.rules_azul_1_title, R.string.rules_azul_1_body),
+        RulesSection(R.string.rules_azul_2_title, R.string.rules_azul_2_body),
+        RulesSection(R.string.rules_azul_3_title, R.string.rules_azul_3_body)
+    ),
+    "builtin_carcassonne" to listOf(
+        RulesSection(R.string.rules_carcassonne_1_title, R.string.rules_carcassonne_1_body),
+        RulesSection(R.string.rules_carcassonne_2_title, R.string.rules_carcassonne_2_body),
+        RulesSection(R.string.rules_carcassonne_3_title, R.string.rules_carcassonne_3_body)
+    ),
+    "builtin_catane" to listOf(
+        RulesSection(R.string.rules_catane_1_title, R.string.rules_catane_1_body),
+        RulesSection(R.string.rules_catane_2_title, R.string.rules_catane_2_body),
+        RulesSection(R.string.rules_catane_3_title, R.string.rules_catane_3_body)
+    ),
+    "builtin_sevenwonders" to listOf(
+        RulesSection(R.string.rules_sevenwonders_1_title, R.string.rules_sevenwonders_1_body),
+        RulesSection(R.string.rules_sevenwonders_2_title, R.string.rules_sevenwonders_2_body),
+        RulesSection(R.string.rules_sevenwonders_3_title, R.string.rules_sevenwonders_3_body)
+    ),
+    "builtin_scrabble" to listOf(
+        RulesSection(R.string.rules_scrabble_1_title, R.string.rules_scrabble_1_body),
+        RulesSection(R.string.rules_scrabble_2_title, R.string.rules_scrabble_2_body),
+        RulesSection(R.string.rules_scrabble_3_title, R.string.rules_scrabble_3_body)
+    ),
+    "builtin_trivial" to listOf(
+        RulesSection(R.string.rules_trivial_1_title, R.string.rules_trivial_1_body),
+        RulesSection(R.string.rules_trivial_2_title, R.string.rules_trivial_2_body),
+        RulesSection(R.string.rules_trivial_3_title, R.string.rules_trivial_3_body)
+    ),
+    "builtin_petanque" to listOf(
+        RulesSection(R.string.rules_petanque_1_title, R.string.rules_petanque_1_body),
+        RulesSection(R.string.rules_petanque_2_title, R.string.rules_petanque_2_body),
+        RulesSection(R.string.rules_petanque_3_title, R.string.rules_petanque_3_body)
+    ),
+    "builtin_molkky" to listOf(
+        RulesSection(R.string.rules_molkky_1_title, R.string.rules_molkky_1_body),
+        RulesSection(R.string.rules_molkky_2_title, R.string.rules_molkky_2_body),
+        RulesSection(R.string.rules_molkky_3_title, R.string.rules_molkky_3_body),
+        RulesSection(R.string.rules_molkky_4_title, R.string.rules_molkky_4_body)
+    ),
+    "builtin_darts301" to listOf(
+        RulesSection(R.string.rules_darts301_1_title, R.string.rules_darts301_1_body),
+        RulesSection(R.string.rules_darts301_2_title, R.string.rules_darts301_2_body),
+        RulesSection(R.string.rules_darts301_3_title, R.string.rules_darts301_3_body)
+    ),
+    "builtin_darts501" to listOf(
+        RulesSection(R.string.rules_darts501_1_title, R.string.rules_darts501_1_body),
+        RulesSection(R.string.rules_darts501_2_title, R.string.rules_darts501_2_body),
+        RulesSection(R.string.rules_darts501_3_title, R.string.rules_darts501_3_body)
+    ),
+    "builtin_bowling" to listOf(
+        RulesSection(R.string.rules_bowling_1_title, R.string.rules_bowling_1_body),
+        RulesSection(R.string.rules_bowling_2_title, R.string.rules_bowling_2_body),
+        RulesSection(R.string.rules_bowling_3_title, R.string.rules_bowling_3_body),
+        RulesSection(R.string.rules_bowling_4_title, R.string.rules_bowling_4_body)
+    ),
+    "builtin_golf" to listOf(
+        RulesSection(R.string.rules_golf_1_title, R.string.rules_golf_1_body),
+        RulesSection(R.string.rules_golf_2_title, R.string.rules_golf_2_body),
+        RulesSection(R.string.rules_golf_3_title, R.string.rules_golf_3_body)
+    ),
+    "builtin_pingpong" to listOf(
+        RulesSection(R.string.rules_pingpong_1_title, R.string.rules_pingpong_1_body),
+        RulesSection(R.string.rules_pingpong_2_title, R.string.rules_pingpong_2_body)
+    ),
+    "builtin_badminton" to listOf(
+        RulesSection(R.string.rules_badminton_1_title, R.string.rules_badminton_1_body),
+        RulesSection(R.string.rules_badminton_2_title, R.string.rules_badminton_2_body)
+    ),
+    "builtin_volley" to listOf(
+        RulesSection(R.string.rules_volley_1_title, R.string.rules_volley_1_body),
+        RulesSection(R.string.rules_volley_2_title, R.string.rules_volley_2_body)
+    ),
+    "builtin_babyfoot" to listOf(
+        RulesSection(R.string.rules_babyfoot_1_title, R.string.rules_babyfoot_1_body),
+        RulesSection(R.string.rules_babyfoot_2_title, R.string.rules_babyfoot_2_body)
     )
 )
 

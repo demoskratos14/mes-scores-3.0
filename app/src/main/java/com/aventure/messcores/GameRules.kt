@@ -81,6 +81,8 @@ data class ScoreMultiplier(
  * @param sheet identifiant d'une feuille de catégories (ex : Yams) en mode TABLE ; null sinon.
  * @param bidScoring calcul du score depuis l'annonce et les plis réalisés (Wizard, Oh Hell) ; null sinon.
  * @param phases nombre de phases suivies par joueur (Phase 10) ; null sinon.
+ * @param exactTarget score à atteindre exactement (Mölkky) ; au-delà, retour à [exactReset].
+ * @param countdownFrom score de départ d'un jeu qui se décompte jusqu'à 0 (fléchettes).
  */
 data class GameRules(
     val id: String,
@@ -97,7 +99,12 @@ data class GameRules(
     /** Mode de saisie « annonce / plis réalisés » (voir [BidScoring]) pour Wizard et Oh Hell ; null sinon. */
     val bidScoring: String? = null,
     /** Nombre de phases à suivre pour chaque joueur (Phase 10) ; null si le jeu n'en a pas. */
-    val phases: Int? = null
+    val phases: Int? = null,
+    /** Score à atteindre pile (Mölkky : 50) ; au-delà, le score retombe à [exactReset]. */
+    val exactTarget: Int? = null,
+    val exactReset: Int? = null,
+    /** Score de départ d'un jeu qui se décompte jusqu'à 0 (fléchettes : 301 ou 501) ; null sinon. */
+    val countdownFrom: Int? = null
 ) {
     /** Sérialise cette règle en JSON, pour la sauvegarde dans les SharedPreferences. */
     fun toJson(): JSONObject {
@@ -114,6 +121,9 @@ data class GameRules(
         sheet?.let { obj.put("sheet", it) }
         bidScoring?.let { obj.put("bidScoring", it) }
         phases?.let { obj.put("phases", it) }
+        exactTarget?.let { obj.put("exactTarget", it) }
+        exactReset?.let { obj.put("exactReset", it) }
+        countdownFrom?.let { obj.put("countdownFrom", it) }
 
         val multipliersArray = JSONArray()
         multipliers.forEach { m ->
@@ -214,7 +224,10 @@ data class GameRules(
                 maxPlayers = obj.optInt("maxPlayers", DEFAULT_MAX_PLAYERS),
                 sheet = obj.optString("sheet", "").ifBlank { null },
                 bidScoring = obj.optString("bidScoring", "").ifBlank { null },
-                phases = if (obj.has("phases")) obj.optInt("phases") else null
+                phases = if (obj.has("phases")) obj.optInt("phases") else null,
+                exactTarget = if (obj.has("exactTarget")) obj.optInt("exactTarget") else null,
+                exactReset = if (obj.has("exactReset")) obj.optInt("exactReset") else null,
+                countdownFrom = if (obj.has("countdownFrom")) obj.optInt("countdownFrom") else null
             )
         }
     }

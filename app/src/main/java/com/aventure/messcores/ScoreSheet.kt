@@ -27,6 +27,7 @@ data class SheetRow(
 object ScoreSheets {
     const val YAMS = "yams"
     const val QWIXX = "qwixx"
+    const val BOWLING = "bowling"
 
     /** Total de la partie haute à atteindre pour avoir le bonus. */
     const val UPPER_BONUS_THRESHOLD = 63
@@ -61,10 +62,18 @@ object ScoreSheets {
         )
     )
 
+    // Bowling : une ligne par frame. Le contenu d'une case est géré par BowlingScoring.
+    private val bowlingRows: List<SheetRow> = listOf(
+        R.string.sheet_bowling_1, R.string.sheet_bowling_2, R.string.sheet_bowling_3, R.string.sheet_bowling_4,
+        R.string.sheet_bowling_5, R.string.sheet_bowling_6, R.string.sheet_bowling_7, R.string.sheet_bowling_8,
+        R.string.sheet_bowling_9, R.string.sheet_bowling_10
+    ).mapIndexed { i, label -> SheetRow("frame_${i + 1}", label, null) }
+
     /** Lignes de la feuille [sheetId], ou null si ce n'est pas une feuille de catégories. */
     fun rows(sheetId: String?): List<SheetRow>? = when (sheetId) {
         YAMS -> yamsRows
         QWIXX -> qwixxRows
+        BOWLING -> bowlingRows
         else -> null
     }
 

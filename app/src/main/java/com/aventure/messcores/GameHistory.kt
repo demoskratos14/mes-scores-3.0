@@ -124,7 +124,7 @@ data class SavedGame(
                     if (cell.isNegative) -magnitude else magnitude
                 }
             }
-            values.sumOf { it ?: 0 } + ScoreSheets.bonus(gameRules.sheet, values)
+            gameRules.tableTotal(values)
         }
         ScoreMode.COUNTER -> players.indices.map { counters?.getOrNull(it) ?: 0 }
         ScoreMode.VARIABLE_TEAMS -> players.indices.map { p ->

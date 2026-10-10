@@ -292,6 +292,202 @@ class GameRepository(private val context: Context) {
             phases = 10
         ),
         GameRules(
+            id = "builtin_splendor",
+            name = context.getString(R.string.game_splendor),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 15, stopImmediately = false)
+        ),
+        GameRules(
+            id = "builtin_dixit",
+            name = context.getString(R.string.game_dixit),
+            minPlayers = 3,
+            maxPlayers = 8,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 30, stopImmediately = false)
+        ),
+        GameRules(
+            id = "builtin_ttr",
+            name = context.getString(R.string.game_ttr),
+            minPlayers = 2,
+            maxPlayers = 5,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_azul",
+            name = context.getString(R.string.game_azul),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_carcassonne",
+            name = context.getString(R.string.game_carcassonne),
+            minPlayers = 2,
+            maxPlayers = 5,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_catane",
+            name = context.getString(R.string.game_catane),
+            minPlayers = 3,
+            maxPlayers = 6,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.COUNTER,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 10, stopImmediately = true)
+        ),
+        GameRules(
+            id = "builtin_sevenwonders",
+            name = context.getString(R.string.game_sevenwonders),
+            minPlayers = 3,
+            maxPlayers = 7,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_scrabble",
+            name = context.getString(R.string.game_scrabble),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_trivial",
+            name = context.getString(R.string.game_trivial),
+            minPlayers = 2,
+            maxPlayers = 6,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.COUNTER,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 6, stopImmediately = true)
+        ),
+        GameRules(
+            id = "builtin_petanque",
+            name = context.getString(R.string.game_petanque),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 13, stopImmediately = true)
+        ),
+        GameRules(
+            id = "builtin_molkky",
+            name = context.getString(R.string.game_molkky),
+            minPlayers = 2,
+            maxPlayers = 10,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            exactTarget = 50,
+            exactReset = 25,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 50, stopImmediately = true)
+        ),
+        GameRules(
+            id = "builtin_darts301",
+            name = context.getString(R.string.game_darts301),
+            minPlayers = 2,
+            maxPlayers = 8,
+            lowestWins = true,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            countdownFrom = 301
+        ),
+        GameRules(
+            id = "builtin_darts501",
+            name = context.getString(R.string.game_darts501),
+            minPlayers = 2,
+            maxPlayers = 8,
+            lowestWins = true,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            countdownFrom = 501
+        ),
+        GameRules(
+            id = "builtin_bowling",
+            name = context.getString(R.string.game_bowling),
+            minPlayers = 1,
+            maxPlayers = 6,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            sheet = ScoreSheets.BOWLING
+        ),
+        GameRules(
+            id = "builtin_golf",
+            name = context.getString(R.string.game_golf),
+            minPlayers = 1,
+            maxPlayers = 6,
+            lowestWins = true,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_pingpong",
+            name = context.getString(R.string.game_pingpong),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.COUNTER,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 11, stopImmediately = true)
+        ),
+        GameRules(
+            id = "builtin_badminton",
+            name = context.getString(R.string.game_badminton),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.COUNTER,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 21, stopImmediately = true)
+        ),
+        GameRules(
+            id = "builtin_volley",
+            name = context.getString(R.string.game_volley),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.COUNTER,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 25, stopImmediately = true)
+        ),
+        GameRules(
+            id = "builtin_babyfoot",
+            name = context.getString(R.string.game_babyfoot),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.COUNTER,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 10, stopImmediately = true)
+        ),
+        GameRules(
+            id = "builtin_sueca",
+            name = context.getString(R.string.game_sueca),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 4, stopImmediately = true)
+        ),
+        GameRules(
             id = "builtin_yams",
             name = context.getString(R.string.game_yams),
             minPlayers = 1,
