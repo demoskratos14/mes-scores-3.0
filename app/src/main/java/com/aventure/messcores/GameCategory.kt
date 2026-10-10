@@ -15,7 +15,7 @@ enum class GameCategory(@StringRes val label: Int) {
 private val CARD_GAMES = setOf(
     "builtin_tarot", "builtin_belote", "builtin_rami", "builtin_coinche", "builtin_president",
     "builtin_coeurs", "builtin_pique", "builtin_gin", "builtin_huit", "builtin_cribbage",
-    "builtin_manille", "builtin_scopa", "builtin_yaniv", "builtin_barbu", "builtin_ohhell"
+    "builtin_manille", "builtin_scopa", "builtin_yaniv", "builtin_barbu", "builtin_ohhell", "builtin_sueca"
 )
 
 private val DICE_GAMES = setOf(

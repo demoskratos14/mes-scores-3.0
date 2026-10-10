@@ -880,4 +880,16 @@
     <string name="rules_babyfoot_1_body">Être le premier à marquer 10 buts. L\'appli arrête la partie dès qu\'un joueur ou une équipe atteint 10.</string>
     <string name="rules_babyfoot_2_title">Dans l\'appli</string>
     <string name="rules_babyfoot_2_body">Ajoute (+1 / −1) un but au joueur ou à l\'équipe qui vient de marquer.</string>
+
+    <string name="game_sueca">Sueca</string>
+    <string name="rules_sueca_1_title">But du jeu</string>
+    <string name="rules_sueca_1_body">Jeu de plis portugais à 4 joueurs, en deux équipes de 2 (les partenaires sont assis face à face), avec 40 cartes : un jeu de 52 cartes sans les 8, 9 et 10. La première équipe à atteindre 4 points de partie (une « partida ») gagne. L\'appli arrête la partie dès qu\'une équipe atteint 4 points.</string>
+    <string name="rules_sueca_2_title">Les cartes et leurs points</string>
+    <string name="rules_sueca_2_body">L\'ordre des cartes, de la plus forte à la plus faible, est : as, 7 (la « manilha »), roi, valet, dame, 6, 5, 4, 3, 2. Points de cartes : as 11, 7 10, roi 4, valet 3, dame 2, les autres cartes 0. Chaque couleur vaut 30 points, soit 120 points dans tout le jeu.</string>
+    <string name="rules_sueca_3_title">Le tour de jeu</string>
+    <string name="rules_sueca_3_body">Chaque joueur reçoit 10 cartes. Le donneur montre sa dernière carte : sa couleur est l\'atout. On joue 10 plis : il faut fournir la couleur demandée si on le peut, sinon on joue n\'importe quelle carte (on peut couper à l\'atout). Le pli est remporté par la plus forte carte d\'atout, ou à défaut par la plus forte carte de la couleur demandée. Les partenaires ne doivent pas se communiquer leur jeu.</string>
+    <string name="rules_sueca_4_title">Les points de partie</string>
+    <string name="rules_sueca_4_body">À la fin de la donne, chaque équipe compte les points des cartes dans ses plis. Plus de 60 points : 1 point de partie. 91 points ou plus : 2 points de partie. Une équipe qui remporte tous les plis (« dar uma bandeira ») marque 4 points et gagne la partie. À 60 contre 60, personne ne marque (selon les tables, la donne suivante vaut alors un point de plus).</string>
+    <string name="rules_sueca_5_title">Dans l\'appli</string>
+    <string name="rules_sueca_5_body">À la fin de chaque donne, saisis dans la colonne de l\'équipe qui a gagné la donne 1, 2 ou 4 points de partie (0 pour l\'autre équipe). Tu peux jouer avec 2 colonnes (les deux équipes) ou avec 4 joueurs. Certaines régions jouent en 6 points au lieu de 4 : dans ce cas, continue la partie à la main.</string>
 </resources>

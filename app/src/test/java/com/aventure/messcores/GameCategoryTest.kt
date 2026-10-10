@@ -21,7 +21,7 @@ class GameCategoryTest {
         for (id in listOf(
             "builtin_tarot", "builtin_belote", "builtin_rami", "builtin_coinche", "builtin_president",
             "builtin_coeurs", "builtin_pique", "builtin_gin", "builtin_huit", "builtin_cribbage",
-            "builtin_manille", "builtin_scopa", "builtin_yaniv", "builtin_barbu", "builtin_ohhell"
+            "builtin_manille", "builtin_scopa", "builtin_yaniv", "builtin_barbu", "builtin_ohhell", "builtin_sueca"
         )) {
             assertEquals(id, GameCategory.CARDS, byId.getValue(id))
         }

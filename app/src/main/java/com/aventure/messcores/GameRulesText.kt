@@ -351,6 +351,13 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
     "builtin_babyfoot" to listOf(
         RulesSection(R.string.rules_babyfoot_1_title, R.string.rules_babyfoot_1_body),
         RulesSection(R.string.rules_babyfoot_2_title, R.string.rules_babyfoot_2_body)
+    ),
+    "builtin_sueca" to listOf(
+        RulesSection(R.string.rules_sueca_1_title, R.string.rules_sueca_1_body),
+        RulesSection(R.string.rules_sueca_2_title, R.string.rules_sueca_2_body),
+        RulesSection(R.string.rules_sueca_3_title, R.string.rules_sueca_3_body),
+        RulesSection(R.string.rules_sueca_4_title, R.string.rules_sueca_4_body),
+        RulesSection(R.string.rules_sueca_5_title, R.string.rules_sueca_5_body)
     )
 )
 

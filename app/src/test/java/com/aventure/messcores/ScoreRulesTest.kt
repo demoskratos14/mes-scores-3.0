@@ -196,4 +196,20 @@ class ScoreRulesTest {
         assertEquals(10, game("builtin_babyfoot").endCondition.scoreThreshold)
         assertTrue(game("builtin_golf").lowestWins)
     }
+
+    @Test
+    fun laSuecaSArreteAQuatrePointsDePartie() {
+        val sueca = game("builtin_sueca")
+        assertEquals(GameCategory.CARDS, sueca.category())
+        assertEquals(4, sueca.endCondition.scoreThreshold)
+        val vm = newGame("builtin_sueca", "Nous", "Eux")
+        vm.setCell(0, 0, 2, false)
+        vm.setCell(1, 1, 1, false)
+        vm.setCell(2, 0, 1, false)
+        assertFalse(vm.isGameOver())
+        // La « bandeira » (tous les plis) rapporte 4 points : l'équipe gagne la partie.
+        vm.setCell(3, 0, 1, false)
+        assertTrue(vm.isGameOver())
+        assertEquals(listOf(0), vm.winners())
+    }
 }
