@@ -267,6 +267,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                                 title = rowLabelText,
                                                 hint = rowLabel?.hint?.let { stringResource(it) },
                                                 zeroCrossesOut = rowLabel?.zeroCrossesOut ?: true,
+                                                bidScoring = viewModel.gameRules.bidScoring,
                                                 cell = round[playerIndex],
                                                 allowNegative = viewModel.gameRules.allowNegativeScores,
                                                 multipliers = multipliers,
@@ -289,6 +290,14 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                     HorizontalDivider()
                     Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
                         Column {
+                                if (viewModel.hasPhases) {
+                                    Box(
+                                        modifier = Modifier.width(labelColumnWidth).height(BONUS_ROW_HEIGHT),
+                                        contentAlignment = Alignment.CenterStart
+                                    ) {
+                                        Text(stringResource(R.string.phase_label), style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
                                 if (viewModel.sheetHasBonus) {
                                     Box(
                                         modifier = Modifier.width(labelColumnWidth).height(BONUS_ROW_HEIGHT),
@@ -307,6 +316,43 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                         players.forEachIndexed { playerIndex, _ ->
                             val color = playerColors.getOrElse(playerIndex) { Color.Black }
                             Column {
+                                    if (viewModel.hasPhases) {
+                                        val phase = viewModel.phaseFor(playerIndex)
+                                        val phaseText = if (phase > viewModel.phaseCount) "✓" else phase.toString()
+                                        val phaseDescription = stringResource(R.string.phase_description, players[playerIndex], phaseText)
+                                        val phaseChangeLabel = stringResource(R.string.phase_change)
+                                        var showPhaseDialog by remember { mutableStateOf(false) }
+                                        Box(
+                                            modifier = Modifier
+                                                .width(playerColumnWidth)
+                                                .height(BONUS_ROW_HEIGHT)
+                                                .clickable(onClickLabel = phaseChangeLabel) { showPhaseDialog = true }
+                                                .semantics { contentDescription = phaseDescription },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = phaseText,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = playerTextColor(color)
+                                            )
+                                        }
+                                        if (showPhaseDialog) {
+                                            ScoreChoiceDialog(
+                                                title = stringResource(R.string.phase_dialog_title, players[playerIndex]),
+                                                options = (1..viewModel.phaseCount + 1).toList(),
+                                                hint = stringResource(R.string.phase_hint),
+                                                zeroCrossesOut = false,
+                                                current = phase,
+                                                onPick = { value ->
+                                                    viewModel.setPhase(playerIndex, value ?: 1)
+                                                    showPhaseDialog = false
+                                                },
+                                                onDismiss = { showPhaseDialog = false },
+                                                optionLabel = { if (it > viewModel.phaseCount) "✓" else it.toString() }
+                                            )
+                                        }
+                                    }
                                     if (viewModel.sheetHasBonus) {
                                         val upper = viewModel.sheetUpperTotalFor(playerIndex)
                                         val bonus = viewModel.sheetBonusFor(playerIndex)
@@ -379,6 +425,7 @@ private fun ScoreCell(
     title: String? = null,
     hint: String? = null,
     zeroCrossesOut: Boolean = true,
+    bidScoring: String? = null,
     cell: CellState,
     allowNegative: Boolean,
     multipliers: List<ScoreMultiplier>,
@@ -451,6 +498,16 @@ private fun ScoreCell(
             onPick = { value ->
                 showDialog = false
                 onValueEntered(value, false)
+            },
+            onDismiss = { showDialog = false }
+        )
+    } else if (showDialog && bidScoring != null) {
+        BidScoreDialog(
+            title = title,
+            kind = bidScoring,
+            onConfirm = { score ->
+                showDialog = false
+                onValueEntered(score, false)
             },
             onDismiss = { showDialog = false }
         )
@@ -546,7 +603,8 @@ private fun ScoreChoiceDialog(
     zeroCrossesOut: Boolean,
     current: Int?,
     onPick: (Int?) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    optionLabel: ((Int) -> String)? = null
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -556,7 +614,8 @@ private fun ScoreChoiceDialog(
                 options.chunked(3).forEach { rowOptions ->
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         rowOptions.forEach { value ->
-                            val label = if (value == 0 && zeroCrossesOut) stringResource(R.string.sheet_cross_out) else value.toString()
+                            val label = optionLabel?.invoke(value)
+                                ?: if (value == 0 && zeroCrossesOut) stringResource(R.string.sheet_cross_out) else value.toString()
                             if (value == current) {
                                 Button(onClick = { onPick(value) }, modifier = Modifier.weight(1f)) { Text(label, maxLines = 1) }
                             } else {
@@ -573,6 +632,56 @@ private fun ScoreChoiceDialog(
         },
         confirmButton = {
             TextButton(onClick = { onPick(null) }) { Text(stringResource(R.string.sheet_clear)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+        }
+    )
+}
+
+/**
+ * Saisie « annonce / plis réalisés » (Wizard, Oh Hell) : calcule le score de la manche
+ * (bonus si l'annonce est exacte, pénalité sinon) et enregistre ce score dans la case.
+ */
+@Composable
+private fun BidScoreDialog(
+    title: String?,
+    kind: String,
+    onConfirm: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var bid by remember { mutableStateOf("") }
+    var tricks by remember { mutableStateOf("") }
+    val bidValue = bid.toIntOrNull()
+    val tricksValue = tricks.toIntOrNull()
+    val score = if (bidValue != null && tricksValue != null) BidScoring.score(kind, bidValue, tricksValue) else null
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title ?: stringResource(R.string.score_enter_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = bid,
+                    onValueChange = { bid = it.filter(Char::isDigit).take(2) },
+                    label = { Text(stringResource(R.string.bid_announced)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                OutlinedTextField(
+                    value = tricks,
+                    onValueChange = { tricks = it.filter(Char::isDigit).take(2) },
+                    label = { Text(stringResource(R.string.bid_tricks)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                Text(
+                    text = if (score != null) stringResource(R.string.bid_score_preview, score) else stringResource(R.string.bid_score_hint),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = score != null, onClick = { score?.let(onConfirm) }) { Text(stringResource(R.string.common_ok)) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }

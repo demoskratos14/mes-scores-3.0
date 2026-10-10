@@ -203,6 +203,60 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_cabo_2_title, R.string.rules_cabo_2_body),
         RulesSection(R.string.rules_cabo_3_title, R.string.rules_cabo_3_body),
         RulesSection(R.string.rules_cabo_4_title, R.string.rules_cabo_4_body)
+    ),
+    "builtin_manille" to listOf(
+        RulesSection(R.string.rules_manille_1_title, R.string.rules_manille_1_body),
+        RulesSection(R.string.rules_manille_2_title, R.string.rules_manille_2_body),
+        RulesSection(R.string.rules_manille_3_title, R.string.rules_manille_3_body),
+        RulesSection(R.string.rules_manille_4_title, R.string.rules_manille_4_body),
+        RulesSection(R.string.rules_manille_5_title, R.string.rules_manille_5_body)
+    ),
+    "builtin_scopa" to listOf(
+        RulesSection(R.string.rules_scopa_1_title, R.string.rules_scopa_1_body),
+        RulesSection(R.string.rules_scopa_2_title, R.string.rules_scopa_2_body),
+        RulesSection(R.string.rules_scopa_3_title, R.string.rules_scopa_3_body),
+        RulesSection(R.string.rules_scopa_4_title, R.string.rules_scopa_4_body)
+    ),
+    "builtin_yaniv" to listOf(
+        RulesSection(R.string.rules_yaniv_1_title, R.string.rules_yaniv_1_body),
+        RulesSection(R.string.rules_yaniv_2_title, R.string.rules_yaniv_2_body),
+        RulesSection(R.string.rules_yaniv_3_title, R.string.rules_yaniv_3_body),
+        RulesSection(R.string.rules_yaniv_4_title, R.string.rules_yaniv_4_body)
+    ),
+    "builtin_barbu" to listOf(
+        RulesSection(R.string.rules_barbu_1_title, R.string.rules_barbu_1_body),
+        RulesSection(R.string.rules_barbu_2_title, R.string.rules_barbu_2_body),
+        RulesSection(R.string.rules_barbu_3_title, R.string.rules_barbu_3_body)
+    ),
+    "builtin_ohhell" to listOf(
+        RulesSection(R.string.rules_ohhell_1_title, R.string.rules_ohhell_1_body),
+        RulesSection(R.string.rules_ohhell_2_title, R.string.rules_ohhell_2_body),
+        RulesSection(R.string.rules_ohhell_3_title, R.string.rules_ohhell_3_body),
+        RulesSection(R.string.rules_ohhell_4_title, R.string.rules_ohhell_4_body)
+    ),
+    "builtin_rummikub" to listOf(
+        RulesSection(R.string.rules_rummikub_1_title, R.string.rules_rummikub_1_body),
+        RulesSection(R.string.rules_rummikub_2_title, R.string.rules_rummikub_2_body),
+        RulesSection(R.string.rules_rummikub_3_title, R.string.rules_rummikub_3_body),
+        RulesSection(R.string.rules_rummikub_4_title, R.string.rules_rummikub_4_body)
+    ),
+    "builtin_dominos" to listOf(
+        RulesSection(R.string.rules_dominos_1_title, R.string.rules_dominos_1_body),
+        RulesSection(R.string.rules_dominos_2_title, R.string.rules_dominos_2_body),
+        RulesSection(R.string.rules_dominos_3_title, R.string.rules_dominos_3_body),
+        RulesSection(R.string.rules_dominos_4_title, R.string.rules_dominos_4_body)
+    ),
+    "builtin_wizard" to listOf(
+        RulesSection(R.string.rules_wizard_1_title, R.string.rules_wizard_1_body),
+        RulesSection(R.string.rules_wizard_2_title, R.string.rules_wizard_2_body),
+        RulesSection(R.string.rules_wizard_3_title, R.string.rules_wizard_3_body),
+        RulesSection(R.string.rules_wizard_4_title, R.string.rules_wizard_4_body)
+    ),
+    "builtin_phase10" to listOf(
+        RulesSection(R.string.rules_phase10_1_title, R.string.rules_phase10_1_body),
+        RulesSection(R.string.rules_phase10_2_title, R.string.rules_phase10_2_body),
+        RulesSection(R.string.rules_phase10_3_title, R.string.rules_phase10_3_body),
+        RulesSection(R.string.rules_phase10_4_title, R.string.rules_phase10_4_body)
     )
 )
 

@@ -104,7 +104,9 @@ data class SavedGame(
     val cellSnapshots: List<List<CellSnapshot>>? = null,
     val counters: List<Int>? = null,
     val teamRounds: List<TeamRound>? = null,
-    val isFinished: Boolean
+    val isFinished: Boolean,
+    /** Phase atteinte par chaque joueur (Phase 10), ou null pour les autres jeux. */
+    val phases: List<Int>? = null
 ) {
     /** Total de chaque joueur au moment de l'enregistrement (même index que [players]). */
     fun totals(): List<Int> = when (gameRules.scoreMode) {
@@ -154,6 +156,7 @@ data class SavedGame(
             obj.put("cellSnapshots", roundsArray)
         }
         counters?.let { obj.put("counters", JSONArray(it)) }
+        phases?.let { obj.put("phases", JSONArray(it)) }
         teamRounds?.let { rounds ->
             val array = JSONArray()
             rounds.forEach { array.put(it.toJson()) }
@@ -189,6 +192,10 @@ data class SavedGame(
                 (0 until array.length()).map { array.getInt(it) }
             }
 
+            val phases = obj.optJSONArray("phases")?.let { array ->
+                (0 until array.length()).map { array.getInt(it) }
+            }
+
             val teamRounds = obj.optJSONArray("teamRounds")?.let { array ->
                 (0 until array.length()).map { i -> teamRoundFromJson(array.getJSONObject(i)) }
             }
@@ -202,7 +209,8 @@ data class SavedGame(
                 cellSnapshots = cellSnapshots,
                 counters = counters,
                 teamRounds = teamRounds,
-                isFinished = obj.optBoolean("isFinished", false)
+                isFinished = obj.optBoolean("isFinished", false),
+                phases = phases
             )
         }
     }

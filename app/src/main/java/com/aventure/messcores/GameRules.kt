@@ -79,6 +79,8 @@ data class ScoreMultiplier(
  * @param minPlayers nombre minimum de joueurs pour créer une feuille de score.
  * @param maxPlayers nombre maximum de joueurs pour créer une feuille de score.
  * @param sheet identifiant d'une feuille de catégories (ex : Yams) en mode TABLE ; null sinon.
+ * @param bidScoring calcul du score depuis l'annonce et les plis réalisés (Wizard, Oh Hell) ; null sinon.
+ * @param phases nombre de phases suivies par joueur (Phase 10) ; null sinon.
  */
 data class GameRules(
     val id: String,
@@ -91,7 +93,11 @@ data class GameRules(
     val minPlayers: Int = DEFAULT_MIN_PLAYERS,
     val maxPlayers: Int = DEFAULT_MAX_PLAYERS,
     /** Feuille de catégories fixes (voir [ScoreSheets]), ou null pour un tableau de manches classique. */
-    val sheet: String? = null
+    val sheet: String? = null,
+    /** Mode de saisie « annonce / plis réalisés » (voir [BidScoring]) pour Wizard et Oh Hell ; null sinon. */
+    val bidScoring: String? = null,
+    /** Nombre de phases à suivre pour chaque joueur (Phase 10) ; null si le jeu n'en a pas. */
+    val phases: Int? = null
 ) {
     /** Sérialise cette règle en JSON, pour la sauvegarde dans les SharedPreferences. */
     fun toJson(): JSONObject {
@@ -106,6 +112,8 @@ data class GameRules(
         obj.put("minPlayers", minPlayers)
         obj.put("maxPlayers", maxPlayers)
         sheet?.let { obj.put("sheet", it) }
+        bidScoring?.let { obj.put("bidScoring", it) }
+        phases?.let { obj.put("phases", it) }
 
         val multipliersArray = JSONArray()
         multipliers.forEach { m ->
@@ -204,7 +212,9 @@ data class GameRules(
                 endCondition = endCondition,
                 minPlayers = obj.optInt("minPlayers", DEFAULT_MIN_PLAYERS),
                 maxPlayers = obj.optInt("maxPlayers", DEFAULT_MAX_PLAYERS),
-                sheet = obj.optString("sheet", "").ifBlank { null }
+                sheet = obj.optString("sheet", "").ifBlank { null },
+                bidScoring = obj.optString("bidScoring", "").ifBlank { null },
+                phases = if (obj.has("phases")) obj.optInt("phases") else null
             )
         }
     }

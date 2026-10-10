@@ -20,7 +20,8 @@ class GameCategoryTest {
         // Cartes classiques (nombres et figures, 32 / 52 / 78 cartes) seulement.
         for (id in listOf(
             "builtin_tarot", "builtin_belote", "builtin_rami", "builtin_coinche", "builtin_president",
-            "builtin_coeurs", "builtin_pique", "builtin_gin", "builtin_huit", "builtin_cribbage"
+            "builtin_coeurs", "builtin_pique", "builtin_gin", "builtin_huit", "builtin_cribbage",
+            "builtin_manille", "builtin_scopa", "builtin_yaniv", "builtin_barbu", "builtin_ohhell"
         )) {
             assertEquals(id, GameCategory.CARDS, byId.getValue(id))
         }
@@ -37,7 +38,10 @@ class GameCategoryTest {
         // Un nouveau jeu prédéfini oublié dans GameCategory.kt atterrirait dans « Autres » : on le détecte ici.
         val others = builtIns.filter { it.category() == GameCategory.OTHER }.map { it.id }.toSet()
         assertEquals(
-            setOf("builtin_skyjo", "builtin_uno", "builtin_milleb", "builtin_sixqp", "builtin_papayoo", "builtin_cabo"),
+            setOf(
+                "builtin_skyjo", "builtin_uno", "builtin_milleb", "builtin_sixqp", "builtin_papayoo", "builtin_cabo",
+                "builtin_rummikub", "builtin_dominos", "builtin_wizard", "builtin_phase10"
+            ),
             others
         )
     }

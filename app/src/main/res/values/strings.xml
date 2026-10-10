@@ -1,6 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:locale="fr"
-    tools:ignore="Typos,TypographyDashes">
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Mes Scores</string>
 
     <string name="common_ok">OK</string>
@@ -328,82 +326,66 @@
     <plurals name="players_count">
         <item quantity="one">%d joueur</item>
         <item quantity="other">%d joueurs</item>
-        <item quantity="many">%d de joueurs</item>
     </plurals>
     <plurals name="games_count">
         <item quantity="one">%d partie</item>
         <item quantity="other">%d parties</item>
-        <item quantity="many">%d de parties</item>
     </plurals>
     <plurals name="victories_count">
         <item quantity="one">%d victoire</item>
         <item quantity="other">%d victoires</item>
-        <item quantity="many">%d de victoires</item>
     </plurals>
     <plurals name="matches_count">
         <item quantity="one">%d match</item>
         <item quantity="other">%d matchs</item>
-        <item quantity="many">%d de matchs</item>
     </plurals>
     <plurals name="history_import_added">
         <item quantity="one">%d partie ajoutée</item>
         <item quantity="other">%d parties ajoutées</item>
-        <item quantity="many">%d de parties ajoutées</item>
     </plurals>
     <plurals name="history_import_updated">
         <item quantity="one">%d partie mise à jour</item>
         <item quantity="other">%d parties mises à jour</item>
-        <item quantity="many">%d de parties mises à jour</item>
     </plurals>
     <plurals name="history_import_unchanged">
         <item quantity="one">%d partie déjà à jour</item>
         <item quantity="other">%d parties déjà à jour</item>
-        <item quantity="many">%d de parties déjà à jour</item>
     </plurals>
     <plurals name="history_import_invalid">
         <item quantity="one">%d partie illisible (ignorée)</item>
         <item quantity="other">%d parties illisibles (ignorées)</item>
-        <item quantity="many">%d de parties illisibles (ignorées)</item>
     </plurals>
     <plurals name="history_import_dropped">
         <item quantity="one">%1$d partie ancienne supprimée (limite de %2$d)</item>
         <item quantity="other">%1$d parties anciennes supprimées (limite de %2$d)</item>
-        <item quantity="many">%1$d de parties anciennes supprimées (limite de %2$d)</item>
     </plurals>
     <plurals name="stats_finished_count">
         <item quantity="one">%d partie terminée</item>
         <item quantity="other">%d parties terminées</item>
-        <item quantity="many">%d de parties terminées</item>
     </plurals>
     <plurals name="stats_in_progress_ignored">
         <item quantity="one">" (%d partie en cours ignorée)"</item>
         <item quantity="other">" (%d parties en cours ignorées)"</item>
-        <item quantity="many">" (%d de parties en cours ignorées)"</item>
     </plurals>
     <plurals name="tarot_bouts">
         <item quantity="one">%d bout</item>
         <item quantity="other">%d bouts</item>
-        <item quantity="many">%d de bouts</item>
     </plurals>
     <plurals name="tarot_contract_success">
         <item quantity="one">Contrat réussi de %d point</item>
         <item quantity="other">Contrat réussi de %d points</item>
-        <item quantity="many">Contrat réussi de %d de points</item>
     </plurals>
     <plurals name="tarot_contract_failed">
         <item quantity="one">Contrat chuté de %d point</item>
         <item quantity="other">Contrat chuté de %d points</item>
-        <item quantity="many">Contrat chuté de %d de points</item>
     </plurals>
     <plurals name="spoken_minutes">
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
-        <item quantity="many">%d de minutes</item>
     </plurals>
     <plurals name="spoken_seconds">
         <item quantity="one">%d seconde</item>
         <item quantity="other">%d secondes</item>
-        <item quantity="many">%d de secondes</item>
     </plurals>
 
     <string name="game_yams">Yams</string>
@@ -641,4 +623,97 @@
     <string name="rules_cabo_3_body">On additionne la valeur des cartes de chaque joueur (les valeurs sont écrites sur les cartes). Celui qui a dit Cabo marque 0 s\'il a la plus petite main, sinon il marque sa somme plus 10 points de pénalité. Les autres marquent leur somme. Si un joueur atteint exactement 100 points, son score retombe à 50 (règle de la boîte).</string>
     <string name="rules_cabo_4_title">Dans l\'appli</string>
     <string name="rules_cabo_4_body">À la fin de chaque manche, saisis dans la colonne de chaque joueur sa somme. Si un joueur atteint pile 100, corrige sa case pour le ramener à 50.</string>
+
+    <string name="game_manille">Manille</string>
+    <string name="game_scopa">Scopa</string>
+    <string name="game_yaniv">Yaniv</string>
+    <string name="game_barbu">Barbu</string>
+    <string name="game_ohhell">Oh Hell (Oh Pétard)</string>
+    <string name="game_rummikub">Rummikub</string>
+    <string name="game_dominos">Dominos</string>
+    <string name="game_wizard">Wizard</string>
+    <string name="game_phase10">Phase 10</string>
+    <string name="manille_contre">Contré</string>
+    <string name="manille_surcontre">Surcontré</string>
+    <string name="phase_label">Phase</string>
+    <string name="phase_description">Phase de %1$s : %2$s</string>
+    <string name="phase_change">Changer la phase</string>
+    <string name="phase_dialog_title">Phase de %1$s</string>
+    <string name="phase_hint">✓ = phase 10 terminée (fin de la partie).</string>
+    <string name="bid_announced">Plis annoncés</string>
+    <string name="bid_tricks">Plis réalisés</string>
+    <string name="bid_score_preview">Score de la manche : %1$d</string>
+    <string name="bid_score_hint">Saisis les deux nombres pour calculer le score.</string>
+    <string name="rules_manille_1_title">But du jeu</string>
+    <string name="rules_manille_1_body">Jeu de plis à 4 joueurs, en deux équipes de 2, avec un jeu de 32 cartes. Chaque équipe cherche à ramasser le plus de points de cartes. La partie se joue souvent en 101 points : l\'appli termine la manche en cours puis annonce le gagnant. Les règles varient beaucoup selon les régions : adapte-les à ta table.</string>
+    <string name="rules_manille_2_title">Les cartes</string>
+    <string name="rules_manille_2_body">L\'ordre des cartes est : 10 (la « manille »), as (le « manillon »), roi, dame, valet, 9, 8, 7. Points de cartes : manille 5, manillon 4, roi 3, dame 2, valet 1, les 9, 8 et 7 ne valent rien. Il y a 60 points de cartes dans le jeu (les variantes ajoutent des points pour le dernier pli).</string>
+    <string name="rules_manille_3_title">Le tour de jeu</string>
+    <string name="rules_manille_3_body">Chacun reçoit 8 cartes. Après avoir retourné ou choisi l\'atout, on joue des plis : il faut fournir la couleur demandée si on le peut, sinon on coupe à l\'atout si on en a. L\'équipe qui remporte un pli ramasse les cartes et leurs points.</string>
+    <string name="rules_manille_4_title">Contre et surcontre</string>
+    <string name="rules_manille_4_body">Dans la manille coinchée, une équipe peut « contrer » le contrat adverse pour doubler les points de la donne, et l\'autre peut « surcontrer » pour les quadrupler.</string>
+    <string name="rules_manille_5_title">Dans l\'appli</string>
+    <string name="rules_manille_5_body">À chaque donne, saisis dans la colonne de chaque équipe les points marqués. Touche le coefficient sous la case pour choisir Contré (×2) ou Surcontré (×4). Tu peux jouer avec 2 colonnes (les deux équipes) ou 4 joueurs.</string>
+    <string name="rules_scopa_1_title">But du jeu</string>
+    <string name="rules_scopa_1_body">Jeu italien avec un jeu de 40 cartes (on retire les 8, 9 et 10 d\'un jeu de 52, ou on prend un jeu italien). Le premier joueur à atteindre 11 points gagne ; certaines tables jouent à 21. En cas d\'égalité en tête, une donne supplémentaire est jouée.</string>
+    <string name="rules_scopa_2_title">Le tour de jeu</string>
+    <string name="rules_scopa_2_body">Chacun reçoit 3 cartes et 4 cartes sont posées sur la table. À son tour, on joue une carte de sa main : elle capture une carte de même valeur ou plusieurs cartes dont la somme est égale à sa valeur. Si on ne peut rien capturer, la carte reste sur la table. Quand une carte vide la table, on réalise une « scopa ».</string>
+    <string name="rules_scopa_3_title">Les points</string>
+    <string name="rules_scopa_3_body">À la fin de chaque donne, on marque 1 point pour chaque : plus grand nombre de cartes, plus grand nombre de carreaux (deniers), le 7 de carreau (« settebello »), la meilleure « primiera » (meilleure combinaison de 4 cartes de couleurs différentes), et 1 point pour chaque scopa réalisée.</string>
+    <string name="rules_scopa_4_title">Dans l\'appli</string>
+    <string name="rules_scopa_4_body">À la fin de chaque donne, saisis dans la colonne de chaque joueur les points de la donne (scopas comprises). Ils sont ajoutés à son total.</string>
+    <string name="rules_yaniv_1_title">But du jeu</string>
+    <string name="rules_yaniv_1_body">Terminer chaque manche avec le moins de points en main. La partie se termine quand un joueur dépasse 200 points (l\'appli s\'arrête à 201 et plus) : le joueur qui a le moins de points gagne.</string>
+    <string name="rules_yaniv_2_title">Le tour de jeu</string>
+    <string name="rules_yaniv_2_body">Avec un jeu de 54 cartes (jokers = 0 point, as = 1, figures = 10, autres cartes = leur valeur), chaque joueur reçoit 5 cartes. À son tour, on défausse une carte, une paire, un brelan ou une suite d\'au moins 3 cartes de la même couleur, puis on pioche une carte (dans la pioche ou la dernière défausse). Quand on a 5 points ou moins en main, on peut annoncer « Yaniv » au début de son tour.</string>
+    <string name="rules_yaniv_3_title">Les points</string>
+    <string name="rules_yaniv_3_body">Après un « Yaniv », chacun compte ses cartes. Si personne n\'a autant de points ou moins que le joueur qui a annoncé, il marque 0 et les autres marquent le total de leur main. Si un autre joueur en a autant ou moins (« Assaf »), le joueur qui a annoncé marque le total de sa main plus 30 points, et celui qui a le moins marque 0. Selon les règles, un score pile à 100 ou 200 est réduit de moitié.</string>
+    <string name="rules_yaniv_4_title">Dans l\'appli</string>
+    <string name="rules_yaniv_4_body">À la fin de chaque manche, saisis dans la colonne de chaque joueur les points marqués. Si un joueur atteint pile 100 ou 200 points et que ta règle le réduit de moitié, corrige sa case à la main.</string>
+    <string name="rules_barbu_1_title">But du jeu</string>
+    <string name="rules_barbu_1_body">Jeu de plis à pénalités (le plus souvent à 4 joueurs, avec 52 cartes). Chaque joueur, quand c\'est à lui de donner, choisit un contrat parmi sept, une seule fois chacun. Le total le plus élevé gagne à la fin de la partie (il n\'y a pas de fin automatique).</string>
+    <string name="rules_barbu_2_title">Les contrats</string>
+    <string name="rules_barbu_2_body">Pas de plis : −2 par pli ramassé. Pas de cœurs : −5 par cœur ramassé. Pas de dames : −10 par dame ramassée. Pas de roi de cœur : −20 pour celui qui le ramasse (le « Barbu »). Pas de dernier pli : −40 pour celui qui ramasse le dernier pli. Salade : toutes ces pénalités à la fois. Domino : on pose ses cartes comme des dominos, et le classement donne des points ou des pénalités selon l\'ordre dans lequel on se vide.</string>
+    <string name="rules_barbu_3_title">Dans l\'appli</string>
+    <string name="rules_barbu_3_body">À la fin de chaque donne, saisis dans la colonne de chaque joueur ses points (le bouton +/− permet de saisir un score négatif). Les valeurs des contrats varient selon les tables : adapte-les à la tienne.</string>
+    <string name="rules_ohhell_1_title">But du jeu</string>
+    <string name="rules_ohhell_1_body">Réaliser exactement le nombre de plis annoncé, ni plus ni moins. Avec 52 cartes, le nombre de cartes distribuées monte de 1 jusqu\'au maximum possible, puis redescend. La partie n\'a pas de fin automatique : jouez toutes les manches prévues.</string>
+    <string name="rules_ohhell_2_title">Le tour de jeu</string>
+    <string name="rules_ohhell_2_body">Chaque joueur reçoit n cartes et on retourne une carte pour désigner l\'atout. À tour de rôle, chacun annonce le nombre de plis qu\'il pense réaliser (le donneur ne peut souvent pas annoncer un nombre qui ferait que le total des annonces égale le nombre de plis). On joue ensuite les plis, avec obligation de fournir la couleur demandée.</string>
+    <string name="rules_ohhell_3_title">Les points</string>
+    <string name="rules_ohhell_3_body">Annonce réussie : 10 points plus le nombre de plis annoncés. Annonce ratée : on perd un point par pli d\'écart avec l\'annonce. Ces valeurs varient selon les tables.</string>
+    <string name="rules_ohhell_4_title">Dans l\'appli</string>
+    <string name="rules_ohhell_4_body">À chaque manche, touche la case d\'un joueur et saisis ses plis annoncés et ses plis réalisés : l\'appli calcule le score de la manche et l\'ajoute à son total.</string>
+    <string name="rules_rummikub_1_title">But du jeu</string>
+    <string name="rules_rummikub_1_body">Se débarrasser de toutes ses tuiles en les posant sur la table en suites et en groupes. À la fin de chaque manche, le gagnant marque la somme des tuiles restant aux autres joueurs, et chaque perdant perd la valeur de ses tuiles. Il n\'y a pas de fin automatique : décidez du nombre de manches.</string>
+    <string name="rules_rummikub_2_title">Le tour de jeu</string>
+    <string name="rules_rummikub_2_body">Chacun commence avec 14 tuiles. La première pose doit valoir au moins 30 points. Ensuite, on peut poser de nouvelles combinaisons ou réarranger celles de la table. Une suite compte au moins 3 tuiles consécutives de la même couleur ; un groupe compte 3 ou 4 tuiles de même valeur et de couleurs différentes. Si on ne peut pas jouer, on pioche une tuile.</string>
+    <string name="rules_rummikub_3_title">Les points</string>
+    <string name="rules_rummikub_3_body">Chaque tuile vaut son numéro. Un joker restant en main vaut 30 points contre celui qui le garde. Le gagnant d\'une manche marque la somme des valeurs des tuiles de tous les autres joueurs.</string>
+    <string name="rules_rummikub_4_title">Dans l\'appli</string>
+    <string name="rules_rummikub_4_body">À la fin de chaque manche, saisis dans la colonne de chaque perdant le total de ses tuiles en négatif (bouton +/−), et dans celle du gagnant la somme des points perdus par les autres.</string>
+    <string name="rules_dominos_1_title">But du jeu</string>
+    <string name="rules_dominos_1_body">Se débarrasser de tous ses dominos le premier. À la fin de chaque manche, le gagnant marque la somme des points restant dans les mains des autres joueurs. Le premier joueur à atteindre 100 points gagne (certaines tables jouent à 200). L\'appli termine la manche en cours puis annonce le gagnant.</string>
+    <string name="rules_dominos_2_title">Le tour de jeu</string>
+    <string name="rules_dominos_2_body">Avec un jeu de 28 dominos (double-six), chaque joueur en reçoit 7 à deux joueurs, ou 5 à trois ou quatre joueurs ; les autres forment la pioche. À son tour, on pose un domino dont un côté correspond à une extrémité de la chaîne. Si on ne peut pas jouer, on pioche (ou on passe quand la pioche est vide).</string>
+    <string name="rules_dominos_3_title">Les points</string>
+    <string name="rules_dominos_3_body">Quand un joueur a posé tous ses dominos, il marque la somme des points des dominos restant aux autres. Si la partie est bloquée, le joueur qui a le moins de points en main marque la différence avec les autres (selon les variantes).</string>
+    <string name="rules_dominos_4_title">Dans l\'appli</string>
+    <string name="rules_dominos_4_body">À la fin de chaque manche, saisis dans la colonne du gagnant les points marqués (0 pour les autres joueurs).</string>
+    <string name="rules_wizard_1_title">But du jeu</string>
+    <string name="rules_wizard_1_body">Annoncer exactement le nombre de plis que l\'on va réaliser. Avec un jeu de 60 cartes (52 cartes, 4 Sorciers et 4 Bouffons), le nombre de manches est égal à 60 divisé par le nombre de joueurs (20 manches à 3 joueurs) : à la manche n, chacun reçoit n cartes. L\'appli n\'arrête pas la partie : jouez toutes les manches prévues.</string>
+    <string name="rules_wizard_2_title">Le tour de jeu</string>
+    <string name="rules_wizard_2_body">On retourne une carte pour désigner l\'atout. À tour de rôle, chacun annonce le nombre de plis qu\'il pense remporter. On joue les plis en fournissant la couleur demandée. Un Sorcier gagne toujours le pli (le premier posé l\'emporte) ; un Bouffon perd toujours, sauf s\'il est seul.</string>
+    <string name="rules_wizard_3_title">Les points</string>
+    <string name="rules_wizard_3_body">Annonce exacte : 20 points plus 10 points par pli annoncé. Annonce ratée : −10 points par pli d\'écart.</string>
+    <string name="rules_wizard_4_title">Dans l\'appli</string>
+    <string name="rules_wizard_4_body">À chaque manche, touche la case d\'un joueur et saisis ses plis annoncés et ses plis réalisés : l\'appli calcule le score de la manche (positif ou négatif) et l\'ajoute à son total.</string>
+    <string name="rules_phase10_1_title">But du jeu</string>
+    <string name="rules_phase10_1_body">Réaliser avant les autres les 10 phases du jeu, dans l\'ordre. À chaque manche, chaque joueur essaie de réussir sa phase en cours ; ceux qui n\'y parviennent pas restent sur la même phase à la manche suivante. La partie se termine quand un joueur a terminé la phase 10. L\'appli suit la phase de chaque joueur dans la ligne « Phase » du bas du tableau.</string>
+    <string name="rules_phase10_2_title">Les phases</string>
+    <string name="rules_phase10_2_body">1 : 2 brelans. 2 : 1 brelan et 1 suite de 4. 3 : 1 carré et 1 suite de 4. 4 : 1 suite de 7. 5 : 1 suite de 8. 6 : 1 suite de 9. 7 : 2 carrés. 8 : 7 cartes de la même couleur. 9 : 1 groupe de 5 cartes de même valeur et 1 paire. 10 : 1 groupe de 5 cartes de même valeur et 1 brelan.</string>
+    <string name="rules_phase10_3_title">Les points</string>
+    <string name="rules_phase10_3_body">Quand un joueur se débarrasse de toutes ses cartes, les autres marquent les points des cartes qui leur restent : cartes 1 à 9 = 5 points, cartes 10 à 12 = 10 points, Passe = 15 points, Joker = 25 points. Le joueur qui a le moins de points est le mieux classé à phase égale.</string>
+    <string name="rules_phase10_4_title">Dans l\'appli</string>
+    <string name="rules_phase10_4_body">À la fin de chaque manche, saisis les points de chaque joueur et mets à jour sa phase en touchant la case de la ligne « Phase » : choisis ✓ pour la phase 10 terminée. Le classement est établi d\'abord par phase atteinte, puis par points.</string>
 </resources>

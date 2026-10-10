@@ -129,6 +129,9 @@ class ScoreViewModel : ViewModel() {
 
     // --- Mode COUNTER ---
     private val _counters = mutableStateListOf<Int>()
+
+    /** Phase atteinte par chaque joueur (Phase 10) ; vide pour les autres jeux. */
+    private val _phases = mutableStateListOf<Int>()
     val counters: List<Int> get() = _counters
 
     // --- Mode VARIABLE_TEAMS ---
@@ -169,6 +172,8 @@ class ScoreViewModel : ViewModel() {
         _scores.clear()
         _counters.clear()
         _teamRounds.clear()
+        _phases.clear()
+        if (rules.phases != null) repeat(playerNames.size) { _phases.add(1) }
         when (rules.scoreMode) {
             ScoreMode.TABLE -> repeat(sheetRows?.size ?: INITIAL_ROUNDS) { addRound() }
             ScoreMode.COUNTER -> repeat(playerNames.size) { _counters.add(0) }
@@ -193,6 +198,15 @@ class ScoreViewModel : ViewModel() {
         _scores.clear()
         _counters.clear()
         _teamRounds.clear()
+        _phases.clear()
+        if (saved.gameRules.phases != null) {
+            val savedPhases = saved.phases
+            if (savedPhases != null && savedPhases.size == saved.players.size) {
+                savedPhases.forEach { _phases.add(it) }
+            } else {
+                repeat(saved.players.size) { _phases.add(1) }
+            }
+        }
         when (saved.gameRules.scoreMode) {
             ScoreMode.TABLE -> {
                 val rounds = saved.cellSnapshots
@@ -282,7 +296,8 @@ class ScoreViewModel : ViewModel() {
             } else null,
             counters = if (gameRules.scoreMode == ScoreMode.COUNTER) _counters.toList() else null,
             teamRounds = if (gameRules.scoreMode == ScoreMode.VARIABLE_TEAMS) _teamRounds.toList() else null,
-            isFinished = isGameOver()
+            isFinished = isGameOver(),
+            phases = if (gameRules.phases != null) _phases.toList() else null
         )
     }
 
@@ -351,6 +366,21 @@ class ScoreViewModel : ViewModel() {
     private fun effectiveValue(cell: CellState): Int? {
         val base = cell.baseValue ?: return null
         return effectiveValue(base, cell.isNegative, cell.multiplierId)
+    }
+
+    // ---------- Phases (Phase 10) ----------
+
+    /** Vrai si le jeu en cours suit la phase de chaque joueur. */
+    val hasPhases: Boolean get() = gameRules.phases != null
+
+    /** Nombre de phases du jeu (0 si le jeu n'en a pas). */
+    val phaseCount: Int get() = gameRules.phases ?: 0
+
+    /** Phase d'un joueur : de 1 à [phaseCount], ou [phaseCount] + 1 s'il a terminé la dernière. */
+    fun phaseFor(player: Int): Int = _phases.getOrElse(player) { 1 }
+
+    fun setPhase(player: Int, phase: Int) {
+        if (player in _phases.indices) _phases[player] = phase.coerceIn(1, phaseCount + 1)
     }
 
     // ---------- Feuille de catégories (Yams) ----------
@@ -460,8 +490,15 @@ class ScoreViewModel : ViewModel() {
     val totals: List<Int> get() = players.indices.map { computeTotal(it) }
 
     /** Rang (1 = premier) de chaque joueur d'après [totals] ; les ex æquo partagent le même rang. */
-    fun ranksFor(totals: List<Int>): List<Int> =
-        totals.map { mine -> totals.count { if (gameRules.lowestWins) it < mine else it > mine } + 1 }
+    fun ranksFor(totals: List<Int>): List<Int> {
+        // Phase 10 : on classe d'abord par phase atteinte, puis par score à phase égale.
+        if (hasPhases && _phases.size == totals.size) {
+            fun isBetter(a: Int, b: Int): Boolean = _phases[a] > _phases[b] ||
+                (_phases[a] == _phases[b] && if (gameRules.lowestWins) totals[a] < totals[b] else totals[a] > totals[b])
+            return totals.indices.map { me -> totals.indices.count { isBetter(it, me) } + 1 }
+        }
+        return totals.map { mine -> totals.count { if (gameRules.lowestWins) it < mine else it > mine } + 1 }
+    }
 
     /** Rang de chaque joueur (même index que [players]). Voir [ranksFor]. */
     val ranks: List<Int> get() = ranksFor(totals)
@@ -472,6 +509,10 @@ class ScoreViewModel : ViewModel() {
     /** Index des joueurs triés du meilleur score au moins bon, selon les règles du jeu. */
     fun rankingOrder(): List<Int> {
         val all = totals
+        if (hasPhases) {
+            val order = ranksFor(all)
+            return players.indices.sortedBy { order[it] }
+        }
         return if (gameRules.lowestWins) {
             players.indices.sortedBy { all[it] }
         } else {
@@ -515,6 +556,8 @@ class ScoreViewModel : ViewModel() {
 
     /** Vrai si la condition de fin de partie définie par les règles du jeu est atteinte. */
     fun isGameOver(): Boolean {
+        // Phase 10 : terminée dès qu'un joueur a terminé la dernière phase.
+        gameRules.phases?.let { last -> return _phases.any { it > last } }
         // Feuille de catégories : terminée quand toutes les cases de tous les joueurs sont remplies.
         if (sheetRows != null) {
             return _scores.isNotEmpty() && _scores.all { round -> round.all { it.baseValue != null } }

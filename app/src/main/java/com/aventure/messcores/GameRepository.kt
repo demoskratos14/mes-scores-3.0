@@ -199,6 +199,99 @@ class GameRepository(private val context: Context) {
             endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 101, stopImmediately = false)
         ),
         GameRules(
+            id = "builtin_manille",
+            name = context.getString(R.string.game_manille),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            multipliers = listOf(
+                GameRules.NORMAL_MULTIPLIER,
+                ScoreMultiplier(id = "manille_contre", label = context.getString(R.string.manille_contre), factor = 2),
+                ScoreMultiplier(id = "manille_surcontre", label = context.getString(R.string.manille_surcontre), factor = 4)
+            ),
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 101, stopImmediately = false)
+        ),
+        GameRules(
+            id = "builtin_scopa",
+            name = context.getString(R.string.game_scopa),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 11, stopImmediately = false, tieBreakOnEqualLeaders = true)
+        ),
+        GameRules(
+            id = "builtin_yaniv",
+            name = context.getString(R.string.game_yaniv),
+            minPlayers = 2,
+            maxPlayers = 8,
+            lowestWins = true,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 201, stopImmediately = false)
+        ),
+        GameRules(
+            id = "builtin_barbu",
+            name = context.getString(R.string.game_barbu),
+            minPlayers = 3,
+            maxPlayers = 6,
+            lowestWins = false,
+            allowNegativeScores = true,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_ohhell",
+            name = context.getString(R.string.game_ohhell),
+            minPlayers = 3,
+            maxPlayers = 7,
+            lowestWins = false,
+            allowNegativeScores = true,
+            scoreMode = ScoreMode.TABLE,
+            bidScoring = BidScoring.OH_HELL
+        ),
+        GameRules(
+            id = "builtin_rummikub",
+            name = context.getString(R.string.game_rummikub),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = true,
+            scoreMode = ScoreMode.TABLE
+        ),
+        GameRules(
+            id = "builtin_dominos",
+            name = context.getString(R.string.game_dominos),
+            minPlayers = 2,
+            maxPlayers = 4,
+            lowestWins = false,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 100, stopImmediately = false)
+        ),
+        GameRules(
+            id = "builtin_wizard",
+            name = context.getString(R.string.game_wizard),
+            minPlayers = 3,
+            maxPlayers = 6,
+            lowestWins = false,
+            allowNegativeScores = true,
+            scoreMode = ScoreMode.TABLE,
+            bidScoring = BidScoring.WIZARD
+        ),
+        GameRules(
+            id = "builtin_phase10",
+            name = context.getString(R.string.game_phase10),
+            minPlayers = 2,
+            maxPlayers = 6,
+            lowestWins = true,
+            allowNegativeScores = false,
+            scoreMode = ScoreMode.TABLE,
+            phases = 10
+        ),
+        GameRules(
             id = "builtin_yams",
             name = context.getString(R.string.game_yams),
             minPlayers = 1,
