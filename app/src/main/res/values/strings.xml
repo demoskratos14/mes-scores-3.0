@@ -236,8 +236,6 @@
     <string name="actions_share">Partager</string>
     <string name="actions_saved">Enregistré ✓</string>
     <string name="actions_save">Enregistrer</string>
-    <string name="counter_remove">Retirer un point</string>
-    <string name="counter_add">Ajouter un point</string>
     <string name="team_new_round">+ Nouvelle manche</string>
     <string name="team_history">Historique des manches</string>
     <string name="team_round_header">Manche %1$d — %2$s</string>
@@ -943,4 +941,16 @@
     <string name="rules_sueca_5_body">À la fin de chaque donne, saisis dans la colonne de l\'équipe qui a gagné la donne 1, 2 ou 4 points de partie (0 pour l\'autre équipe). Tu peux jouer avec 2 colonnes (les deux équipes) ou avec 4 joueurs. Certaines régions jouent en 6 points au lieu de 4 : dans ce cas, continue la partie à la main.</string>
 
     <string name="multiplier_normal">Normal</string>
+    <string name="actions_undo">Annuler la dernière saisie</string>
+    <string name="actions_redo">Rétablir la saisie annulée</string>
+    <string name="counter_add_for">Ajouter un point à %1$s</string>
+    <string name="counter_remove_for">Retirer un point à %1$s</string>
+    <string name="counter_player_summary">%1$s, score %2$d, rang %3$d</string>
+    <string name="resume_title">Partie en cours</string>
+    <string name="resume_summary">%1$s · %2$s</string>
+    <string name="resume_dismiss">Ignorer</string>
+    <string name="chart_title">Évolution des scores</string>
+    <string name="chart_button">Courbe d\'évolution des scores</string>
+    <string name="chart_description">Courbe de l\'évolution du total de chaque joueur, manche après manche</string>
+    <string name="chart_range">Manches 1 à %1$d · scores de %2$d à %3$d</string>
 </resources>
