@@ -69,7 +69,9 @@ MesScores/
             │   ├── ScoreViewModel.kt          état de la partie en cours
             │   ├── GameRules.kt, GameRulesText.kt   règles des jeux et fiches de règles
             │   ├── TarotScoring.kt            calcul d'une manche de Tarot (fonction pure, testée)
-            │   ├── GameRepository.kt          jeux prédéfinis et personnalisés
+            │   ├── GameRepository.kt          jeux personnalisés (SharedPreferences) + accès aux jeux prédéfinis
+            │   ├── BuiltInGames.kt            assemble les jeux prédéfinis ; un fichier par rubrique :
+            │   │   ClassicGames.kt, CardGames.kt, DiceGames.kt, SpecialGames.kt, OtherGames.kt
             │   ├── GameHistory.kt, GameHistoryScreen.kt   journal des parties
             │   ├── JournalBackup.kt           export/import JSON du journal (fonctions pures, testées)
             │   ├── Stats.kt, StatsScreen.kt   statistiques tirées du journal (calcul pur, testé) et écran
