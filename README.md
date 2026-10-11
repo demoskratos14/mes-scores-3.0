@@ -1,6 +1,6 @@
 # Mes Scores
 
-Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux de société : tableaux par manches, compteurs, Tarot avec calcul automatique, championnats (élimination directe, tirage au sort ou ordre choisi, ou poules), jeux personnalisés, journal des parties (avec export/import JSON), statistiques (victoires, meilleur score, moyenne), thème clair / sombre, langue au choix depuis l'appli (drapeau sur l'écran d'accueil : français, anglais, espagnol, portugais, italien), partage du classement, annulation de la dernière saisie et minuteur.
+Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux de société : tableaux par manches, compteurs, Tarot avec calcul automatique, championnats (élimination directe, tirage au sort ou ordre choisi, ou poules), jeux personnalisés, journal des parties (avec export/import JSON), statistiques (victoires, meilleur score, moyenne), thème clair / sombre, langue au choix depuis l'appli (drapeau sur l'écran d'accueil : français, anglais, espagnol, portugais, italien), partage du classement, annulation et rétablissement des saisies (jusqu'à 100), courbe d'évolution des scores manche après manche (écrans de score et journal), reprise en un appui de la partie en cours depuis l'accueil, et minuteur.
 
 - Identifiant : `com.aventure.messcores`
 - minSdk 26, compileSdk/targetSdk 37
@@ -26,7 +26,9 @@ Le `versionCode` vaut `1` en local ; dans GitHub Actions il reprend le numéro d
 
 Les tests unitaires (`app/src/test/`) couvrent notamment les noms en double (`PlayerNames`), le texte de partage (`ResultText`), la sauvegarde du journal (`JournalBackup`), l'annulation de saisie, ainsi que le calcul du Tarot (`TarotScoring.kt` : 3, 4 et 5 joueurs, garde sans, primes, chelems, somme des scores toujours nulle) et les règles de classement et de fin de partie (`ScoreViewModel` : seuil, manche à terminer, égalité, nombre de manches), les statistiques (`StatsCalculator`) et les formats de championnat (`TournamentFormatsTest` : calendrier des poules, classement et départage, tableau suivant l'ordre de la liste).
 
-Les tests d'interface (`app/src/test/java/com/aventure/messcores/ui/`) utilisent Compose Test avec Robolectric : ils tournent sur la JVM, sans émulateur, dans la même commande. Ils couvrent l'écran d'accueil (`SetupScreenUiTest` : saisie des noms, noms par défaut, nombre de joueurs), l'écran de compteurs (`CounterScreenUiTest` : +1, annuler, enregistrer au journal) et un parcours complet accueil → choix du jeu (`AppFlowUiTest`).
+Annuler / rétablir (`RedoTest`) et les données de la courbe d'évolution (`ScoreProgressTest`) ont aussi leurs tests unitaires.
+
+Les tests d'interface (`app/src/test/java/com/aventure/messcores/ui/`) utilisent Compose Test avec Robolectric : ils tournent sur la JVM, sans émulateur, dans la même commande. Ils couvrent l'écran d'accueil (`SetupScreenUiTest` : saisie des noms, noms par défaut, nombre de joueurs), l'écran de compteurs (`CounterScreenUiTest` : +1, annuler, rétablir, description TalkBack, enregistrer au journal), la proposition de reprise de la partie en cours (`SetupScreenUiTest`) et un parcours complet accueil → choix du jeu (`AppFlowUiTest`).
 
 Sous Linux/macOS, si `gradlew` n'est pas exécutable après un clonage : `chmod +x gradlew`
 (ou, une fois pour toutes : `git update-index --chmod=+x gradlew`).
