@@ -19,7 +19,9 @@ android {
         applicationId = "com.aventure.messcores"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
+        // versionCode doit augmenter à chaque publication (Play Store / mise à jour par-dessus l'existant) :
+        // en CI on reprend le numéro d'exécution du workflow GitHub (toujours croissant), en local 1.
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
         versionName = "1.0"
     }
 
@@ -111,4 +113,9 @@ dependencies {
     // Robolectric simule Android sur la JVM : permet de tester ce qui passe par les SharedPreferences
     // (GameRepository, GameHistoryRepository, TournamentViewModel) sans émulateur.
     testImplementation("org.robolectric:robolectric:4.17")
+    // Tests d'interface Compose, exécutés sur la JVM avec Robolectric (pas d'émulateur : ils tournent
+    // dans le même ./gradlew testDebugUnitTest que les autres). La version vient du BOM Compose.
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    // Déclare l'activité hôte utilisée par createComposeRule() dans le manifeste de la variante debug.
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
