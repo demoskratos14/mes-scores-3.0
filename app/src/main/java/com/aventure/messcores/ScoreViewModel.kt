@@ -12,92 +12,6 @@ import androidx.lifecycle.ViewModel
 import java.util.UUID
 
 /**
- * État d'une case du tableau (mode TABLE) : la magnitude saisie (toujours positive
- * côté saisie), le signe, et la règle choisie. Chaque champ est observable
- * individuellement par Compose, donc modifier l'un d'eux ne recrée pas l'objet.
- */
-class CellState {
-    var baseValue by mutableStateOf<Int?>(null)
-    var isNegative by mutableStateOf(false)
-    var multiplierId by mutableStateOf(GameRules.NORMAL_MULTIPLIER_ID)
-}
-
-/**
- * Une manche jouée en mode équipes variables (ex: Tarot) : les index des joueurs
- * de "l'équipe A" (ex: le preneur, ou preneur + appelé) pour CETTE manche, et le
- * score final déjà calculé (signe + multiplicateur + bonus appliqués). L'équipe B
- * regroupe automatiquement tous les autres joueurs et reçoit l'opposé de ce score.
- *
- * Si [deltas] est renseigné (Tarot), il donne le score exact de chaque joueur et remplace
- * cette règle simple : [value] à chaque membre de l'équipe A, son opposé à chaque membre
- * de l'équipe B.
- */
-data class TeamRound(
-    val teamALabel: String,
-    val teamAPlayers: Set<Int>,
-    val value: Int,
-    /** Saisie d'origine d'une manche de Tarot, conservée pour pouvoir la corriger (voir [TarotRoundInput]). */
-    val tarotInput: TarotRoundInput? = null,
-    /**
-     * Points exacts gagnés ou perdus par chaque joueur (même index que la liste des joueurs),
-     * pour les jeux qui répartissent le score de façon inégale (Tarot). Si null, on applique
-     * la règle simple : [value] à l'équipe A et son opposé aux autres joueurs.
-     */
-    val deltas: List<Int>? = null
-)
-
-/** Saisie brute d'une manche de Tarot (preneur, contrat, points, primes…), pour la modifier plus tard. */
-data class TarotRoundInput(
-    val taker: Int,
-    val partner: Int?,
-    val multiplierIndex: Int,
-    val bouts: Int,
-    val points: Int,
-    val petitAuBout: Int,
-    val handful: Int,
-    val slamAnnounced: Boolean,
-    val defenseSlam: Boolean
-)
-
-/**
- * Une saisie annulable (modes TABLE et COUNTER). Les manches à équipes variables (Tarot) ont
- * déjà leur propre suppression/correction dans l'historique des manches.
- */
-sealed interface UndoAction {
-    /** Un appui sur +/− d'un compteur : [delta] a été ajouté au joueur [player]. */
-    data class CounterChange(val player: Int, val delta: Int) : UndoAction
-
-    /**
-     * Une modification de la case (manche [round], joueur [player]) : [before] est son état
-     * d'avant. [addedRound] vaut vrai si cette saisie a fait ajouter automatiquement une
-     * nouvelle manche vide à la fin, qu'il faut alors retirer en annulant.
-     */
-    data class CellEdit(
-        val round: Int,
-        val player: Int,
-        val before: CellSnapshot,
-        val addedRound: Boolean
-    ) : UndoAction
-}
-
-/** Une saisie annulée, que [ScoreViewModel.redo] sait rétablir. */
-sealed interface RedoAction {
-    /** [delta] doit être ré-ajouté au joueur [player]. */
-    data class CounterChange(val player: Int, val delta: Int) : RedoAction
-
-    /**
-     * La case (manche [round], joueur [player]) doit reprendre l'état [state]. [removedRound] vaut
-     * vrai si l'annulation avait retiré la manche vide ajoutée automatiquement : il faut la recréer.
-     */
-    data class CellEdit(
-        val round: Int,
-        val player: Int,
-        val state: CellSnapshot,
-        val removedRound: Boolean
-    ) : RedoAction
-}
-
-/**
  * Gère l'état complet d'une partie, quel que soit son [ScoreMode] :
  * - la liste des noms de joueurs et les règles du jeu choisi
  * - une couleur distincte assignée aléatoirement à chaque joueur
@@ -173,21 +87,13 @@ class ScoreViewModel : ViewModel() {
 
         /** Nombre maximal de saisies mémorisées pour l'annulation. */
         private const val MAX_UNDO = 100
-
-        // Palette de couleurs suffisamment contrastées entre elles pour rester lisibles
-        // une fois utilisées comme fond de case ou comme couleur de texte.
-        private val COLOR_PALETTE = listOf(
-            Color(0xFFE53935), Color(0xFF1E88E5), Color(0xFF43A047), Color(0xFFFB8C00),
-            Color(0xFF8E24AA), Color(0xFF00897B), Color(0xFFD81B60), Color(0xFF3949AB),
-            Color(0xFF6D4C41), Color(0xFF7CB342), Color(0xFFF4511E), Color(0xFF546E7A)
-        )
     }
 
     /** Démarre une nouvelle partie avec la liste de noms et les règles de score fournies. */
     fun initGame(playerNames: List<String>, rules: GameRules) {
         players = playerNames
         gameRules = rules
-        playerColors = assignColors(playerNames.size)
+        playerColors = assignPlayerColors(playerNames.size)
         currentSaveId = null
         savedBaseline = null
         gameActive = true
@@ -217,7 +123,7 @@ class ScoreViewModel : ViewModel() {
         playerColors = if (saved.playerColorsArgb.size == saved.players.size) {
             saved.playerColorsArgb.map { Color(it) }
         } else {
-            assignColors(saved.players.size)
+            assignPlayerColors(saved.players.size)
         }
         _undoStack.clear()
         _redoStack.clear()
@@ -331,12 +237,6 @@ class ScoreViewModel : ViewModel() {
             isFinished = isGameOver(),
             phases = if (gameRules.phases != null) _phases.toList() else null
         )
-    }
-
-    private fun assignColors(count: Int): List<Color> {
-        if (count == 0) return emptyList()
-        val shuffled = COLOR_PALETTE.shuffled()
-        return List(count) { i -> shuffled[i % shuffled.size] }
     }
 
     // ---------- Mode TABLE ----------
@@ -554,13 +454,8 @@ class ScoreViewModel : ViewModel() {
 
     /** Rang (1 = premier) de chaque joueur d'après [totals] ; les ex æquo partagent le même rang. */
     fun ranksFor(totals: List<Int>): List<Int> {
-        // Phase 10 : on classe d'abord par phase atteinte, puis par score à phase égale.
-        if (hasPhases && _phases.size == totals.size) {
-            fun isBetter(a: Int, b: Int): Boolean = _phases[a] > _phases[b] ||
-                (_phases[a] == _phases[b] && if (gameRules.lowestWins) totals[a] < totals[b] else totals[a] > totals[b])
-            return totals.indices.map { me -> totals.indices.count { isBetter(it, me) } + 1 }
-        }
-        return totals.map { mine -> totals.count { if (gameRules.lowestWins) it < mine else it > mine } + 1 }
+        val phases = if (hasPhases && _phases.size == totals.size) _phases.toList() else null
+        return computeRanks(totals, gameRules.lowestWins, phases)
     }
 
     /** Rang de chaque joueur (même index que [players]). Voir [ranksFor]. */
@@ -635,7 +530,7 @@ class ScoreViewModel : ViewModel() {
                 roundsPlayed() >= limit
             }
             EndConditionType.SCORE_THRESHOLD -> {
-                if (!thresholdReached()) {
+                if (!thresholdReached(condition, totals)) {
                     false
                 } else if (condition.stopImmediately || gameRules.scoreMode != ScoreMode.TABLE) {
                     // Hors mode TABLE (pas de notion de "manche en cours" à terminer), ou si
@@ -650,37 +545,10 @@ class ScoreViewModel : ViewModel() {
         }
         if (!rawStop) return false
         // Manche décisive : si plusieurs joueurs sont à égalité en tête, on ne s'arrête pas.
-        if (condition.type == EndConditionType.SCORE_THRESHOLD && condition.tieBreakOnEqualLeaders && hasTiedLeaders()) {
+        if (condition.type == EndConditionType.SCORE_THRESHOLD && condition.tieBreakOnEqualLeaders && hasTiedLeaders(totals, gameRules.lowestWins)) {
             return false
         }
         return true
-    }
-
-    /**
-     * Vrai si au moins un joueur a franchi le seuil de score des règles, dans le sens configuré, en
-     * ayant au moins [EndCondition.minLead] points d'avance sur chacun des autres (2 au ping-pong :
-     * à 10-10 ou 11-10, la partie continue). Un score plafond éventuel termine la partie dans tous les cas.
-     */
-    private fun thresholdReached(): Boolean {
-        val condition = gameRules.endCondition
-        val threshold = condition.scoreThreshold ?: return false
-        val all = totals
-        // Score plafond (30 au badminton) : la partie se termine sans exiger l'écart.
-        condition.maxScore?.let { cap ->
-            val capped = when (condition.thresholdDirection) {
-                ThresholdDirection.ABOVE -> all.any { it >= cap }
-                ThresholdDirection.BELOW -> all.any { it <= cap }
-            }
-            if (capped) return true
-        }
-        return all.indices.any { i ->
-            val total = all[i]
-            val others = all.filterIndexed { j, _ -> j != i }
-            when (condition.thresholdDirection) {
-                ThresholdDirection.ABOVE -> total >= threshold && (others.isEmpty() || total - others.max() >= condition.minLead)
-                ThresholdDirection.BELOW -> total <= threshold && (others.isEmpty() || others.min() - total >= condition.minLead)
-            }
-        }
     }
 
     /** Vrai si la dernière manche entamée (mode TABLE) a été remplie par tous les joueurs. */
@@ -688,13 +556,6 @@ class ScoreViewModel : ViewModel() {
         val activeIndex = _scores.indexOfLast { round -> round.any { it.baseValue != null } }
         if (activeIndex == -1) return false
         return _scores[activeIndex].all { it.baseValue != null }
-    }
-
-    /** Vrai si plusieurs joueurs sont à égalité à la meilleure place du classement actuel. */
-    private fun hasTiedLeaders(): Boolean {
-        if (players.isEmpty()) return false
-        val best = if (gameRules.lowestWins) totals.min() else totals.max()
-        return totals.count { it == best } > 1
     }
 
     /** Index du joueur en tête si la partie est terminée, sinon null. */

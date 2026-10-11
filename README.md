@@ -67,6 +67,9 @@ MesScores/
             ├── java/com/aventure/messcores/
             │   ├── MainActivity.kt            navigation, sauvegarde automatique
             │   ├── ScoreViewModel.kt          état de la partie en cours
+            │   ├── ScoreModels.kt             CellState, TeamRound, annulation (UndoAction / RedoAction)
+            │   ├── ScoreStanding.kt           classement et fin de partie (fonctions pures, testées)
+            │   ├── PlayerColors.kt            palette et tirage des couleurs des joueurs
             │   ├── GameRules.kt, GameRulesText.kt   règles des jeux et fiches de règles
             │   ├── TarotScoring.kt            calcul d'une manche de Tarot (fonction pure, testée)
             │   ├── GameRepository.kt          jeux personnalisés (SharedPreferences) + accès aux jeux prédéfinis
