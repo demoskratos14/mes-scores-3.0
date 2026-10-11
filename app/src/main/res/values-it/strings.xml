@@ -91,6 +91,7 @@
     <string name="journal_title">Registro delle partite</string>
     <string name="stats_title">Statistiche</string>
     <string name="setup_appearance">Aspetto</string>
+    <string name="language_change">Cambia lingua</string>
     <string name="tsetup_format">Formato</string>
     <string name="tsetup_knockout_desc">Chi perde è eliminato. Semifinali, finale e finale per il terzo posto vengono generate automaticamente.</string>
     <string name="tsetup_round_robin_desc" tools:ignore="PluralsCandidate">Tutti affrontano tutti, la classifica si basa sulle vittorie. Massimo %1$d partecipanti.</string>
