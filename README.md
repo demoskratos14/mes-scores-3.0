@@ -83,6 +83,8 @@ MesScores/
             │   ├── PlayerNames.kt, ResultText.kt   noms uniques, texte de partage (fonctions pures, testées)
             │   ├── ScoreActions.kt            barre Annuler / Partager / Enregistrer
             │   ├── SetupScreen.kt, ChooseGameScreen.kt, CreateGameScreen.kt
+            │   │   CreateGameForm.kt (état du formulaire + conversion en CustomGameDraft), CreateGameSections.kt,
+            │   │   CreateGameRulesSections.kt (règles de multiplication, fin de partie), CreateGameWidgets.kt
             │   ├── CustomGameDraft.kt         formulaire de création -> GameRules (fonction pure, testée)
             │   ├── ScoreScreen.kt, CounterScreen.kt       tableau par manches / compteurs
             │   │   ScoreTable.kt (en-tête + corps), ScoreTableFooter.kt (phase, bonus, total),
