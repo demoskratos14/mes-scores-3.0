@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Notification de fin de minuteur quand l'appli est en arrière-plan (Android 13+, demandée au lancement d'un minuteur). -->
@@ -14,6 +15,7 @@
         android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        tools:targetApi="33"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         <activity
