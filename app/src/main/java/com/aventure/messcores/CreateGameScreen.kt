@@ -92,6 +92,10 @@ fun CreateGameScreen(
     }
     var stopImmediately by rememberSaveable { mutableStateOf(endCondition?.stopImmediately ?: true) }
     var tieBreakOnEqualLeaders by rememberSaveable { mutableStateOf(endCondition?.tieBreakOnEqualLeaders ?: false) }
+    // Écart minimum exigé pour finir (2 au ping-pong) ; vide = aucun.
+    var minLeadText by rememberSaveable {
+        mutableStateOf(endCondition?.minLead?.takeIf { it > 0 }?.toString() ?: "")
+    }
 
     // Nombre de joueurs : vide = valeur par défaut (voir GameRules.DEFAULT_MIN_PLAYERS / DEFAULT_MAX_PLAYERS).
     var minPlayersText by rememberSaveable {
@@ -496,6 +500,18 @@ fun CreateGameScreen(
                                 )
                             }
 
+                            NumberField(
+                                value = minLeadText,
+                                onValueChange = { minLeadText = it },
+                                label = stringResource(R.string.create_end_min_lead),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                stringResource(R.string.create_end_min_lead_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
                             if (scoreMode == ScoreMode.TABLE) {
                                 Text(stringResource(R.string.create_stop_moment), style = MaterialTheme.typography.bodySmall)
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -550,7 +566,8 @@ fun CreateGameScreen(
                                 scoreThreshold = endValue,
                                 thresholdDirection = thresholdDirection,
                                 stopImmediately = stopImmediately,
-                                tieBreakOnEqualLeaders = tieBreakOnEqualLeaders
+                                tieBreakOnEqualLeaders = tieBreakOnEqualLeaders,
+                                minLead = minLeadText.toIntOrNull() ?: 0
                             )
                         }
                         val draft = CustomGameDraft(

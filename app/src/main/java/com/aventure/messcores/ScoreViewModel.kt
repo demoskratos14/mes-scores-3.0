@@ -594,13 +594,22 @@ class ScoreViewModel : ViewModel() {
         return true
     }
 
-    /** Vrai si le seuil de score des règles est franchi par au moins un joueur, dans le sens configuré. */
+    /**
+     * Vrai si au moins un joueur a franchi le seuil de score des règles, dans le sens configuré, en
+     * ayant au moins [EndCondition.minLead] points d'avance sur chacun des autres (2 au ping-pong :
+     * à 10-10 ou 11-10, la partie continue).
+     */
     private fun thresholdReached(): Boolean {
         val condition = gameRules.endCondition
         val threshold = condition.scoreThreshold ?: return false
-        return when (condition.thresholdDirection) {
-            ThresholdDirection.ABOVE -> totals.any { it >= threshold }
-            ThresholdDirection.BELOW -> totals.any { it <= threshold }
+        val all = totals
+        return all.indices.any { i ->
+            val total = all[i]
+            val others = all.filterIndexed { j, _ -> j != i }
+            when (condition.thresholdDirection) {
+                ThresholdDirection.ABOVE -> total >= threshold && (others.isEmpty() || total - others.max() >= condition.minLead)
+                ThresholdDirection.BELOW -> total <= threshold && (others.isEmpty() || others.min() - total >= condition.minLead)
+            }
         }
     }
 

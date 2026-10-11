@@ -45,6 +45,9 @@ enum class ThresholdDirection {
  * @param tieBreakOnEqualLeaders si vrai, une manche supplémentaire est jouée si plusieurs
  *   joueurs sont à égalité en tête au moment où la partie devrait s'arrêter. Utilisé si
  *   [type] == SCORE_THRESHOLD.
+ * @param minLead écart minimum (en points) exigé sur chaque adversaire, en plus du seuil, pour que la
+ *   partie se termine (2 au ping-pong, au badminton, au volley). 0 par défaut : aucun écart exigé.
+ *   Utilisé si [type] == SCORE_THRESHOLD.
  */
 data class EndCondition(
     val type: EndConditionType = EndConditionType.NONE,
@@ -52,7 +55,8 @@ data class EndCondition(
     val scoreThreshold: Int? = null,
     val thresholdDirection: ThresholdDirection = ThresholdDirection.ABOVE,
     val stopImmediately: Boolean = true,
-    val tieBreakOnEqualLeaders: Boolean = false
+    val tieBreakOnEqualLeaders: Boolean = false,
+    val minLead: Int = 0
 )
 
 /**
@@ -163,6 +167,7 @@ data class GameRules(
         endConditionObj.put("thresholdDirection", endCondition.thresholdDirection.name)
         endConditionObj.put("stopImmediately", endCondition.stopImmediately)
         endConditionObj.put("tieBreakOnEqualLeaders", endCondition.tieBreakOnEqualLeaders)
+        if (endCondition.minLead > 0) endConditionObj.put("minLead", endCondition.minLead)
         obj.put("endCondition", endConditionObj)
 
         return obj
@@ -228,7 +233,8 @@ data class GameRules(
                         ThresholdDirection.ABOVE
                     },
                     stopImmediately = endConditionJson.optBoolean("stopImmediately", true),
-                    tieBreakOnEqualLeaders = endConditionJson.optBoolean("tieBreakOnEqualLeaders", false)
+                    tieBreakOnEqualLeaders = endConditionJson.optBoolean("tieBreakOnEqualLeaders", false),
+                    minLead = endConditionJson.optInt("minLead", 0).coerceAtLeast(0)
                 )
             }
 

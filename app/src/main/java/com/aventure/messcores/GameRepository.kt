@@ -354,8 +354,16 @@ class GameRepository(private val context: Context) {
             minPlayers = 3,
             maxPlayers = 7,
             lowestWins = false,
-            allowNegativeScores = false,
-            scoreMode = ScoreMode.TABLE
+            // Le militaire peut être négatif (jetons de défaite).
+            allowNegativeScores = true,
+            scoreMode = ScoreMode.TABLE,
+            sheet = ScoreSheets.CUSTOM,
+            sheetRows = listOf(
+                R.string.sheet_sevenwonders_military, R.string.sheet_sevenwonders_coins,
+                R.string.sheet_sevenwonders_wonders, R.string.sheet_sevenwonders_civil,
+                R.string.sheet_sevenwonders_commerce, R.string.sheet_sevenwonders_guilds,
+                R.string.sheet_sevenwonders_science
+            ).map { CustomSheetRow(context.getString(it)) }
         ),
         GameRules(
             id = "builtin_scrabble",
@@ -445,7 +453,7 @@ class GameRepository(private val context: Context) {
             lowestWins = false,
             allowNegativeScores = false,
             scoreMode = ScoreMode.COUNTER,
-            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 11, stopImmediately = true)
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 11, stopImmediately = true, minLead = 2)
         ),
         GameRules(
             id = "builtin_badminton",
@@ -455,7 +463,7 @@ class GameRepository(private val context: Context) {
             lowestWins = false,
             allowNegativeScores = false,
             scoreMode = ScoreMode.COUNTER,
-            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 21, stopImmediately = true)
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 21, stopImmediately = true, minLead = 2)
         ),
         GameRules(
             id = "builtin_volley",
@@ -465,7 +473,7 @@ class GameRepository(private val context: Context) {
             lowestWins = false,
             allowNegativeScores = false,
             scoreMode = ScoreMode.COUNTER,
-            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 25, stopImmediately = true)
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 25, stopImmediately = true, minLead = 2)
         ),
         GameRules(
             id = "builtin_babyfoot",

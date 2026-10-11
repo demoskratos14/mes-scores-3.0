@@ -141,7 +141,8 @@ object ScoreSheets {
                 SheetRow(
                     id = "row_${i + 1}",
                     label = 0,
-                    options = row.options,
+                    // Le 0 est toujours proposé, pour pouvoir barrer la case.
+                    options = row.options?.let { if (0 in it) it else listOf(0) + it },
                     zeroCrossesOut = false,
                     labelText = row.name
                 )

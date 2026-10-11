@@ -111,6 +111,28 @@ class CustomSheetTest {
     }
 
     @Test
+    fun leZeroEstToujoursProposePourBarrerUneCase() {
+        val rows = ScoreSheets.rows(rules(listOf(CustomSheetRow("A", listOf(3, 5)), CustomSheetRow("B", listOf(5, 0, 2)))))!!
+        assertEquals(listOf(0, 3, 5), rows[0].options)
+        // Déjà présent : la liste n'est pas modifiée.
+        assertEquals(listOf(5, 0, 2), rows[1].options)
+    }
+
+    @Test
+    fun leSeptWondersEstUneFeuilleDeSeptFamilles() {
+        val game = GameRepository(org.robolectric.RuntimeEnvironment.getApplication()).builtInGames()
+            .first { it.id == "builtin_sevenwonders" }
+        assertEquals(ScoreSheets.CUSTOM, game.sheet)
+        assertEquals(7, ScoreSheets.rows(game)!!.size)
+        assertTrue(game.allowNegativeScores)
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben", "Chloé"), game) }
+        assertEquals(7, vm.scores.size)
+        vm.setCell(0, 0, 3, true)
+        vm.setCell(1, 0, 4, false)
+        assertEquals(1, vm.totalFor(0))
+    }
+
+    @Test
     fun lesFeuillesIntegreesNeSontPasTouchees() {
         assertEquals(ScoreSheets.rows(ScoreSheets.YAMS), ScoreSheets.rows(GameRules(id = "y", name = "Yams", sheet = ScoreSheets.YAMS)))
         assertNull(ScoreSheets.rows(GameRules(id = "g", name = "Libre")))
