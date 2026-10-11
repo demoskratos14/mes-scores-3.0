@@ -230,8 +230,6 @@
     <string name="actions_share">Share</string>
     <string name="actions_saved">Saved ✓</string>
     <string name="actions_save">Save</string>
-    <string name="counter_remove">Remove a point</string>
-    <string name="counter_add">Add a point</string>
     <string name="team_new_round">+ New round</string>
     <string name="team_history">Round history</string>
     <string name="team_round_header">Round %1$d — %2$s</string>
@@ -912,4 +910,16 @@
         <item quantity="one">%d second</item>
         <item quantity="other">%d seconds</item>
     </plurals>
+    <string name="actions_undo">Undo last entry</string>
+    <string name="actions_redo">Redo undone entry</string>
+    <string name="counter_add_for">Add a point to %1$s</string>
+    <string name="counter_remove_for">Remove a point from %1$s</string>
+    <string name="counter_player_summary">%1$s, score %2$d, rank %3$d</string>
+    <string name="resume_title">Game in progress</string>
+    <string name="resume_summary">%1$s · %2$s</string>
+    <string name="resume_dismiss">Dismiss</string>
+    <string name="chart_title">Score progress</string>
+    <string name="chart_button">Score progress chart</string>
+    <string name="chart_description">Line chart of each player\'s total, round after round</string>
+    <string name="chart_range">Rounds 1 to %1$d · scores from %2$d to %3$d</string>
 </resources>
