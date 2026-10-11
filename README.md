@@ -13,7 +13,10 @@ Le wrapper Gradle est inclus (`gradlew`, `gradlew.bat`, `gradle/wrapper/`) : auc
 ```
 ./gradlew assembleDebug      # APK de test  -> app/build/outputs/apk/debug/Mes scores-debug.apk
 ./gradlew assembleRelease    # APK minifié  -> app/build/outputs/apk/release/Mes scores-release.apk
+./gradlew bundleRelease      # AAB pour le Play Store -> app/build/outputs/bundle/release/
 ```
+
+Le `versionCode` vaut `1` en local ; dans GitHub Actions il reprend le numéro d'exécution du workflow (`GITHUB_RUN_NUMBER`), qui ne fait qu'augmenter : chaque build publié peut donc s'installer par-dessus le précédent et être envoyé au Play Store. `versionName` (« 1.0 ») se change à la main dans `app/build.gradle.kts`.
 
 ## Tests
 
@@ -22,6 +25,8 @@ Le wrapper Gradle est inclus (`gradlew`, `gradlew.bat`, `gradle/wrapper/`) : auc
 ```
 
 Les tests unitaires (`app/src/test/`) couvrent notamment les noms en double (`PlayerNames`), le texte de partage (`ResultText`), la sauvegarde du journal (`JournalBackup`), l'annulation de saisie, ainsi que le calcul du Tarot (`TarotScoring.kt` : 3, 4 et 5 joueurs, garde sans, primes, chelems, somme des scores toujours nulle) et les règles de classement et de fin de partie (`ScoreViewModel` : seuil, manche à terminer, égalité, nombre de manches), les statistiques (`StatsCalculator`) et les formats de championnat (`TournamentFormatsTest` : calendrier des poules, classement et départage, tableau suivant l'ordre de la liste).
+
+Les tests d'interface (`app/src/test/java/com/aventure/messcores/ui/`) utilisent Compose Test avec Robolectric : ils tournent sur la JVM, sans émulateur, dans la même commande. Ils couvrent l'écran d'accueil (`SetupScreenUiTest` : saisie des noms, noms par défaut, nombre de joueurs), l'écran de compteurs (`CounterScreenUiTest` : +1, annuler, enregistrer au journal) et un parcours complet accueil → choix du jeu (`AppFlowUiTest`).
 
 Sous Linux/macOS, si `gradlew` n'est pas exécutable après un clonage : `chmod +x gradlew`
 (ou, une fois pour toutes : `git update-index --chmod=+x gradlew`).
@@ -36,7 +41,7 @@ Le fichier `.github/dependabot.yml` demande à Dependabot de proposer chaque sem
 
 Pour obtenir un APK **release signé**, créez dans *Settings > Secrets and variables > Actions* :
 `KEYSTORE_BASE64` (votre fichier `.jks` encodé en base64), `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`,
-puis lancez le workflow à la main (*Run workflow*) en cochant « release ».
+puis lancez le workflow à la main (*Run workflow*) en cochant « release » : il publie l'APK signé et l'AAB signé (format demandé par le Play Store).
 En local, la signature se configure avec les mêmes noms en variables d'environnement, plus `KEYSTORE_FILE` (chemin du `.jks`).
 Sans ces variables, la release est construite non signée. Gardez votre clé de signature en lieu sûr : sans elle, impossible de publier des mises à jour.
 
