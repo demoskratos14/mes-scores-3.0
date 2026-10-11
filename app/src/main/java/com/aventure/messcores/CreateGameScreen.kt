@@ -96,6 +96,8 @@ fun CreateGameScreen(
     var minLeadText by rememberSaveable {
         mutableStateOf(endCondition?.minLead?.takeIf { it > 0 }?.toString() ?: "")
     }
+    // Score plafond (30 au badminton) ; vide = aucun.
+    var maxScoreText by rememberSaveable { mutableStateOf(endCondition?.maxScore?.toString() ?: "") }
 
     // Nombre de joueurs : vide = valeur par défaut (voir GameRules.DEFAULT_MIN_PLAYERS / DEFAULT_MAX_PLAYERS).
     var minPlayersText by rememberSaveable {
@@ -511,6 +513,17 @@ fun CreateGameScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            NumberField(
+                                value = maxScoreText,
+                                onValueChange = { maxScoreText = it },
+                                label = stringResource(R.string.create_end_max_score),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                stringResource(R.string.create_end_max_score_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
 
                             if (scoreMode == ScoreMode.TABLE) {
                                 Text(stringResource(R.string.create_stop_moment), style = MaterialTheme.typography.bodySmall)
@@ -567,7 +580,8 @@ fun CreateGameScreen(
                                 thresholdDirection = thresholdDirection,
                                 stopImmediately = stopImmediately,
                                 tieBreakOnEqualLeaders = tieBreakOnEqualLeaders,
-                                minLead = minLeadText.toIntOrNull() ?: 0
+                                minLead = minLeadText.toIntOrNull() ?: 0,
+                                maxScore = maxScoreText.toIntOrNull()
                             )
                         }
                         val draft = CustomGameDraft(

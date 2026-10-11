@@ -75,6 +75,8 @@
     <string name="create_tiebreak_sub">Rejoue une manche si plusieurs joueurs sont à égalité au sommet</string>
     <string name="create_end_min_lead">Écart minimum (facultatif)</string>
     <string name="create_end_min_lead_sub">Points d\'avance exigés sur chaque adversaire pour terminer (2 au ping-pong). Vide : aucun écart exigé.</string>
+    <string name="create_end_max_score">Score plafond (facultatif)</string>
+    <string name="create_end_max_score_sub">Dès qu\'un joueur atteint ce score, la partie se termine même sans l\'écart exigé (30 au badminton). Vide : pas de plafond.</string>
     <string name="create_untitled">Jeu sans nom</string>
     <string name="create_submit_new">Créer et commencer</string>
     <string name="create_submit_edit">Enregistrer les modifications</string>
@@ -916,7 +918,7 @@
     <string name="rules_pingpong_2_title">Dans l\'appli</string>
     <string name="rules_pingpong_2_body">Ajoute (+1 / −1) un point au joueur qui vient de gagner l\'échange. Le service change tous les 2 points.</string>
     <string name="rules_badminton_1_title">But du jeu</string>
-    <string name="rules_badminton_1_body">Être le premier à atteindre 21 points avec 2 points d\'écart. L\'appli arrête la partie quand un joueur a au moins 21 points et 2 points d\'avance. Le plafond de 30 points n\'est pas géré : à 29-29, le point suivant gagne, termine à la main.</string>
+    <string name="rules_badminton_1_body">Être le premier à atteindre 21 points avec 2 points d\'écart, jusqu\'à 30 points au maximum. L\'appli arrête la partie quand un joueur a au moins 21 points et 2 points d\'avance, ou dès qu\'il atteint 30 (à 29-29, le point suivant gagne).</string>
     <string name="rules_badminton_2_title">Dans l\'appli</string>
     <string name="rules_badminton_2_body">Ajoute (+1 / −1) un point au joueur qui vient de gagner l\'échange.</string>
     <string name="rules_volley_1_title">But du jeu</string>

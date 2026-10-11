@@ -597,12 +597,20 @@ class ScoreViewModel : ViewModel() {
     /**
      * Vrai si au moins un joueur a franchi le seuil de score des règles, dans le sens configuré, en
      * ayant au moins [EndCondition.minLead] points d'avance sur chacun des autres (2 au ping-pong :
-     * à 10-10 ou 11-10, la partie continue).
+     * à 10-10 ou 11-10, la partie continue). Un score plafond éventuel termine la partie dans tous les cas.
      */
     private fun thresholdReached(): Boolean {
         val condition = gameRules.endCondition
         val threshold = condition.scoreThreshold ?: return false
         val all = totals
+        // Score plafond (30 au badminton) : la partie se termine sans exiger l'écart.
+        condition.maxScore?.let { cap ->
+            val capped = when (condition.thresholdDirection) {
+                ThresholdDirection.ABOVE -> all.any { it >= cap }
+                ThresholdDirection.BELOW -> all.any { it <= cap }
+            }
+            if (capped) return true
+        }
         return all.indices.any { i ->
             val total = all[i]
             val others = all.filterIndexed { j, _ -> j != i }

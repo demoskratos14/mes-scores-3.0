@@ -126,4 +126,35 @@ class MinLeadTest {
         old.getJSONObject("endCondition").remove("minLead")
         assertEquals(0, GameRules.fromJson(old).endCondition.minLead)
     }
+
+    @Test
+    fun badmintonSArreteA30MemeSansEcartDeDeuxPoints() {
+        val badminton = counterGame(builtIn("builtin_badminton"), "Anna", "Ben")
+        assertEquals(30, builtIn("builtin_badminton").endCondition.maxScore)
+        badminton.points(1, 29)
+        badminton.points(0, 29)
+        assertFalse(badminton.isGameOver()) // 29-29 : le point suivant décide
+        badminton.points(0, 1) // 30-29
+        assertTrue(badminton.isGameOver())
+        assertEquals(listOf(0), badminton.winners())
+    }
+
+    @Test
+    fun leTopeNeChangeRienAvantDeLAtteindre() {
+        val badminton = counterGame(builtIn("builtin_badminton"), "Anna", "Ben")
+        badminton.points(1, 24)
+        badminton.points(0, 25)
+        assertFalse(badminton.isGameOver()) // 25-24 : ni écart de 2, ni plafond
+        badminton.points(0, 1) // 26-24
+        assertTrue(badminton.isGameOver())
+    }
+
+    @Test
+    fun lePlafondSeLitEtSEcritEnJson() {
+        val rules = builtIn("builtin_badminton")
+        assertEquals(30, GameRules.fromJson(JSONObject(rules.toJson().toString())).endCondition.maxScore)
+        val old = JSONObject(rules.toJson().toString())
+        old.getJSONObject("endCondition").remove("maxScore")
+        assertEquals(null, GameRules.fromJson(old).endCondition.maxScore)
+    }
 }

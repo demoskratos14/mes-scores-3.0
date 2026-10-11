@@ -74,6 +74,8 @@
     <string name="create_tiebreak_sub">Plays another round if several players are tied at the top</string>
     <string name="create_end_min_lead">Minimum lead (optional)</string>
     <string name="create_end_min_lead_sub">Points ahead of every opponent required to finish (2 in table tennis). Empty: no lead required.</string>
+    <string name="create_end_max_score">Score cap (optional)</string>
+    <string name="create_end_max_score_sub">As soon as a player reaches this score, the game ends even without the required lead (30 in badminton). Empty: no cap.</string>
     <string name="create_untitled">Untitled game</string>
     <string name="create_submit_new">Create and start</string>
     <string name="create_submit_edit">Save changes</string>
@@ -822,7 +824,7 @@
     <string name="rules_pingpong_2_title">In the app</string>
     <string name="rules_pingpong_2_body">Add (+1 / −1) a point to the player who has just won the rally. The serve changes every 2 points.</string>
     <string name="rules_badminton_1_title">Goal</string>
-    <string name="rules_badminton_1_body">Be the first to reach 21 points with a 2-point lead. The app ends the game when a player has at least 21 points and leads by 2. The 30-point cap is not handled: at 29-29 the next point wins, so finish by hand.</string>
+    <string name="rules_badminton_1_body">Be the first to reach 21 points with a 2-point lead, up to a maximum of 30. The app ends the game when a player has at least 21 points and leads by 2, or as soon as someone reaches 30 (at 29-29 the next point wins).</string>
     <string name="rules_badminton_2_title">In the app</string>
     <string name="rules_badminton_2_body">Add (+1 / −1) a point to the player who has just won the rally.</string>
     <string name="rules_volley_1_title">Goal</string>

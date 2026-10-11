@@ -48,6 +48,9 @@ enum class ThresholdDirection {
  * @param minLead écart minimum (en points) exigé sur chaque adversaire, en plus du seuil, pour que la
  *   partie se termine (2 au ping-pong, au badminton, au volley). 0 par défaut : aucun écart exigé.
  *   Utilisé si [type] == SCORE_THRESHOLD.
+ * @param maxScore score plafond : dès qu'un joueur l'atteint, la partie se termine même sans l'écart
+ *   exigé par [minLead] (30 au badminton). null par défaut : pas de plafond. Utilisé si
+ *   [type] == SCORE_THRESHOLD.
  */
 data class EndCondition(
     val type: EndConditionType = EndConditionType.NONE,
@@ -56,7 +59,8 @@ data class EndCondition(
     val thresholdDirection: ThresholdDirection = ThresholdDirection.ABOVE,
     val stopImmediately: Boolean = true,
     val tieBreakOnEqualLeaders: Boolean = false,
-    val minLead: Int = 0
+    val minLead: Int = 0,
+    val maxScore: Int? = null
 )
 
 /**
@@ -168,6 +172,7 @@ data class GameRules(
         endConditionObj.put("stopImmediately", endCondition.stopImmediately)
         endConditionObj.put("tieBreakOnEqualLeaders", endCondition.tieBreakOnEqualLeaders)
         if (endCondition.minLead > 0) endConditionObj.put("minLead", endCondition.minLead)
+        endCondition.maxScore?.let { endConditionObj.put("maxScore", it) }
         obj.put("endCondition", endConditionObj)
 
         return obj
@@ -234,7 +239,10 @@ data class GameRules(
                     },
                     stopImmediately = endConditionJson.optBoolean("stopImmediately", true),
                     tieBreakOnEqualLeaders = endConditionJson.optBoolean("tieBreakOnEqualLeaders", false),
-                    minLead = endConditionJson.optInt("minLead", 0).coerceAtLeast(0)
+                    minLead = endConditionJson.optInt("minLead", 0).coerceAtLeast(0),
+                    maxScore = if (endConditionJson.has("maxScore") && !endConditionJson.isNull("maxScore")) {
+                        endConditionJson.getInt("maxScore")
+                    } else null
                 )
             }
 

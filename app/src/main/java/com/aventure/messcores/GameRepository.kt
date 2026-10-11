@@ -463,7 +463,7 @@ class GameRepository(private val context: Context) {
             lowestWins = false,
             allowNegativeScores = false,
             scoreMode = ScoreMode.COUNTER,
-            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 21, stopImmediately = true, minLead = 2)
+            endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 21, stopImmediately = true, minLead = 2, maxScore = 30)
         ),
         GameRules(
             id = "builtin_volley",

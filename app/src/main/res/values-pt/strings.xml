@@ -74,6 +74,8 @@
     <string name="create_tiebreak_sub">Joga-se outra ronda se vários jogadores estiverem empatados no topo</string>
     <string name="create_end_min_lead">Vantagem mínima (opcional)</string>
     <string name="create_end_min_lead_sub">Pontos de vantagem sobre cada adversário necessários para terminar (2 no ténis de mesa). Vazio: sem vantagem mínima.</string>
+    <string name="create_end_max_score">Limite de pontos (opcional)</string>
+    <string name="create_end_max_score_sub">Assim que um jogador atinge esta pontuação, o jogo termina mesmo sem a vantagem exigida (30 no badmínton). Vazio: sem limite.</string>
     <string name="create_untitled">Jogo sem nome</string>
     <string name="create_submit_new">Criar e começar</string>
     <string name="create_submit_edit">Guardar as alterações</string>
@@ -822,7 +824,7 @@
     <string name="rules_pingpong_2_title">Na aplicação</string>
     <string name="rules_pingpong_2_body">Soma (+1 / −1) um ponto ao jogador que acabou de ganhar a jogada. O serviço muda de 2 em 2 pontos.</string>
     <string name="rules_badminton_1_title">Objetivo</string>
-    <string name="rules_badminton_1_body">Ser o primeiro a chegar a 21 pontos com 2 de vantagem. A app termina o jogo quando um jogador tem pelo menos 21 pontos e 2 de vantagem. O limite de 30 pontos não é tratado: a 29-29 ganha o ponto seguinte, termina à mão.</string>
+    <string name="rules_badminton_1_body">Ser o primeiro a chegar a 21 pontos com 2 de vantagem, até um máximo de 30. A app termina o jogo quando um jogador tem pelo menos 21 pontos e 2 de vantagem, ou assim que alguém chega a 30 (a 29-29 ganha o ponto seguinte).</string>
     <string name="rules_badminton_2_title">Na aplicação</string>
     <string name="rules_badminton_2_body">Soma (+1 / −1) um ponto ao jogador que acabou de ganhar a jogada.</string>
     <string name="rules_volley_1_title">Objetivo</string>

@@ -75,6 +75,8 @@
     <string name="create_tiebreak_sub">Si rigioca un round se più giocatori sono in parità in vetta</string>
     <string name="create_end_min_lead">Scarto minimo (facoltativo)</string>
     <string name="create_end_min_lead_sub">Punti di vantaggio su ogni avversario richiesti per terminare (2 nel ping-pong). Vuoto: nessuno scarto richiesto.</string>
+    <string name="create_end_max_score">Tetto di punteggio (facoltativo)</string>
+    <string name="create_end_max_score_sub">Appena un giocatore raggiunge questo punteggio, la partita termina anche senza lo scarto richiesto (30 nel badminton). Vuoto: nessun tetto.</string>
     <string name="create_untitled">Gioco senza nome</string>
     <string name="create_submit_new">Crea e inizia</string>
     <string name="create_submit_edit">Salva le modifiche</string>
@@ -911,7 +913,7 @@
     <string name="rules_pingpong_2_title">Nell\'app</string>
     <string name="rules_pingpong_2_body">Aggiungi (+1 / −1) un punto al giocatore che ha appena vinto lo scambio. Il servizio cambia ogni 2 punti.</string>
     <string name="rules_badminton_1_title">Obiettivo del gioco</string>
-    <string name="rules_badminton_1_body">Essere il primo a raggiungere 21 punti con 2 punti di scarto. L’app termina la partita quando un giocatore ha almeno 21 punti e 2 di vantaggio. Il tetto di 30 punti non è gestito: sul 29-29 vince il punto successivo, termina a mano.</string>
+    <string name="rules_badminton_1_body">Essere il primo a raggiungere 21 punti con 2 punti di scarto, fino a un massimo di 30. L’app termina la partita quando un giocatore ha almeno 21 punti e 2 di vantaggio, oppure appena qualcuno arriva a 30 (sul 29-29 vince il punto successivo).</string>
     <string name="rules_badminton_2_title">Nell\'app</string>
     <string name="rules_badminton_2_body">Aggiungi (+1 / −1) un punto al giocatore che ha appena vinto lo scambio.</string>
     <string name="rules_volley_1_title">Obiettivo del gioco</string>
