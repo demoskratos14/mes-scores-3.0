@@ -90,6 +90,7 @@
     <string name="journal_title">Game log</string>
     <string name="stats_title">Statistics</string>
     <string name="setup_appearance">Appearance</string>
+    <string name="language_change">Change language</string>
     <string name="tsetup_format">Format</string>
     <string name="tsetup_knockout_desc">The loser is eliminated. Semi-finals, final and third-place match are generated automatically.</string>
     <string name="tsetup_round_robin_desc">Everyone plays everyone, and the standings are based on wins. %1$d participants at most.</string>
