@@ -3,10 +3,8 @@ package com.aventure.messcores.ui
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.aventure.messcores.CounterScreen
@@ -48,8 +46,12 @@ class CounterScreenUiTest {
     }
 
     private fun addPoint(playerIndex: Int) {
-        composeRule.onAllNodesWithContentDescription(context.getString(R.string.counter_add))[playerIndex].performClick()
+        val name = viewModel.players[playerIndex]
+        composeRule.onNodeWithContentDescription(context.getString(R.string.counter_add_for, name)).performClick()
     }
+
+    private val undoButton get() = composeRule.onNodeWithContentDescription(context.getString(R.string.actions_undo))
+    private val redoButton get() = composeRule.onNodeWithContentDescription(context.getString(R.string.actions_redo))
 
     @Test
     fun lePlusUnNeChangeQueLeJoueurConcerne() {
@@ -70,13 +72,32 @@ class CounterScreenUiTest {
     @Test
     fun annulerRetireLaDerniereSaisieEtSeGriseEnSuite() {
         showCounter()
-        val undo = hasText(context.getString(R.string.common_cancel), substring = true) and hasClickAction()
-        composeRule.onNode(undo).assertIsNotEnabled() // rien à annuler au départ
+        undoButton.assertIsNotEnabled() // rien à annuler au départ
         addPoint(0)
-        composeRule.onNode(undo).assertIsEnabled()
-        composeRule.onNode(undo).performClick()
+        undoButton.assertIsEnabled()
+        undoButton.performClick()
         assertEquals(listOf(0, 0), viewModel.totals)
-        composeRule.onNode(undo).assertIsNotEnabled()
+        undoButton.assertIsNotEnabled()
+    }
+
+    @Test
+    fun retablirRejoueLaSaisieAnnulee() {
+        showCounter()
+        redoButton.assertIsNotEnabled() // rien à rétablir au départ
+        addPoint(0)
+        undoButton.performClick()
+        redoButton.assertIsEnabled()
+        redoButton.performClick()
+        assertEquals(listOf(1, 0), viewModel.totals)
+        redoButton.assertIsNotEnabled()
+    }
+
+    @Test
+    fun leScoreEstDecritPourTalkBackAvecLeNomEtLeRang() {
+        showCounter()
+        addPoint(0)
+        val summary = context.getString(R.string.counter_player_summary, "Anna", 1, 1)
+        composeRule.onNodeWithContentDescription(summary).assertIsDisplayed()
     }
 
     @Test
