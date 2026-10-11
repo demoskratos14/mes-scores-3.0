@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -51,6 +52,7 @@ fun NewTeamRoundScreen(
     }
 
     val players = viewModel.players
+    val context = LocalContext.current
     val multipliers = viewModel.gameRules.multipliers
     val allowNegative = viewModel.gameRules.allowNegativeScores
 
@@ -112,7 +114,7 @@ fun NewTeamRoundScreen(
                             FilterChip(
                                 selected = multiplierId == m.id,
                                 onClick = { multiplierId = m.id },
-                                label = { Text("${m.label} ×${m.factor}") }
+                                label = { Text("${m.displayLabel()} ×${m.factor}") }
                             )
                         }
                     }
@@ -157,7 +159,7 @@ fun NewTeamRoundScreen(
                     onClick = {
                         val currentMultiplier = multipliers.find { it.id == multiplierId } ?: multipliers.first()
                         val label = selectedPlayers.joinToString(", ") { players[it] } +
-                            if (multipliers.size > 1) " (${currentMultiplier.label})" else ""
+                            if (multipliers.size > 1) " (${currentMultiplier.displayLabel(context)})" else ""
                         viewModel.addTeamRound(
                             teamALabel = label,
                             teamAPlayers = selectedPlayers,

@@ -93,7 +93,8 @@ class ScoreViewModel : ViewModel() {
     var players by mutableStateOf<List<String>>(emptyList())
         private set
 
-    var gameRules by mutableStateOf(GameRules(id = "default", name = "Jeu classique"))
+    // Valeur provisoire avant initGame / loadFromSaved : jamais affichée (le nom vient du jeu choisi).
+    var gameRules by mutableStateOf(GameRules(id = "default", name = ""))
         private set
 
     /** Une couleur distincte par joueur (même index que [players]), tirée au sort à chaque nouvelle partie. */

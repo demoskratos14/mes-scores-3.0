@@ -459,7 +459,7 @@ private fun ScoreCell(
             val current = multipliers.find { it.id == cell.multiplierId } ?: multipliers.first()
             Box {
                 Text(
-                    text = "${current.label} ×${current.factor}",
+                    text = "${current.displayLabel()} ×${current.factor}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
@@ -470,7 +470,7 @@ private fun ScoreCell(
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     multipliers.forEach { multiplier ->
                         DropdownMenuItem(
-                            text = { Text("${multiplier.label} ×${multiplier.factor}") },
+                            text = { Text("${multiplier.displayLabel()} ×${multiplier.factor}") },
                             onClick = {
                                 expanded = false
                                 onMultiplierPicked(multiplier.id)

@@ -164,7 +164,7 @@ fun NewTarotRoundScreen(
 
                 Text(stringResource(R.string.contract), style = MaterialTheme.typography.titleSmall)
                 ChoiceRow(
-                    options = multipliers.map { "${it.label} ×${it.factor}" },
+                    options = multipliers.map { "${it.displayLabel()} ×${it.factor}" },
                     selected = multiplierIndex
                 ) { multiplierIndex = it }
 

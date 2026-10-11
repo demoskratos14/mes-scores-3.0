@@ -892,4 +892,6 @@
     <string name="rules_sueca_4_body">À la fin de la donne, chaque équipe compte les points des cartes dans ses plis. Plus de 60 points : 1 point de partie. 91 points ou plus : 2 points de partie. Une équipe qui remporte tous les plis (« dar uma bandeira ») marque 4 points et gagne la partie. À 60 contre 60, personne ne marque (selon les tables, la donne suivante vaut alors un point de plus).</string>
     <string name="rules_sueca_5_title">Dans l\'appli</string>
     <string name="rules_sueca_5_body">À la fin de chaque donne, saisis dans la colonne de l\'équipe qui a gagné la donne 1, 2 ou 4 points de partie (0 pour l\'autre équipe). Tu peux jouer avec 2 colonnes (les deux équipes) ou avec 4 joueurs. Certaines régions jouent en 6 points au lieu de 4 : dans ce cas, continue la partie à la main.</string>
+
+    <string name="multiplier_normal">Normal</string>
 </resources>

@@ -212,4 +212,13 @@ class ScoreRulesTest {
         assertTrue(vm.isGameOver())
         assertEquals(listOf(0), vm.winners())
     }
+
+    @Test
+    fun leLibelleNormalEstTraduitALAffichageMaisPasLesAutres() {
+        val context = RuntimeEnvironment.getApplication()
+        assertEquals("Normal", GameRules.NORMAL_MULTIPLIER.displayLabel(context))
+        assertEquals("Garde", ScoreMultiplier(id = "garde", label = "Garde", factor = 2).displayLabel(context))
+        // Le libellé enregistré ne change pas : seul l'affichage passe par les ressources.
+        assertEquals("Normal", GameRules.NORMAL_MULTIPLIER.label)
+    }
 }
