@@ -23,6 +23,9 @@ class MinLeadTest {
 
     private fun ScoreViewModel.points(player: Int, n: Int) = repeat(n) { incrementCounter(player, 1) }
 
+    /** Les deux joueurs marquent à tour de rôle jusqu'à [n] points chacun (l'écart ne dépasse jamais 1). */
+    private fun ScoreViewModel.egalite(n: Int) = repeat(n) { points(0, 1); points(1, 1) }
+
     @Test
     fun lePingPongNeSArretePasA11SiLEcartEstInferieurA2() {
         val vm = counterGame(builtIn("builtin_pingpong"), "Anna", "Ben")
@@ -131,8 +134,7 @@ class MinLeadTest {
     fun badmintonSArreteA30MemeSansEcartDeDeuxPoints() {
         val badminton = counterGame(builtIn("builtin_badminton"), "Anna", "Ben")
         assertEquals(30, builtIn("builtin_badminton").endCondition.maxScore)
-        badminton.points(1, 29)
-        badminton.points(0, 29)
+        badminton.egalite(29)
         assertFalse(badminton.isGameOver()) // 29-29 : le point suivant décide
         badminton.points(0, 1) // 30-29
         assertTrue(badminton.isGameOver())
@@ -142,8 +144,8 @@ class MinLeadTest {
     @Test
     fun leTopeNeChangeRienAvantDeLAtteindre() {
         val badminton = counterGame(builtIn("builtin_badminton"), "Anna", "Ben")
-        badminton.points(1, 24)
-        badminton.points(0, 25)
+        badminton.egalite(24)
+        badminton.points(0, 1)
         assertFalse(badminton.isGameOver()) // 25-24 : ni écart de 2, ni plafond
         badminton.points(0, 1) // 26-24
         assertTrue(badminton.isGameOver())
