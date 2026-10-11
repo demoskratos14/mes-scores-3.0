@@ -53,7 +53,8 @@ MesScores/
     └── src/
         ├── test/java/com/aventure/messcores/   TarotScoringTest.kt, ScoreViewModelTest.kt, TournamentEngineTest.kt,
         │                                       TournamentFormatsTest.kt, StatsCalculatorTest.kt,
-        │                                       PlayerNamesTest.kt, ResultTextTest.kt, JournalBackupTest.kt
+        │                                       PlayerNamesTest.kt, ResultTextTest.kt, JournalBackupTest.kt,
+        │                                       CustomGameDraftTest.kt
         └── main/
             ├── AndroidManifest.xml
             ├── java/com/aventure/messcores/
@@ -70,6 +71,7 @@ MesScores/
             │   ├── PlayerNames.kt, ResultText.kt   noms uniques, texte de partage (fonctions pures, testées)
             │   ├── ScoreActions.kt            barre Annuler / Partager / Enregistrer
             │   ├── SetupScreen.kt, ChooseGameScreen.kt, CreateGameScreen.kt
+            │   ├── CustomGameDraft.kt         formulaire de création -> GameRules (fonction pure, testée)
             │   ├── ScoreScreen.kt, CounterScreen.kt       tableau par manches / compteurs
             │   ├── TeamRoundsScreen.kt, NewTeamRoundScreen.kt, NewTarotRoundScreen.kt
             │   ├── TournamentEngine.kt        règles des championnats (tableau, poules) — pures, testées
@@ -84,6 +86,16 @@ MesScores/
                 ├── mipmap-anydpi/ic_launcher.xml, ic_launcher_round.xml   icône adaptative (+ monochrome)
                 └── mipmap-*/ic_launcher_foreground.png
 ```
+
+## Jeux personnalisés
+
+Le formulaire de création (`CreateGameScreen`) donne accès à toutes les mécaniques des jeux prédéfinis ; `CustomGameDraft.toRules` en tire des `GameRules` cohérents (une mécanique impose ses propres réglages, comme pour les jeux prédéfinis) :
+
+- **Nombre de joueurs** minimum et maximum (vide = 1 à 12 ; le Tarot est borné à 3–5).
+- **Mode de score** : tableau de manches, compteur (+1/−1, « le plus bas gagne » possible) ou équipes variables.
+- **Mécanique** (mode tableau) : *feuille de catégories* (Yams, Qwixx, Bowling), *annonce et plis* (Wizard, Oh Hell), *score exact* avec repli (Mölkky), *décompte* jusqu'à 0 (fléchettes, avec coefficients Double/Triple possibles), ou *suivi des phases* (Phase 10). En mode équipes variables : *calcul du Tarot* (contrats, bouts, primes, chelem).
+- **Règles de score** (coefficient + bonus), **fin de partie** (nombre de manches, score seuil dans un sens ou l'autre, arrêt immédiat ou fin de manche, manche décisive) : proposées là où elles ont un sens ; pour une feuille, un décompte, un score exact ou des phases, c'est la mécanique qui décide de la fin.
+- Pour ajouter une mécanique : un cas dans `GameVariant`, son réglage dans `CustomGameDraft.toRules`, ses champs dans `CreateGameScreen` et ses textes `create_variant_*` dans les 5 langues.
 
 ## Statistiques, apparence, formats de championnat
 
