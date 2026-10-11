@@ -2,8 +2,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+}
+
+// Nom des APK générés : "Mes scores-debug.apk", "Mes scores-release.apk", etc.
+// (au lieu de "app-debug.apk" basé sur le nom du module).
+base {
+    archivesName.set("Mes scores")
 }
 
 android {
@@ -67,18 +72,9 @@ android {
         warningsAsErrors = false
         htmlReport = true
     }
-
-    // Renomme le fichier APK généré : "Mes scores-debug.apk", "Mes scores-release.apk", etc.
-    // au lieu du nom par défaut "app-debug.apk" basé sur le nom du module.
-    applicationVariants.all {
-        outputs.all {
-            val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            outputImpl.outputFileName = "Mes scores-${name}.apk"
-        }
-    }
 }
 
-// Kotlin : le DSL kotlinOptions est supprimé depuis Kotlin 2.2, on utilise compilerOptions.
+// Kotlin intégré à AGP 9 (plus de plugin org.jetbrains.kotlin.android) ; compilerOptions remplace kotlinOptions.
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
