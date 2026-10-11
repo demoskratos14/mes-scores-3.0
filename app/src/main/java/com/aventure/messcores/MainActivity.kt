@@ -3,12 +3,12 @@ package com.aventure.messcores
 import androidx.compose.ui.res.stringResource
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,7 +33,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 
-class MainActivity : ComponentActivity() {
+// AppCompatActivity (et non ComponentActivity) : c'est ce qui permet à AppCompatDelegate.setApplicationLocales
+// de changer la langue de l'appli depuis le bouton drapeau sur Android 12 et moins.
+class MainActivity : AppCompatActivity() {
 
     // Même instance que celle récupérée par viewModel() dans ScoreApp (même Activity, même clé).
     private val scoreViewModel: ScoreViewModel by viewModels()
