@@ -34,9 +34,9 @@
     <string name="choose_create_game">+ Create a new game</string>
     <string name="choose_delete_title">Delete “%1$s”?</string>
     <string name="choose_delete_message">The game disappears from the list. Games already saved in the log are kept.</string>
-    <string name="choose_error_too_few">%1$s is played with %2$s. You entered %3$s: at least %4$d are needed. Go back to add more.</string>
-    <string name="choose_error_too_many">%1$s is played with %2$s. You entered %3$s: no more than %4$d are allowed. Go back to remove some.</string>
-    <string name="choose_players_range">%1$d to %2$d players</string>
+    <string name="choose_error_too_few" tools:ignore="PluralsCandidate">%1$s is played with %2$s. You entered %3$s: at least %4$d are needed. Go back to add more.</string>
+    <string name="choose_error_too_many" tools:ignore="PluralsCandidate">%1$s is played with %2$s. You entered %3$s: no more than %4$d are allowed. Go back to remove some.</string>
+    <string name="choose_players_range" tools:ignore="PluralsCandidate">%1$d to %2$d players</string>
     <string name="rule_lowest_wins">lowest score wins</string>
     <string name="rule_highest_wins">highest score wins</string>
     <string name="rule_negatives_allowed">negative scores allowed</string>
@@ -86,21 +86,21 @@
     <string name="format_round_robin">Round robin (everyone plays everyone)</string>
     <string name="setup_title">New game</string>
     <string name="setup_player_count">Number of players</string>
-    <string name="setup_player_name">Player %1$d name</string>
+    <string name="setup_player_name" tools:ignore="PluralsCandidate">Player %1$d name</string>
     <string name="journal_title">Game log</string>
     <string name="stats_title">Statistics</string>
     <string name="setup_appearance">Appearance</string>
     <string name="language_change">Change language</string>
     <string name="tsetup_format">Format</string>
     <string name="tsetup_knockout_desc">The loser is eliminated. Semi-finals, final and third-place match are generated automatically.</string>
-    <string name="tsetup_round_robin_desc">Everyone plays everyone, and the standings are based on wins. %1$d participants at most.</string>
+    <string name="tsetup_round_robin_desc" tools:ignore="PluralsCandidate">Everyone plays everyone, and the standings are based on wins. %1$d participants at most.</string>
     <string name="tsetup_bracket">Bracket</string>
     <string name="tsetup_draw">Random draw</string>
     <string name="tsetup_draw_desc">The bracket order is shuffled.</string>
     <string name="tsetup_list_order">List order</string>
     <string name="tsetup_list_order_desc">Participants play in the order entered: 1st against 2nd, 3rd against 4th… If there are not enough players to fill the bracket, the last ones in the list advance automatically.</string>
     <string name="tsetup_count">Number of participants</string>
-    <string name="tsetup_max">Maximum %1$d participants for this format.</string>
+    <string name="tsetup_max" tools:ignore="PluralsCandidate">Maximum %1$d participants for this format.</string>
     <string name="tsetup_participant">Participant %1$d</string>
     <string name="tsetup_start_round_robin">Generate the groups and start</string>
     <string name="tsetup_start">Start</string>
@@ -149,7 +149,7 @@
     <string name="error_unknown">unknown error</string>
     <string name="history_file_unreadable">unreadable file</string>
     <string name="history_import_failed">Import failed: %1$s.</string>
-    <string name="history_limit">The last %1$d games are kept.</string>
+    <string name="history_limit" tools:ignore="PluralsCandidate">The last %1$d games are kept.</string>
     <string name="history_clear_finished">Clear finished games</string>
     <string name="history_export">Export</string>
     <string name="history_import">Import</string>
@@ -178,7 +178,7 @@
     <string name="stats_card_description">%1$d. %2$s, %3$s</string>
     <string name="stats_card_description_scores">%1$d. %2$s, %3$s, %4$s</string>
     <string name="stats_position_name">%1$d. %2$s</string>
-    <string name="stats_scope">Based on %1$s from the log%2$s. The log keeps the last %3$d games.</string>
+    <string name="stats_scope" tools:ignore="PluralsCandidate">Based on %1$s from the log%2$s. The log keeps the last %3$d games.</string>
     <string name="stats_none">No finished games in the log yet. Statistics are built from finished, saved games.</string>
     <string name="stats_none_with_ongoing">No finished games in the log yet. Statistics are built from finished, saved games (games in progress do not count yet).</string>
     <string name="score_game_over">Game over</string>
@@ -214,7 +214,7 @@
     <string name="tarot_partner">Called player (partner)</string>
     <string name="tarot_partner_none">None (alone)</string>
     <string name="tarot_bouts_title">Taker’s oudlers</string>
-    <string name="tarot_required">Contract to fulfil: %1$d points</string>
+    <string name="tarot_required" tools:ignore="PluralsCandidate">Contract to fulfil: %1$d points</string>
     <string name="tarot_points_label">Points made by the taker (0 to 91)</string>
     <string name="tarot_petit">Petit au bout (Petit in the last trick)</string>
     <string name="tarot_none">None</string>
@@ -232,7 +232,7 @@
     <string name="tarot_defense_slam">Defence slam</string>
     <string name="tarot_hint_announced_ok">91 points: announced slam made (+400)</string>
     <string name="tarot_hint_unannounced_ok">91 points: unannounced slam made (+200)</string>
-    <string name="tarot_hint_defense">Defence slam: +%1$d for the defenders (house rule)</string>
+    <string name="tarot_hint_defense" tools:ignore="PluralsCandidate">Defence slam: +%1$d for the defenders (house rule)</string>
     <string name="tarot_hint_announced_failed">Slam announced but failed (−200)</string>
     <string name="tarot_hint_default">A successful slam is added automatically at 91 points.</string>
     <string name="tarot_per_defender">Score per defender: %1$s</string>
