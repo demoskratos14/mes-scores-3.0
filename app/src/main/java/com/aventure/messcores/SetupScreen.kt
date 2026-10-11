@@ -1,5 +1,9 @@
 package com.aventure.messcores
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.res.stringResource
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -48,7 +52,10 @@ fun SetupScreen(
     onOpenStats: () -> Unit,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
-    onOpenTournament: () -> Unit
+    onOpenTournament: () -> Unit,
+    // Partie en cours la plus récente du journal (ou null) : proposée en haut de l'écran.
+    unfinishedGame: SavedGame? = null,
+    onResumeGame: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val playerPrefix = stringResource(R.string.player_default)
@@ -88,6 +95,42 @@ fun SetupScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center
         ) {
+        // « Reprendre » : après une fermeture de l'appli par Android, la partie enregistrée
+        // automatiquement se retrouve en un appui, sans passer par le journal.
+        var dismissedGameId by rememberSaveable { mutableStateOf<String?>(null) }
+        if (unfinishedGame != null && unfinishedGame.id != dismissedGameId) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = cardSurface()),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.resume_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.resume_summary,
+                            unfinishedGame.gameRules.name,
+                            unfinishedGame.players.joinToString(", ")
+                        ),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = onResumeGame) { Text(stringResource(R.string.history_resume)) }
+                        TextButton(onClick = { dismissedGameId = unfinishedGame.id }) {
+                            Text(stringResource(R.string.resume_dismiss))
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = cardSurface()
@@ -105,7 +148,7 @@ fun SetupScreen(
                     Text(
                         text = stringResource(R.string.setup_title),
                         style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).semantics { heading() }
                     )
                     // Drapeau de la langue en cours : un appui permet d'en choisir une autre.
                     LanguageSelector()

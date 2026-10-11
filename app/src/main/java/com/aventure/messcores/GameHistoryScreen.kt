@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.ui.res.stringResource
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -60,6 +61,9 @@ fun GameHistoryScreen(
     onBack: () -> Unit
 ) {
     var games by remember { mutableStateOf(repository.listGames()) }
+    // Partie dont on affiche la courbe d'évolution des scores.
+    var chartGame by remember { mutableStateOf<SavedGame?>(null) }
+    chartGame?.let { game -> ScoreChartDialog(game = game, onDismiss = { chartGame = null }) }
     val context = LocalContext.current
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
@@ -189,7 +193,8 @@ fun GameHistoryScreen(
                     GameHistoryRow(
                         game = game,
                         onResume = { onResumeGame(game) },
-                        onDelete = { gameToDelete = game }
+                        onDelete = { gameToDelete = game },
+                        onChart = { chartGame = game }
                     )
                 }
             }
@@ -238,7 +243,8 @@ fun GameHistoryScreen(
 private fun GameHistoryRow(
     game: SavedGame,
     onResume: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onChart: () -> Unit
 ) {
     val context = LocalContext.current
     Card(
@@ -298,6 +304,12 @@ private fun GameHistoryRow(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
                 Button(onClick = onResume) {
                     Text(stringResource(if (game.isFinished) R.string.history_review else R.string.history_resume))
+                }
+                // La courbe n'existe que s'il y a au moins deux manches (pas pour les compteurs).
+                if (remember(game) { ScoreProgress.series(game) != null }) {
+                    OutlinedButton(onClick = onChart) {
+                        Icon(Icons.Filled.Timeline, contentDescription = stringResource(R.string.chart_button))
+                    }
                 }
                 OutlinedButton(onClick = onDelete) {
                     Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.history_delete_description, game.gameRules.name, historyDate(context, game.savedAt)))

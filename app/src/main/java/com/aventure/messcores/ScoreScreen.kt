@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -135,7 +136,8 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                 Text(
                     text = stringResource(R.string.scoreboard),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White
+                    color = Color.White,
+                    modifier = Modifier.semantics { heading() }
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -146,6 +148,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     RulesButton(rules = viewModel.gameRules)
+                    ScoreChartButton(viewModel)
                 }
             }
         }
@@ -412,7 +415,9 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
             },
             onShare = { ResultText.share(context, viewModel.shareText(context)) },
             onUndo = { viewModel.undo() },
-            canUndo = viewModel.canUndo
+            canUndo = viewModel.canUndo,
+            onRedo = { viewModel.redo() },
+            canRedo = viewModel.canRedo
         )
     }
 

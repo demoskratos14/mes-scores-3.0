@@ -80,6 +80,23 @@ sealed interface UndoAction {
     ) : UndoAction
 }
 
+/** Une saisie annulée, que [ScoreViewModel.redo] sait rétablir. */
+sealed interface RedoAction {
+    /** [delta] doit être ré-ajouté au joueur [player]. */
+    data class CounterChange(val player: Int, val delta: Int) : RedoAction
+
+    /**
+     * La case (manche [round], joueur [player]) doit reprendre l'état [state]. [removedRound] vaut
+     * vrai si l'annulation avait retiré la manche vide ajoutée automatiquement : il faut la recréer.
+     */
+    data class CellEdit(
+        val round: Int,
+        val player: Int,
+        val state: CellSnapshot,
+        val removedRound: Boolean
+    ) : RedoAction
+}
+
 /**
  * Gère l'état complet d'une partie, quel que soit son [ScoreMode] :
  * - la liste des noms de joueurs et les règles du jeu choisi
@@ -145,6 +162,12 @@ class ScoreViewModel : ViewModel() {
     /** Vrai s'il y a une saisie à annuler (pour activer le bouton « Annuler »). */
     val canUndo: Boolean get() = _undoStack.isNotEmpty()
 
+    // Saisies annulées, rétablissables tant qu'aucune nouvelle saisie n'est faite.
+    private val _redoStack = mutableStateListOf<RedoAction>()
+
+    /** Vrai s'il y a une saisie annulée à rétablir (pour activer le bouton « Rétablir »). */
+    val canRedo: Boolean get() = _redoStack.isNotEmpty()
+
     companion object {
         private const val INITIAL_ROUNDS = 5
 
@@ -170,6 +193,7 @@ class ScoreViewModel : ViewModel() {
         gameActive = true
         editingTeamRoundIndex = null
         _undoStack.clear()
+        _redoStack.clear()
         _scores.clear()
         _counters.clear()
         _teamRounds.clear()
@@ -196,6 +220,7 @@ class ScoreViewModel : ViewModel() {
             assignColors(saved.players.size)
         }
         _undoStack.clear()
+        _redoStack.clear()
         _scores.clear()
         _counters.clear()
         _teamRounds.clear()
@@ -259,6 +284,7 @@ class ScoreViewModel : ViewModel() {
         currentSaveId = null
         savedBaseline = null
         _undoStack.clear()
+        _redoStack.clear()
     }
 
     /** Enregistrement voulu par l'utilisateur (bouton « Enregistrer », « Enregistrer et quitter »). */
@@ -284,8 +310,13 @@ class ScoreViewModel : ViewModel() {
     }
 
     /** Capture l'état actuel de la partie, prêt à être enregistré dans le journal via [GameHistoryRepository]. */
-    fun snapshot(): SavedGame {
-        val id = currentSaveId ?: UUID.randomUUID().toString().also { currentSaveId = it }
+    fun snapshot(): SavedGame =
+        buildSnapshot(currentSaveId ?: UUID.randomUUID().toString().also { currentSaveId = it })
+
+    /** Photo de la partie pour la courbe d'évolution : comme [snapshot], sans créer d'identifiant de sauvegarde. */
+    fun chartSnapshot(): SavedGame = buildSnapshot(currentSaveId ?: "chart")
+
+    private fun buildSnapshot(id: String): SavedGame {
         return SavedGame(
             id = id,
             savedAt = System.currentTimeMillis(),
@@ -413,9 +444,11 @@ class ScoreViewModel : ViewModel() {
 
     // ---------- Annulation ----------
 
-    private fun pushUndo(action: UndoAction) {
+    /** [clearRedo] est faux uniquement quand [redo] rejoue une saisie : toute autre saisie vide les saisies rétablissables. */
+    private fun pushUndo(action: UndoAction, clearRedo: Boolean = true) {
         _undoStack.add(action)
         if (_undoStack.size > MAX_UNDO) _undoStack.removeAt(0)
+        if (clearRedo) _redoStack.clear()
     }
 
     /** Annule la dernière saisie (case du tableau ou appui sur un compteur). Sans effet s'il n'y en a pas. */
@@ -425,19 +458,48 @@ class ScoreViewModel : ViewModel() {
             is UndoAction.CounterChange -> {
                 if (action.player in _counters.indices) {
                     _counters[action.player] = _counters[action.player] - action.delta
+                    _redoStack.add(RedoAction.CounterChange(action.player, action.delta))
                 }
             }
             is UndoAction.CellEdit -> {
                 val cell = _scores.getOrNull(action.round)?.getOrNull(action.player) ?: return
+                // État d'avant l'annulation : c'est celui que « Rétablir » doit remettre.
+                val after = CellSnapshot(cell.baseValue, cell.isNegative, cell.multiplierId)
                 cell.baseValue = action.before.baseValue
                 cell.isNegative = action.before.isNegative
                 cell.multiplierId = action.before.multiplierId
                 // Retire la manche vide que cette saisie avait fait ajouter automatiquement.
+                var removedRound = false
                 if (action.addedRound && _scores.lastIndex == action.round + 1 &&
                     _scores.last().all { it.baseValue == null }
                 ) {
                     _scores.removeAt(_scores.lastIndex)
+                    removedRound = true
                 }
+                _redoStack.add(RedoAction.CellEdit(action.round, action.player, after, removedRound))
+            }
+        }
+    }
+
+    /** Rétablit la dernière saisie annulée. Sans effet s'il n'y en a pas (ou si une nouvelle saisie a été faite depuis). */
+    fun redo() {
+        val action = _redoStack.removeLastOrNull() ?: return
+        when (action) {
+            is RedoAction.CounterChange -> {
+                if (action.player in _counters.indices) {
+                    _counters[action.player] = _counters[action.player] + action.delta
+                    pushUndo(UndoAction.CounterChange(action.player, action.delta), clearRedo = false)
+                }
+            }
+            is RedoAction.CellEdit -> {
+                // Recrée la manche vide que l'annulation avait retirée.
+                if (action.removedRound && _scores.lastIndex == action.round) addRound()
+                val cell = _scores.getOrNull(action.round)?.getOrNull(action.player) ?: return
+                val before = CellSnapshot(cell.baseValue, cell.isNegative, cell.multiplierId)
+                cell.baseValue = action.state.baseValue
+                cell.isNegative = action.state.isNegative
+                cell.multiplierId = action.state.multiplierId
+                pushUndo(UndoAction.CellEdit(action.round, action.player, before, action.removedRound), clearRedo = false)
             }
         }
     }

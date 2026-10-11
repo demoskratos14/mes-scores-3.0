@@ -1,5 +1,10 @@
 package com.aventure.messcores
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -66,7 +71,8 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
                 Text(
                     text = stringResource(R.string.scoreboard),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Color.White
+                    color = Color.White,
+                    modifier = Modifier.semantics { heading() }
                 )
                 Text(
                     text = viewModel.gameRules.name,
@@ -83,6 +89,10 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
         ) {
             players.forEachIndexed { index, name ->
                 val rank = viewModel.rankOf(index, ranks)
+                // Lu par TalkBack à chaque changement de score : nom, score et rang du joueur.
+                val scoreDescription = stringResource(
+                    R.string.counter_player_summary, name, totals.getOrElse(index) { 0 }, rank
+                )
                 Card(
                     colors = CardDefaults.cardColors(containerColor = cardSurface()),
                     modifier = Modifier.fillMaxWidth()
@@ -109,19 +119,22 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
                         }
 
                         FilledIconButton(onClick = { viewModel.incrementCounter(index, -1) }) {
-                            Icon(Icons.Filled.Remove, contentDescription = stringResource(R.string.counter_remove))
+                            Icon(Icons.Filled.Remove, contentDescription = stringResource(R.string.counter_remove_for, name))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
                             text = totals.getOrElse(index) { 0 }.toString(),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.width(48.dp),
+                            modifier = Modifier.width(48.dp).semantics {
+                                contentDescription = scoreDescription
+                                liveRegion = LiveRegionMode.Polite
+                            },
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         FilledIconButton(onClick = { viewModel.incrementCounter(index, 1) }) {
-                            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.counter_add))
+                            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.counter_add_for, name))
                         }
                     }
                 }
@@ -137,7 +150,9 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
             },
             onShare = { ResultText.share(context, viewModel.shareText(context)) },
             onUndo = { viewModel.undo() },
-            canUndo = viewModel.canUndo
+            canUndo = viewModel.canUndo,
+            onRedo = { viewModel.redo() },
+            canRedo = viewModel.canRedo
         )
     }
 }

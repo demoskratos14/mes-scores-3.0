@@ -112,6 +112,15 @@ fun ScoreApp(
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds"
     var showQuitDialog by remember { mutableStateOf(false) }
 
+    // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
+    val unfinishedGame = remember(currentRoute) {
+        if (currentRoute == "setup") {
+            gameHistoryRepository.listGames().filter { !it.isFinished }.maxByOrNull { it.savedAt }
+        } else {
+            null
+        }
+    }
+
     fun quitGame(save: Boolean) {
         // Enregistrer : état actuel. Ne pas enregistrer : on défait l'auto-sauvegarde faite par onStop.
         if (save) viewModel.saveToJournal(gameHistoryRepository) else viewModel.discardToJournal(gameHistoryRepository)
@@ -151,6 +160,13 @@ fun ScoreApp(
                     },
                     themeMode = themeMode,
                     onThemeModeChange = onThemeModeChange,
+                    unfinishedGame = unfinishedGame,
+                    onResumeGame = {
+                        unfinishedGame?.let { saved ->
+                            viewModel.loadFromSaved(saved)
+                            navController.navigate(scoreRouteFor(saved.gameRules)) { popUpTo("setup") }
+                        }
+                    },
                     onOpenTournament = {
                         // Un championnat sauvegardé se reprend directement ; sinon on en prépare un.
                         navController.navigate(
