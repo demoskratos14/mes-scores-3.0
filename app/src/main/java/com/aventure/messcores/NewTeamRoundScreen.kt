@@ -46,7 +46,7 @@ fun NewTeamRoundScreen(
     onDone: () -> Unit
 ) {
     // Le Tarot a son propre écran, avec calcul automatique du score et des primes.
-    if (viewModel.gameRules.id == "builtin_tarot") {
+    if (viewModel.gameRules.usesTarotScoring) {
         NewTarotRoundScreen(viewModel = viewModel, onDone = onDone)
         return
     }

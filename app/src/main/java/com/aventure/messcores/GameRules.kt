@@ -83,6 +83,7 @@ data class ScoreMultiplier(
  * @param phases nombre de phases suivies par joueur (Phase 10) ; null sinon.
  * @param exactTarget score à atteindre exactement (Mölkky) ; au-delà, retour à [exactReset].
  * @param countdownFrom score de départ d'un jeu qui se décompte jusqu'à 0 (fléchettes).
+ * @param tarotScoring calcul automatique d'une manche de Tarot (3 à 5 joueurs, mode VARIABLE_TEAMS).
  */
 data class GameRules(
     val id: String,
@@ -104,8 +105,13 @@ data class GameRules(
     val exactTarget: Int? = null,
     val exactReset: Int? = null,
     /** Score de départ d'un jeu qui se décompte jusqu'à 0 (fléchettes : 301 ou 501) ; null sinon. */
-    val countdownFrom: Int? = null
+    val countdownFrom: Int? = null,
+    /** Mode VARIABLE_TEAMS : saisie et calcul automatique d'une manche de Tarot (contrats, bouts, primes). */
+    val tarotScoring: Boolean = false
 ) {
+    /** Vrai si les manches se saisissent avec l'écran de Tarot (jeu prédéfini, ou jeu personnalisé qui l'a activé). */
+    val usesTarotScoring: Boolean get() = tarotScoring || id == "builtin_tarot"
+
     /** Sérialise cette règle en JSON, pour la sauvegarde dans les SharedPreferences. */
     fun toJson(): JSONObject {
         val obj = JSONObject()
@@ -124,6 +130,7 @@ data class GameRules(
         exactTarget?.let { obj.put("exactTarget", it) }
         exactReset?.let { obj.put("exactReset", it) }
         countdownFrom?.let { obj.put("countdownFrom", it) }
+        if (tarotScoring) obj.put("tarotScoring", true)
 
         val multipliersArray = JSONArray()
         multipliers.forEach { m ->
@@ -227,7 +234,8 @@ data class GameRules(
                 phases = if (obj.has("phases")) obj.optInt("phases") else null,
                 exactTarget = if (obj.has("exactTarget")) obj.optInt("exactTarget") else null,
                 exactReset = if (obj.has("exactReset")) obj.optInt("exactReset") else null,
-                countdownFrom = if (obj.has("countdownFrom")) obj.optInt("countdownFrom") else null
+                countdownFrom = if (obj.has("countdownFrom")) obj.optInt("countdownFrom") else null,
+                tarotScoring = obj.optBoolean("tarotScoring", false)
             )
         }
     }
