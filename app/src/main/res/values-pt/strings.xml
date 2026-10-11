@@ -94,6 +94,10 @@
     <string name="create_sheet_yams_sub">13 categorias, com um bónus de 35 pontos a partir de 63 na parte superior.</string>
     <string name="create_sheet_qwixx_sub">4 cores (pontos conforme o número de cruzes) e penalizações.</string>
     <string name="create_sheet_bowling_sub">10 frames, lançamento a lançamento: os strikes e os spares são contados automaticamente.</string>
+    <string name="create_sheet_custom_chip">Personalizada</string>
+    <string name="create_sheet_custom_sub">Uma categoria por linha. Para oferecer botões de pontuação, acrescente «:» e os valores separados por vírgulas (ex.: Moedas: 0, 1, 2, 3). Sem valores, a pontuação é digitada no teclado.</string>
+    <string name="create_sheet_custom_rows">Categorias (uma por linha)</string>
+    <string name="create_sheet_custom_empty">Adicione pelo menos uma categoria; caso contrário, o jogo será uma tabela de rondas clássica.</string>
     <string name="create_bid_wizard_sub">20 pontos + 10 por vaza apostada se a aposta for exata; caso contrário, −10 por vaza de diferença.</string>
     <string name="create_bid_ohhell_sub">10 pontos + 1 por vaza apostada se a aposta for exata; caso contrário, −1 por vaza de diferença.</string>
     <string name="create_exact_target">Pontuação alvo exata</string>

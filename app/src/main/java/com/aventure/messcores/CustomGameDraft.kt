@@ -7,7 +7,7 @@ package com.aventure.messcores
 enum class GameVariant {
     /** Aucune mécanique particulière : manches libres (TABLE) ou équipes choisies à la main. */
     NONE,
-    /** Feuille de catégories fixes : Yams, Qwixx, Bowling (mode TABLE). */
+    /** Feuille de catégories : Yams, Qwixx, Bowling, ou catégories écrites par l'utilisateur (mode TABLE). */
     SHEET,
     /** Annonce et plis réalisés : Wizard, Oh Hell (mode TABLE). */
     BID,
@@ -52,8 +52,10 @@ data class CustomGameDraft(
     val customMultipliers: List<ScoreMultiplier> = emptyList(),
     val minPlayers: Int? = null,
     val maxPlayers: Int? = null,
-    /** Identifiant de feuille ([ScoreSheets.YAMS]…), pour [GameVariant.SHEET]. */
+    /** Identifiant de feuille ([ScoreSheets.YAMS]…, ou [ScoreSheets.CUSTOM]), pour [GameVariant.SHEET]. */
     val sheet: String = ScoreSheets.YAMS,
+    /** Catégories de la feuille quand [sheet] vaut [ScoreSheets.CUSTOM] ; ignorées sinon. */
+    val sheetRows: List<CustomSheetRow> = emptyList(),
     /** Type d'annonce ([BidScoring.WIZARD]…), pour [GameVariant.BID]. */
     val bidScoring: String = BidScoring.WIZARD,
     val exactTarget: Int? = null,
@@ -68,7 +70,8 @@ data class CustomGameDraft(
     /** Mécanique réellement appliquée : celle choisie si elle convient au mode et qu'elle est complète. */
     fun effectiveVariant(): GameVariant = when (scoreMode) {
         ScoreMode.TABLE -> when (variant) {
-            GameVariant.SHEET, GameVariant.BID -> variant
+            GameVariant.SHEET -> if (sheet == ScoreSheets.CUSTOM && sheetRows.isEmpty()) GameVariant.NONE else variant
+            GameVariant.BID -> variant
             GameVariant.EXACT_TARGET -> if ((exactTarget ?: 0) > 0) variant else GameVariant.NONE
             GameVariant.COUNTDOWN -> if ((countdownFrom ?: 0) > 0) variant else GameVariant.NONE
             else -> GameVariant.NONE
@@ -121,7 +124,9 @@ data class CustomGameDraft(
                 else -> lowestWins
             },
             allowNegativeScores = when (variant) {
-                GameVariant.COUNTDOWN, GameVariant.EXACT_TARGET, GameVariant.SHEET -> false
+                // Une feuille personnalisée peut avoir des scores négatifs (ex : −1 par catégorie manquante).
+                GameVariant.SHEET -> sheet == ScoreSheets.CUSTOM && allowNegative
+                GameVariant.COUNTDOWN, GameVariant.EXACT_TARGET -> false
                 GameVariant.TAROT, GameVariant.BID -> true
                 else -> allowNegative
             },
@@ -131,6 +136,7 @@ data class CustomGameDraft(
             minPlayers = min,
             maxPlayers = max,
             sheet = if (variant == GameVariant.SHEET) sheet else null,
+            sheetRows = if (variant == GameVariant.SHEET && sheet == ScoreSheets.CUSTOM) sheetRows else emptyList(),
             bidScoring = if (variant == GameVariant.BID) bidScoring else null,
             phases = phaseCount,
             exactTarget = if (variant == GameVariant.EXACT_TARGET) exactTarget else null,

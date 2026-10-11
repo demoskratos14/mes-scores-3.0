@@ -387,7 +387,7 @@ class ScoreViewModel : ViewModel() {
     // ---------- Feuille de catégories (Yams) ----------
 
     /** Lignes de la feuille de catégories du jeu en cours, ou null pour un tableau de manches classique. */
-    val sheetRows: List<SheetRow>? get() = ScoreSheets.rows(gameRules.sheet)
+    val sheetRows: List<SheetRow>? get() = ScoreSheets.rows(gameRules)
 
     /** Vrai si la feuille de catégories du jeu a une ligne « Bonus » (partie haute du Yams). */
     val sheetHasBonus: Boolean get() = ScoreSheets.hasBonus(gameRules.sheet)

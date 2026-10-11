@@ -10,6 +10,8 @@ import androidx.annotation.StringRes
  * @param upper vrai pour la partie haute, dont le total donne droit au bonus.
  * @param hint texte d'aide affiché sous les boutons de saisie (ex : table croix → points), ou null.
  * @param zeroCrossesOut vrai si le bouton 0 s'affiche « Barrer » (Yams), faux s'il s'affiche « 0 ».
+ * @param labelText libellé écrit par l'utilisateur (feuille personnalisée) ; s'il est renseigné,
+ *   il remplace [label], qui vaut alors 0.
  */
 data class SheetRow(
     val id: String,
@@ -17,8 +19,60 @@ data class SheetRow(
     val options: List<Int>?,
     val upper: Boolean = false,
     @StringRes val hint: Int? = null,
-    val zeroCrossesOut: Boolean = true
+    val zeroCrossesOut: Boolean = true,
+    val labelText: String? = null
 )
+
+/**
+ * Une catégorie d'une feuille personnalisée.
+ *
+ * @param name nom affiché dans la colonne de gauche du tableau.
+ * @param options scores proposés en boutons ; null si le score se saisit au clavier.
+ */
+data class CustomSheetRow(
+    val name: String,
+    val options: List<Int>? = null
+)
+
+/**
+ * Texte de saisie d'une feuille personnalisée : une catégorie par ligne, de la forme « Nom » (score
+ * saisi au clavier) ou « Nom : 0, 3, 5 » (scores proposés en boutons).
+ */
+object CustomSheetText {
+    const val MAX_ROWS = 40
+    const val MAX_NAME_LENGTH = 30
+    const val MAX_OPTIONS = 24
+
+    private val optionSeparators = Regex("[,;\\s]+")
+
+    /** Lit le texte du formulaire ; les lignes sans nom sont ignorées. */
+    fun parse(text: String): List<CustomSheetRow> =
+        text.lineSequence()
+            .mapNotNull { line ->
+                val name = line.substringBefore(':').trim().take(MAX_NAME_LENGTH).trim()
+                if (name.isEmpty()) {
+                    null
+                } else {
+                    CustomSheetRow(name, if (':' in line) parseOptions(line.substringAfter(':')) else null)
+                }
+            }
+            .take(MAX_ROWS)
+            .toList()
+
+    /** Valeurs entières séparées par des virgules, points-virgules ou espaces ; null s'il n'y en a aucune. */
+    private fun parseOptions(text: String): List<Int>? =
+        text.replace('−', '-').split(optionSeparators)
+            .mapNotNull { it.toIntOrNull() }
+            .distinct()
+            .take(MAX_OPTIONS)
+            .ifEmpty { null }
+
+    /** Texte du formulaire pour [rows] (l'inverse de [parse]), pour modifier un jeu existant. */
+    fun format(rows: List<CustomSheetRow>): String =
+        rows.joinToString("\n") { row ->
+            if (row.options == null) row.name else row.name + " : " + row.options.joinToString(", ")
+        }
+}
 
 /**
  * Feuilles de catégories : jeux où chaque joueur remplit chaque ligne une seule fois. Elles
@@ -28,6 +82,9 @@ object ScoreSheets {
     const val YAMS = "yams"
     const val QWIXX = "qwixx"
     const val BOWLING = "bowling"
+
+    /** Feuille dont les catégories sont écrites par l'utilisateur (voir [GameRules.sheetRows]). */
+    const val CUSTOM = "custom"
 
     /** Total de la partie haute à atteindre pour avoir le bonus. */
     const val UPPER_BONUS_THRESHOLD = 63
@@ -76,6 +133,22 @@ object ScoreSheets {
         BOWLING -> bowlingRows
         else -> null
     }
+
+    /** Lignes de la feuille du jeu [rules] : feuille intégrée ou feuille personnalisée ; null sans feuille. */
+    fun rows(rules: GameRules): List<SheetRow>? =
+        if (rules.sheet == CUSTOM) {
+            rules.sheetRows.mapIndexed { i, row ->
+                SheetRow(
+                    id = "row_${i + 1}",
+                    label = 0,
+                    options = row.options,
+                    zeroCrossesOut = false,
+                    labelText = row.name
+                )
+            }
+        } else {
+            rows(rules.sheet)
+        }
 
     /** Vrai si la feuille a une partie haute donnant un bonus (Yams, pas Qwixx). */
     fun hasBonus(sheetId: String?): Boolean = rows(sheetId)?.any { it.upper } == true

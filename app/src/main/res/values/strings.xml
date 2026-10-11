@@ -95,6 +95,10 @@
     <string name="create_sheet_yams_sub">13 catégories, avec un bonus de 35 points dès 63 en partie haute.</string>
     <string name="create_sheet_qwixx_sub">4 couleurs (points selon le nombre de croix) et les pénalités.</string>
     <string name="create_sheet_bowling_sub">10 frames, lancer par lancer : strikes et spares sont comptés automatiquement.</string>
+    <string name="create_sheet_custom_chip">Personnalisée</string>
+    <string name="create_sheet_custom_sub">Une catégorie par ligne. Pour proposer des boutons de score, ajoutez « : » puis les valeurs séparées par des virgules (ex : Pièces : 0, 1, 2, 3). Sans valeurs, le score se saisit au clavier.</string>
+    <string name="create_sheet_custom_rows">Catégories (une par ligne)</string>
+    <string name="create_sheet_custom_empty">Ajoutez au moins une catégorie, sinon le jeu sera un tableau de manches classique.</string>
     <string name="create_bid_wizard_sub">20 points + 10 par pli annoncé si l\'annonce est exacte, sinon −10 par pli d\'écart.</string>
     <string name="create_bid_ohhell_sub">10 points + 1 par pli annoncé si l\'annonce est exacte, sinon −1 par pli d\'écart.</string>
     <string name="create_exact_target">Score à atteindre pile</string>

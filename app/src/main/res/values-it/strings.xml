@@ -95,6 +95,10 @@
     <string name="create_sheet_yams_sub">13 categorie, con un bonus di 35 punti da 63 nella parte alta.</string>
     <string name="create_sheet_qwixx_sub">4 colori (punti in base al numero di croci) e penalità.</string>
     <string name="create_sheet_bowling_sub">10 frame, tiro per tiro: strike e spare sono contati automaticamente.</string>
+    <string name="create_sheet_custom_chip">Personalizzato</string>
+    <string name="create_sheet_custom_sub">Una categoria per riga. Per proporre pulsanti di punteggio, aggiungi «:» e i valori separati da virgole (es. Monete: 0, 1, 2, 3). Senza valori, il punteggio si digita sulla tastiera.</string>
+    <string name="create_sheet_custom_rows">Categorie (una per riga)</string>
+    <string name="create_sheet_custom_empty">Aggiungi almeno una categoria, altrimenti il gioco sarà una tabella di manche classica.</string>
     <string name="create_bid_wizard_sub">20 punti + 10 per ogni presa dichiarata se la dichiarazione è esatta, altrimenti −10 per ogni presa di differenza.</string>
     <string name="create_bid_ohhell_sub">10 punti + 1 per ogni presa dichiarata se la dichiarazione è esatta, altrimenti −1 per ogni presa di differenza.</string>
     <string name="create_exact_target">Punteggio obiettivo esatto</string>

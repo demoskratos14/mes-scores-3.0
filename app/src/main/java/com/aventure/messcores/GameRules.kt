@@ -79,6 +79,7 @@ data class ScoreMultiplier(
  * @param minPlayers nombre minimum de joueurs pour créer une feuille de score.
  * @param maxPlayers nombre maximum de joueurs pour créer une feuille de score.
  * @param sheet identifiant d'une feuille de catégories (ex : Yams) en mode TABLE ; null sinon.
+ * @param sheetRows catégories écrites par l'utilisateur quand [sheet] vaut [ScoreSheets.CUSTOM] ; vide sinon.
  * @param bidScoring calcul du score depuis l'annonce et les plis réalisés (Wizard, Oh Hell) ; null sinon.
  * @param phases nombre de phases suivies par joueur (Phase 10) ; null sinon.
  * @param exactTarget score à atteindre exactement (Mölkky) ; au-delà, retour à [exactReset].
@@ -107,7 +108,9 @@ data class GameRules(
     /** Score de départ d'un jeu qui se décompte jusqu'à 0 (fléchettes : 301 ou 501) ; null sinon. */
     val countdownFrom: Int? = null,
     /** Mode VARIABLE_TEAMS : saisie et calcul automatique d'une manche de Tarot (contrats, bouts, primes). */
-    val tarotScoring: Boolean = false
+    val tarotScoring: Boolean = false,
+    /** Catégories d'une feuille personnalisée (quand [sheet] == [ScoreSheets.CUSTOM]), dans l'ordre du tableau. */
+    val sheetRows: List<CustomSheetRow> = emptyList()
 ) {
     /** Vrai si les manches se saisissent avec l'écran de Tarot (jeu prédéfini, ou jeu personnalisé qui l'a activé). */
     val usesTarotScoring: Boolean get() = tarotScoring || id == "builtin_tarot"
@@ -131,6 +134,16 @@ data class GameRules(
         exactReset?.let { obj.put("exactReset", it) }
         countdownFrom?.let { obj.put("countdownFrom", it) }
         if (tarotScoring) obj.put("tarotScoring", true)
+        if (sheetRows.isNotEmpty()) {
+            val rowsArray = JSONArray()
+            sheetRows.forEach { row ->
+                val rowObj = JSONObject()
+                rowObj.put("name", row.name)
+                row.options?.let { options -> rowObj.put("options", JSONArray(options)) }
+                rowsArray.put(rowObj)
+            }
+            obj.put("sheetRows", rowsArray)
+        }
 
         val multipliersArray = JSONArray()
         multipliers.forEach { m ->
@@ -219,6 +232,24 @@ data class GameRules(
                 )
             }
 
+            val sheetRowsJson = obj.optJSONArray("sheetRows")
+            val sheetRows = if (sheetRowsJson == null) {
+                emptyList()
+            } else {
+                (0 until sheetRowsJson.length()).mapNotNull { i ->
+                    val rowObj = sheetRowsJson.optJSONObject(i) ?: return@mapNotNull null
+                    val name = rowObj.optString("name", "")
+                    if (name.isBlank()) return@mapNotNull null
+                    val optionsJson = rowObj.optJSONArray("options")
+                    val options = if (optionsJson == null) {
+                        null
+                    } else {
+                        (0 until optionsJson.length()).map { j -> optionsJson.getInt(j) }.ifEmpty { null }
+                    }
+                    CustomSheetRow(name, options)
+                }
+            }
+
             return GameRules(
                 id = obj.getString("id"),
                 name = obj.getString("name"),
@@ -235,7 +266,8 @@ data class GameRules(
                 exactTarget = if (obj.has("exactTarget")) obj.optInt("exactTarget") else null,
                 exactReset = if (obj.has("exactReset")) obj.optInt("exactReset") else null,
                 countdownFrom = if (obj.has("countdownFrom")) obj.optInt("countdownFrom") else null,
-                tarotScoring = obj.optBoolean("tarotScoring", false)
+                tarotScoring = obj.optBoolean("tarotScoring", false),
+                sheetRows = sheetRows
             )
         }
     }

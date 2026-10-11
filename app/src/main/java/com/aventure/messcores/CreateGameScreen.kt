@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.selection.toggleable
@@ -102,6 +103,8 @@ fun CreateGameScreen(
     // Mécanique reprise d'un jeu prédéfini (feuille, annonces, score exact, décompte, Tarot, phases).
     var variant by rememberSaveable { mutableStateOf(editing?.mechanic() ?: GameVariant.NONE) }
     var sheetId by rememberSaveable { mutableStateOf(editing?.sheet ?: ScoreSheets.YAMS) }
+    // Catégories d'une feuille personnalisée : une par ligne, « Nom » ou « Nom : 0, 3, 5 ».
+    var sheetRowsText by rememberSaveable { mutableStateOf(editing?.sheetRows?.let { CustomSheetText.format(it) } ?: "") }
     var bidKind by rememberSaveable { mutableStateOf(editing?.bidScoring ?: BidScoring.WIZARD) }
     var exactTargetText by rememberSaveable { mutableStateOf(editing?.exactTarget?.toString() ?: "") }
     var exactResetText by rememberSaveable { mutableStateOf(editing?.exactReset?.toString() ?: "") }
@@ -238,7 +241,8 @@ fun CreateGameScreen(
                                 listOf(
                                     ScoreSheets.YAMS to R.string.game_yams,
                                     ScoreSheets.QWIXX to R.string.game_qwixx,
-                                    ScoreSheets.BOWLING to R.string.game_bowling
+                                    ScoreSheets.BOWLING to R.string.game_bowling,
+                                    ScoreSheets.CUSTOM to R.string.create_sheet_custom_chip
                                 ).forEach { (id, label) ->
                                     FilterChip(
                                         selected = sheetId == id,
@@ -252,12 +256,30 @@ fun CreateGameScreen(
                                     when (sheetId) {
                                         ScoreSheets.QWIXX -> R.string.create_sheet_qwixx_sub
                                         ScoreSheets.BOWLING -> R.string.create_sheet_bowling_sub
+                                        ScoreSheets.CUSTOM -> R.string.create_sheet_custom_sub
                                         else -> R.string.create_sheet_yams_sub
                                     }
                                 ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            if (sheetId == ScoreSheets.CUSTOM) {
+                                OutlinedTextField(
+                                    value = sheetRowsText,
+                                    onValueChange = { sheetRowsText = it },
+                                    label = { Text(stringResource(R.string.create_sheet_custom_rows)) },
+                                    minLines = 4,
+                                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                if (CustomSheetText.parse(sheetRowsText).isEmpty()) {
+                                    Text(
+                                        stringResource(R.string.create_sheet_custom_empty),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
                         }
                         GameVariant.BID -> {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -338,7 +360,9 @@ fun CreateGameScreen(
                     )
                 }
 
-                if (scoreMode != ScoreMode.COUNTER && activeVariant == GameVariant.NONE) {
+                if (scoreMode != ScoreMode.COUNTER &&
+                    (activeVariant == GameVariant.NONE || (activeVariant == GameVariant.SHEET && sheetId == ScoreSheets.CUSTOM))
+                ) {
                     SettingRow(
                         title = stringResource(R.string.create_negative_title),
                         subtitle = stringResource(R.string.create_negative_sub),
@@ -539,6 +563,7 @@ fun CreateGameScreen(
                             minPlayers = minPlayersText.toIntOrNull(),
                             maxPlayers = maxPlayersText.toIntOrNull(),
                             sheet = sheetId,
+                            sheetRows = CustomSheetText.parse(sheetRowsText),
                             bidScoring = bidKind,
                             exactTarget = exactTargetText.toIntOrNull(),
                             exactReset = exactResetText.toIntOrNull(),

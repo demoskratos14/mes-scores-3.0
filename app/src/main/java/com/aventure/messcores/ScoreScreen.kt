@@ -250,7 +250,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                     ) {
                                         val rowLabel = sheetRows?.getOrNull(index)
                                         Text(
-                                            if (rowLabel != null) stringResource(rowLabel.label)
+                                            if (rowLabel != null) rowLabel.title()
                                             else stringResource(R.string.score_round_n, index + 1)
                                         )
                                     }
@@ -272,7 +272,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                                             contentAlignment = Alignment.Center
                                         ) {
                                             val rowLabel = sheetRows?.getOrNull(roundIndex)
-                                            val rowLabelText = rowLabel?.let { stringResource(it.label) }
+                                            val rowLabelText = rowLabel?.title()
                                             ScoreCell(
                                                 choices = rowLabel?.options,
                                                 title = rowLabelText,
@@ -561,6 +561,10 @@ private fun ScoreCell(
         )
     }
 }
+
+/** Nom de la catégorie : texte écrit par l'utilisateur (feuille personnalisée) ou texte de la feuille intégrée. */
+@Composable
+private fun SheetRow.title(): String = labelText ?: stringResource(label)
 
 /** Fenêtre de saisie d'un score : champ numérique plein format + bascule +/− éventuelle. */
 @Composable

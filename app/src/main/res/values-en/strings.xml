@@ -94,6 +94,10 @@
     <string name="create_sheet_yams_sub">13 categories, with a 35-point bonus from 63 in the upper section.</string>
     <string name="create_sheet_qwixx_sub">4 colours (points depend on the number of crosses) and penalties.</string>
     <string name="create_sheet_bowling_sub">10 frames, roll by roll: strikes and spares are counted automatically.</string>
+    <string name="create_sheet_custom_chip">Custom</string>
+    <string name="create_sheet_custom_sub">One category per line. To offer score buttons, add “:” then the values separated by commas (e.g. Coins: 0, 1, 2, 3). Without values, the score is typed on the keyboard.</string>
+    <string name="create_sheet_custom_rows">Categories (one per line)</string>
+    <string name="create_sheet_custom_empty">Add at least one category, otherwise the game will be a regular rounds table.</string>
     <string name="create_bid_wizard_sub">20 points + 10 per bid trick if the bid is exact, otherwise −10 per trick of difference.</string>
     <string name="create_bid_ohhell_sub">10 points + 1 per bid trick if the bid is exact, otherwise −1 per trick of difference.</string>
     <string name="create_exact_target">Exact target score</string>
