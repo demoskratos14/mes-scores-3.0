@@ -1,6 +1,6 @@
 # Mes Scores
 
-Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux de société : tableaux par manches, compteurs, Tarot avec calcul automatique, championnats (élimination directe, tirage au sort ou ordre choisi, ou poules), jeux personnalisés, journal des parties (avec export/import JSON), statistiques (victoires, meilleur score, moyenne), thème clair / sombre, partage du classement, annulation de la dernière saisie et minuteur.
+Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux de société : tableaux par manches, compteurs, Tarot avec calcul automatique, championnats (élimination directe, tirage au sort ou ordre choisi, ou poules), jeux personnalisés, journal des parties (avec export/import JSON), statistiques (victoires, meilleur score, moyenne), thème clair / sombre, langue au choix depuis l'appli (drapeau sur l'écran d'accueil : français, anglais, espagnol, portugais, italien), partage du classement, annulation de la dernière saisie et minuteur.
 
 - Identifiant : `com.aventure.messcores`
 - minSdk 26, compileSdk/targetSdk 37
@@ -66,6 +66,7 @@ MesScores/
             │   ├── JournalBackup.kt           export/import JSON du journal (fonctions pures, testées)
             │   ├── Stats.kt, StatsScreen.kt   statistiques tirées du journal (calcul pur, testé) et écran
             │   ├── Theme.kt                   thème clair / sombre (Auto, Clair, Sombre) et couleurs adaptées
+            │   ├── AppLanguage.kt, LanguageSelector.kt   langues proposées et bouton drapeau (AppCompatDelegate.setApplicationLocales)
             │   ├── PlayerNames.kt, ResultText.kt   noms uniques, texte de partage (fonctions pures, testées)
             │   ├── ScoreActions.kt            barre Annuler / Partager / Enregistrer
             │   ├── SetupScreen.kt, ChooseGameScreen.kt, CreateGameScreen.kt
@@ -76,7 +77,8 @@ MesScores/
             │   ├── TimerViewModel.kt, TimerOverlay.kt, TimerAlert.kt, TimerReceiver.kt   minuteur
             │   ├── AppBackground.kt, KeepScreenOn.kt, Savers.kt
             └── res/
-                ├── values/strings.xml
+                ├── values/strings.xml, values-en|es|pt|it/strings.xml   textes (français par défaut + 4 traductions)
+                ├── xml/locales_config.xml    langues de l'appli pour Réglages Android (13+) — à garder alignée sur AppLanguage
                 ├── xml/data_extraction_rules.xml, backup_rules.xml   sauvegarde Android (SharedPreferences)
                 ├── drawable-nodpi/bg_board_games.webp
                 ├── mipmap-anydpi/ic_launcher.xml, ic_launcher_round.xml   icône adaptative (+ monochrome)
@@ -87,6 +89,7 @@ MesScores/
 
 - **Statistiques** (écran d'accueil → *Statistiques*) : calculées à partir des parties **terminées** du journal (donc des 50 dernières au plus). Victoires et parties par joueur, tous jeux confondus ou jeu par jeu ; pour un jeu précis, meilleur score (le plus bas si « le plus bas gagne ») et moyenne. Un joueur est reconnu par son nom, sans tenir compte des majuscules ni des espaces. En cas d'égalité en tête, chaque joueur à égalité compte une victoire ; si tout le monde est à égalité, personne ne gagne.
 - **Apparence** (écran d'accueil) : *Auto* suit le réglage du téléphone, ou on force *Clair* / *Sombre*. Le choix est mémorisé. Les couleurs des cartes, bandeaux et scores viennent de `Theme.kt` : n'écrivez plus de `Color.White` ou de couleur en dur pour un fond de carte, utilisez `cardSurface()`, `highlightContainer()`, etc.
+- **Langue** (écran d'accueil) : par défaut l'appli suit la langue du téléphone ; le drapeau en haut de la carte affiche la langue en cours et permet d'en choisir une autre (français, anglais, espagnol, portugais, italien). Le choix passe par `AppCompatDelegate.setApplicationLocales` (d'où `AppCompatActivity` et le thème `Theme.AppCompat`) : Android 13+ le retient lui-même et l'affiche dans Réglages > Applications > Langue, les versions antérieures s'appuient sur le service `AppLocalesMetadataHolderService` du manifeste. Pour ajouter une langue : un dossier `res/values-xx`, une entrée dans `AppLanguage`, un `<locale>` dans `res/xml/locales_config.xml` et la chaîne `language_name_xx` (`AppLanguageTest` vérifie l'alignement).
 - **Accessibilité** : le badge du minuteur est annoncé comme un bouton avec le temps « à voix haute » et son état ; « Temps écoulé ! » est annoncé dès qu'il apparaît ; les cases de score, de nom et les choix de vainqueur ont un rôle et une action décrits ; les interrupteurs et cases à cocher forment une seule cible avec leur texte (ligne `toggleable`, case sans `onCheckedChange`), comme les choix de `TournamentSetupScreen` ; le signe +/− et le coefficient d'une case ont un rôle de bouton et une action décrite. Les icônes à `contentDescription = null` sont décoratives (un texte les accompagne) : à garder ainsi.
 - **Sauvegarde Android** : les données de l'appli (jeux personnalisés, journal, championnat, noms, thème) sont dans des SharedPreferences, incluses dans la sauvegarde cloud et le transfert vers un nouvel appareil (`res/xml/`). Si l'appli écrit un jour des fichiers ou une base de données, il faudra ajouter leur domaine dans ces deux fichiers.
 - **Poules** : chacun rencontre tous les autres (12 participants au maximum), matchs répartis en journées, avec un repos par journée si le nombre est impair. Classement aux victoires ; à égalité, victoires dans les matchs entre les joueurs à égalité ; sinon ex æquo. Pas de match nul pour l'instant.
