@@ -90,6 +90,7 @@
     <string name="journal_title">Registo de partidas</string>
     <string name="stats_title">Estatísticas</string>
     <string name="setup_appearance">Aspeto</string>
+    <string name="language_change">Mudar de idioma</string>
     <string name="tsetup_format">Formato</string>
     <string name="tsetup_knockout_desc">O derrotado é eliminado. As meias-finais, a final e o jogo de atribuição do 3.º lugar são gerados automaticamente.</string>
     <string name="tsetup_round_robin_desc">Todos jogam contra todos e a classificação faz-se pelas vitórias. %1$d participantes no máximo.</string>
