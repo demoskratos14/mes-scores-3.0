@@ -91,7 +91,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.13.0")
     // Choix de la langue depuis l'appli (AppCompatDelegate.setApplicationLocales) : fonctionne sur Android 13+
     // via le système, et est rétroporté jusqu'à minSdk 26 par AppCompat.
-    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.appcompat:appcompat:1.8.0")
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2026.09.00"))
