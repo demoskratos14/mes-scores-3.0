@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: "Construire aussi l'APK release signé (nécessite les secrets de signature)"
+        description: "Construire aussi l'APK et le bundle AAB release signés (nécessite les secrets de signature)"
         type: boolean
         default: false
 
@@ -89,7 +89,8 @@ jobs:
       # --- Release signée : uniquement à la demande (Actions > Run workflow > release) ---
       # Secrets à créer dans Settings > Secrets and variables > Actions :
       #   KEYSTORE_BASE64 (le fichier .jks encodé en base64), KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
-      - name: Construire l'APK (release signé)
+      # L'AAB (bundle) est le format demandé par le Play Store ; l'APK sert aux installations directes.
+      - name: Construire l'APK et l'AAB (release signés)
         if: ${{ inputs.release }}
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -98,7 +99,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
-          KEYSTORE_FILE="$RUNNER_TEMP/release.jks" ./gradlew assembleRelease --stacktrace
+          KEYSTORE_FILE="$RUNNER_TEMP/release.jks" ./gradlew assembleRelease bundleRelease --stacktrace
 
       - name: Publier l'APK release
         if: ${{ inputs.release }}
@@ -106,4 +107,12 @@ jobs:
         with:
           name: "Mes scores (release)"
           path: "app/build/outputs/apk/release/Mes scores-release.apk"
+          if-no-files-found: error
+
+      - name: Publier l'AAB release (Play Store)
+        if: ${{ inputs.release }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: "Mes scores (release AAB)"
+          path: "app/build/outputs/bundle/release/*.aab"
           if-no-files-found: error
