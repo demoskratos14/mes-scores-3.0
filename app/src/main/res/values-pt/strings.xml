@@ -230,8 +230,6 @@
     <string name="actions_share">Partilhar</string>
     <string name="actions_saved">Guardado ✓</string>
     <string name="actions_save">Guardar</string>
-    <string name="counter_remove">Retirar um ponto</string>
-    <string name="counter_add">Adicionar um ponto</string>
     <string name="team_new_round">+ Nova ronda</string>
     <string name="team_history">Histórico de rondas</string>
     <string name="team_round_header">Ronda %1$d — %2$s</string>
@@ -928,4 +926,16 @@
         <item quantity="many">%d de segundos</item>
         <item quantity="other">%d segundos</item>
     </plurals>
+    <string name="actions_undo">Desfazer a última entrada</string>
+    <string name="actions_redo">Refazer a entrada desfeita</string>
+    <string name="counter_add_for">Adicionar um ponto a %1$s</string>
+    <string name="counter_remove_for">Remover um ponto de %1$s</string>
+    <string name="counter_player_summary">%1$s, pontuação %2$d, posição %3$d</string>
+    <string name="resume_title">Jogo em andamento</string>
+    <string name="resume_summary">%1$s · %2$s</string>
+    <string name="resume_dismiss">Ignorar</string>
+    <string name="chart_title">Evolução das pontuações</string>
+    <string name="chart_button">Gráfico da evolução das pontuações</string>
+    <string name="chart_description">Gráfico de linhas do total de cada jogador, rodada após rodada</string>
+    <string name="chart_range">Rodadas 1 a %1$d · pontuações de %2$d a %3$d</string>
 </resources>
