@@ -231,8 +231,6 @@
     <string name="actions_share">Condividi</string>
     <string name="actions_saved">Salvato ✓</string>
     <string name="actions_save">Salva</string>
-    <string name="counter_remove">Togli un punto</string>
-    <string name="counter_add">Aggiungi un punto</string>
     <string name="team_new_round">+ Nuovo round</string>
     <string name="team_history">Cronologia dei round</string>
     <string name="team_round_header">Round %1$d — %2$s</string>
@@ -938,4 +936,16 @@
     <string name="rules_sueca_5_body">Alla fine di ogni mano, inserisci nella colonna della squadra che ha vinto la mano 1, 2 o 4 punti partita (0 per l\'altra squadra). Puoi giocare con 2 colonne (le due squadre) o con 4 giocatori. Alcune regioni giocano a 6 punti invece di 4: in tal caso, continua la partita a mano.</string>
 
     <string name="multiplier_normal">Normale</string>
+    <string name="actions_undo">Annulla l\'ultima voce</string>
+    <string name="actions_redo">Ripristina la voce annullata</string>
+    <string name="counter_add_for">Aggiungi un punto a %1$s</string>
+    <string name="counter_remove_for">Togli un punto a %1$s</string>
+    <string name="counter_player_summary">%1$s, punteggio %2$d, posizione %3$d</string>
+    <string name="resume_title">Partita in corso</string>
+    <string name="resume_summary">%1$s · %2$s</string>
+    <string name="resume_dismiss">Ignora</string>
+    <string name="chart_title">Andamento dei punteggi</string>
+    <string name="chart_button">Grafico dell\'andamento dei punteggi</string>
+    <string name="chart_description">Grafico a linee del totale di ogni giocatore, round dopo round</string>
+    <string name="chart_range">Round da 1 a %1$d · punteggi da %2$d a %3$d</string>
 </resources>
