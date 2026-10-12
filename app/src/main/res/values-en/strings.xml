@@ -227,6 +227,8 @@
     <string name="score_change_multiplier">Change the multiplier</string>
     <string name="score_enter">Enter a score</string>
     <string name="score_enter_title">Enter the score</string>
+    <string name="score_previous_player">Previous player</string>
+    <string name="score_next_player">Next player</string>
     <string name="actions_share">Share</string>
     <string name="actions_saved">Saved ✓</string>
     <string name="actions_save">Save</string>

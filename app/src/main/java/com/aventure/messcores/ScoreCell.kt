@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,29 +29,18 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Case du tableau : elle n'affiche que le score (dans la couleur du joueur).
- * Un clic ouvre une fenêtre de saisie (voir [ScoreInputDialog]) où l'on écrit le
- * score et, si les scores négatifs sont autorisés, choisit le signe. Le sélecteur de
- * règle de multiplication reste au-dessus de la case (si le jeu en a plusieurs).
+ * Un clic appelle [onClick] : le tableau ouvre alors la fenêtre de saisie (voir [ScoreEntryDialog]).
+ * Le sélecteur de règle de multiplication reste au-dessus de la case (si le jeu en a plusieurs).
  */
 @Composable
 internal fun ScoreCell(
-    choices: List<Int>? = null,
-    title: String? = null,
-    hint: String? = null,
-    zeroCrossesOut: Boolean = true,
-    bidScoring: String? = null,
-    bowlingFrame: Int? = null,
     display: String? = null,
     cell: CellState,
-    allowNegative: Boolean,
     multipliers: List<ScoreMultiplier>,
     playerColor: Color,
-    onValueEntered: (Int?, Boolean) -> Unit,
+    onClick: () -> Unit,
     onMultiplierPicked: (String) -> Unit
 ) {
-    // rememberSaveable : la boîte de saisie reste ouverte après une rotation.
-    var showDialog by rememberSaveable { mutableStateOf(false) }
-
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (multipliers.size > 1) {
             var expanded by remember { mutableStateOf(false) }
@@ -89,7 +77,7 @@ internal fun ScoreCell(
                 .height(48.dp)
                 .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
                 .clip(RoundedCornerShape(8.dp))
-                .clickable(onClickLabel = stringResource(R.string.score_enter), role = Role.Button) { showDialog = true },
+                .clickable(onClickLabel = stringResource(R.string.score_enter), role = Role.Button) { onClick() },
             contentAlignment = Alignment.Center
         ) {
             if (display != null) {
@@ -112,53 +100,6 @@ internal fun ScoreCell(
                 )
             }
         }
-    }
-
-    if (showDialog && choices != null) {
-        ScoreChoiceDialog(
-            title = title ?: stringResource(R.string.score_enter_title),
-            options = choices,
-            hint = hint,
-            zeroCrossesOut = zeroCrossesOut,
-            current = cell.baseValue,
-            onPick = { value ->
-                showDialog = false
-                onValueEntered(value, false)
-            },
-            onDismiss = { showDialog = false }
-        )
-    } else if (showDialog && bowlingFrame != null) {
-        BowlingFrameDialog(
-            frame = bowlingFrame,
-            title = title,
-            onConfirm = { code ->
-                showDialog = false
-                onValueEntered(code, false)
-            },
-            onDismiss = { showDialog = false }
-        )
-    } else if (showDialog && bidScoring != null) {
-        BidScoreDialog(
-            title = title,
-            kind = bidScoring,
-            onConfirm = { score ->
-                showDialog = false
-                onValueEntered(score, false)
-            },
-            onDismiss = { showDialog = false }
-        )
-    } else if (showDialog) {
-        ScoreInputDialog(
-            title = title,
-            initialValue = cell.baseValue,
-            initialNegative = cell.isNegative,
-            allowNegative = allowNegative,
-            onConfirm = { value, negative ->
-                showDialog = false
-                onValueEntered(value, negative)
-            },
-            onDismiss = { showDialog = false }
-        )
     }
 }
 

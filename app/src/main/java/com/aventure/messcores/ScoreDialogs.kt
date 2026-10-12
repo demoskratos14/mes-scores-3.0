@@ -35,10 +35,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
-/** Fenêtre de saisie d'un score : champ numérique plein format + bascule +/− éventuelle. */
+/**
+ * Fenêtre de saisie d'un score : champ numérique plein format + bascule +/− éventuelle.
+ * Le titre montre le joueur concerné avec ses flèches de navigation ([nav]). [resetKey] identifie
+ * la case saisie : quand il change (flèche, passage au joueur suivant), le champ est réinitialisé
+ * sans refermer la fenêtre, donc sans faire disparaître le clavier.
+ */
 @Composable
 internal fun ScoreInputDialog(
-    title: String?,
+    nav: PlayerEntryNav,
+    subtitle: String,
+    resetKey: Any,
     initialValue: Int?,
     initialNegative: Boolean,
     allowNegative: Boolean,
@@ -47,19 +54,19 @@ internal fun ScoreInputDialog(
 ) {
     val initialText = initialValue?.toString() ?: ""
     // Texte présélectionné : taper un nouveau score remplace directement l'ancien.
-    var field by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+    var field by rememberSaveable(resetKey, stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(initialText, TextRange(0, initialText.length)))
     }
-    var negative by rememberSaveable { mutableStateOf(initialNegative) }
+    var negative by rememberSaveable(resetKey) { mutableStateOf(initialNegative) }
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    LaunchedEffect(resetKey) { focusRequester.requestFocus() }
 
     val confirm = { onConfirm(field.text.toIntOrNull(), negative) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title ?: stringResource(R.string.score_enter_title)) },
+        title = { PlayerEntryTitle(nav, subtitle) },
         text = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (allowNegative) {
@@ -154,19 +161,22 @@ internal fun ScoreChoiceDialog(
  */
 @Composable
 internal fun BidScoreDialog(
-    title: String?,
+    nav: PlayerEntryNav,
+    subtitle: String,
+    resetKey: Any,
     kind: String,
     onConfirm: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var bid by remember { mutableStateOf("") }
-    var tricks by remember { mutableStateOf("") }
+    // resetKey : les champs repartent à vide quand on passe à un autre joueur.
+    var bid by remember(resetKey) { mutableStateOf("") }
+    var tricks by remember(resetKey) { mutableStateOf("") }
     val bidValue = bid.toIntOrNull()
     val tricksValue = tricks.toIntOrNull()
     val score = if (bidValue != null && tricksValue != null) BidScoring.score(kind, bidValue, tricksValue) else null
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title ?: stringResource(R.string.score_enter_title)) },
+        title = { PlayerEntryTitle(nav, subtitle) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(

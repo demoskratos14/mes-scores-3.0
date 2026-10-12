@@ -227,6 +227,8 @@
     <string name="score_change_multiplier">Alterar o multiplicador</string>
     <string name="score_enter">Introduzir uma pontuação</string>
     <string name="score_enter_title">Introduz a pontuação</string>
+    <string name="score_previous_player">Jogador anterior</string>
+    <string name="score_next_player">Jogador seguinte</string>
     <string name="actions_share">Partilhar</string>
     <string name="actions_saved">Guardado ✓</string>
     <string name="actions_save">Guardar</string>

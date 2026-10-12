@@ -228,6 +228,8 @@
     <string name="score_change_multiplier">Cambia il coefficiente</string>
     <string name="score_enter">Inserisci un punteggio</string>
     <string name="score_enter_title">Inserisci il punteggio</string>
+    <string name="score_previous_player">Giocatore precedente</string>
+    <string name="score_next_player">Giocatore successivo</string>
     <string name="actions_share">Condividi</string>
     <string name="actions_saved">Salvato ✓</string>
     <string name="actions_save">Salva</string>

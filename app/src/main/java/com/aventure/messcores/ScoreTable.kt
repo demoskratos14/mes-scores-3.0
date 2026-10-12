@@ -17,6 +17,10 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -129,6 +133,9 @@ internal fun ScoreTableBody(
     val scoreRowHeight = if (multipliers.size > 1) 92.dp else 72.dp
     // Feuille de catégories (Yams) : une ligne par catégorie au lieu de manches numérotées.
     val sheetRows = viewModel.sheetRows
+    // Case en cours de saisie (-1 : aucune). rememberSaveable : la fenêtre reste ouverte après une rotation.
+    var entryRound by rememberSaveable { mutableIntStateOf(-1) }
+    var entryPlayer by rememberSaveable { mutableIntStateOf(-1) }
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
         Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
             Column {
@@ -160,25 +167,14 @@ internal fun ScoreTableBody(
                             modifier = Modifier.width(playerColumnWidth).height(scoreRowHeight),
                             contentAlignment = Alignment.Center
                         ) {
-                            val rowLabel = sheetRows?.getOrNull(roundIndex)
-                            val rowLabelText = rowLabel?.title()
                             ScoreCell(
-                                choices = rowLabel?.options,
-                                title = rowLabelText,
-                                hint = rowLabel?.hint?.let { stringResource(it) },
-                                zeroCrossesOut = rowLabel?.zeroCrossesOut ?: true,
-                                bidScoring = viewModel.gameRules.bidScoring,
-                                bowlingFrame = if (bowlingCumulative != null) roundIndex else null,
                                 display = bowlingCumulative?.let {
                                     BowlingScoring.display(round[playerIndex].baseValue, it.getOrNull(roundIndex))
                                 },
                                 cell = round[playerIndex],
-                                allowNegative = viewModel.gameRules.allowNegativeScores,
                                 multipliers = multipliers,
                                 playerColor = color,
-                                onValueEntered = { value, negative ->
-                                    viewModel.setCell(roundIndex, playerIndex, value, negative)
-                                },
+                                onClick = { entryRound = roundIndex; entryPlayer = playerIndex },
                                 onMultiplierPicked = { id ->
                                     viewModel.setMultiplier(roundIndex, playerIndex, id)
                                 }
@@ -188,5 +184,14 @@ internal fun ScoreTableBody(
                 }
             }
         }
+    }
+    if (entryRound >= 0 && entryPlayer >= 0) {
+        ScoreEntryDialog(
+            viewModel = viewModel,
+            round = entryRound,
+            player = entryPlayer,
+            onSelect = { round, player -> entryRound = round; entryPlayer = player },
+            onClose = { entryRound = -1; entryPlayer = -1 }
+        )
     }
 }
