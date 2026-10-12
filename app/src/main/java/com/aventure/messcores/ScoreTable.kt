@@ -44,7 +44,7 @@ internal val MIN_PLAYER_COLUMN_WIDTH = 28.dp
 internal val MAX_PLAYER_COLUMN_WIDTH = 128.dp
 
 /** Renvoie du noir ou du blanc selon le fond donné, pour rester lisible. */
-private fun contentColorFor(background: Color): Color {
+internal fun contentColorFor(background: Color): Color {
     val luminance = 0.299 * background.red + 0.587 * background.green + 0.114 * background.blue
     return if (luminance > 0.6) Color.Black else Color.White
 }

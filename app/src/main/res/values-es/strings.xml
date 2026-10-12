@@ -221,6 +221,11 @@
     <string name="score_game_over_winner">Fin de la partida · ¡%1$s gana!</string>
     <string name="score_game_over_winners">Fin de la partida · ¡%1$s ganan!</string>
     <string name="score_show_full_name">Mostrar el nombre completo</string>
+    <string name="score_color_title">Color del jugador</string>
+    <string name="score_color_pick">Elegir este color</string>
+    <string name="score_color_option">Color %1$d</string>
+    <string name="score_color_selected">Color actual</string>
+    <string name="score_color_taken">Ya lo usa otro jugador</string>
     <string name="score_round_n">Ronda %1$d</string>
     <string name="score_total">Total</string>
     <string name="score_player">Jugador</string>

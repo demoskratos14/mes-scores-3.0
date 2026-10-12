@@ -142,7 +142,22 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                 TextButton(onClick = { expandedNameIndex = null }) { Text(stringResource(R.string.common_ok)) }
             },
             title = { Text(stringResource(R.string.score_player)) },
-            text = { Text(players.getOrElse(index) { "" }) }
+            text = {
+                Column {
+                    Text(players.getOrElse(index) { "" })
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.score_color_title),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PlayerColorPicker(
+                        currentColor = viewModel.playerColors.getOrElse(index) { Color.Gray },
+                        takenColors = viewModel.playerColors.filterIndexed { i, _ -> i != index }.toSet(),
+                        onPick = { viewModel.setPlayerColor(index, it) }
+                    )
+                }
+            }
         )
     }
 }

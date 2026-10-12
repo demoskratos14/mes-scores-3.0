@@ -112,6 +112,17 @@ class ScoreViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Change la couleur d'un joueur. Refusé (renvoie false, rien ne change) si un autre joueur
+     * a déjà cette couleur : deux joueurs ne partagent jamais la même couleur.
+     */
+    fun setPlayerColor(playerIndex: Int, color: Color): Boolean {
+        if (playerIndex !in players.indices || playerColors.size != players.size) return false
+        if (isColorTakenByOther(playerColors, playerIndex, color)) return false
+        playerColors = playerColors.toMutableList().also { it[playerIndex] = color }
+        return true
+    }
+
     /** Restaure une partie précédemment enregistrée dans le journal, telle quelle. */
     fun loadFromSaved(saved: SavedGame) {
         currentSaveId = saved.id
