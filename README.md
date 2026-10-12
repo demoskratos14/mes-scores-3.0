@@ -88,7 +88,7 @@ MesScores/
             │   ├── CustomGameDraft.kt         formulaire de création -> GameRules (fonction pure, testée)
             │   ├── ScoreScreen.kt, CounterScreen.kt       tableau par manches / compteurs
             │   │   ScoreTable.kt (en-tête + corps), ScoreTableFooter.kt (phase, bonus, total),
-            │   │   ScoreCell.kt (une case), ScoreDialogs.kt (fenêtres de saisie : nombre, choix, annonce, bowling)
+            │   │   ScoreCell.kt (une case), ScoreEntry.kt (fenêtre de saisie partagée : passage au joueur suivant, flèches), ScoreDialogs.kt (fenêtres de saisie : nombre, choix, annonce, bowling)
             │   ├── TeamRoundsScreen.kt, NewTeamRoundScreen.kt, NewTarotRoundScreen.kt
             │   ├── TournamentEngine.kt        règles des championnats (tableau, poules) — pures, testées
             │   ├── TournamentSetupScreen.kt, TournamentBracketScreen.kt, TournamentViewModel.kt
