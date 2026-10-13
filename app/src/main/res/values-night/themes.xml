@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Moyenne de la photo de fond sous le voile du thème sombre (72 % de noir). -->
-    <color name="window_background">#251F18</color>
-</resources>
