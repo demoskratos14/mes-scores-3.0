@@ -60,7 +60,8 @@ class CountdownInputTest {
 
     @Test
     fun deuxSeparateursEtHuitCaracteresAuPlus() {
-        assertEquals("4:3:0", CountdownInput.sanitize("4:3:0:5"))
+        // Le 3e « : » est ignoré, les chiffres qui suivent sont conservés.
+        assertEquals("4:3:05", CountdownInput.sanitize("4:3:0:5"))
         assertEquals("12:34:56", CountdownInput.sanitize("12:34:56789"))
         assertEquals("1230", CountdownInput.sanitize("1a2b3c0"))
     }
