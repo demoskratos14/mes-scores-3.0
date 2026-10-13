@@ -997,7 +997,7 @@
     <string name="poker_status_allin">All-in</string>
     <string name="poker_bet_short">apuesta %1$s</string>
     <string name="poker_won_short">+%1$s</string>
-    <string name="poker_badge_dealer">D</string>
+    <string name="poker_badge_dealer">B</string>
     <string name="poker_badge_small">SB</string>
     <string name="poker_badge_big">BB</string>
     <string name="poker_dealer">Botón</string>
@@ -1046,4 +1046,33 @@
     <string name="rules_poker_2_body">El botón avanza un jugador en cada mano: el jugador a su izquierda pone la ciega pequeña y el siguiente la ciega grande. Con dos jugadores, el botón pone la ciega pequeña. Las ciegas suben a intervalos regulares (el nuevo nivel se aplica en la mano siguiente). Si los antes están activados, todos los jugadores pagan uno en cada mano.</string>
     <string name="rules_poker_3_title">Rondas de apuestas</string>
     <string name="rules_poker_3_body">Por turno, un jugador puede retirarse, igualar (o hacer check si no hay nada que igualar), subir o ir all-in. Una subida debe ser al menos igual a la anterior (como mínimo la ciega grande). Tras una subida, todos los demás jugadores deben volver a hablar. Un all-in menor que la subida mínima no da derecho a volver a subir a quienes ya habían hablado. En el showdown, elige al ganador de cada bote (principal y secundarios); en caso de empate, el bote se reparte.</string>
+
+    <!-- Poker : changement de table (export / import de joueurs) -->
+    <string name="poker_tables_button">Cambiar de mesa (importar / exportar)</string>
+    <string name="poker_tables_title">Cambiar de mesa</string>
+    <string name="poker_tables_intro">Para unir dos mesas: exporta a un archivo los jugadores de la mesa que se cierra y luego importa ese archivo en la otra mesa. Los jugadores llegan con sus fichas y se sientan al azar entre los jugadores que ya están, sin cambiar su orden ni la posición del botón.</string>
+    <string name="poker_tables_export">Exportar jugadores</string>
+    <string name="poker_tables_import">Importar jugadores</string>
+    <string name="poker_tables_export_title">Jugadores a exportar</string>
+    <string name="poker_tables_player_line">%1$s · %2$s</string>
+    <string name="poker_tables_remove_after">Retirar a estos jugadores de esta mesa tras exportar</string>
+    <string name="poker_tables_remove_blocked">No se puede retirar a estos jugadores: deben quedar al menos dos jugadores en juego en esta mesa. Para cerrar la mesa, exporta a todos sin retirarlos y luego abandona la partida.</string>
+    <string name="poker_tables_export_action">Exportar</string>
+    <string name="poker_tables_export_ok">Archivo guardado (%1$s).</string>
+    <string name="poker_tables_export_ok_removed">Archivo guardado (%1$s). Estos jugadores han dejado la mesa.</string>
+    <string name="poker_tables_export_failed">Error al exportar: %1$s.</string>
+    <string name="poker_tables_import_title">Importar jugadores</string>
+    <string name="poker_tables_import_confirm">Se añadirán a la mesa (%1$s), con sus fichas, sentados al azar entre los jugadores que ya están. Las acciones ya jugadas no se podrán deshacer.</string>
+    <string name="poker_tables_import_action">Añadir a la mesa</string>
+    <string name="poker_tables_import_ok">Añadidos a la mesa: %1$s.</string>
+    <string name="poker_tables_import_invalid">Este archivo no es una lista de jugadores de póker válida.</string>
+    <string name="poker_tables_import_failed">Error al importar: %1$s.</string>
+    <string name="poker_tables_full">La mesa está llena: máximo %1$d jugadores.</string>
+    <string name="poker_tables_not_allowed">No es posible ahora: espera a que termine la mano.</string>
+    <string name="poker_tables_purge_note">La mesa no tiene más sitio: los jugadores ya eliminados se quitarán de la pantalla.</string>
+    <plurals name="poker_players_count">
+        <item quantity="one">%d jugador</item>
+        <item quantity="many">%d de jugadores</item>
+        <item quantity="other">%d jugadores</item>
+    </plurals>
 </resources>

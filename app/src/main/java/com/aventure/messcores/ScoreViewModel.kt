@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import java.util.UUID
+import kotlin.random.Random
 
 /**
  * Gère l'état complet d'une partie, quel que soit son [ScoreMode] :
@@ -566,6 +567,113 @@ class ScoreViewModel : ViewModel() {
 
     fun pokerNextHand() = pokerApply { PokerEngine.nextHand(it, PokerBlinds.levelAt(it.settings, pokerElapsedMs())) }
 
+    // ---------- Changement de table (poker) ----------
+
+    /** Vrai entre deux mains tant que le tournoi n'est pas terminé : seul moment où l'on peut déplacer des joueurs. */
+    val pokerCanReseat: Boolean
+        get() = poker?.let { it.phase == PokerPhase.HAND_OVER && it.champion == null } == true
+
+    /** Places des joueurs encore en lice, dans l'ordre de la table. */
+    fun pokerAliveIndices(): List<Int> {
+        val game = poker ?: return emptyList()
+        return game.seats.indices.filter { !game.seats[it].out }
+    }
+
+    /** Vrai si [indices] peuvent quitter la table : il doit rester au moins deux joueurs en lice. */
+    fun pokerCanRemove(indices: Collection<Int>): Boolean {
+        val game = poker ?: return false
+        val leaving = indices.filter { it in game.seats.indices && !game.seats[it].out }.toSet()
+        return pokerCanReseat && leaving.isNotEmpty() && pokerAliveIndices().count { it !in leaving } >= 2
+    }
+
+    /** Joueurs (nom, tapis, couleur) des places [indices] encore en lice, prêts à être écrits dans un fichier. */
+    fun pokerTransferPlayers(indices: Collection<Int>): List<PokerTransferPlayer> {
+        val game = poker ?: return emptyList()
+        return indices.sorted()
+            .filter { it in game.seats.indices && !game.seats[it].out }
+            .map { i ->
+                PokerTransferPlayer(
+                    name = players.getOrElse(i) { "" },
+                    stack = game.seats[i].stack,
+                    colorArgb = playerColors.getOrElse(i) { Color.Gray }.toArgb()
+                )
+            }
+    }
+
+    /** Fait quitter la table aux joueurs [indices] (après leur export). L'annulation est remise à zéro. */
+    fun pokerRemovePlayers(indices: Collection<Int>): PokerReseatResult {
+        val game = poker ?: return PokerReseatResult.NOT_ALLOWED
+        val leaving = indices.filter { it in game.seats.indices && !game.seats[it].out }.toSet()
+        if (leaving.isEmpty() || !pokerCanRemove(leaving)) return PokerReseatResult.NOT_ALLOWED
+        return applyReseat(game, leaving, emptyList(), Random.Default)
+    }
+
+    /** Vrai si l'arrivée de [count] joueurs obligerait à retirer de l'écran les joueurs déjà éliminés (table à 10 places). */
+    fun pokerImportNeedsRoom(count: Int): Boolean {
+        val game = poker ?: return false
+        return game.seats.size + count > gameRules.maxPlayers
+    }
+
+    /**
+     * Ajoute à la table les joueurs [incoming] (avec leur tapis), assis au hasard entre les joueurs
+     * déjà présents : leur ordre et la place du bouton ne changent pas. Si la table n'a plus de place
+     * à cause des joueurs éliminés, ceux-ci sont retirés de l'affichage. L'annulation est remise à zéro.
+     */
+    fun pokerImportPlayers(incoming: List<PokerTransferPlayer>, random: Random = Random.Default): PokerReseatResult {
+        val game = poker ?: return PokerReseatResult.NOT_ALLOWED
+        if (!pokerCanReseat || incoming.isEmpty()) return PokerReseatResult.NOT_ALLOWED
+        if (pokerAliveIndices().size + incoming.size > gameRules.maxPlayers) return PokerReseatResult.TABLE_FULL
+        val purge = if (pokerImportNeedsRoom(incoming.size)) {
+            game.seats.indices.filter { game.seats[it].out }.toSet()
+        } else {
+            emptySet()
+        }
+        return applyReseat(game, purge, incoming, random)
+    }
+
+    /** Met à jour la partie, les noms et les couleurs après le départ et/ou l'arrivée de joueurs. */
+    private fun applyReseat(
+        game: PokerGame,
+        remove: Set<Int>,
+        incoming: List<PokerTransferPlayer>,
+        random: Random
+    ): PokerReseatResult {
+        val result = PokerEngine.reseat(game, remove, incoming.map { it.stack }, random)
+            ?: return PokerReseatResult.NOT_ALLOWED
+        val kept = game.seats.indices.filter { it !in remove }
+        // Noms : les joueurs présents gardent le leur, un arrivant au même nom est numéroté.
+        val arrivalNames = PlayerNames.makeUnique(kept.map { players.getOrElse(it) { "" } } + incoming.map { it.name })
+            .drop(kept.size)
+        // Couleurs : les joueurs présents sont servis d'abord ; un arrivant qui a la même couleur en reçoit une libre.
+        val keptColors = kept.map { playerColors.getOrElse(it) { Color.Gray } }
+        val arrivalColors = assignPlayerColors(
+            count = kept.size + incoming.size,
+            chosen = keptColors + incoming.map { p -> if (p.colorArgb == 0) null else Color(p.colorArgb) },
+            random = random
+        ).drop(kept.size)
+
+        val total = result.game.seats.size
+        val newNames = MutableList(total) { "" }
+        val newColors = MutableList(total) { Color.Gray }
+        result.oldToNew.forEachIndexed { old, new ->
+            if (new >= 0) {
+                newNames[new] = players.getOrElse(old) { "" }
+                newColors[new] = playerColors.getOrElse(old) { Color.Gray }
+            }
+        }
+        result.arrivals.forEachIndexed { k, new ->
+            newNames[new] = arrivalNames[k]
+            newColors[new] = arrivalColors[k]
+        }
+        players = newNames
+        playerColors = newColors
+        poker = result.game
+        // Les anciens états ne correspondent plus à la liste de joueurs : on ne peut plus les rétablir.
+        _pokerUndo.clear()
+        _pokerRedo.clear()
+        return PokerReseatResult.DONE
+    }
+
     // ---------- Commun ----------
 
     /** Total cumulé d'un joueur, calculé en parcourant les manches. */
@@ -713,3 +821,6 @@ class ScoreViewModel : ViewModel() {
             emptyList()
         }
 }
+
+/** Issue d'un départ ou d'une arrivée de joueurs à la table de poker ([ScoreViewModel.pokerImportPlayers]). */
+enum class PokerReseatResult { DONE, NOT_ALLOWED, TABLE_FULL }

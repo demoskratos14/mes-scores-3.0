@@ -1007,7 +1007,7 @@
     <string name="poker_status_allin">All-in</string>
     <string name="poker_bet_short">puntata %1$s</string>
     <string name="poker_won_short">+%1$s</string>
-    <string name="poker_badge_dealer">D</string>
+    <string name="poker_badge_dealer">B</string>
     <string name="poker_badge_small">SB</string>
     <string name="poker_badge_big">BB</string>
     <string name="poker_dealer">Bottone</string>
@@ -1056,4 +1056,33 @@
     <string name="rules_poker_2_body">Il bottone avanza di un giocatore a ogni mano: il giocatore alla sua sinistra mette il piccolo buio, il successivo il grande buio. In due, il bottone mette il piccolo buio. I bui salgono a intervalli regolari (il nuovo livello vale dalla mano successiva). Se gli ante sono attivi, tutti i giocatori ne pagano uno a ogni mano.</string>
     <string name="rules_poker_3_title">Giri di puntate</string>
     <string name="rules_poker_3_body">A turno, un giocatore può passare, chiamare (o fare check se non c\'è nulla da chiamare), rilanciare o andare all-in. Un rilancio deve essere almeno pari al precedente (come minimo il grande buio). Dopo un rilancio, tutti gli altri giocatori devono parlare di nuovo. Un all-in inferiore al rilancio minimo non dà il diritto di rilanciare a chi aveva già parlato. Allo showdown, indica il vincitore di ogni piatto (principale e laterali); in caso di parità, il piatto viene diviso.</string>
+
+    <!-- Poker : changement de table (export / import de joueurs) -->
+    <string name="poker_tables_button">Cambia tavolo (importa / esporta)</string>
+    <string name="poker_tables_title">Cambia tavolo</string>
+    <string name="poker_tables_intro">Per unire due tavoli: esporta in un file i giocatori del tavolo che chiude, poi importa quel file nell\'altro tavolo. I giocatori arrivano con le loro fiche e si siedono a caso tra i giocatori già presenti, senza cambiare il loro ordine né la posizione del bottone.</string>
+    <string name="poker_tables_export">Esporta giocatori</string>
+    <string name="poker_tables_import">Importa giocatori</string>
+    <string name="poker_tables_export_title">Giocatori da esportare</string>
+    <string name="poker_tables_player_line">%1$s · %2$s</string>
+    <string name="poker_tables_remove_after">Rimuovi questi giocatori da questo tavolo dopo l\'esportazione</string>
+    <string name="poker_tables_remove_blocked">Impossibile rimuovere questi giocatori: a questo tavolo devono restare almeno due giocatori in gara. Per chiudere il tavolo, esporta tutti senza rimuoverli, poi esci dalla partita.</string>
+    <string name="poker_tables_export_action">Esporta</string>
+    <string name="poker_tables_export_ok">File salvato (%1$s).</string>
+    <string name="poker_tables_export_ok_removed">File salvato (%1$s). Questi giocatori hanno lasciato il tavolo.</string>
+    <string name="poker_tables_export_failed">Esportazione non riuscita: %1$s.</string>
+    <string name="poker_tables_import_title">Importa giocatori</string>
+    <string name="poker_tables_import_confirm">Verranno aggiunti al tavolo (%1$s), con le loro fiche, seduti a caso tra i giocatori già presenti. Le azioni già giocate non potranno più essere annullate.</string>
+    <string name="poker_tables_import_action">Aggiungi al tavolo</string>
+    <string name="poker_tables_import_ok">Aggiunti al tavolo: %1$s.</string>
+    <string name="poker_tables_import_invalid">Questo file non è un elenco valido di giocatori di poker.</string>
+    <string name="poker_tables_import_failed">Importazione non riuscita: %1$s.</string>
+    <string name="poker_tables_full">Il tavolo è pieno: massimo %1$d giocatori.</string>
+    <string name="poker_tables_not_allowed">Non è possibile adesso: aspetta la fine della mano.</string>
+    <string name="poker_tables_purge_note">Il tavolo non ha più posti: i giocatori già eliminati verranno tolti dalla schermata.</string>
+    <plurals name="poker_players_count">
+        <item quantity="one">%d giocatore</item>
+        <item quantity="other">%d giocatori</item>
+        <item quantity="many">%d di giocatori</item>
+    </plurals>
 </resources>

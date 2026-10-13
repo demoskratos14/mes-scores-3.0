@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -334,7 +335,7 @@ private fun PokerTable(
     }
 }
 
-private val SEAT_HEIGHT = 74.dp
+private val SEAT_HEIGHT = 80.dp
 
 @Composable
 private fun PokerSeatCard(
@@ -415,31 +416,13 @@ private fun PokerSeatCard(
                 fontWeight = if (won > 0) FontWeight.Bold else FontWeight.Normal,
                 color = if (won > 0) WIN_GREEN else MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.height(16.dp)) {
-                if (isDealer) SeatBadge(stringResource(R.string.poker_badge_dealer), MaterialTheme.colorScheme.primary)
-                if (isSmall) SeatBadge(stringResource(R.string.poker_badge_small), MaterialTheme.colorScheme.secondary)
-                if (isBig) SeatBadge(stringResource(R.string.poker_badge_big), MaterialTheme.colorScheme.tertiary)
-            }
+            PokerSeatChips(
+                isDealer = isDealer,
+                isSmallBlind = isSmall,
+                isBigBlind = isBig,
+                chipSize = if (width < 85.dp) 18.dp else 20.dp
+            )
         }
-    }
-}
-
-@Composable
-private fun SeatBadge(label: String, background: Color) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(background)
-            .padding(horizontal = 5.dp, vertical = 1.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = label,
-            color = contentColorFor(background),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1
-        )
     }
 }
 
@@ -655,6 +638,9 @@ private fun PokerShowdownPanel(viewModel: ScoreViewModel, game: PokerGame, playe
 @Composable
 private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, players: List<String>) {
     val champion = game.champion
+    // Fenêtre pour réunir des tables : export / import de joueurs (voir PokerTablesDialog.kt).
+    var showTables by rememberSaveable { mutableStateOf(false) }
+    if (showTables) PokerTablesDialog(viewModel) { showTables = false }
     // Éliminés à cette main : sortis du tournoi alors qu'ils étaient encore dans la main.
     val knockedOut = game.seats.indices.filter { game.seats[it].out && game.seats[it].inHand }
 
@@ -688,6 +674,9 @@ private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, playe
             } else {
                 Button(onClick = { viewModel.pokerNextHand() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.poker_next_hand))
+                }
+                OutlinedButton(onClick = { showTables = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.poker_tables_button))
                 }
             }
         }

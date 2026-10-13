@@ -324,8 +324,8 @@ fun ScoreApp(
         // sinon celui du NavHost quitte l'écran sans jamais afficher la confirmation.
         BackHandler(enabled = onScoreRoute && viewModel.hasProgress()) { showQuitDialog = true }
 
-        // Superposé à toutes les pages ci-dessus.
-        TimerOverlay(viewModel = timerViewModel)
+        // Superposé à toutes les pages ci-dessus, sauf le poker qui a son propre minuteur de blinds.
+        if (currentRoute != "poker") TimerOverlay(viewModel = timerViewModel)
 
         if (showQuitDialog) {
             AlertDialog(

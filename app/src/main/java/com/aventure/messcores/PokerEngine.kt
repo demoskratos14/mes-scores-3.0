@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import kotlin.random.Random
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -310,6 +311,13 @@ data class PokerGame(
         }
     }
 }
+
+/**
+ * Résultat de [PokerEngine.reseat] : la partie avec ses nouvelles places, la nouvelle place de chaque
+ * ancien joueur ([oldToNew], -1 s'il a quitté la table) et celle de chaque arrivant ([arrivals], dans
+ * l'ordre où ils ont été donnés).
+ */
+data class PokerReseat(val game: PokerGame, val oldToNew: List<Int>, val arrivals: List<Int>)
 
 object PokerEngine {
 
@@ -667,6 +675,75 @@ object PokerEngine {
     fun nextHand(game: PokerGame, level: Int): PokerGame {
         if (game.phase != PokerPhase.HAND_OVER || game.champion != null) return game
         return startHand(game, maxOf(level, game.handLevel))
+    }
+
+    // ---------- Changement de table ----------
+
+    /**
+     * Fait partir et/ou arriver des joueurs entre deux mains (réunion de tables d'un tournoi).
+     *
+     * - [remove] : places des joueurs qui quittent la table.
+     * - [arrivalStacks] : tapis des joueurs qui arrivent. Chacun s'assoit dans un écart tiré au sort
+     *   entre deux joueurs déjà assis : l'ordre des joueurs présents ne change pas, et le bouton
+     *   reste chez le même joueur (s'il part, il passe au joueur assis juste avant lui).
+     *
+     * Renvoie null si ce n'est pas le bon moment (hors fin de main, tournoi terminé), si plus personne
+     * ne reste assis ou s'il y aurait moins de deux joueurs en lice. Les places changent : le résultat
+     * donne la nouvelle place de chacun pour que l'appelant mette ses propres listes à jour.
+     */
+    fun reseat(
+        game: PokerGame,
+        remove: Set<Int>,
+        arrivalStacks: List<Int>,
+        random: Random = Random.Default
+    ): PokerReseat? {
+        if (game.phase != PokerPhase.HAND_OVER || game.champion != null) return null
+        val n = game.seats.size
+        val kept = game.seats.indices.filter { it !in remove }
+        if (kept.isEmpty() || arrivalStacks.any { it <= 0 }) return null
+        if (kept.count { !game.seats[it].out } + arrivalStacks.size < 2) return null
+
+        // Ordre de la table : un entier >= 0 est une ancienne place, -(k + 1) le k-ième arrivant.
+        val order = kept.toMutableList()
+        arrivalStacks.indices.forEach { k ->
+            // Écart tiré parmi ceux du cercle (après chaque joueur déjà assis, le dernier écart étant avant le premier).
+            order.add(random.nextInt(order.size) + 1, -(k + 1))
+        }
+
+        val oldToNew = MutableList(n) { -1 }
+        val arrivals = MutableList(arrivalStacks.size) { -1 }
+        order.forEachIndexed { newIndex, ref ->
+            if (ref >= 0) oldToNew[ref] = newIndex else arrivals[-ref - 1] = newIndex
+        }
+
+        // Bouton : le même joueur, ou à défaut le plus proche avant lui (la main suivante le fera avancer).
+        var dealerOld = game.dealer
+        var step = 0
+        while (dealerOld in remove && step < n) {
+            dealerOld = (dealerOld - 1 + n) % n
+            step++
+        }
+
+        fun mapped(old: Int): Int = if (old in 0 until n) oldToNew[old] else -1
+
+        val seats = order.map { ref ->
+            if (ref >= 0) game.seats[ref] else PokerSeat(stack = arrivalStacks[-ref - 1])
+        }
+        val winnings = order.map { ref -> if (ref >= 0) game.winnings.getOrElse(ref) { 0 } else 0 }
+        val log = game.log.mapNotNull { entry ->
+            mapped(entry.player).takeIf { it >= 0 }?.let { entry.copy(player = it) }
+        }
+        val reseated = game.copy(
+            seats = seats,
+            dealer = oldToNew[dealerOld],
+            smallBlindSeat = mapped(game.smallBlindSeat),
+            bigBlindSeat = mapped(game.bigBlindSeat),
+            toAct = -1,
+            log = log,
+            winnings = winnings,
+            eliminated = game.eliminated.map { mapped(it) }.filter { it >= 0 }
+        )
+        return PokerReseat(reseated, oldToNew, arrivals)
     }
 
     // ---------- Classement ----------

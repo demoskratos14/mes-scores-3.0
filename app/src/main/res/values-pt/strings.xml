@@ -997,7 +997,7 @@
     <string name="poker_status_allin">All-in</string>
     <string name="poker_bet_short">aposta %1$s</string>
     <string name="poker_won_short">+%1$s</string>
-    <string name="poker_badge_dealer">D</string>
+    <string name="poker_badge_dealer">B</string>
     <string name="poker_badge_small">SB</string>
     <string name="poker_badge_big">BB</string>
     <string name="poker_dealer">Botão</string>
@@ -1046,4 +1046,33 @@
     <string name="rules_poker_2_body">O botão avança um jogador em cada mão: o jogador à sua esquerda coloca a small blind e o seguinte a big blind. Com dois jogadores, o botão coloca a small blind. As blinds sobem a intervalos regulares (o novo nível aplica-se na mão seguinte). Se os antes estiverem ativados, todos os jogadores pagam um em cada mão.</string>
     <string name="rules_poker_3_title">Rondas de apostas</string>
     <string name="rules_poker_3_body">Por turnos, um jogador pode desistir, pagar (ou fazer check se não houver nada a pagar), aumentar ou ir all-in. Um aumento deve ser pelo menos igual ao anterior (no mínimo a big blind). Depois de um aumento, todos os outros jogadores devem voltar a falar. Um all-in inferior ao aumento mínimo não dá o direito de voltar a aumentar a quem já tinha falado. No showdown, indique o vencedor de cada pote (principal e laterais); em caso de empate, o pote é dividido.</string>
+
+    <!-- Poker : changement de table (export / import de joueurs) -->
+    <string name="poker_tables_button">Mudar de mesa (importar / exportar)</string>
+    <string name="poker_tables_title">Mudar de mesa</string>
+    <string name="poker_tables_intro">Para juntar duas mesas: exporte para um ficheiro os jogadores da mesa que fecha e depois importe esse ficheiro na outra mesa. Os jogadores chegam com as suas fichas e sentam-se ao acaso entre os jogadores já presentes, sem alterar a ordem deles nem a posição do botão.</string>
+    <string name="poker_tables_export">Exportar jogadores</string>
+    <string name="poker_tables_import">Importar jogadores</string>
+    <string name="poker_tables_export_title">Jogadores a exportar</string>
+    <string name="poker_tables_player_line">%1$s · %2$s</string>
+    <string name="poker_tables_remove_after">Retirar estes jogadores desta mesa após a exportação</string>
+    <string name="poker_tables_remove_blocked">Não é possível retirar estes jogadores: têm de ficar pelo menos dois jogadores em jogo nesta mesa. Para fechar a mesa, exporte todos sem os retirar e saia depois da partida.</string>
+    <string name="poker_tables_export_action">Exportar</string>
+    <string name="poker_tables_export_ok">Ficheiro guardado (%1$s).</string>
+    <string name="poker_tables_export_ok_removed">Ficheiro guardado (%1$s). Estes jogadores saíram da mesa.</string>
+    <string name="poker_tables_export_failed">Falha na exportação: %1$s.</string>
+    <string name="poker_tables_import_title">Importar jogadores</string>
+    <string name="poker_tables_import_confirm">A adicionar à mesa (%1$s), com as suas fichas, sentados ao acaso entre os jogadores já presentes. As ações já jogadas deixam de poder ser anuladas.</string>
+    <string name="poker_tables_import_action">Adicionar à mesa</string>
+    <string name="poker_tables_import_ok">Adicionados à mesa: %1$s.</string>
+    <string name="poker_tables_import_invalid">Este ficheiro não é uma lista válida de jogadores de póquer.</string>
+    <string name="poker_tables_import_failed">Falha na importação: %1$s.</string>
+    <string name="poker_tables_full">A mesa está cheia: máximo de %1$d jogadores.</string>
+    <string name="poker_tables_not_allowed">Não é possível neste momento: aguarde o fim da mão.</string>
+    <string name="poker_tables_purge_note">A mesa já não tem lugares: os jogadores já eliminados serão retirados do ecrã.</string>
+    <plurals name="poker_players_count">
+        <item quantity="one">%d jogador</item>
+        <item quantity="many">%d de jogadores</item>
+        <item quantity="other">%d jogadores</item>
+    </plurals>
 </resources>

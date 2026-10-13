@@ -1012,7 +1012,7 @@
     <string name="poker_status_allin">Tapis</string>
     <string name="poker_bet_short">mise %1$s</string>
     <string name="poker_won_short">+%1$s</string>
-    <string name="poker_badge_dealer">D</string>
+    <string name="poker_badge_dealer">B</string>
     <string name="poker_badge_small">SB</string>
     <string name="poker_badge_big">BB</string>
     <string name="poker_dealer">Bouton</string>
@@ -1061,4 +1061,33 @@
     <string name="rules_poker_2_body">Le bouton avance d\'un joueur à chaque main : le joueur à sa gauche pose la petite blind, le suivant la grosse blind. À deux joueurs, le bouton pose la petite blind. Les blinds montent à intervalle régulier (le nouveau niveau s\'applique à la main suivante). Si les antes sont activées, tous les joueurs en paient une à chaque main.</string>
     <string name="rules_poker_3_title">Tours d\'enchères</string>
     <string name="rules_poker_3_body">Chacun son tour, un joueur peut passer, suivre (ou faire parole s\'il n\'y a rien à suivre), relancer ou faire tapis. Une relance doit être au moins égale à la précédente (au minimum la grosse blind). Après une relance, tous les autres joueurs doivent reparler. Un tapis plus petit que la relance minimum ne redonne pas le droit de relancer à ceux qui avaient déjà parlé. À l\'abattage, désigne le gagnant de chaque pot (principal et annexes) ; en cas d\'égalité, le pot est partagé.</string>
+
+    <!-- Poker : changement de table (export / import de joueurs) -->
+    <string name="poker_tables_button">Changer de table (import / export)</string>
+    <string name="poker_tables_title">Changer de table</string>
+    <string name="poker_tables_intro">Pour réunir deux tables : exporte dans un fichier les joueurs de la table qui ferme, puis importe ce fichier sur l\'autre table. Les joueurs arrivent avec leur tapis et s\'assoient au hasard entre les joueurs déjà présents, sans changer leur ordre ni la place du bouton.</string>
+    <string name="poker_tables_export">Exporter des joueurs</string>
+    <string name="poker_tables_import">Importer des joueurs</string>
+    <string name="poker_tables_export_title">Joueurs à exporter</string>
+    <string name="poker_tables_player_line">%1$s · %2$s</string>
+    <string name="poker_tables_remove_after">Retirer ces joueurs de cette table après l\'export</string>
+    <string name="poker_tables_remove_blocked">Impossible de retirer ces joueurs : il doit rester au moins deux joueurs en lice à cette table. Pour fermer la table, exporte tout le monde sans les retirer, puis quitte la partie.</string>
+    <string name="poker_tables_export_action">Exporter</string>
+    <string name="poker_tables_export_ok">Fichier enregistré (%1$s).</string>
+    <string name="poker_tables_export_ok_removed">Fichier enregistré (%1$s). Ces joueurs ont quitté la table.</string>
+    <string name="poker_tables_export_failed">Échec de l\'export : %1$s.</string>
+    <string name="poker_tables_import_title">Importer des joueurs</string>
+    <string name="poker_tables_import_confirm">À ajouter à la table (%1$s), avec leur tapis, placés au hasard entre les joueurs déjà assis. Les actions déjà jouées ne pourront plus être annulées.</string>
+    <string name="poker_tables_import_action">Ajouter à la table</string>
+    <string name="poker_tables_import_ok">Ajouté à la table : %1$s.</string>
+    <string name="poker_tables_import_invalid">Ce fichier n\'est pas une liste de joueurs de poker valide.</string>
+    <string name="poker_tables_import_failed">Échec de l\'import : %1$s.</string>
+    <string name="poker_tables_full">La table est pleine : %1$d joueurs au maximum.</string>
+    <string name="poker_tables_not_allowed">Impossible pour le moment : attends la fin de la main.</string>
+    <string name="poker_tables_purge_note">La table n\'a plus assez de places : les joueurs déjà éliminés seront retirés de l\'affichage.</string>
+    <plurals name="poker_players_count">
+        <item quantity="one">%d joueur</item>
+        <item quantity="other">%d joueurs</item>
+        <item quantity="many">%d de joueurs</item>
+    </plurals>
 </resources>

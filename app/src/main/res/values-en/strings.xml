@@ -1029,4 +1029,32 @@
     <string name="rules_poker_2_body">The button moves one player along every hand: the player to its left posts the small blind, the next one the big blind. With two players, the button posts the small blind. Blinds go up at regular intervals (the new level applies from the next hand). If antes are on, every player pays one on every hand.</string>
     <string name="rules_poker_3_title">Betting rounds</string>
     <string name="rules_poker_3_body">In turn, a player can fold, call (or check when there is nothing to call), raise or go all-in. A raise must be at least as big as the previous one (at least the big blind). After a raise, all the other players must act again. An all-in smaller than the minimum raise does not let players who already acted raise again. At showdown, pick the winner of each pot (main and side pots); in case of a tie, the pot is split.</string>
+
+    <!-- Poker : changement de table (export / import de joueurs) -->
+    <string name="poker_tables_button">Change table (import / export)</string>
+    <string name="poker_tables_title">Change table</string>
+    <string name="poker_tables_intro">To merge two tables: export the players of the table that is closing to a file, then import that file on the other table. Players arrive with their stacks and sit at random between the players already there, without changing their order or the dealer button.</string>
+    <string name="poker_tables_export">Export players</string>
+    <string name="poker_tables_import">Import players</string>
+    <string name="poker_tables_export_title">Players to export</string>
+    <string name="poker_tables_player_line">%1$s · %2$s</string>
+    <string name="poker_tables_remove_after">Remove these players from this table after exporting</string>
+    <string name="poker_tables_remove_blocked">Can\'t remove these players: at least two players must remain in contention at this table. To close this table, export everyone without removing them, then leave the game.</string>
+    <string name="poker_tables_export_action">Export</string>
+    <string name="poker_tables_export_ok">File saved (%1$s).</string>
+    <string name="poker_tables_export_ok_removed">File saved (%1$s). These players have left the table.</string>
+    <string name="poker_tables_export_failed">Export failed: %1$s.</string>
+    <string name="poker_tables_import_title">Import players</string>
+    <string name="poker_tables_import_confirm">To be added to the table (%1$s), with their stacks, seated at random between the players already there. Actions already played can no longer be undone.</string>
+    <string name="poker_tables_import_action">Add to the table</string>
+    <string name="poker_tables_import_ok">Added to the table: %1$s.</string>
+    <string name="poker_tables_import_invalid">This file is not a valid list of poker players.</string>
+    <string name="poker_tables_import_failed">Import failed: %1$s.</string>
+    <string name="poker_tables_full">The table is full: %1$d players maximum.</string>
+    <string name="poker_tables_not_allowed">Not possible right now: wait until the hand is over.</string>
+    <string name="poker_tables_purge_note">The table has no room left: players who are already eliminated will be removed from the display.</string>
+    <plurals name="poker_players_count">
+        <item quantity="one">%d player</item>
+        <item quantity="other">%d players</item>
+    </plurals>
 </resources>
