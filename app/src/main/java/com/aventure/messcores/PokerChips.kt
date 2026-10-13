@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,9 @@ private val CHIP_TEXT_DARK = Color(0xFF212121)
 
 /** Nombre de bandes alternées sur la tranche du jeton. */
 private const val EDGE_STRIPES = 8
+
+/** Hauteur des capitales rapportée à la taille de police (Roboto, police par défaut d'Android). */
+private const val CAP_HEIGHT_RATIO = 0.711f
 
 /**
  * Un jeton de poker vu de dessus : disque, bandes alternées sur la tranche, anneau intérieur et
@@ -43,6 +48,16 @@ fun PokerChip(label: String, blue: Boolean, size: Dp, modifier: Modifier = Modif
     val textColor = if (blue) Color.White else CHIP_TEXT_DARK
     // Taille du texte liée à celle du jeton, indépendante de la taille de police du téléphone.
     val fontSize = with(LocalDensity.current) { (size.toPx() * 0.34f).toSp() }
+
+    // Le texte est dessiné dans le Canvas et centré sur la hauteur des capitales (et non sur la
+    // boîte de ligne, qui inclut la zone des descendantes et fait paraître les lettres trop basses).
+    val measurer = rememberTextMeasurer()
+    val labelLayout = measurer.measure(
+        text = label,
+        style = TextStyle(color = textColor, fontSize = fontSize, fontWeight = FontWeight.Bold),
+        softWrap = false,
+        maxLines = 1
+    )
 
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -70,14 +85,17 @@ fun PokerChip(label: String, blue: Boolean, size: Dp, modifier: Modifier = Modif
             // Anneau intérieur et contour.
             drawCircle(stripe, radius = radius * 0.64f, center = middle, style = Stroke(width = radius * 0.07f))
             drawCircle(Color.Black.copy(alpha = 0.45f), radius = radius, center = middle, style = Stroke(width = radius * 0.05f))
+
+            // Étiquette : centrée horizontalement sur sa largeur, verticalement sur sa hauteur de capitale.
+            val capHeight = fontSize.toPx() * CAP_HEIGHT_RATIO
+            drawText(
+                textLayoutResult = labelLayout,
+                topLeft = Offset(
+                    x = middle.x - labelLayout.size.width / 2f,
+                    y = middle.y - capHeight / 2f - labelLayout.firstBaseline
+                )
+            )
         }
-        Text(
-            text = label,
-            color = textColor,
-            fontSize = fontSize,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1
-        )
     }
 }
 
