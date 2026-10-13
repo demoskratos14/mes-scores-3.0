@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Même règle pour Android 8 à 11 (minSdk 26), qui ne lisent pas data_extraction_rules.xml. -->
+<full-backup-content>
+    <include domain="sharedpref" path="." />
+</full-backup-content>
