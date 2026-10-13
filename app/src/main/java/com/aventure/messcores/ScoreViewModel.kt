@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.content.Context
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -80,7 +81,7 @@ class ScoreViewModel : ViewModel() {
     private val _pokerRedo = mutableStateListOf<PokerGame>()
 
     /** Temps de jeu écoulé au dernier arrêt du minuteur de blinds (le temps qui court s'y ajoute). */
-    private var pokerClockBaseMs by mutableStateOf(0L)
+    private var pokerClockBaseMs by mutableLongStateOf(0L)
     private var pokerClockStartedAt: Long? = null
 
     /** Vrai tant que le minuteur de blinds tourne. */

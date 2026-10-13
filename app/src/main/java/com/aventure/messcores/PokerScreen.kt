@@ -44,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -97,7 +99,7 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
 
     // Horloge : se rafraîchit chaque demi-seconde tant que le minuteur de blinds tourne.
     val running = viewModel.pokerClockRunning
-    var now by remember { mutableStateOf(System.currentTimeMillis()) }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(running) {
         now = System.currentTimeMillis()
         while (running) {
@@ -363,7 +365,7 @@ private fun PokerSeatCard(
     }
 
     // Lu par TalkBack : tout ce qu'on voit sur la place du joueur.
-    val parts = mutableListOf(name, stringResource(R.string.poker_desc_chips, seat.stack))
+    val parts = mutableListOf(name, pluralStringResource(R.plurals.poker_desc_chips, seat.stack, seat.stack))
     if (statusText.isNotEmpty()) parts.add(statusText)
     if (isDealer) parts.add(stringResource(R.string.poker_dealer))
     if (isSmall) parts.add(stringResource(R.string.poker_small_blind))
@@ -655,7 +657,7 @@ private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, playe
             game.winnings.forEachIndexed { index, won ->
                 if (won > 0) {
                     Text(
-                        text = stringResource(R.string.poker_hand_won, players.getOrElse(index) { "" }, won),
+                        text = pluralStringResource(R.plurals.poker_hand_won, won, players.getOrElse(index) { "" }, won),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )

@@ -23,6 +23,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -62,7 +63,7 @@ fun PokerSetupScreen(
     var anteOn by rememberSaveable { mutableStateOf(false) }
     var anteAfterText by rememberSaveable { mutableStateOf("3") }
     // -1 = bouton tiré au sort.
-    var dealerChoice by rememberSaveable { mutableStateOf(-1) }
+    var dealerChoice by rememberSaveable { mutableIntStateOf(-1) }
 
     val stack = stackText.toIntOrNull()
     val small = smallText.toIntOrNull()

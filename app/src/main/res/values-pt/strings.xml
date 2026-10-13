@@ -1003,7 +1003,11 @@
     <string name="poker_dealer">Botão</string>
     <string name="poker_small_blind">Small blind</string>
     <string name="poker_big_blind">Big blind</string>
-    <string name="poker_desc_chips">%1$d fichas</string>
+    <plurals name="poker_desc_chips">
+        <item quantity="one">%1$d ficha</item>
+        <item quantity="other">%1$d fichas</item>
+        <item quantity="many">%1$d de fichas</item>
+    </plurals>
     <string name="poker_desc_turn">é a vez dele falar</string>
     <string name="poker_to_act">É a vez de %1$s</string>
     <string name="poker_action_fold">Desistir</string>
@@ -1029,7 +1033,11 @@
     <string name="poker_pot_side">Pote lateral %1$d: %2$s</string>
     <string name="poker_pot_auto">%1$s: vai para %2$s</string>
     <string name="poker_showdown_validate">Confirmar</string>
-    <string name="poker_hand_won">%1$s ganha %2$d fichas</string>
+    <plurals name="poker_hand_won">
+        <item quantity="one">%1$s ganha %2$d ficha</item>
+        <item quantity="other">%1$s ganha %2$d fichas</item>
+        <item quantity="many">%1$s ganha %2$d de fichas</item>
+    </plurals>
     <string name="poker_player_eliminated">%1$s está eliminado</string>
     <string name="poker_champion">%1$s ganha o torneio!</string>
     <string name="poker_next_hand">Mão seguinte</string>
@@ -1067,7 +1075,11 @@
     <string name="poker_tables_import_ok">Adicionados à mesa: %1$s.</string>
     <string name="poker_tables_import_invalid">Este ficheiro não é uma lista válida de jogadores de póquer.</string>
     <string name="poker_tables_import_failed">Falha na importação: %1$s.</string>
-    <string name="poker_tables_full">A mesa está cheia: máximo de %1$d jogadores.</string>
+    <plurals name="poker_tables_full">
+        <item quantity="one">A mesa está cheia: máximo de %1$d jogador.</item>
+        <item quantity="other">A mesa está cheia: máximo de %1$d jogadores.</item>
+        <item quantity="many">A mesa está cheia: máximo de %1$d de jogadores.</item>
+    </plurals>
     <string name="poker_tables_not_allowed">Não é possível neste momento: aguarde o fim da mão.</string>
     <string name="poker_tables_purge_note">A mesa já não tem lugares: os jogadores já eliminados serão retirados do ecrã.</string>
     <plurals name="poker_players_count">

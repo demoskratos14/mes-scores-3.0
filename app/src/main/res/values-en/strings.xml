@@ -227,7 +227,7 @@
     <string name="score_color_selected">Current colour</string>
     <string name="score_color_taken">Already taken by another player</string>
     <string name="score_color_random">Random</string>
-    <string name="setup_player_color">Player %1$d colour</string>
+    <string name="setup_player_color" tools:ignore="PluralsCandidate">Player %1$d colour</string>
     <string name="setup_color_blind">Colour-blind mode</string>
     <string name="setup_color_blind_hint">Writes a small code (A, B, C…) on each colour</string>
     <string name="score_round_n">Round %1$d</string>
@@ -967,7 +967,7 @@
     <string name="poker_level_clock_paused">Level %1$d · timer paused (%2$s until the next one)</string>
     <string name="poker_next_blinds">Next: %1$d / %2$d</string>
     <string name="poker_next_blinds_ante">Next: %1$d / %2$d · ante %3$d</string>
-    <string name="poker_level_up">New level! Blinds %1$d / %2$d from the next hand</string>
+    <string name="poker_level_up" tools:ignore="PluralsCandidate">New level! Blinds %1$d / %2$d from the next hand</string>
     <string name="poker_pot">Pot: %1$s</string>
     <string name="poker_street_preflop">Pre-flop</string>
     <string name="poker_street_flop">Flop</string>
@@ -986,7 +986,10 @@
     <string name="poker_dealer">Dealer button</string>
     <string name="poker_small_blind">Small blind</string>
     <string name="poker_big_blind">Big blind</string>
-    <string name="poker_desc_chips">%1$d chips</string>
+    <plurals name="poker_desc_chips">
+        <item quantity="one">%1$d chip</item>
+        <item quantity="other">%1$d chips</item>
+    </plurals>
     <string name="poker_desc_turn">it is their turn to act</string>
     <string name="poker_to_act">%1$s to act</string>
     <string name="poker_action_fold">Fold</string>
@@ -1001,7 +1004,7 @@
     <string name="poker_raise_label_bet">Bet amount</string>
     <string name="poker_raise_label_raise">Raise to (total bet this round)</string>
     <string name="poker_raise_helper">Raise of %1$d · minimum raise: to %2$d</string>
-    <string name="poker_raise_range">Between %1$d and %2$d</string>
+    <string name="poker_raise_range" tools:ignore="PluralsCandidate">Between %1$d and %2$d</string>
     <string name="poker_quick_min">Min</string>
     <string name="poker_quick_half">½ pot</string>
     <string name="poker_quick_three_quarters">¾ pot</string>
@@ -1012,7 +1015,10 @@
     <string name="poker_pot_side">Side pot %1$d: %2$s</string>
     <string name="poker_pot_auto">%1$s: goes to %2$s</string>
     <string name="poker_showdown_validate">Confirm</string>
-    <string name="poker_hand_won">%1$s wins %2$d chips</string>
+    <plurals name="poker_hand_won">
+        <item quantity="one">%1$s wins %2$d chip</item>
+        <item quantity="other">%1$s wins %2$d chips</item>
+    </plurals>
     <string name="poker_player_eliminated">%1$s is out</string>
     <string name="poker_champion">%1$s wins the tournament!</string>
     <string name="poker_next_hand">Next hand</string>
@@ -1050,7 +1056,10 @@
     <string name="poker_tables_import_ok">Added to the table: %1$s.</string>
     <string name="poker_tables_import_invalid">This file is not a valid list of poker players.</string>
     <string name="poker_tables_import_failed">Import failed: %1$s.</string>
-    <string name="poker_tables_full">The table is full: %1$d players maximum.</string>
+    <plurals name="poker_tables_full">
+        <item quantity="one">The table is full: %1$d player maximum.</item>
+        <item quantity="other">The table is full: %1$d players maximum.</item>
+    </plurals>
     <string name="poker_tables_not_allowed">Not possible right now: wait until the hand is over.</string>
     <string name="poker_tables_purge_note">The table has no room left: players who are already eliminated will be removed from the display.</string>
     <plurals name="poker_players_count">

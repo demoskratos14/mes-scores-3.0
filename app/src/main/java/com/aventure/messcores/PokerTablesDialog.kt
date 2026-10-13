@@ -265,7 +265,7 @@ fun PokerTablesDialog(viewModel: ScoreViewModel, onDismiss: () -> Unit) {
                                 step = TablesStep.MENU
                             }
                             PokerReseatResult.TABLE_FULL ->
-                                message = resources.getString(R.string.poker_tables_full, viewModel.gameRules.maxPlayers)
+                                message = resources.getQuantityString(R.plurals.poker_tables_full, viewModel.gameRules.maxPlayers, viewModel.gameRules.maxPlayers)
                             PokerReseatResult.NOT_ALLOWED ->
                                 message = resources.getString(R.string.poker_tables_not_allowed)
                         }
