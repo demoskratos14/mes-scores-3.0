@@ -60,9 +60,8 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         TimerAlert.appInForeground = false
-        if (scoreViewModel.hasProgress()) {
-            GameHistoryRepository(this).saveGame(scoreViewModel.snapshot())
-        }
+        // Dernière sauvegarde avant que le système ne puisse arrêter l'appli : toujours écrite.
+        scoreViewModel.autoSave(GameHistoryRepository(this), force = true)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,6 +119,8 @@ fun ScoreApp(
     val context = LocalContext.current
     val gameRepository = remember { GameRepository(context) }
     val gameHistoryRepository = remember { GameHistoryRepository(context) }
+    // La partie est sauvegardée dans le journal peu après chaque modification, pas seulement en quittant l'appli.
+    AutoSaveEffect(viewModel, gameHistoryRepository)
 
     // Quitter une partie qui contient des scores demande confirmation.
     val backStackEntry by navController.currentBackStackEntryAsState()

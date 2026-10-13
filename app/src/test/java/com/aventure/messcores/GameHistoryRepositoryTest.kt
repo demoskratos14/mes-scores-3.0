@@ -11,7 +11,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
-/** Journal des parties : enregistrement, limite de 50 parties, import et reprise sur données abîmées. */
+/** Journal des parties : enregistrement, limite de parties, import et reprise sur données abîmées. */
 @RunWith(RobolectricTestRunner::class)
 class GameHistoryRepositoryTest {
 

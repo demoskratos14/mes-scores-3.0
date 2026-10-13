@@ -55,6 +55,13 @@ class ScoreViewModel : ViewModel() {
      */
     private var savedBaseline: SavedGame? = null
 
+    /**
+     * Contenu de la partie ([SavedGame.contentKey]) tel qu'il est dans le journal : à la dernière
+     * sauvegarde, automatique ou voulue, ou à la reprise depuis le journal. Évite de réécrire le
+     * journal quand rien n'a changé.
+     */
+    private var lastSavedContent: SavedGame? = null
+
     /** Index de la manche de Tarot en cours de correction, ou null pour une nouvelle manche. */
     var editingTeamRoundIndex: Int? = null
 
@@ -122,6 +129,7 @@ class ScoreViewModel : ViewModel() {
         playerColors = assignPlayerColors(playerNames.size, chosenColors)
         currentSaveId = null
         savedBaseline = null
+        lastSavedContent = null
         gameActive = true
         editingTeamRoundIndex = null
         _undoStack.clear()
@@ -155,6 +163,7 @@ class ScoreViewModel : ViewModel() {
     fun loadFromSaved(saved: SavedGame) {
         currentSaveId = saved.id
         savedBaseline = saved
+        lastSavedContent = saved.contentKey()
         gameActive = true
         editingTeamRoundIndex = null
         players = saved.players
@@ -235,6 +244,7 @@ class ScoreViewModel : ViewModel() {
         gameActive = false
         currentSaveId = null
         savedBaseline = null
+        lastSavedContent = null
         _undoStack.clear()
         _redoStack.clear()
         resetPoker()
@@ -245,6 +255,27 @@ class ScoreViewModel : ViewModel() {
         val snapshot = snapshot()
         repository.saveGame(snapshot)
         savedBaseline = snapshot
+        lastSavedContent = snapshot.contentKey()
+    }
+
+    /**
+     * Auto-sauvegarde dans le journal, sans que l'utilisateur ait rien demandé : appelée peu après
+     * chaque modification (voir [AutoSaveEffect]) et quand l'appli quitte l'écran
+     * ([MainActivity.onStop]), pour qu'une panne de batterie ou un plantage ne fasse perdre qu'un
+     * instant de jeu. Ne touche pas à [savedBaseline] : « Quitter sans enregistrer » défait
+     * toujours l'auto-sauvegarde. Sans partie commencée, ne fait rien.
+     *
+     * [force] écrit même si le contenu n'a pas changé (sert au chrono du poker, qui avance seul).
+     * Renvoie vrai si le journal a été écrit.
+     */
+    fun autoSave(repository: GameHistoryRepository, force: Boolean = false): Boolean {
+        if (!hasProgress()) return false
+        val snapshot = snapshot()
+        val content = snapshot.contentKey()
+        if (!force && content == lastSavedContent) return false
+        repository.saveGame(snapshot)
+        lastSavedContent = content
+        return true
     }
 
     /**

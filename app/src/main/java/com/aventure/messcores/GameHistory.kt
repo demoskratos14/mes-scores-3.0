@@ -110,6 +110,12 @@ data class SavedGame(
     /** Tournoi de poker en cours (mode POKER), ou null pour les autres jeux. */
     val poker: PokerGame? = null
 ) {
+    /**
+     * Le contenu de la partie sans ce qui change tout seul d'un instant à l'autre (heure
+     * d'enregistrement, chrono du poker) : sert à repérer qu'il n'y a rien de nouveau à sauvegarder.
+     */
+    fun contentKey(): SavedGame = copy(savedAt = 0L, poker = poker?.copy(clockMs = 0L))
+
     /** Total de chaque joueur au moment de l'enregistrement (même index que [players]). */
     fun totals(): List<Int> = when (gameRules.scoreMode) {
         ScoreMode.TABLE -> players.indices.map { p ->
@@ -233,7 +239,7 @@ class GameHistoryRepository(context: Context) {
 
     companion object {
         /** Nombre maximal de parties conservées : au-delà, les plus anciennes sont supprimées. */
-        const val MAX_SAVED_GAMES = 50
+        const val MAX_SAVED_GAMES = 100
         private const val KEY_SAVED_GAMES = "saved_games"
         /** Copie de sécurité du texte brut quand au moins une entrée n'a pas pu être relue. */
         private const val KEY_BACKUP = "saved_games_unreadable_backup"
