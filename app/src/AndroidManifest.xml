@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Notification de fin de minuteur quand l'appli est en arrière-plan (Android 13+, demandée au lancement d'un minuteur). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        tools:targetApi="33"
+        android:theme="@style/Theme.MesScores">
+
+        <!--
+            Le changement de langue est géré sans recréer l'écran (sinon Android affiche un écran noir
+            le temps de le reconstruire) : Compose relit les textes via LocalConfiguration.
+            Pour revenir au comportement d'avant, retirer la ligne android:configChanges.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="locale|layoutDirection"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Mémorise la langue choisie dans l'appli pour Android 12 et moins (sur 13+, c'est le système qui s'en charge). -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
+        <!-- Alarme de fin de minuteur (programmée par TimerViewModel). -->
+        <receiver
+            android:name=".TimerReceiver"
+            android:exported="false" />
+
+    </application>
+
+</manifest>
