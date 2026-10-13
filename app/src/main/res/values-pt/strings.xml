@@ -287,7 +287,6 @@
     <string name="tarot_label_slam">" · chelem"</string>
     <string name="tarot_label_defense_slam">" · chelem da defesa"</string>
     <string name="tarot_submit_edit">Guardar a alteração</string>
-    <string name="spoken_minutes_seconds">%1$s %2$s</string>
     <string name="timer_badge_description">%1$s, %2$s, %3$s</string>
     <string name="timer_stopwatch">Cronómetro</string>
     <string name="timer_countdown">Temporizador</string>
@@ -295,7 +294,7 @@
     <string name="timer_status_running">em curso</string>
     <string name="timer_status_stopped">parado</string>
     <string name="timer_open_settings">Abrir as definições do cronómetro</string>
-    <string name="timer_duration">Duração (minutos)</string>
+    <string name="timer_duration">Duração (minutos, mm:ss ou h:mm:ss)</string>
     <string name="timer_finished_banner">O tempo acabou!</string>
     <string name="timer_pause">Pausa</string>
     <string name="timer_start">Iniciar</string>
@@ -926,6 +925,11 @@
         <item quantity="one">Contrato falhado por %d ponto</item>
         <item quantity="many">Contrato falhado por %d de pontos</item>
         <item quantity="other">Contrato falhado por %d pontos</item>
+    </plurals>
+    <plurals name="spoken_hours">
+        <item quantity="one">%d hora</item>
+        <item quantity="many">%d de horas</item>
+        <item quantity="other">%d horas</item>
     </plurals>
     <plurals name="spoken_minutes">
         <item quantity="one">%d minuto</item>

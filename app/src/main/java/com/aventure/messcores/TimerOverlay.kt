@@ -61,23 +61,22 @@ import androidx.compose.ui.unit.dp
 private fun formatMillis(ms: Long, roundUp: Boolean = false): String {
     // Un minuteur affiche la seconde entamée (00:01 jusqu'à zéro), un chronomètre les secondes écoulées.
     val totalSeconds = (if (roundUp) (ms + 999) / 1000 else ms / 1000).coerceAtLeast(0)
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%02d:%02d".format(minutes, seconds)
+    return formatClock(totalSeconds)
 }
 
-/** Le temps tel que TalkBack doit le dire : « 5 minutes 30 secondes » plutôt que « 05:30 ». */
+/** Le temps tel que TalkBack doit le dire : « 2 heures 5 minutes 30 secondes » plutôt que « 2:05:30 ». */
 private fun spokenTime(context: Context, ms: Long, roundUp: Boolean = false): String {
     val totalSeconds = (if (roundUp) (ms + 999) / 1000 else ms / 1000).coerceAtLeast(0)
-    val minutes = totalSeconds / 60
+    val hours = totalSeconds / 3600
+    val minutes = totalSeconds % 3600 / 60
     val seconds = totalSeconds % 60
-    val minutesText = context.resources.getQuantityString(R.plurals.spoken_minutes, minutes.toInt(), minutes)
-    val secondsText = context.resources.getQuantityString(R.plurals.spoken_seconds, seconds.toInt(), seconds)
-    return when {
-        minutes == 0L -> secondsText
-        seconds == 0L -> minutesText
-        else -> context.getString(R.string.spoken_minutes_seconds, minutesText, secondsText)
+    fun spoken(plural: Int, value: Long) = context.resources.getQuantityString(plural, value.toInt(), value)
+    val parts = buildList {
+        if (hours > 0) add(spoken(R.plurals.spoken_hours, hours))
+        if (minutes > 0) add(spoken(R.plurals.spoken_minutes, minutes))
+        if (seconds > 0) add(spoken(R.plurals.spoken_seconds, seconds))
     }
+    return if (parts.isEmpty()) spoken(R.plurals.spoken_seconds, 0) else parts.joinToString(" ")
 }
 
 /**
@@ -158,7 +157,7 @@ fun TimerOverlay(viewModel: TimerViewModel) {
 
 @Composable
 private fun TimerDialog(viewModel: TimerViewModel, onDismiss: () -> Unit) {
-    var minutesText by rememberSaveable { mutableStateOf((viewModel.countdownDurationMillis / 60000).toString()) }
+    var durationText by rememberSaveable { mutableStateOf(formatMillis(viewModel.countdownDurationMillis)) }
     val context = LocalContext.current
     // Android 13+ : l'alerte de fin en arrière-plan est une notification, qui demande une autorisation.
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -186,10 +185,10 @@ private fun TimerDialog(viewModel: TimerViewModel, onDismiss: () -> Unit) {
 
                 if (viewModel.mode == TimerMode.COUNTDOWN && !viewModel.isRunning) {
                     OutlinedTextField(
-                        value = minutesText,
+                        value = durationText,
                         onValueChange = { input ->
-                            minutesText = input.filter { it.isDigit() }
-                            minutesText.toIntOrNull()?.let { viewModel.setCountdownMinutes(it) }
+                            durationText = CountdownInput.sanitize(input)
+                            CountdownInput.parseSeconds(durationText)?.let { viewModel.setCountdownSeconds(it) }
                         },
                         label = { Text(stringResource(R.string.timer_duration)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

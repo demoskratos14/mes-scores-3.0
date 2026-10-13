@@ -293,7 +293,6 @@
     <string name="tarot_label_slam">" · chelem"</string>
     <string name="tarot_label_defense_slam">" · chelem de la défense"</string>
     <string name="tarot_submit_edit">Enregistrer la modification</string>
-    <string name="spoken_minutes_seconds">%1$s %2$s</string>
     <string name="timer_badge_description">%1$s, %2$s, %3$s</string>
     <string name="timer_stopwatch">Chronomètre</string>
     <string name="timer_countdown">Minuteur</string>
@@ -301,7 +300,7 @@
     <string name="timer_status_running">en marche</string>
     <string name="timer_status_stopped">à l\'arrêt</string>
     <string name="timer_open_settings">Ouvrir les réglages du chronomètre</string>
-    <string name="timer_duration">Durée (minutes)</string>
+    <string name="timer_duration">Durée (minutes, mm:ss ou h:mm:ss)</string>
     <string name="timer_finished_banner">Temps écoulé !</string>
     <string name="timer_pause">Pause</string>
     <string name="timer_start">Démarrer</string>
@@ -445,6 +444,11 @@
         <item quantity="one">Contrat chuté de %d point</item>
         <item quantity="other">Contrat chuté de %d points</item>
         <item quantity="many">Contrat chuté de %d de points</item>
+    </plurals>
+    <plurals name="spoken_hours">
+        <item quantity="one">%d heure</item>
+        <item quantity="other">%d heures</item>
+        <item quantity="many">%d d\'heures</item>
     </plurals>
     <plurals name="spoken_minutes">
         <item quantity="one">%d minute</item>

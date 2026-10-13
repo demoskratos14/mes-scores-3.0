@@ -64,9 +64,10 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
         mode = newMode
     }
 
-    fun setCountdownMinutes(minutes: Int) {
+    /** Règle la durée du minuteur (entre 1 seconde et [CountdownInput.MAX_SECONDS]). */
+    fun setCountdownSeconds(seconds: Int) {
         if (isRunning) return
-        val duration = minutes.coerceIn(1, 180) * 60 * 1000L
+        val duration = seconds.coerceIn(1, CountdownInput.MAX_SECONDS) * 1000L
         countdownDurationMillis = duration
         countdownRemainingMillis = duration
     }

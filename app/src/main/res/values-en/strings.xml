@@ -287,7 +287,6 @@
     <string name="tarot_label_slam">" · slam"</string>
     <string name="tarot_label_defense_slam">" · defence slam"</string>
     <string name="tarot_submit_edit">Save the change</string>
-    <string name="spoken_minutes_seconds">%1$s %2$s</string>
     <string name="timer_badge_description">%1$s, %2$s, %3$s</string>
     <string name="timer_stopwatch">Stopwatch</string>
     <string name="timer_countdown">Timer</string>
@@ -295,7 +294,7 @@
     <string name="timer_status_running">running</string>
     <string name="timer_status_stopped">stopped</string>
     <string name="timer_open_settings">Open the stopwatch settings</string>
-    <string name="timer_duration">Duration (minutes)</string>
+    <string name="timer_duration">Duration (minutes, mm:ss or h:mm:ss)</string>
     <string name="timer_finished_banner">Time is up!</string>
     <string name="timer_pause">Pause</string>
     <string name="timer_start">Start</string>
@@ -912,6 +911,10 @@
     <plurals name="tarot_contract_failed">
         <item quantity="one">Contract failed by %d point</item>
         <item quantity="other">Contract failed by %d points</item>
+    </plurals>
+    <plurals name="spoken_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
     </plurals>
     <plurals name="spoken_minutes">
         <item quantity="one">%d minute</item>
