@@ -231,8 +231,8 @@ private fun PokerHeader(
             Text(
                 text = when {
                     remaining == null -> stringResource(R.string.poker_level_fixed, level)
-                    running -> stringResource(R.string.poker_level_clock, level, formatClock(remaining))
-                    else -> stringResource(R.string.poker_level_clock_paused, level, formatClock(remaining))
+                    running -> stringResource(R.string.poker_level_clock, level, formatBlindClock(remaining))
+                    else -> stringResource(R.string.poker_level_clock_paused, level, formatBlindClock(remaining))
                 },
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -741,7 +741,7 @@ private fun streetLabel(game: PokerGame): Int = when (game.phase) {
 private fun formatChips(value: Int): String = NumberFormat.getIntegerInstance().format(value)
 
 /** Temps restant au format m:ss (ou h:mm:ss), arrondi à la seconde supérieure. */
-private fun formatClock(ms: Long): String {
+private fun formatBlindClock(ms: Long): String {
     val totalSeconds = (ms.coerceAtLeast(0L) + 999L) / 1000L
     val hours = totalSeconds / 3600
     val minutes = (totalSeconds % 3600) / 60
