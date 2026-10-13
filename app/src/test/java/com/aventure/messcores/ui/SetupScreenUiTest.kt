@@ -45,7 +45,7 @@ class SetupScreenUiTest {
         composeRule.setContent {
             MesScoresTheme(mode = ThemeMode.SYSTEM) {
                 SetupScreen(
-                    onNext = { received = it },
+                    onNext = { names, _ -> received = names },
                     onOpenJournal = {},
                     onOpenStats = {},
                     themeMode = ThemeMode.SYSTEM,
