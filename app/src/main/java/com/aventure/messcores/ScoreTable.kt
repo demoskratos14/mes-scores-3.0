@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,7 +53,7 @@ internal fun contentColorFor(background: Color): Color {
 
 /**
  * En-tête fixe du tableau : rang + nom de chaque joueur, toujours visible au-dessus des manches.
- * Un clic sur un nom appelle [onPlayerNameClick] (affichage du nom complet).
+ * Un clic sur un nom appelle [onPlayerNameClick] (nom complet et choix de la couleur).
  */
 @Composable
 internal fun ScoreTableHeader(
@@ -65,6 +67,7 @@ internal fun ScoreTableHeader(
 ) {
     val players = viewModel.players
     val playerColors = viewModel.playerColors
+    val colorBlind = LocalColorBlindMode.current
     Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
         Column {
             Box(Modifier.width(labelColumnWidth).height(RANK_ROW_HEIGHT))
@@ -96,17 +99,30 @@ internal fun ScoreTableHeader(
                         .width(playerColumnWidth)
                         .height(NAME_ROW_HEIGHT)
                         .background(color)
-                        .clickable(onClickLabel = stringResource(R.string.score_show_full_name), role = Role.Button) { onPlayerNameClick(playerIndex) },
+                        .clickable(onClickLabel = stringResource(R.string.score_player_options), role = Role.Button) { onPlayerNameClick(playerIndex) },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = name,
-                        color = contentColorFor(color),
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        // Mode daltonien : le code de la couleur (A, B, C…) au-dessus du nom.
+                        val code = if (colorBlind) colorCode(color) else null
+                        if (code != null) {
+                            Text(
+                                text = code,
+                                color = contentColorFor(color),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clearAndSetSemantics {}
+                            )
+                        }
+                        Text(
+                            text = name,
+                            color = contentColorFor(color),
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                    }
                 }
             }
         }

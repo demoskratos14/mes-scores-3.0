@@ -18,7 +18,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -73,15 +77,24 @@ class MainActivity : AppCompatActivity() {
         setContent {
             // Apparence choisie sur l'écran d'accueil (Auto = réglage du téléphone), conservée entre deux lancements.
             var themeMode by remember { mutableStateOf(ThemePreference.load(this@MainActivity)) }
-            MesScoresTheme(mode = themeMode) {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    ScoreApp(
-                        themeMode = themeMode,
-                        onThemeModeChange = { mode ->
-                            themeMode = mode
-                            ThemePreference.save(this@MainActivity, mode)
-                        }
-                    )
+            // Mode daltonien (code sur chaque couleur), réglé sur l'écran d'accueil et conservé entre deux lancements.
+            var colorBlindMode by remember { mutableStateOf(ColorBlindPreference.load(this@MainActivity)) }
+            CompositionLocalProvider(LocalColorBlindMode provides colorBlindMode) {
+                MesScoresTheme(mode = themeMode) {
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        ScoreApp(
+                            themeMode = themeMode,
+                            onThemeModeChange = { mode ->
+                                themeMode = mode
+                                ThemePreference.save(this@MainActivity, mode)
+                            },
+                            colorBlindMode = colorBlindMode,
+                            onColorBlindModeChange = { enabled ->
+                                colorBlindMode = enabled
+                                ColorBlindPreference.save(this@MainActivity, enabled)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -91,7 +104,9 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun ScoreApp(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    onThemeModeChange: (ThemeMode) -> Unit = {}
+    onThemeModeChange: (ThemeMode) -> Unit = {},
+    colorBlindMode: Boolean = false,
+    onColorBlindModeChange: (Boolean) -> Unit = {}
 ) {
     val navController = rememberNavController()
     // Le ViewModel est créé ici, au niveau du graphe de navigation,
@@ -133,6 +148,11 @@ fun ScoreApp(
     // rememberSaveable : sinon une rotation de l'écran vide la liste alors que la navigation reste
     // sur « choisir le jeu » (message « Tu as saisi 0 joueur »).
     var pendingPlayerNames by rememberSaveable(stateSaver = StringListSaver) { mutableStateOf(listOf<String>()) }
+    // Couleurs choisies à l'étape 1 (ARGB ; 0 = pas de choix, tirée au sort au lancement de la partie).
+    var pendingPlayerColors by rememberSaveable(
+        stateSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
+    ) { mutableStateOf(listOf<Int>()) }
+    fun pendingColors(): List<Color?> = pendingPlayerColors.map { if (it == 0) null else Color(it) }
 
     // Route vers l'écran de score adapté au mode du jeu choisi.
     fun scoreRouteFor(rules: GameRules): String = when (rules.scoreMode) {
@@ -148,8 +168,9 @@ fun ScoreApp(
         NavHost(navController = navController, startDestination = "setup") {
             composable("setup") {
                 SetupScreen(
-                    onNext = { names ->
+                    onNext = { names, colors ->
                         pendingPlayerNames = names
+                        pendingPlayerColors = colors.map { it?.toArgb() ?: 0 }
                         navController.navigate("chooseGame")
                     },
                     onOpenJournal = {
@@ -160,6 +181,8 @@ fun ScoreApp(
                     },
                     themeMode = themeMode,
                     onThemeModeChange = onThemeModeChange,
+                    colorBlindMode = colorBlindMode,
+                    onColorBlindModeChange = onColorBlindModeChange,
                     unfinishedGame = unfinishedGame,
                     onResumeGame = {
                         unfinishedGame?.let { saved ->
@@ -214,7 +237,7 @@ fun ScoreApp(
                     repository = gameRepository,
                     playerCount = pendingPlayerNames.size,
                     onGameChosen = { rules ->
-                        viewModel.initGame(pendingPlayerNames, rules)
+                        viewModel.initGame(pendingPlayerNames, rules, pendingColors())
                         navController.navigate(scoreRouteFor(rules))
                     },
                     onCreateNewGame = {
@@ -244,7 +267,7 @@ fun ScoreApp(
                     repository = gameRepository,
                     editing = editing,
                     onGameCreated = { rules ->
-                        viewModel.initGame(pendingPlayerNames, rules)
+                        viewModel.initGame(pendingPlayerNames, rules, pendingColors())
                         navController.navigate(scoreRouteFor(rules)) {
                             popUpTo("chooseGame") { inclusive = true }
                         }

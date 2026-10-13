@@ -220,12 +220,16 @@
     <string name="score_game_over">Fin de la partida</string>
     <string name="score_game_over_winner">Fin de la partida · ¡%1$s gana!</string>
     <string name="score_game_over_winners">Fin de la partida · ¡%1$s ganan!</string>
-    <string name="score_show_full_name">Mostrar el nombre completo</string>
+    <string name="score_player_options">Nombre completo y color</string>
     <string name="score_color_title">Color del jugador</string>
     <string name="score_color_pick">Elegir este color</string>
     <string name="score_color_option">Color %1$d</string>
     <string name="score_color_selected">Color actual</string>
     <string name="score_color_taken">Ya lo usa otro jugador</string>
+    <string name="score_color_random">Aleatorio</string>
+    <string name="setup_player_color">Color del jugador %1$d</string>
+    <string name="setup_color_blind">Modo daltónico</string>
+    <string name="setup_color_blind_hint">Escribe un pequeño código (A, B, C…) en cada color</string>
     <string name="score_round_n">Ronda %1$d</string>
     <string name="score_total">Total</string>
     <string name="score_player">Jugador</string>

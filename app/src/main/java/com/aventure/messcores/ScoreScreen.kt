@@ -49,7 +49,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
     KeepScreenOn()
     val context = LocalContext.current
 
-    // Nom complet affiché en popup quand une case de nom tronquée est cliquée.
+    // Nom complet et choix de couleur, en popup, quand une case de nom est cliquée.
     var expandedNameIndex by remember { mutableStateOf<Int?>(null) }
 
     // Un seul état de scroll horizontal partagé entre l'en-tête fixe et le corps
@@ -136,29 +136,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
     }
 
     expandedNameIndex?.let { index ->
-        AlertDialog(
-            onDismissRequest = { expandedNameIndex = null },
-            confirmButton = {
-                TextButton(onClick = { expandedNameIndex = null }) { Text(stringResource(R.string.common_ok)) }
-            },
-            title = { Text(stringResource(R.string.score_player)) },
-            text = {
-                Column {
-                    Text(players.getOrElse(index) { "" })
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = stringResource(R.string.score_color_title),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    PlayerColorPicker(
-                        currentColor = viewModel.playerColors.getOrElse(index) { Color.Gray },
-                        takenColors = viewModel.playerColors.filterIndexed { i, _ -> i != index }.toSet(),
-                        onPick = { viewModel.setPlayerColor(index, it) }
-                    )
-                }
-            }
-        )
+        PlayerOptionsDialog(viewModel, index) { expandedNameIndex = null }
     }
 }
 

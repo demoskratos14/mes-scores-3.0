@@ -220,12 +220,16 @@
     <string name="score_game_over">Game over</string>
     <string name="score_game_over_winner">Game over · %1$s wins!</string>
     <string name="score_game_over_winners">Game over · %1$s win!</string>
-    <string name="score_show_full_name">Show the full name</string>
+    <string name="score_player_options">Full name and colour</string>
     <string name="score_color_title">Player colour</string>
     <string name="score_color_pick">Choose this colour</string>
     <string name="score_color_option">Colour %1$d</string>
     <string name="score_color_selected">Current colour</string>
     <string name="score_color_taken">Already taken by another player</string>
+    <string name="score_color_random">Random</string>
+    <string name="setup_player_color">Player %1$d colour</string>
+    <string name="setup_color_blind">Colour-blind mode</string>
+    <string name="setup_color_blind_hint">Writes a small code (A, B, C…) on each colour</string>
     <string name="score_round_n">Round %1$d</string>
     <string name="score_total">Total</string>
     <string name="score_player">Player</string>

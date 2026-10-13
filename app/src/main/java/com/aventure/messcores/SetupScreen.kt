@@ -44,15 +44,29 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import org.json.JSONArray
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Switch
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.stateDescription
 
 @Composable
 fun SetupScreen(
-    onNext: (List<String>) -> Unit,
+    // Noms des joueurs, et une couleur par joueur (null = laissée au hasard).
+    onNext: (List<String>, List<Color?>) -> Unit,
     onOpenJournal: () -> Unit,
     onOpenStats: () -> Unit,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
     onOpenTournament: () -> Unit,
+    colorBlindMode: Boolean = false,
+    onColorBlindModeChange: (Boolean) -> Unit = {},
     // Partie en cours la plus récente du journal (ou null) : proposée en haut de l'écran.
     unfinishedGame: SavedGame? = null,
     onResumeGame: () -> Unit = {}
@@ -73,10 +87,21 @@ fun SetupScreen(
         mutableStateOf(List(playerCount) { i -> savedNames.getOrElse(i) { "" } })
     }
 
+    // Couleur choisie pour chaque joueur (couleur ARGB) ; 0 = pas de choix, tirée au sort au lancement.
+    var chosenColors by rememberSaveable(
+        stateSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
+    ) {
+        mutableStateOf(List(playerCount) { 0 })
+    }
+    // Joueur dont la fenêtre de choix de couleur est ouverte.
+    var colorPickerIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    val randomColorLabel = stringResource(R.string.score_color_random)
+
     // Ajuste la taille de la liste de noms quand le nombre de joueurs change,
-    // en conservant les noms déjà saisis.
+    // en conservant les noms et les couleurs déjà saisis.
     LaunchedEffect(playerCount) {
         names = List(playerCount) { i -> names.getOrElse(i) { "" } }
+        chosenColors = List(playerCount) { i -> chosenColors.getOrElse(i) { 0 } }
     }
 
     // Toute la page défile : avec le clavier ouvert, on peut faire remonter les champs
@@ -173,7 +198,45 @@ fun SetupScreen(
                                 names = names.toMutableList().also { it[index] = newName }
                             },
                             label = { Text(stringResource(R.string.setup_player_name, index + 1)) },
+                            trailingIcon = {
+                                val argb = chosenColors.getOrElse(index) { 0 }
+                                val colorDescription = stringResource(R.string.setup_player_color, index + 1)
+                                IconButton(
+                                    onClick = { colorPickerIndex = index },
+                                    modifier = Modifier.semantics {
+                                        contentDescription = colorDescription
+                                        if (argb == 0) stateDescription = randomColorLabel
+                                    }
+                                ) {
+                                    if (argb != 0) {
+                                        PlayerColorDot(color = Color(argb))
+                                    } else {
+                                        Icon(Icons.Filled.Palette, contentDescription = null)
+                                    }
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                colorPickerIndex?.let { picked ->
+                    if (picked in chosenColors.indices) {
+                        PlayerColorDialog(
+                            title = stringResource(R.string.setup_player_color, picked + 1),
+                            name = null,
+                            currentColor = chosenColors[picked].takeIf { it != 0 }?.let { Color(it) },
+                            takenColors = chosenColors
+                                .filterIndexed { i, argb -> i != picked && argb != 0 }
+                                .map { Color(it) }
+                                .toSet(),
+                            onPick = { color ->
+                                chosenColors = chosenColors.toMutableList().also { it[picked] = color.toArgb() }
+                            },
+                            onRandom = {
+                                chosenColors = chosenColors.toMutableList().also { it[picked] = 0 }
+                            },
+                            onDismiss = { colorPickerIndex = null }
                         )
                     }
                 }
@@ -191,7 +254,10 @@ fun SetupScreen(
                 Button(
                     onClick = {
                         saveLastPlayerNames(context, names)
-                        onNext(PlayerNames.resolve(names, playerPrefix))
+                        onNext(
+                            PlayerNames.resolve(names, playerPrefix),
+                            chosenColors.map { argb -> if (argb == 0) null else Color(argb) }
+                        )
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -232,6 +298,31 @@ fun SetupScreen(
                                 label = { Text(stringResource(mode.labelRes)) }
                             )
                         }
+                    }
+                    // Mode daltonien : un petit code (A, B, C…) s'écrit sur chaque couleur.
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = colorBlindMode,
+                                role = Role.Switch,
+                                onValueChange = onColorBlindModeChange
+                            )
+                            .padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.setup_color_blind),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = stringResource(R.string.setup_color_blind_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(checked = colorBlindMode, onCheckedChange = null)
                     }
                 }
             }

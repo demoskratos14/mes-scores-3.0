@@ -1,5 +1,8 @@
 package com.aventure.messcores
 
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
+
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.res.stringResource
@@ -56,6 +59,10 @@ fun TeamRoundsScreen(
 
     KeepScreenOn()
     val context = LocalContext.current
+
+    // Joueur dont la fenêtre « nom complet et couleur » est ouverte.
+    var optionsIndex by remember { mutableStateOf<Int?>(null) }
+    val optionsLabel = stringResource(R.string.score_player_options)
 
     var justSaved by remember { mutableStateOf(false) }
     LaunchedEffect(justSaved) {
@@ -117,7 +124,19 @@ fun TeamRoundsScreen(
                                 modifier = Modifier.padding(end = 6.dp)
                             )
                         }
-                        Text("#$rank  $name", modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(onClickLabel = optionsLabel, role = Role.Button) { optionsIndex = index },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            PlayerColorDot(
+                                color = viewModel.playerColors.getOrElse(index) { Color.Gray },
+                                modifier = Modifier.padding(end = 8.dp),
+                                size = 24.dp
+                            )
+                            Text("#$rank  $name", fontWeight = FontWeight.SemiBold)
+                        }
                         Text(totals.getOrElse(index) { 0 }.toString(), fontWeight = FontWeight.Bold)
                     }
                 }
@@ -188,5 +207,9 @@ fun TeamRoundsScreen(
             },
             onShare = { ResultText.share(context, viewModel.shareText(context)) }
         )
+    }
+
+    optionsIndex?.let { index ->
+        PlayerOptionsDialog(viewModel, index) { optionsIndex = null }
     }
 }

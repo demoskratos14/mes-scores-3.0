@@ -89,11 +89,14 @@ class ScoreViewModel : ViewModel() {
         private const val MAX_UNDO = 100
     }
 
-    /** Démarre une nouvelle partie avec la liste de noms et les règles de score fournies. */
-    fun initGame(playerNames: List<String>, rules: GameRules) {
+    /**
+     * Démarre une nouvelle partie avec la liste de noms et les règles de score fournies.
+     * [chosenColors] : couleurs choisies à l'écran de départ (null = au hasard) ; les autres sont tirées au sort.
+     */
+    fun initGame(playerNames: List<String>, rules: GameRules, chosenColors: List<Color?> = emptyList()) {
         players = playerNames
         gameRules = rules
-        playerColors = assignPlayerColors(playerNames.size)
+        playerColors = assignPlayerColors(playerNames.size, chosenColors)
         currentSaveId = null
         savedBaseline = null
         gameActive = true

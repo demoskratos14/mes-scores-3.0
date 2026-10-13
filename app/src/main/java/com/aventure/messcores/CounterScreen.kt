@@ -1,5 +1,8 @@
 package com.aventure.messcores
 
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
+
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.heading
@@ -52,6 +55,10 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
 
     KeepScreenOn()
     val context = LocalContext.current
+
+    // Joueur dont la fenêtre « nom complet et couleur » est ouverte.
+    var optionsIndex by remember { mutableStateOf<Int?>(null) }
+    val optionsLabel = stringResource(R.string.score_player_options)
 
     var justSaved by remember { mutableStateOf(false) }
     LaunchedEffect(justSaved) {
@@ -109,13 +116,24 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
                                 modifier = Modifier.padding(end = 6.dp)
                             )
                         }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(name, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                "#$rank",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(onClickLabel = optionsLabel, role = Role.Button) { optionsIndex = index },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            PlayerColorDot(
+                                color = viewModel.playerColors.getOrElse(index) { Color.Gray },
+                                modifier = Modifier.padding(end = 10.dp)
                             )
+                            Column {
+                                Text(name, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    "#$rank",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
 
                         FilledIconButton(onClick = { viewModel.incrementCounter(index, -1) }) {
@@ -154,5 +172,9 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
             onRedo = { viewModel.redo() },
             canRedo = viewModel.canRedo
         )
+    }
+
+    optionsIndex?.let { index ->
+        PlayerOptionsDialog(viewModel, index) { optionsIndex = null }
     }
 }
