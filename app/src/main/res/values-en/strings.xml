@@ -1116,13 +1116,23 @@
     <string name="rules_wingspan_1_title">Goal</string>
     <string name="rules_wingspan_1_body">Attract the most birds to your three habitats (forest, grassland, wetland) over four rounds, then count your points. The highest total wins.</string>
     <string name="rules_wingspan_2_title">Scoring</string>
-    <string name="rules_wingspan_2_body">Add up: the points printed on the birds you played, bonus cards, end-of-round goals, eggs (1 point each), food on cards (1 point each) and cards tucked under birds (1 point each).</string>
+    <string name="rules_wingspan_2_body">Add up: the points printed on the birds you played, bonus cards, end-of-round goals, eggs (1 point each), food on cards (1 point each) and cards tucked under birds (1 point each). With the Oceania expansion, add the nectar majority points of each habitat.</string>
     <string name="rules_wingspan_3_title">In the app</string>
     <string name="rules_wingspan_3_body">At the end of the game, enter in each player\'s column the total of each family of points, one family per row.</string>
     <string name="rules_hanabi_1_title">Goal</string>
     <string name="rules_hanabi_1_body">A cooperative game: the whole team builds fireworks, colour by colour, by playing cards from 1 to 5 in order. Everyone sees the others\' cards but not their own.</string>
     <string name="rules_hanabi_2_title">Scoring</string>
-    <string name="rules_hanabi_2_body">The score is the sum, for each colour, of the highest card played (0 to 5). It is at most 25 with five colours, 30 with the rainbow colour. 25 is a perfect score.</string>
+    <string name="rules_hanabi_2_body">The score is the sum, for each colour, of the highest card played (0 to 5). It is at most 25 with five colours, 30 with the rainbow colour. Reading the score: 0 to 5, horrible, the crowd boos; 6 to 10, mediocre, hardly any applause; 11 to 15, honourable, but it will not be remembered; 16 to 20, excellent, the audience is delighted; 21 to 24, extraordinary, the crowd is amazed; 25, legendary, stars in their eyes.</string>
     <string name="rules_hanabi_3_title">In the app</string>
     <string name="rules_hanabi_3_body">One column for the whole team (rename it as you like). One row per colour: pick the value of the highest card played. Leave the rainbow row at 0 if you do not play that variant.</string>
+    <string name="sheet_wingspan_nectar">Nectar (Oceania)</string>
+    <string name="sheet_wingspan_birds_hint">Sum of the points printed on the birds you played.</string>
+    <string name="sheet_wingspan_bonus_hint">Points from your bonus cards, according to what they ask for.</string>
+    <string name="sheet_wingspan_goals_hint">Total points from the four end-of-round goals.</string>
+    <string name="sheet_wingspan_eggs_hint">1 point per egg on your birds.</string>
+    <string name="sheet_wingspan_food_hint">1 point per food token on your cards.</string>
+    <string name="sheet_wingspan_tucked_hint">1 point per card tucked under a bird.</string>
+    <string name="sheet_wingspan_nectar_hint">Oceania expansion: in each habitat, 5 points for the most nectar spent and 2 for the second most. Leave empty without the expansion.</string>
+    <string name="sheet_hanabi_hint">Value of the highest card played in this colour (0 if none).</string>
+    <string name="sheet_hanabi_rainbow_hint">Rainbow variant: same principle. Leave at 0 if you do not play this variant.</string>
 </resources>

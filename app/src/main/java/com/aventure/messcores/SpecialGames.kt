@@ -189,9 +189,15 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         scoreMode = ScoreMode.TABLE,
         sheet = ScoreSheets.CUSTOM,
         sheetRows = listOf(
-            R.string.sheet_wingspan_birds, R.string.sheet_wingspan_bonus, R.string.sheet_wingspan_goals,
-            R.string.sheet_wingspan_eggs, R.string.sheet_wingspan_food, R.string.sheet_wingspan_tucked
-        ).map { CustomSheetRow(context.getString(it)) }
+            R.string.sheet_wingspan_birds to R.string.sheet_wingspan_birds_hint,
+            R.string.sheet_wingspan_bonus to R.string.sheet_wingspan_bonus_hint,
+            R.string.sheet_wingspan_goals to R.string.sheet_wingspan_goals_hint,
+            R.string.sheet_wingspan_eggs to R.string.sheet_wingspan_eggs_hint,
+            R.string.sheet_wingspan_food to R.string.sheet_wingspan_food_hint,
+            R.string.sheet_wingspan_tucked to R.string.sheet_wingspan_tucked_hint,
+            // Extension Océanie : à laisser vide sans elle.
+            R.string.sheet_wingspan_nectar to R.string.sheet_wingspan_nectar_hint
+        ).map { (label, hint) -> CustomSheetRow(context.getString(label), hint = hint) }
     ),
     // Jeu coopératif : une seule colonne (l'équipe), une ligne par couleur avec la plus haute carte posée.
     GameRules(
@@ -205,8 +211,10 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         sheet = ScoreSheets.CUSTOM,
         sheetRows = listOf(
             R.string.sheet_hanabi_white, R.string.sheet_hanabi_red, R.string.sheet_hanabi_blue,
-            R.string.sheet_hanabi_yellow, R.string.sheet_hanabi_green, R.string.sheet_hanabi_rainbow
-        ).map { CustomSheetRow(context.getString(it), listOf(0, 1, 2, 3, 4, 5)) }
+            R.string.sheet_hanabi_yellow, R.string.sheet_hanabi_green
+        ).map { CustomSheetRow(context.getString(it), listOf(0, 1, 2, 3, 4, 5), R.string.sheet_hanabi_hint) } +
+            // Variante multicolore : à laisser à 0 sans elle.
+            CustomSheetRow(context.getString(R.string.sheet_hanabi_rainbow), listOf(0, 1, 2, 3, 4, 5), R.string.sheet_hanabi_rainbow_hint)
     ),
     GameRules(
         id = "builtin_scrabble",

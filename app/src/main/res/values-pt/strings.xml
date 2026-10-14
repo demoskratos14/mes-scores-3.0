@@ -1137,13 +1137,23 @@
     <string name="rules_wingspan_1_title">Objetivo</string>
     <string name="rules_wingspan_1_body">Atrair o maior número de aves para os três habitats (floresta, pradaria, pântano) ao longo de quatro rondas e contar os pontos. Ganha o total mais alto.</string>
     <string name="rules_wingspan_2_title">Pontuação</string>
-    <string name="rules_wingspan_2_body">Somam-se: os pontos impressos nas aves jogadas, as cartas de bónus, os objetivos de fim de ronda, os ovos (1 ponto cada), a comida nas cartas (1 ponto cada) e as cartas escondidas sob aves (1 ponto cada).</string>
+    <string name="rules_wingspan_2_body">Somam-se: os pontos impressos nas aves jogadas, as cartas de bónus, os objetivos de fim de ronda, os ovos (1 ponto cada), a comida nas cartas (1 ponto cada) e as cartas escondidas sob aves (1 ponto cada). Com a expansão Oceânia, juntam-se os pontos de maioria de néctar de cada habitat.</string>
     <string name="rules_wingspan_3_title">Na aplicação</string>
     <string name="rules_wingspan_3_body">No fim da partida, introduz na coluna de cada jogador o total de cada família de pontos, uma família por linha.</string>
     <string name="rules_hanabi_1_title">Objetivo</string>
     <string name="rules_hanabi_1_body">Jogo cooperativo: toda a equipa constrói fogos de artifício, cor a cor, jogando as cartas de 1 a 5 por ordem. Cada jogador vê as cartas dos outros, mas não as suas.</string>
     <string name="rules_hanabi_2_title">Pontuação</string>
-    <string name="rules_hanabi_2_body">A pontuação é a soma, por cada cor, do valor da carta mais alta jogada (0 a 5). No máximo 25 com cinco cores, 30 com a cor multicolor. 25 é uma pontuação perfeita.</string>
+    <string name="rules_hanabi_2_body">A pontuação é a soma, por cada cor, do valor da carta mais alta jogada (0 a 5). No máximo 25 com cinco cores, 30 com a cor multicolor. Leitura da pontuação: 0 a 5, horrível, o público vaia; 6 a 10, medíocre, uns aplausos tímidos; 11 a 15, honroso, mas não ficará na memória; 16 a 20, excelente, o público está encantado; 21 a 24, extraordinário, os espectadores ficam maravilhados; 25, lendário, estrelas nos olhos.</string>
     <string name="rules_hanabi_3_title">Na aplicação</string>
     <string name="rules_hanabi_3_body">Uma só coluna para toda a equipa (muda-lhe o nome como quiseres). Uma linha por cor: escolhe o valor da carta mais alta jogada. Deixa a linha multicolor a 0 se não jogares essa variante.</string>
+    <string name="sheet_wingspan_nectar">Néctar (Oceânia)</string>
+    <string name="sheet_wingspan_birds_hint">Soma dos pontos impressos nas aves jogadas.</string>
+    <string name="sheet_wingspan_bonus_hint">Pontos das tuas cartas de bónus, conforme o que pedem.</string>
+    <string name="sheet_wingspan_goals_hint">Total de pontos dos quatro objetivos de fim de ronda.</string>
+    <string name="sheet_wingspan_eggs_hint">1 ponto por ovo nas tuas aves.</string>
+    <string name="sheet_wingspan_food_hint">1 ponto por ficha de comida nas tuas cartas.</string>
+    <string name="sheet_wingspan_tucked_hint">1 ponto por carta escondida sob uma ave.</string>
+    <string name="sheet_wingspan_nectar_hint">Expansão Oceânia: em cada habitat, 5 pontos por mais néctar gasto e 2 pelo segundo. Deixa vazio sem a expansão.</string>
+    <string name="sheet_hanabi_hint">Valor da carta mais alta jogada nesta cor (0 se nenhuma).</string>
+    <string name="sheet_hanabi_rainbow_hint">Variante multicolor: mesmo princípio. Deixa a 0 se não jogares esta variante.</string>
 </resources>

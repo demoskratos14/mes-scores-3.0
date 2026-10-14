@@ -28,10 +28,13 @@ data class SheetRow(
  *
  * @param name nom affiché dans la colonne de gauche du tableau.
  * @param options scores proposés en boutons ; null si le score se saisit au clavier.
+ * @param hint texte d'aide sous les boutons de saisie ; renseigné seulement pour les jeux prédéfinis
+ *   (une ressource ne s'enregistre pas avec un jeu créé par l'utilisateur).
  */
 data class CustomSheetRow(
     val name: String,
-    val options: List<Int>? = null
+    val options: List<Int>? = null,
+    @StringRes val hint: Int? = null
 )
 
 /**
@@ -144,7 +147,8 @@ object ScoreSheets {
                     // Le 0 est toujours proposé, pour pouvoir barrer la case.
                     options = row.options?.let { if (0 in it) it else listOf(0) + it },
                     zeroCrossesOut = false,
-                    labelText = row.name
+                    labelText = row.name,
+                    hint = row.hint
                 )
             }
         } else {

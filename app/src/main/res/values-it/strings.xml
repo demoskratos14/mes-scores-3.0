@@ -1147,13 +1147,23 @@
     <string name="rules_wingspan_1_title">Obiettivo del gioco</string>
     <string name="rules_wingspan_1_body">Attirare il maggior numero di uccelli nei tre habitat (foresta, prateria, zona umida) in quattro round, poi contare i punti. Vince il totale più alto.</string>
     <string name="rules_wingspan_2_title">I punti</string>
-    <string name="rules_wingspan_2_body">Si sommano: i punti stampati sugli uccelli giocati, le carte bonus, gli obiettivi di fine round, le uova (1 punto ciascuna), il cibo sulle carte (1 punto ciascuno) e le carte nascoste sotto gli uccelli (1 punto ciascuna).</string>
+    <string name="rules_wingspan_2_body">Si sommano: i punti stampati sugli uccelli giocati, le carte bonus, gli obiettivi di fine round, le uova (1 punto ciascuna), il cibo sulle carte (1 punto ciascuno) e le carte nascoste sotto gli uccelli (1 punto ciascuna). Con l\'espansione Oceania si aggiungono i punti di maggioranza di nettare di ogni habitat.</string>
     <string name="rules_wingspan_3_title">Nell\'app</string>
     <string name="rules_wingspan_3_body">A fine partita, inserisci nella colonna di ogni giocatore il totale di ogni famiglia di punti, una famiglia per riga.</string>
     <string name="rules_hanabi_1_title">Obiettivo del gioco</string>
     <string name="rules_hanabi_1_body">Gioco cooperativo: tutta la squadra costruisce fuochi d\'artificio, colore per colore, giocando le carte da 1 a 5 in ordine. Ognuno vede le carte degli altri, ma non le proprie.</string>
     <string name="rules_hanabi_2_title">I punti</string>
-    <string name="rules_hanabi_2_body">Il punteggio è la somma, per ogni colore, del valore della carta più alta giocata (da 0 a 5). Al massimo 25 con cinque colori, 30 con il colore multicolore. 25 è il punteggio perfetto.</string>
+    <string name="rules_hanabi_2_body">Il punteggio è la somma, per ogni colore, del valore della carta più alta giocata (da 0 a 5). Al massimo 25 con cinque colori, 30 con il colore multicolore. Lettura del punteggio: da 0 a 5, orribile, il pubblico fischia; da 6 a 10, mediocre, appena qualche applauso; da 11 a 15, onorevole, ma non resterà nella memoria; da 16 a 20, eccellente, il pubblico è entusiasta; da 21 a 24, straordinario, gli spettatori sono estasiati; 25, leggendario, stelle negli occhi.</string>
     <string name="rules_hanabi_3_title">Nell\'app</string>
     <string name="rules_hanabi_3_body">Una sola colonna per tutta la squadra (rinominala come vuoi). Una riga per colore: scegli il valore della carta più alta giocata. Lascia la riga multicolore a 0 se non giochi quella variante.</string>
+    <string name="sheet_wingspan_nectar">Nettare (Oceania)</string>
+    <string name="sheet_wingspan_birds_hint">Somma dei punti stampati sugli uccelli giocati.</string>
+    <string name="sheet_wingspan_bonus_hint">Punti delle tue carte bonus, in base a ciò che richiedono.</string>
+    <string name="sheet_wingspan_goals_hint">Totale dei punti dei quattro obiettivi di fine round.</string>
+    <string name="sheet_wingspan_eggs_hint">1 punto per uovo sui tuoi uccelli.</string>
+    <string name="sheet_wingspan_food_hint">1 punto per gettone cibo sulle tue carte.</string>
+    <string name="sheet_wingspan_tucked_hint">1 punto per carta nascosta sotto un uccello.</string>
+    <string name="sheet_wingspan_nectar_hint">Espansione Oceania: in ogni habitat, 5 punti per più nettare speso e 2 per il secondo. Lascia vuoto senza l\'espansione.</string>
+    <string name="sheet_hanabi_hint">Valore della carta più alta giocata in questo colore (0 se nessuna).</string>
+    <string name="sheet_hanabi_rainbow_hint">Variante multicolore: stesso principio. Lascia a 0 se non giochi questa variante.</string>
 </resources>

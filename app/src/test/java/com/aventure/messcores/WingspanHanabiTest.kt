@@ -17,10 +17,11 @@ class WingspanHanabiTest {
         .first { it.id == id }
 
     @Test
-    fun wingspanEstUneFeuilleDeSixFamilles() {
+    fun wingspanEstUneFeuilleDeSeptFamilles() {
         val g = game("builtin_wingspan")
         assertEquals(ScoreSheets.CUSTOM, g.sheet)
-        assertEquals(6, ScoreSheets.rows(g)!!.size)
+        assertEquals(7, ScoreSheets.rows(g)!!.size)
+        assertTrue(ScoreSheets.rows(g)!!.all { it.hint != null })
         assertEquals(GameCategory.SPECIAL, g.category())
         assertFalse(g.allowNegativeScores)
         val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben"), g) }
@@ -38,7 +39,7 @@ class WingspanHanabiTest {
         assertEquals(1, g.maxPlayers)
         val rows = ScoreSheets.rows(g)!!
         assertEquals(6, rows.size)
-        assertTrue(rows.all { it.options == listOf(0, 1, 2, 3, 4, 5) })
+        assertTrue(rows.all { it.options == listOf(0, 1, 2, 3, 4, 5) && it.hint != null })
         val vm = ScoreViewModel().also { it.initGame(listOf("Équipe"), g) }
         for (row in 0 until 5) vm.setCell(0, row, 5, true)
         assertEquals(25, vm.totalFor(0))
