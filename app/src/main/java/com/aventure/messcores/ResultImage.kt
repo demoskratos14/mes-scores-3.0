@@ -102,10 +102,7 @@ object ResultImage {
 
         val band = Paint().apply { color = Color.rgb(30, 64, 110) }
         canvas.drawRect(0f, 0f, WIDTH.toFloat(), bandHeight, band)
-        canvas.save()
-        canvas.translate(MARGIN, 48f)
-        title.draw(canvas)
-        canvas.restore()
+        canvas.withTranslation(MARGIN, 48f) { title.draw(this) }
 
         val stripe = Paint().apply { color = Color.rgb(240, 244, 248) }
         val circle = Paint(Paint.ANTI_ALIAS_FLAG)

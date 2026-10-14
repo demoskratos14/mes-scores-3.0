@@ -1,10 +1,10 @@
 # Mes Scores
 
-Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux de société : tableaux par manches, compteurs, Tarot avec calcul automatique, tennis et padel (points, jeux, sets, tie-break, point d'or), championnats (élimination directe, tirage au sort ou ordre choisi, ou poules), jeux personnalisés, journal des parties (avec export/import JSON), statistiques (victoires, meilleur score, moyenne), thème clair / sombre, langue au choix depuis l'appli (drapeau sur l'écran d'accueil : français, anglais, espagnol, portugais, italien), partage du classement, annulation et rétablissement des saisies (jusqu'à 100), courbe d'évolution des scores manche après manche (écrans de score et journal), reprise en un appui de la partie en cours depuis l'accueil, et minuteur.
+Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux de société : tableaux par manches, compteurs, feuilles de catégories (Yams, Qwixx, Bowling, 7 Wonders, Wingspan, Hanabi), annonce et plis (Wizard, Oh Hell), Tarot, bridge et skat avec calcul automatique de la marque, tournoi de poker (tapis, blinds, enchères), tennis et padel (points, jeux, sets, tie-break, point d'or), championnats (élimination directe, tirage au sort ou ordre choisi, ou poules), jeux personnalisés (partageables par fichier), journal des parties (avec export/import JSON), statistiques (victoires, meilleur score, moyenne), thème clair / sombre, langue au choix depuis l'appli (drapeau sur l'écran d'accueil : français, anglais, espagnol, portugais, italien), couleur de chaque joueur (avec mode daltonien), partage du classement en texte ou en image, annulation et rétablissement des saisies (jusqu'à 100), courbe d'évolution des scores manche après manche (écrans de score et journal), reprise en un appui de la partie en cours depuis l'accueil, et minuteur / chronomètre.
 
 - Identifiant : `com.aventure.messcores`
 - minSdk 26, compileSdk/targetSdk 37
-- Kotlin 2.3.10 (plugin Compose), Android Gradle Plugin 9.2.1, Gradle 9.8.1 (via le wrapper) ; Kotlin intégré à AGP et nouveau DSL (plus de plugin `org.jetbrains.kotlin.android`, ni de `applicationVariants`) : le nom des APK vient de `base.archivesName`
+- Kotlin 2.4.21 (plugin Compose), Android Gradle Plugin 9.2.1, Gradle 9.8.1 (via le wrapper) ; Kotlin intégré à AGP et nouveau DSL (plus de plugin `org.jetbrains.kotlin.android`, ni de `applicationVariants`) : le nom des APK vient de `base.archivesName`
 
 ## Compiler
 
@@ -24,7 +24,9 @@ Le `versionCode` vaut `1` en local ; dans GitHub Actions il reprend le numéro d
 ./gradlew testDebugUnitTest
 ```
 
-Les tests unitaires (`app/src/test/`) couvrent notamment les noms en double (`PlayerNames`), le texte de partage (`ResultText`), la sauvegarde du journal (`JournalBackup`), l'annulation de saisie, le score du tennis et du padel (`RacketScoringTest`, `RacketViewModelTest` : jeux, avantage, point d'or, tie-break, super tie-break, annulation, reprise depuis le journal), ainsi que le calcul du Tarot (`TarotScoring.kt` : 3, 4 et 5 joueurs, garde sans, primes, chelems, somme des scores toujours nulle) et les règles de classement et de fin de partie (`ScoreViewModel` : seuil, manche à terminer, égalité, nombre de manches), les statistiques (`StatsCalculator`) et les formats de championnat (`TournamentFormatsTest` : calendrier des poules, classement et départage, tableau suivant l'ordre de la liste).
+Les tests unitaires (`app/src/test/`) couvrent notamment les noms en double (`PlayerNames`), le texte de partage (`ResultText`) et l'image du classement (`ResultImageTest`), la sauvegarde du journal (`JournalBackup`), l'annulation de saisie, le score du tennis et du padel (`RacketScoringTest`, `RacketViewModelTest` : jeux, avantage, point d'or, tie-break, super tie-break, annulation, reprise depuis le journal), ainsi que le calcul du Tarot (`TarotScoring.kt` : 3, 4 et 5 joueurs, garde sans, primes, chelems, somme des scores toujours nulle), du bridge (`BridgeScoringTest`) et du skat (`SkatScoringTest`), les règles de classement et de fin de partie (`ScoreViewModel`, `ScoreStandingTest`, `ScoreRulesTest`, `MinLeadTest` : seuil, écart minimum, plafond, manche à terminer, égalité, nombre de manches), les feuilles de catégories (`ScoreSheetTest`, `CustomSheetTest`, `WingspanHanabiTest`), le poker (`PokerEngineTest`, `PokerTournamentTest`, `PokerReseatTest` : enchères, pots annexes, blinds, pauses, recaves, gains, réunion de tables), les couleurs des joueurs (`PlayerColorsTest`), la saisie de la durée du minuteur (`CountdownInputTest`), le partage de jeux personnalisés (`CustomGameShareTest`), les statistiques (`StatsCalculator`) et les formats de championnat (`TournamentFormatsTest` : calendrier des poules, classement et départage, tableau suivant l'ordre de la liste).
+
+`NoHardcodedTextTest` vérifie qu'aucun texte visible n'est écrit en dur dans le code (tout passe par `strings.xml`) et `GameCategoryTest` que chaque jeu prédéfini a bien sa rubrique.
 
 Annuler / rétablir (`RedoTest`) et les données de la courbe d'évolution (`ScoreProgressTest`) ont aussi leurs tests unitaires.
 
@@ -37,7 +39,7 @@ Pour régénérer le wrapper : `gradle wrapper --gradle-version 9.8.1`.
 
 ## GitHub Actions
 
-Le workflow `.github/workflows/build.yml` lance les tests unitaires et le lint (`./gradlew lintDebug`), puis construit l'APK debug à chaque push sur `main` et le publie comme artefact. Il vérifie aussi que la release (minifiée par R8) se construit, sans la publier. Le rapport de lint est publié en artefact à chaque exécution.
+Le workflow `.github/workflows/build.yml` lance les tests unitaires et le lint (`./gradlew lintDebug`), puis construit l'APK debug à chaque push et à chaque pull request vers `main` (Dependabot compris), et le publie comme artefact. Il vérifie aussi que la release (minifiée par R8) se construit, sans la publier. Le rapport de lint est publié en artefact à chaque exécution.
 
 Le fichier `.github/dependabot.yml` demande à Dependabot de proposer chaque semaine les mises à jour de Kotlin, Compose, AndroidX, du plugin Android et de Gradle (et chaque mois celles des actions GitHub).
 
@@ -58,10 +60,9 @@ MesScores/
 └── app/
     ├── build.gradle.kts, proguard-rules.pro
     └── src/
-        ├── test/java/com/aventure/messcores/   TarotScoringTest.kt, ScoreViewModelTest.kt, TournamentEngineTest.kt,
-        │                                       TournamentFormatsTest.kt, StatsCalculatorTest.kt,
-        │                                       PlayerNamesTest.kt, ResultTextTest.kt, JournalBackupTest.kt,
-        │                                       CustomGameDraftTest.kt
+        ├── test/java/com/aventure/messcores/   un fichier de test par module (TarotScoringTest.kt, BridgeScoringTest.kt,
+        │                                       PokerEngineTest.kt, ScoreViewModelTest.kt, TournamentEngineTest.kt,
+        │                                       CustomGameDraftTest.kt, ResultImageTest.kt…) ; ui/ : tests d'interface
         └── main/
             ├── AndroidManifest.xml
             ├── java/com/aventure/messcores/
@@ -70,8 +71,18 @@ MesScores/
             │   ├── ScoreModels.kt             CellState, TeamRound, annulation (UndoAction / RedoAction)
             │   ├── ScoreStanding.kt           classement et fin de partie (fonctions pures, testées)
             │   ├── PlayerColors.kt            palette et tirage des couleurs des joueurs
+            │   ├── PlayerColorPicker.kt, ColorBlind.kt   choix de la couleur d'un joueur et mode daltonien (code A, B, C… sur chaque couleur)
             │   ├── GameRules.kt, GameRulesText.kt   règles des jeux et fiches de règles
+            │   ├── GameCategory.kt            rubriques de la liste de jeux (Classiques, Cartes, Dés, Spéciaux, Autres)
+            │   ├── ScoreRules.kt, ScoreSheet.kt   règles de total propres à certains jeux (Mölkky…) et feuilles de catégories
             │   ├── TarotScoring.kt            calcul d'une manche de Tarot (fonction pure, testée)
+            │   ├── BridgeScoring.kt, NewBridgeRoundScreen.kt   marque d'une donne de bridge (fonction pure, testée) et sa saisie
+            │   ├── SkatScoring.kt, NewSkatRoundScreen.kt       valeur et marque d'une donne de skat (fonction pure, testée) et sa saisie
+            │   ├── BidScoring.kt              annonce et plis réalisés (Wizard, Oh Hell)
+            │   ├── ContractWidgets.kt         éléments communs aux saisies de Tarot, bridge et skat (points signés, choix exclusifs)
+            │   ├── PokerEngine.kt             moteur du tournoi de poker (blinds, enchères, pots annexes — pur, testé)
+            │   ├── PokerScreen.kt, PokerSetupScreen.kt, PokerChips.kt   table de poker, création d'une partie, jetons
+            │   ├── PokerTablesDialog.kt, PokerTransfer.kt   réunion de tables par fichier d'échange (export/import des joueurs)
             │   ├── RacketScoring.kt, RacketScreen.kt   score du tennis et du padel (moteur pur, testé) et son écran
             │   ├── GameRepository.kt          jeux personnalisés (SharedPreferences) + accès aux jeux prédéfinis
             │   ├── BuiltInGames.kt            assemble les jeux prédéfinis ; un fichier par rubrique :
@@ -79,10 +90,13 @@ MesScores/
             │   ├── GameHistory.kt, GameHistoryScreen.kt   journal des parties
             │   ├── AutoSave.kt                sauvegarde automatique de la partie dans le journal, 2 s après chaque modification (+ toutes les 30 s pour le chrono du poker)
             │   ├── JournalBackup.kt           export/import JSON du journal (fonctions pures, testées)
+            │   ├── CustomGameShare.kt         export/import JSON de jeux personnalisés (fonctions pures, testées)
             │   ├── Stats.kt, StatsScreen.kt   statistiques tirées du journal (calcul pur, testé) et écran
+            │   ├── ScoreProgress.kt, ScoreChart.kt   courbe d'évolution des scores (données pures, testées) et son dessin
+            │   ├── ResultImage.kt, ShareFiles.kt   classement en image PNG et partage de fichiers (FileProvider)
             │   ├── Theme.kt                   thème clair / sombre (Auto, Clair, Sombre) et couleurs adaptées
             │   ├── AppLanguage.kt, LanguageSelector.kt   langues proposées et bouton drapeau (AppCompatDelegate.setApplicationLocales)
-            │   ├── PlayerNames.kt, ResultText.kt   noms uniques, texte de partage (fonctions pures, testées)
+            │   ├── PlayerNames.kt, ResultText.kt, Strings.kt   noms uniques, texte de partage (fonctions pures, testées), textes composés hors @Composable
             │   ├── ScoreActions.kt            barre Annuler / Partager / Enregistrer
             │   ├── SetupScreen.kt, ChooseGameScreen.kt, CreateGameScreen.kt
             │   │   CreateGameForm.kt (état du formulaire + conversion en CustomGameDraft), CreateGameSections.kt,
@@ -94,12 +108,14 @@ MesScores/
             │   ├── TeamRoundsScreen.kt, NewTeamRoundScreen.kt, NewTarotRoundScreen.kt
             │   ├── TournamentEngine.kt        règles des championnats (tableau, poules) — pures, testées
             │   ├── TournamentSetupScreen.kt, TournamentBracketScreen.kt, TournamentViewModel.kt
-            │   ├── TimerViewModel.kt, TimerOverlay.kt, TimerAlert.kt, TimerReceiver.kt   minuteur
+            │   ├── TimerViewModel.kt, TimerOverlay.kt, TimerAlert.kt, TimerReceiver.kt   minuteur / chronomètre
+            │   ├── CountdownInput.kt          saisie de la durée du minuteur (5, 4:30, 2:05:30 ; testée)
             │   ├── AppBackground.kt, KeepScreenOn.kt, Savers.kt
             └── res/
                 ├── values/strings.xml, values-en|es|pt|it/strings.xml   textes (français par défaut + 4 traductions)
                 ├── xml/locales_config.xml    langues de l'appli pour Réglages Android (13+) — à garder alignée sur AppLanguage
                 ├── xml/data_extraction_rules.xml, backup_rules.xml   sauvegarde Android (SharedPreferences)
+                ├── xml/file_paths.xml        dossier du cache partagé par FileProvider (images, JSON)
                 ├── drawable-nodpi/bg_board_games.webp
                 ├── mipmap-anydpi/ic_launcher.xml, ic_launcher_round.xml   icône adaptative (+ monochrome)
                 └── mipmap-*/ic_launcher_foreground.png
@@ -111,8 +127,9 @@ Le formulaire de création (`CreateGameScreen`) donne accès à toutes les méca
 
 - **Nombre de joueurs** minimum et maximum (vide = 1 à 12 ; le Tarot est borné à 3–5).
 - **Mode de score** : tableau de manches, compteur (+1/−1, « le plus bas gagne » possible) ou équipes variables.
-- **Mécanique** (mode tableau) : *feuille de catégories* (Yams, Qwixx, Bowling), *annonce et plis* (Wizard, Oh Hell), *score exact* avec repli (Mölkky), *décompte* jusqu'à 0 (fléchettes, avec coefficients Double/Triple possibles), ou *suivi des phases* (Phase 10). En mode équipes variables : *calcul du Tarot* (contrats, bouts, primes, chelem).
-- **Règles de score** (coefficient + bonus), **fin de partie** (nombre de manches, score seuil dans un sens ou l'autre, arrêt immédiat ou fin de manche, manche décisive) : proposées là où elles ont un sens ; pour une feuille, un décompte, un score exact ou des phases, c'est la mécanique qui décide de la fin.
+- **Mécanique** (mode tableau) : *feuille de catégories* (Yams, Qwixx, Bowling, ou lignes écrites par l'utilisateur, comme pour 7 Wonders, Wingspan et Hanabi ; le 0 est toujours proposé pour barrer une case), *annonce et plis* (Wizard, Oh Hell), *score exact* avec repli (Mölkky), *décompte* jusqu'à 0 (fléchettes, avec coefficients Double/Triple possibles), ou *suivi des phases* (Phase 10). En mode équipes variables : *calcul du Tarot* (contrats, bouts, primes, chelem).
+- **Règles de score** (coefficient + bonus), **fin de partie** (nombre de manches, score seuil dans un sens ou l'autre, écart minimum sur les adversaires comme au ping-pong, plafond de score comme au badminton, arrêt immédiat ou fin de manche, manche décisive) : proposées là où elles ont un sens ; pour une feuille, un décompte, un score exact ou des phases, c'est la mécanique qui décide de la fin.
+- **Partage** : un ou plusieurs jeux personnalisés s'exportent dans un fichier JSON (`CustomGameShare`) qu'un autre téléphone peut importer ; un fichier d'une version plus récente de l'appli est refusé.
 - Pour ajouter une mécanique : un cas dans `GameVariant`, son réglage dans `CustomGameDraft.toRules`, ses champs dans `CreateGameScreen` et ses textes `create_variant_*` dans les 5 langues.
 
 ## Tennis et padel
@@ -124,6 +141,33 @@ Deux jeux prédéfinis (`builtin_tennis`, `builtin_padel`, rubrique « Autres »
 - **Réglages** (modifiables jusqu'au premier point) : 1 set, meilleur des 3 ou meilleur des 5 ; point d'or à 40-40 (sans avantage) ; façon de jouer le set décisif (tie-break à 6-6, super tie-break à 10 points, ou sans tie-break avec 2 jeux d'écart). Le tennis démarre en meilleur des 3, avec avantage et tie-break ; le padel avec le point d'or.
 - **Fonctionnement** : toute la partie se déduit de la liste des points gagnés (`RacketMatch.points`, 0 = camp 1, 1 = camp 2) rejouée par `RacketScoring.replay`. Le journal enregistre cette liste et les réglages (`SavedGame.racket`) ; le total de chaque joueur est son nombre de sets gagnés, ce qui sert au classement, aux statistiques et au partage (le texte partagé ajoute le score en chiffres, ex. « Tennis 6-4 3-6 2-1 »).
 - Pas encore géré : le suivi du serveur et la courbe d'évolution (il n'y a pas de manches à tracer).
+
+## Poker
+
+Jeu prédéfini `builtin_poker` (`ScoreMode.POKER`, écran `PokerScreen`). Tournoi sans relance de tapis : l'appli ne distribue pas de cartes, elle suit les jetons et l'ordre de parole (`PokerEngine`, moteur pur et testé).
+
+- **Table** : joueurs assis autour d'une table ronde, bouton et blinds désignés ; suivre, passer, relancer (avec relance minimum) ou tapis, pots annexes, classement.
+- **Réglages** (`PokerSetupScreen`) : tapis de départ, blinds, durée d'un niveau (0 = blinds fixes), antes, vitesse de montée des blinds (régulière, rapide ou turbo), pause programmée tous les N niveaux, alerte sonore et vibration à chaque changement de niveau, buy-in et répartition des gains par place, recaves jusqu'à un niveau donné.
+- **Réunion de tables** (`PokerTablesDialog`, `PokerTransfer`) : entre deux mains, une table exporte ses joueurs (nom, tapis, couleur) dans un fichier, l'autre l'importe ; les arrivants s'asseyent au hasard sans changer l'ordre ni le bouton.
+- L'annulation du poker remonte jusqu'à 300 actions (100 ailleurs).
+
+## Tarot, bridge et skat
+
+Trois jeux de cartes avec calcul automatique de la marque, chacun dans une fonction pure testée : `TarotScoring` (3 à 5 joueurs), `BridgeScoring` (deux camps : contrat, contre, vulnérabilité, plis) et `SkatScoring` (jeu, matadors, Hand / Ouvert, annonces). Les écrans de saisie (`NewTarotRoundScreen`, `NewBridgeRoundScreen`, `NewSkatRoundScreen`) partagent les éléments de `ContractWidgets.kt`.
+
+## Couleurs des joueurs et mode daltonien
+
+Chaque joueur a une couleur, tirée au sort ou choisie en touchant son nom (écran de départ, tableaux, Tarot, compteurs). Une couleur déjà prise ne peut pas être reprise : la palette (`PLAYER_COLOR_PALETTE`) compte toujours plus de couleurs que le nombre maximal de joueurs (12). Le mode daltonien (réglage de l'écran d'accueil, mémorisé) inscrit un petit code (A, B, C…) sur chaque couleur.
+
+## Minuteur et chronomètre
+
+Le minuteur (`TimerViewModel`, `TimerOverlay`) accepte `5` (minutes), `4:30` ou `2:05:30`, de 1 seconde à 99:59:59 (`CountdownInput`) et s'affiche au format h:mm:ss. Une alerte sonne à la fin, même si l'appli est en arrière-plan (`TimerAlert`, `TimerReceiver`).
+
+## Partage
+
+- **Classement** : le bouton « Partager » propose le texte (`ResultText`) ou une image PNG (`ResultImage`) ; les fichiers passent par un `FileProvider` (`ShareFiles`, `res/xml/file_paths.xml`), sans permission.
+- **Jeux personnalisés** et **joueurs d'une table de poker** : fichiers JSON (voir plus haut).
+- **Journal** : export/import JSON (`JournalBackup`).
 
 ## Statistiques, apparence, formats de championnat
 

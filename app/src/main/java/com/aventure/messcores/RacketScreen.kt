@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -293,7 +294,15 @@ fun RacketScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposi
 private fun RacketTeamRow(name: String, dotColors: List<Color>, state: RacketState, side: Int) {
     val points = if (state.hasAdvantage(side)) stringResource(R.string.racket_advantage) else state.pointText(side)
     // Lu par TalkBack à chaque point : le camp, ses sets, ses jeux et ses points.
-    val summary = stringResource(R.string.racket_team_summary, name, state.setsWon(side), state.games(side), points)
+    val sets = state.setsWon(side)
+    val games = state.games(side)
+    val summary = stringResource(
+        R.string.racket_team_summary,
+        name,
+        pluralStringResource(R.plurals.racket_sets_count, sets, sets),
+        pluralStringResource(R.plurals.racket_games_count, games, games),
+        points
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()

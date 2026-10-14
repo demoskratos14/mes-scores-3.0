@@ -1265,7 +1265,17 @@
     <string name="racket_tiebreak">Tie-break</string>
     <string name="racket_super_tiebreak">Super tie-break</string>
     <string name="racket_winner">%1$s remporte le match</string>
-    <string name="racket_team_summary">%1$s : %2$d sets, %3$d jeux, %4$s points</string>
+    <plurals name="racket_sets_count">
+        <item quantity="one">%d set</item>
+        <item quantity="other">%d sets</item>
+        <item quantity="many">%d de sets</item>
+    </plurals>
+    <plurals name="racket_games_count">
+        <item quantity="one">%d jeu</item>
+        <item quantity="other">%d jeux</item>
+        <item quantity="many">%d de jeux</item>
+    </plurals>
+    <string name="racket_team_summary">%1$s : %2$s, %3$s, %4$s points</string>
     <string name="rules_tennis_1_title">But du jeu</string>
     <string name="rules_tennis_1_body">Gagner le match en remportant le nombre de sets prévu (2 au meilleur des 3 sets, 3 au meilleur des 5). Un set se gagne à 6 jeux avec 2 jeux d\'écart ; à 6-6, un tie-break à 7 points (2 points d\'écart) désigne le vainqueur du set (7-6).</string>
     <string name="rules_tennis_2_title">Comptage d\'un jeu</string>
