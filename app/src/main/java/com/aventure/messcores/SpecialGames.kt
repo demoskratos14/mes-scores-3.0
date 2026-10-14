@@ -180,6 +180,35 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         ).map { CustomSheetRow(context.getString(it)) }
     ),
     GameRules(
+        id = "builtin_wingspan",
+        name = context.getString(R.string.game_wingspan),
+        minPlayers = 1,
+        maxPlayers = 5,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.TABLE,
+        sheet = ScoreSheets.CUSTOM,
+        sheetRows = listOf(
+            R.string.sheet_wingspan_birds, R.string.sheet_wingspan_bonus, R.string.sheet_wingspan_goals,
+            R.string.sheet_wingspan_eggs, R.string.sheet_wingspan_food, R.string.sheet_wingspan_tucked
+        ).map { CustomSheetRow(context.getString(it)) }
+    ),
+    // Jeu coopératif : une seule colonne (l'équipe), une ligne par couleur avec la plus haute carte posée.
+    GameRules(
+        id = "builtin_hanabi",
+        name = context.getString(R.string.game_hanabi),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.TABLE,
+        sheet = ScoreSheets.CUSTOM,
+        sheetRows = listOf(
+            R.string.sheet_hanabi_white, R.string.sheet_hanabi_red, R.string.sheet_hanabi_blue,
+            R.string.sheet_hanabi_yellow, R.string.sheet_hanabi_green, R.string.sheet_hanabi_rainbow
+        ).map { CustomSheetRow(context.getString(it), listOf(0, 1, 2, 3, 4, 5)) }
+    ),
+    GameRules(
         id = "builtin_scrabble",
         name = context.getString(R.string.game_scrabble),
         minPlayers = 2,

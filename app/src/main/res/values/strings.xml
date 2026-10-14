@@ -1135,4 +1135,30 @@
     <string name="poker_setup_rebuy_hint">0 = pas de recave. Un joueur éliminé peut revenir avec le tapis de départ (et un nouveau buy-in dans la cagnotte) tant que ce niveau n\'est pas dépassé.</string>
     <string name="poker_rebuy_button">Recave de %1$s (tapis de %2$s)</string>
     <string name="poker_info_rebuys">Recaves : %1$d · possibles jusqu\'au niveau %2$d</string>
+    <string name="game_wingspan">Wingspan</string>
+    <string name="game_hanabi">Hanabi</string>
+    <string name="sheet_wingspan_birds">Oiseaux</string>
+    <string name="sheet_wingspan_bonus">Cartes bonus</string>
+    <string name="sheet_wingspan_goals">Objectifs de fin de manche</string>
+    <string name="sheet_wingspan_eggs">Œufs</string>
+    <string name="sheet_wingspan_food">Nourriture sur les cartes</string>
+    <string name="sheet_wingspan_tucked">Cartes glissées</string>
+    <string name="sheet_hanabi_white">Blanc</string>
+    <string name="sheet_hanabi_red">Rouge</string>
+    <string name="sheet_hanabi_blue">Bleu</string>
+    <string name="sheet_hanabi_yellow">Jaune</string>
+    <string name="sheet_hanabi_green">Vert</string>
+    <string name="sheet_hanabi_rainbow">Multicolore</string>
+    <string name="rules_wingspan_1_title">But du jeu</string>
+    <string name="rules_wingspan_1_body">Attirer le plus d\'oiseaux dans ses trois habitats (forêt, prairie, marais) sur quatre manches, puis compter les points. Le plus haut total gagne.</string>
+    <string name="rules_wingspan_2_title">Les points</string>
+    <string name="rules_wingspan_2_body">On additionne : les points imprimés sur les oiseaux posés, les cartes bonus, les objectifs de fin de manche, les œufs (1 point chacun), la nourriture posée sur les cartes (1 point chacune) et les cartes glissées sous des oiseaux (1 point chacune).</string>
+    <string name="rules_wingspan_3_title">Dans l\'appli</string>
+    <string name="rules_wingspan_3_body">En fin de partie, saisis dans la colonne de chaque joueur le total de chaque famille de points, une famille par ligne.</string>
+    <string name="rules_hanabi_1_title">But du jeu</string>
+    <string name="rules_hanabi_1_body">Jeu coopératif : toute l\'équipe construit, couleur par couleur, des feux d\'artifice en posant les cartes de 1 à 5 dans l\'ordre. Chaque joueur voit les cartes des autres, mais pas les siennes.</string>
+    <string name="rules_hanabi_2_title">Les points</string>
+    <string name="rules_hanabi_2_body">Le score est la somme, pour chaque couleur, de la valeur de la plus haute carte posée (0 à 5). Il vaut au maximum 25 avec cinq couleurs, 30 avec la couleur multicolore. À 25, c\'est un score parfait.</string>
+    <string name="rules_hanabi_3_title">Dans l\'appli</string>
+    <string name="rules_hanabi_3_body">Une seule colonne pour toute l\'équipe (renomme-la comme tu veux). Une ligne par couleur : choisis la valeur de la plus haute carte posée. Laisse la ligne multicolore à 0 si tu ne joues pas cette variante.</string>
 </resources>

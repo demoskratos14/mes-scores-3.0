@@ -1130,4 +1130,30 @@
     <string name="poker_setup_rebuy_hint">0 = nessun rebuy. Un giocatore eliminato può rientrare con lo stack iniziale (e un altro buy-in nel montepremi) finché questo livello non è superato.</string>
     <string name="poker_rebuy_button">Rebuy di %1$s (stack di %2$s)</string>
     <string name="poker_info_rebuys">Rebuy: %1$d · possibili fino al livello %2$d</string>
+    <string name="game_wingspan">Wingspan</string>
+    <string name="game_hanabi">Hanabi</string>
+    <string name="sheet_wingspan_birds">Uccelli</string>
+    <string name="sheet_wingspan_bonus">Carte bonus</string>
+    <string name="sheet_wingspan_goals">Obiettivi di fine round</string>
+    <string name="sheet_wingspan_eggs">Uova</string>
+    <string name="sheet_wingspan_food">Cibo sulle carte</string>
+    <string name="sheet_wingspan_tucked">Carte nascoste</string>
+    <string name="sheet_hanabi_white">Bianco</string>
+    <string name="sheet_hanabi_red">Rosso</string>
+    <string name="sheet_hanabi_blue">Blu</string>
+    <string name="sheet_hanabi_yellow">Giallo</string>
+    <string name="sheet_hanabi_green">Verde</string>
+    <string name="sheet_hanabi_rainbow">Multicolore</string>
+    <string name="rules_wingspan_1_title">Obiettivo del gioco</string>
+    <string name="rules_wingspan_1_body">Attirare il maggior numero di uccelli nei tre habitat (foresta, prateria, zona umida) in quattro round, poi contare i punti. Vince il totale più alto.</string>
+    <string name="rules_wingspan_2_title">I punti</string>
+    <string name="rules_wingspan_2_body">Si sommano: i punti stampati sugli uccelli giocati, le carte bonus, gli obiettivi di fine round, le uova (1 punto ciascuna), il cibo sulle carte (1 punto ciascuno) e le carte nascoste sotto gli uccelli (1 punto ciascuna).</string>
+    <string name="rules_wingspan_3_title">Nell\'app</string>
+    <string name="rules_wingspan_3_body">A fine partita, inserisci nella colonna di ogni giocatore il totale di ogni famiglia di punti, una famiglia per riga.</string>
+    <string name="rules_hanabi_1_title">Obiettivo del gioco</string>
+    <string name="rules_hanabi_1_body">Gioco cooperativo: tutta la squadra costruisce fuochi d\'artificio, colore per colore, giocando le carte da 1 a 5 in ordine. Ognuno vede le carte degli altri, ma non le proprie.</string>
+    <string name="rules_hanabi_2_title">I punti</string>
+    <string name="rules_hanabi_2_body">Il punteggio è la somma, per ogni colore, del valore della carta più alta giocata (da 0 a 5). Al massimo 25 con cinque colori, 30 con il colore multicolore. 25 è il punteggio perfetto.</string>
+    <string name="rules_hanabi_3_title">Nell\'app</string>
+    <string name="rules_hanabi_3_body">Una sola colonna per tutta la squadra (rinominala come vuoi). Una riga per colore: scegli il valore della carta più alta giocata. Lascia la riga multicolore a 0 se non giochi quella variante.</string>
 </resources>

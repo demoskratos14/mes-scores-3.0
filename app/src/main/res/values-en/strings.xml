@@ -1099,4 +1099,30 @@
     <string name="poker_setup_rebuy_hint">0 = no rebuys. An eliminated player can come back with the starting stack (and another buy-in in the prize pool) until this level has passed.</string>
     <string name="poker_rebuy_button">Rebuy for %1$s (stack of %2$s)</string>
     <string name="poker_info_rebuys">Rebuys: %1$d · allowed until level %2$d</string>
+    <string name="game_wingspan">Wingspan</string>
+    <string name="game_hanabi">Hanabi</string>
+    <string name="sheet_wingspan_birds">Birds</string>
+    <string name="sheet_wingspan_bonus">Bonus cards</string>
+    <string name="sheet_wingspan_goals">End-of-round goals</string>
+    <string name="sheet_wingspan_eggs">Eggs</string>
+    <string name="sheet_wingspan_food">Food on cards</string>
+    <string name="sheet_wingspan_tucked">Tucked cards</string>
+    <string name="sheet_hanabi_white">White</string>
+    <string name="sheet_hanabi_red">Red</string>
+    <string name="sheet_hanabi_blue">Blue</string>
+    <string name="sheet_hanabi_yellow">Yellow</string>
+    <string name="sheet_hanabi_green">Green</string>
+    <string name="sheet_hanabi_rainbow">Rainbow</string>
+    <string name="rules_wingspan_1_title">Goal</string>
+    <string name="rules_wingspan_1_body">Attract the most birds to your three habitats (forest, grassland, wetland) over four rounds, then count your points. The highest total wins.</string>
+    <string name="rules_wingspan_2_title">Scoring</string>
+    <string name="rules_wingspan_2_body">Add up: the points printed on the birds you played, bonus cards, end-of-round goals, eggs (1 point each), food on cards (1 point each) and cards tucked under birds (1 point each).</string>
+    <string name="rules_wingspan_3_title">In the app</string>
+    <string name="rules_wingspan_3_body">At the end of the game, enter in each player\'s column the total of each family of points, one family per row.</string>
+    <string name="rules_hanabi_1_title">Goal</string>
+    <string name="rules_hanabi_1_body">A cooperative game: the whole team builds fireworks, colour by colour, by playing cards from 1 to 5 in order. Everyone sees the others\' cards but not their own.</string>
+    <string name="rules_hanabi_2_title">Scoring</string>
+    <string name="rules_hanabi_2_body">The score is the sum, for each colour, of the highest card played (0 to 5). It is at most 25 with five colours, 30 with the rainbow colour. 25 is a perfect score.</string>
+    <string name="rules_hanabi_3_title">In the app</string>
+    <string name="rules_hanabi_3_body">One column for the whole team (rename it as you like). One row per colour: pick the value of the highest card played. Leave the rainbow row at 0 if you do not play that variant.</string>
 </resources>

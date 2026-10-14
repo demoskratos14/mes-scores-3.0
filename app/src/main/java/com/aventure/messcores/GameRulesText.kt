@@ -299,6 +299,16 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_sevenwonders_2_title, R.string.rules_sevenwonders_2_body),
         RulesSection(R.string.rules_sevenwonders_3_title, R.string.rules_sevenwonders_3_body)
     ),
+    "builtin_wingspan" to listOf(
+        RulesSection(R.string.rules_wingspan_1_title, R.string.rules_wingspan_1_body),
+        RulesSection(R.string.rules_wingspan_2_title, R.string.rules_wingspan_2_body),
+        RulesSection(R.string.rules_wingspan_3_title, R.string.rules_wingspan_3_body)
+    ),
+    "builtin_hanabi" to listOf(
+        RulesSection(R.string.rules_hanabi_1_title, R.string.rules_hanabi_1_body),
+        RulesSection(R.string.rules_hanabi_2_title, R.string.rules_hanabi_2_body),
+        RulesSection(R.string.rules_hanabi_3_title, R.string.rules_hanabi_3_body)
+    ),
     "builtin_scrabble" to listOf(
         RulesSection(R.string.rules_scrabble_1_title, R.string.rules_scrabble_1_body),
         RulesSection(R.string.rules_scrabble_2_title, R.string.rules_scrabble_2_body),

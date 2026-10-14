@@ -1120,4 +1120,30 @@
     <string name="poker_setup_rebuy_hint">0 = sem recompras. Um jogador eliminado pode voltar com o stack inicial (e outro buy-in no prémio total) enquanto este nível não for ultrapassado.</string>
     <string name="poker_rebuy_button">Recompra de %1$s (stack de %2$s)</string>
     <string name="poker_info_rebuys">Recompras: %1$d · possíveis até ao nível %2$d</string>
+    <string name="game_wingspan">Wingspan</string>
+    <string name="game_hanabi">Hanabi</string>
+    <string name="sheet_wingspan_birds">Aves</string>
+    <string name="sheet_wingspan_bonus">Cartas de bónus</string>
+    <string name="sheet_wingspan_goals">Objetivos de fim de ronda</string>
+    <string name="sheet_wingspan_eggs">Ovos</string>
+    <string name="sheet_wingspan_food">Comida nas cartas</string>
+    <string name="sheet_wingspan_tucked">Cartas escondidas</string>
+    <string name="sheet_hanabi_white">Branco</string>
+    <string name="sheet_hanabi_red">Vermelho</string>
+    <string name="sheet_hanabi_blue">Azul</string>
+    <string name="sheet_hanabi_yellow">Amarelo</string>
+    <string name="sheet_hanabi_green">Verde</string>
+    <string name="sheet_hanabi_rainbow">Multicolor</string>
+    <string name="rules_wingspan_1_title">Objetivo</string>
+    <string name="rules_wingspan_1_body">Atrair o maior número de aves para os três habitats (floresta, pradaria, pântano) ao longo de quatro rondas e contar os pontos. Ganha o total mais alto.</string>
+    <string name="rules_wingspan_2_title">Pontuação</string>
+    <string name="rules_wingspan_2_body">Somam-se: os pontos impressos nas aves jogadas, as cartas de bónus, os objetivos de fim de ronda, os ovos (1 ponto cada), a comida nas cartas (1 ponto cada) e as cartas escondidas sob aves (1 ponto cada).</string>
+    <string name="rules_wingspan_3_title">Na aplicação</string>
+    <string name="rules_wingspan_3_body">No fim da partida, introduz na coluna de cada jogador o total de cada família de pontos, uma família por linha.</string>
+    <string name="rules_hanabi_1_title">Objetivo</string>
+    <string name="rules_hanabi_1_body">Jogo cooperativo: toda a equipa constrói fogos de artifício, cor a cor, jogando as cartas de 1 a 5 por ordem. Cada jogador vê as cartas dos outros, mas não as suas.</string>
+    <string name="rules_hanabi_2_title">Pontuação</string>
+    <string name="rules_hanabi_2_body">A pontuação é a soma, por cada cor, do valor da carta mais alta jogada (0 a 5). No máximo 25 com cinco cores, 30 com a cor multicolor. 25 é uma pontuação perfeita.</string>
+    <string name="rules_hanabi_3_title">Na aplicação</string>
+    <string name="rules_hanabi_3_body">Uma só coluna para toda a equipa (muda-lhe o nome como quiseres). Uma linha por cor: escolhe o valor da carta mais alta jogada. Deixa a linha multicolor a 0 se não jogares essa variante.</string>
 </resources>
