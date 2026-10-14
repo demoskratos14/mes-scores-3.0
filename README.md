@@ -1,6 +1,6 @@
 # Mes Scores
 
-Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux de société : tableaux par manches, compteurs, Tarot avec calcul automatique, championnats (élimination directe, tirage au sort ou ordre choisi, ou poules), jeux personnalisés, journal des parties (avec export/import JSON), statistiques (victoires, meilleur score, moyenne), thème clair / sombre, langue au choix depuis l'appli (drapeau sur l'écran d'accueil : français, anglais, espagnol, portugais, italien), partage du classement, annulation et rétablissement des saisies (jusqu'à 100), courbe d'évolution des scores manche après manche (écrans de score et journal), reprise en un appui de la partie en cours depuis l'accueil, et minuteur.
+Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux de société : tableaux par manches, compteurs, Tarot avec calcul automatique, tennis et padel (points, jeux, sets, tie-break, point d'or), championnats (élimination directe, tirage au sort ou ordre choisi, ou poules), jeux personnalisés, journal des parties (avec export/import JSON), statistiques (victoires, meilleur score, moyenne), thème clair / sombre, langue au choix depuis l'appli (drapeau sur l'écran d'accueil : français, anglais, espagnol, portugais, italien), partage du classement, annulation et rétablissement des saisies (jusqu'à 100), courbe d'évolution des scores manche après manche (écrans de score et journal), reprise en un appui de la partie en cours depuis l'accueil, et minuteur.
 
 - Identifiant : `com.aventure.messcores`
 - minSdk 26, compileSdk/targetSdk 37
@@ -24,7 +24,7 @@ Le `versionCode` vaut `1` en local ; dans GitHub Actions il reprend le numéro d
 ./gradlew testDebugUnitTest
 ```
 
-Les tests unitaires (`app/src/test/`) couvrent notamment les noms en double (`PlayerNames`), le texte de partage (`ResultText`), la sauvegarde du journal (`JournalBackup`), l'annulation de saisie, ainsi que le calcul du Tarot (`TarotScoring.kt` : 3, 4 et 5 joueurs, garde sans, primes, chelems, somme des scores toujours nulle) et les règles de classement et de fin de partie (`ScoreViewModel` : seuil, manche à terminer, égalité, nombre de manches), les statistiques (`StatsCalculator`) et les formats de championnat (`TournamentFormatsTest` : calendrier des poules, classement et départage, tableau suivant l'ordre de la liste).
+Les tests unitaires (`app/src/test/`) couvrent notamment les noms en double (`PlayerNames`), le texte de partage (`ResultText`), la sauvegarde du journal (`JournalBackup`), l'annulation de saisie, le score du tennis et du padel (`RacketScoringTest`, `RacketViewModelTest` : jeux, avantage, point d'or, tie-break, super tie-break, annulation, reprise depuis le journal), ainsi que le calcul du Tarot (`TarotScoring.kt` : 3, 4 et 5 joueurs, garde sans, primes, chelems, somme des scores toujours nulle) et les règles de classement et de fin de partie (`ScoreViewModel` : seuil, manche à terminer, égalité, nombre de manches), les statistiques (`StatsCalculator`) et les formats de championnat (`TournamentFormatsTest` : calendrier des poules, classement et départage, tableau suivant l'ordre de la liste).
 
 Annuler / rétablir (`RedoTest`) et les données de la courbe d'évolution (`ScoreProgressTest`) ont aussi leurs tests unitaires.
 
@@ -72,6 +72,7 @@ MesScores/
             │   ├── PlayerColors.kt            palette et tirage des couleurs des joueurs
             │   ├── GameRules.kt, GameRulesText.kt   règles des jeux et fiches de règles
             │   ├── TarotScoring.kt            calcul d'une manche de Tarot (fonction pure, testée)
+            │   ├── RacketScoring.kt, RacketScreen.kt   score du tennis et du padel (moteur pur, testé) et son écran
             │   ├── GameRepository.kt          jeux personnalisés (SharedPreferences) + accès aux jeux prédéfinis
             │   ├── BuiltInGames.kt            assemble les jeux prédéfinis ; un fichier par rubrique :
             │   │   ClassicGames.kt, CardGames.kt, DiceGames.kt, SpecialGames.kt, OtherGames.kt
@@ -113,6 +114,16 @@ Le formulaire de création (`CreateGameScreen`) donne accès à toutes les méca
 - **Mécanique** (mode tableau) : *feuille de catégories* (Yams, Qwixx, Bowling), *annonce et plis* (Wizard, Oh Hell), *score exact* avec repli (Mölkky), *décompte* jusqu'à 0 (fléchettes, avec coefficients Double/Triple possibles), ou *suivi des phases* (Phase 10). En mode équipes variables : *calcul du Tarot* (contrats, bouts, primes, chelem).
 - **Règles de score** (coefficient + bonus), **fin de partie** (nombre de manches, score seuil dans un sens ou l'autre, arrêt immédiat ou fin de manche, manche décisive) : proposées là où elles ont un sens ; pour une feuille, un décompte, un score exact ou des phases, c'est la mécanique qui décide de la fin.
 - Pour ajouter une mécanique : un cas dans `GameVariant`, son réglage dans `CustomGameDraft.toRules`, ses champs dans `CreateGameScreen` et ses textes `create_variant_*` dans les 5 langues.
+
+## Tennis et padel
+
+Deux jeux prédéfinis (`builtin_tennis`, `builtin_padel`, rubrique « Autres ») qui utilisent le mode `ScoreMode.RACKET` et l'écran `RacketScreen`.
+
+- **Camps** : la première moitié de la liste de joueurs forme le camp 1, le reste le camp 2 (1 contre 1, 2 contre 2, ou 2 contre 1). Tennis : 2 à 4 joueurs ; padel : 2 à 4 joueurs également (le padel se joue d'ordinaire à 4). Les joueurs d'un même camp partagent le même score.
+- **Saisie** : un gros bouton par camp (« Point pour … »). L'appli compte 15 / 30 / 40, l'avantage, les jeux, les sets, passe au tie-break et désigne le vainqueur. « Annuler » et « Rétablir » retirent / remettent le dernier point, sans limite.
+- **Réglages** (modifiables jusqu'au premier point) : 1 set, meilleur des 3 ou meilleur des 5 ; point d'or à 40-40 (sans avantage) ; façon de jouer le set décisif (tie-break à 6-6, super tie-break à 10 points, ou sans tie-break avec 2 jeux d'écart). Le tennis démarre en meilleur des 3, avec avantage et tie-break ; le padel avec le point d'or.
+- **Fonctionnement** : toute la partie se déduit de la liste des points gagnés (`RacketMatch.points`, 0 = camp 1, 1 = camp 2) rejouée par `RacketScoring.replay`. Le journal enregistre cette liste et les réglages (`SavedGame.racket`) ; le total de chaque joueur est son nombre de sets gagnés, ce qui sert au classement, aux statistiques et au partage (le texte partagé ajoute le score en chiffres, ex. « Tennis 6-4 3-6 2-1 »).
+- Pas encore géré : le suivi du serveur et la courbe d'évolution (il n'y a pas de manches à tracer).
 
 ## Statistiques, apparence, formats de championnat
 

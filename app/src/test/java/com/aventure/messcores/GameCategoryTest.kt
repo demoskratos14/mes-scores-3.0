@@ -50,7 +50,8 @@ class GameCategoryTest {
         assertEquals(
             setOf(
                 "builtin_petanque", "builtin_molkky", "builtin_darts301", "builtin_darts501", "builtin_bowling",
-                "builtin_golf", "builtin_pingpong", "builtin_badminton", "builtin_volley", "builtin_babyfoot"
+                "builtin_golf", "builtin_pingpong", "builtin_badminton", "builtin_volley", "builtin_babyfoot",
+                "builtin_tennis", "builtin_padel"
             ),
             idsIn(GameCategory.OTHER)
         )
