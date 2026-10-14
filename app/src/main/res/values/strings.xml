@@ -1131,4 +1131,8 @@
     <string name="poker_info_prize_pool">Cagnotte : %1$s</string>
     <string name="poker_prizes_title">Gains</string>
     <string name="poker_prize_line">%1$d. %2$s : %3$s</string>
+    <string name="poker_setup_rebuy">Recaves jusqu\'au niveau</string>
+    <string name="poker_setup_rebuy_hint">0 = pas de recave. Un joueur éliminé peut revenir avec le tapis de départ (et un nouveau buy-in dans la cagnotte) tant que ce niveau n\'est pas dépassé.</string>
+    <string name="poker_rebuy_button">Recave de %1$s (tapis de %2$s)</string>
+    <string name="poker_info_rebuys">Recaves : %1$d · possibles jusqu\'au niveau %2$d</string>
 </resources>

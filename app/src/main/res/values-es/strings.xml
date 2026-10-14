@@ -1116,4 +1116,8 @@
     <string name="poker_info_prize_pool">Bolsa: %1$s</string>
     <string name="poker_prizes_title">Premios</string>
     <string name="poker_prize_line">%1$d.º %2$s: %3$s</string>
+    <string name="poker_setup_rebuy">Recompras hasta el nivel</string>
+    <string name="poker_setup_rebuy_hint">0 = sin recompras. Un jugador eliminado puede volver con el stack inicial (y otro buy-in en la bolsa) hasta que se supere este nivel.</string>
+    <string name="poker_rebuy_button">Recompra de %1$s (stack de %2$s)</string>
+    <string name="poker_info_rebuys">Recompras: %1$d · posibles hasta el nivel %2$d</string>
 </resources>

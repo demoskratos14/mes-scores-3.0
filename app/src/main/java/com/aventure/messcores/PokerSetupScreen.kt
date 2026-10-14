@@ -67,6 +67,7 @@ fun PokerSetupScreen(
     var breakMinutesText by rememberSaveable { mutableStateOf("10") }
     var alertOn by rememberSaveable { mutableStateOf(true) }
     var buyInText by rememberSaveable { mutableStateOf("0") }
+    var rebuyText by rememberSaveable { mutableStateOf("0") }
     var payoutIndex by rememberSaveable { mutableIntStateOf(0) }
     // -1 = bouton tiré au sort.
     var dealerChoice by rememberSaveable { mutableIntStateOf(-1) }
@@ -79,18 +80,19 @@ fun PokerSetupScreen(
     val breakEvery = breakEveryText.toIntOrNull()
     val breakMinutes = breakMinutesText.toIntOrNull()
     val buyIn = buyInText.toIntOrNull()
+    val rebuyUntil = rebuyText.toIntOrNull()
     val pace = PokerPace.entries[paceIndex.coerceIn(0, PokerPace.entries.size - 1)]
     // Répartitions possibles : il faut plus de joueurs que de places payées.
     val payoutOptions = PokerPrizes.PRESETS.filter { playerNames.size >= PokerPrizes.minPlayers(it.size) }
     val payout = payoutOptions.getOrElse(payoutIndex) { payoutOptions.first() }
 
     val valid = stack != null && small != null && big != null && minutes != null && anteAfter != null &&
-        breakEvery != null && breakMinutes != null && buyIn != null &&
+        breakEvery != null && breakMinutes != null && buyIn != null && rebuyUntil != null &&
         small >= 1 && big >= small && stack > big && minutes in 0..600 && anteAfter in 0..99 &&
-        breakEvery in 0..99 && breakMinutes in 0..180 && buyIn in 0..1_000_000
+        breakEvery in 0..99 && breakMinutes in 0..180 && buyIn in 0..1_000_000 && rebuyUntil in 0..99
 
     val previewSettings = if (valid && stack != null && small != null && big != null && minutes != null &&
-        anteAfter != null && breakEvery != null && breakMinutes != null && buyIn != null
+        anteAfter != null && breakEvery != null && breakMinutes != null && buyIn != null && rebuyUntil != null
     ) {
         PokerSettings(
             startingStack = stack,
@@ -105,7 +107,8 @@ fun PokerSetupScreen(
             breakMinutes = breakMinutes,
             levelAlert = alertOn,
             buyIn = buyIn,
-            payoutPercents = if (buyIn > 0) payout else emptyList()
+            payoutPercents = if (buyIn > 0) payout else emptyList(),
+            rebuyUntilLevel = rebuyUntil
         )
     } else {
         null
@@ -309,6 +312,14 @@ fun PokerSetupScreen(
                         )
                     }
                 }
+
+                // Recaves
+                PokerNumberField(
+                    value = rebuyText,
+                    onChange = { rebuyText = it },
+                    label = stringResource(R.string.poker_setup_rebuy),
+                    supporting = stringResource(R.string.poker_setup_rebuy_hint)
+                )
 
                 // Joueur au bouton à la première main
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

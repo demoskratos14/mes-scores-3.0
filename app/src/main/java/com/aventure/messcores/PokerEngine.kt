@@ -36,7 +36,9 @@ data class PokerSettings(
     /** Mise d'entrée par joueur (0 = pas de gains à répartir). */
     val buyIn: Int = 0,
     /** Part de la cagnotte (en %) de la 1re place, de la 2e… ; vide = pas de gains. */
-    val payoutPercents: List<Int> = emptyList()
+    val payoutPercents: List<Int> = emptyList(),
+    /** Recaves possibles tant que le niveau de blinds ne dépasse pas celui-ci (0 = pas de recave). */
+    val rebuyUntilLevel: Int = 0
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("startingStack", startingStack)
@@ -52,6 +54,7 @@ data class PokerSettings(
         put("levelAlert", levelAlert)
         put("buyIn", buyIn)
         put("payoutPercents", JSONArray(payoutPercents))
+        put("rebuyUntilLevel", rebuyUntilLevel)
     }
 
     companion object {
@@ -73,7 +76,8 @@ data class PokerSettings(
             levelAlert = obj.optBoolean("levelAlert", true),
             buyIn = obj.optInt("buyIn", 0),
             payoutPercents = obj.optJSONArray("payoutPercents")?.let { a -> (0 until a.length()).map { a.getInt(it) } }
-                ?: emptyList()
+                ?: emptyList(),
+            rebuyUntilLevel = obj.optInt("rebuyUntilLevel", 0)
         )
     }
 }
@@ -284,7 +288,9 @@ data class PokerGame(
     /** Nombre de mains entièrement jouées. */
     val handsPlayed: Int,
     /** Temps de jeu écoulé, en millisecondes, au moment de l'enregistrement (voir [ScoreViewModel]). */
-    val clockMs: Long
+    val clockMs: Long,
+    /** Nombre de recaves de chaque joueur (même index que [seats]) ; vide pour une ancienne partie. */
+    val rebuys: List<Int> = emptyList()
 ) {
     /** Tous les jetons au milieu de la table : mises des tours précédents et du tour en cours. */
     val pot: Int get() = seats.sumOf { it.totalBet }
@@ -335,6 +341,7 @@ data class PokerGame(
         put("eliminated", JSONArray(eliminated))
         put("handsPlayed", handsPlayed)
         put("clockMs", clockMs)
+        put("rebuys", JSONArray(rebuys))
     }
 
     companion object {
@@ -391,7 +398,8 @@ data class PokerGame(
                 winnings = winnings,
                 eliminated = ints("eliminated"),
                 handsPlayed = obj.optInt("handsPlayed", 0),
-                clockMs = obj.optLong("clockMs", 0L)
+                clockMs = obj.optLong("clockMs", 0L),
+                rebuys = ints("rebuys").let { if (it.size == seats.size) it else List(seats.size) { 0 } }
             )
         }
     }
@@ -439,7 +447,8 @@ object PokerEngine {
             winnings = List(playerCount) { 0 },
             eliminated = emptyList(),
             handsPlayed = 0,
-            clockMs = 0L
+            clockMs = 0L,
+            rebuys = List(playerCount) { 0 }
         )
         return startHand(game, level = 1, keepDealer = true)
     }
@@ -773,6 +782,36 @@ object PokerEngine {
         return startHand(game, maxOf(level, game.handLevel))
     }
 
+    // ---------- Recaves ----------
+
+    /**
+     * Vrai si [player], éliminé, peut racheter des jetons : entre deux mains, et tant que le niveau
+     * de blinds [level] ne dépasse pas la limite des recaves (réglage > 0). Possible même quand il ne
+     * reste qu'un joueur : le tournoi reprend alors avec lui.
+     */
+    fun canRebuy(game: PokerGame, player: Int, level: Int): Boolean =
+        game.phase == PokerPhase.HAND_OVER &&
+            player in game.seats.indices &&
+            game.seats[player].out &&
+            game.settings.rebuyUntilLevel > 0 &&
+            level <= game.settings.rebuyUntilLevel
+
+    /**
+     * Recave : [player] revient à sa place avec le tapis de départ. Il n'est plus compté parmi les
+     * éliminés (son rang final se joue à sa prochaine élimination) et sa recave s'ajoute à la cagnotte.
+     * Sans effet si la recave n'est pas permise.
+     */
+    fun rebuy(game: PokerGame, player: Int, level: Int): PokerGame {
+        if (!canRebuy(game, player, level)) return game
+        val seats = game.seats.toMutableList()
+        seats[player] = PokerSeat(stack = game.settings.startingStack)
+        val rebuys = List(game.seats.size) { game.rebuys.getOrElse(it) { 0 } }.toMutableList()
+        rebuys[player] += 1
+        val position = game.eliminated.lastIndexOf(player)
+        val eliminated = game.eliminated.filterIndexed { index, _ -> index != position }
+        return game.copy(seats = seats, rebuys = rebuys, eliminated = eliminated)
+    }
+
     // ---------- Changement de table ----------
 
     /**
@@ -829,7 +868,9 @@ object PokerEngine {
         val log = game.log.mapNotNull { entry ->
             mapped(entry.player).takeIf { it >= 0 }?.let { entry.copy(player = it) }
         }
+        val rebuys = order.map { ref -> if (ref >= 0) game.rebuys.getOrElse(ref) { 0 } else 0 }
         val reseated = game.copy(
+            rebuys = rebuys,
             seats = seats,
             dealer = oldToNew[dealerOld],
             smallBlindSeat = mapped(game.smallBlindSeat),
@@ -894,8 +935,9 @@ object PokerPrizes {
     /** Nombre minimal de joueurs pour qu'une répartition à [places] places ait un sens. */
     fun minPlayers(places: Int): Int = places + 1
 
-    fun pool(settings: PokerSettings, playerCount: Int): Int =
-        (settings.buyIn.toLong() * playerCount).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+    /** Cagnotte : un buy-in par joueur et par recave. */
+    fun pool(settings: PokerSettings, playerCount: Int, rebuyCount: Int = 0): Int =
+        (settings.buyIn.toLong() * (playerCount + rebuyCount)).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
 
     /**
      * Gain de chaque joueur (même ordre que les places), 0 si rien n'est à gagner. À appeler une fois
@@ -908,7 +950,7 @@ object PokerPrizes {
         val result = MutableList(n) { 0 }
         val percents = settings.payoutPercents.take(n)
         if (settings.buyIn <= 0 || percents.isEmpty()) return result
-        val pool = pool(settings, n).toLong()
+        val pool = pool(settings, n, game.rebuys.sum()).toLong()
         val prizes = percents.map { pool * it / 100 }.toMutableList()
         prizes[0] += pool - prizes.sum() // reste des arrondis : à la première place
         val ranks = PokerEngine.ranks(game)

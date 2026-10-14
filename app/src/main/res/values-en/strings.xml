@@ -1095,4 +1095,8 @@
     <string name="poker_info_prize_pool">Prize pool: %1$s</string>
     <string name="poker_prizes_title">Prizes</string>
     <string name="poker_prize_line">%1$d. %2$s: %3$s</string>
+    <string name="poker_setup_rebuy">Rebuys until level</string>
+    <string name="poker_setup_rebuy_hint">0 = no rebuys. An eliminated player can come back with the starting stack (and another buy-in in the prize pool) until this level has passed.</string>
+    <string name="poker_rebuy_button">Rebuy for %1$s (stack of %2$s)</string>
+    <string name="poker_info_rebuys">Rebuys: %1$d · allowed until level %2$d</string>
 </resources>

@@ -158,7 +158,7 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
             when (game.phase) {
                 PokerPhase.BETTING -> PokerActionPanel(viewModel, game, players)
                 PokerPhase.SHOWDOWN -> PokerShowdownPanel(viewModel, game, players)
-                PokerPhase.HAND_OVER -> PokerHandOverPanel(viewModel, game, players)
+                PokerPhase.HAND_OVER -> PokerHandOverPanel(viewModel, game, players, level)
             }
 
             if (game.log.isNotEmpty()) PokerLog(game, players)
@@ -329,10 +329,16 @@ private fun PokerInfoCard(game: PokerGame, players: List<String>) {
                 ),
                 style = MaterialTheme.typography.bodyMedium
             )
+            if (game.settings.rebuyUntilLevel > 0) {
+                Text(
+                    text = stringResource(R.string.poker_info_rebuys, game.rebuys.sum(), game.settings.rebuyUntilLevel),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
             if (game.settings.buyIn > 0 && game.settings.payoutPercents.isNotEmpty()) {
                 Text(
                     text = stringResource(
-                        R.string.poker_info_prize_pool, formatChips(PokerPrizes.pool(game.settings, info.total))
+                        R.string.poker_info_prize_pool, formatChips(PokerPrizes.pool(game.settings, info.total, game.rebuys.sum()))
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -708,7 +714,7 @@ private fun PokerShowdownPanel(viewModel: ScoreViewModel, game: PokerGame, playe
 // ---------- Fin de main ----------
 
 @Composable
-private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, players: List<String>) {
+private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, players: List<String>, level: Int) {
     val champion = game.champion
     // Fenêtre pour réunir des tables : export / import de joueurs (voir PokerTablesDialog.kt).
     var showTables by rememberSaveable { mutableStateOf(false) }
@@ -735,6 +741,18 @@ private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, playe
             }
             knockedOut.forEach { index ->
                 Text(stringResource(R.string.poker_player_eliminated, players.getOrElse(index) { "" }))
+            }
+            // Recaves : les joueurs éliminés (à cette main ou avant) peuvent revenir tant que la période est ouverte.
+            game.seats.indices.filter { PokerEngine.canRebuy(game, it, level) }.forEach { index ->
+                OutlinedButton(onClick = { viewModel.pokerRebuy(index) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(
+                            R.string.poker_rebuy_button,
+                            players.getOrElse(index) { "" },
+                            formatChips(game.settings.startingStack)
+                        )
+                    )
+                }
             }
             if (champion != null) {
                 Text(

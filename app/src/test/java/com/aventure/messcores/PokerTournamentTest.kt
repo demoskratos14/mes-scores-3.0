@@ -19,12 +19,13 @@ class PokerTournamentTest {
         breakEvery: Int = 0,
         breakMinutes: Int = 0,
         buyIn: Int = 0,
-        payouts: List<Int> = emptyList()
+        payouts: List<Int> = emptyList(),
+        rebuyUntil: Int = 0
     ) = PokerSettings(
         startingStack = 5000, smallBlind = small, bigBlind = big, levelMinutes = levelMinutes,
         anteEnabled = false, anteAfterIncreases = 0, firstDealer = 0,
         pace = pace, breakEveryLevels = breakEvery, breakMinutes = breakMinutes,
-        buyIn = buyIn, payoutPercents = payouts
+        buyIn = buyIn, payoutPercents = payouts, rebuyUntilLevel = rebuyUntil
     )
 
     // ---------- Blinds ----------
@@ -226,5 +227,96 @@ class PokerTournamentTest {
         assertEquals(0, loaded.buyIn)
         assertTrue(loaded.levelAlert)
         assertTrue(loaded.payoutPercents.isEmpty())
+    }
+
+    // ---------- Recaves ----------
+
+    /** Partie à 3 joueurs : le joueur 2 vient d'être éliminé et la main est payée. */
+    private fun withBustedPlayer(s: PokerSettings): PokerGame {
+        val base = PokerEngine.newGame(s, 3)
+        return base.copy(
+            seats = listOf(PokerSeat(stack = 6000), PokerSeat(stack = 9000), PokerSeat(stack = 0, out = true, inHand = true)),
+            phase = PokerPhase.HAND_OVER,
+            eliminated = listOf(2),
+            handNumber = 5
+        )
+    }
+
+    @Test
+    fun recaveRemetLeJoueurEnJeuAvecLeTapisDeDepart() {
+        val g = withBustedPlayer(settings(rebuyUntil = 3, buyIn = 10, payouts = listOf(100)))
+        assertTrue(PokerEngine.canRebuy(g, 2, level = 3))
+        val r = PokerEngine.rebuy(g, 2, level = 3)
+        assertFalse(r.seats[2].out)
+        assertEquals(5000, r.seats[2].stack)
+        assertEquals(listOf(0, 0, 1), r.rebuys)
+        assertTrue(r.eliminated.isEmpty())
+        // La cagnotte compte la recave : 3 buy-ins + 1 recave.
+        assertEquals(40, PokerPrizes.pool(r.settings, 3, r.rebuys.sum()))
+        // La main suivante se joue à trois.
+        assertEquals(3, PokerEngine.nextHand(r, level = 3).seats.count { it.inHand })
+    }
+
+    @Test
+    fun recaveRefuseeApresLaPeriodeOuSansReglage() {
+        val g = withBustedPlayer(settings(rebuyUntil = 3))
+        assertFalse(PokerEngine.canRebuy(g, 2, level = 4))
+        assertEquals(g, PokerEngine.rebuy(g, 2, level = 4))
+        assertFalse(PokerEngine.canRebuy(withBustedPlayer(settings(rebuyUntil = 0)), 2, level = 1))
+        // Un joueur encore en lice ne peut pas racheter.
+        assertFalse(PokerEngine.canRebuy(g, 0, level = 1))
+    }
+
+    @Test
+    fun recaveImpossiblePendantUneMain() {
+        val g = withBustedPlayer(settings(rebuyUntil = 3)).copy(phase = PokerPhase.BETTING)
+        assertFalse(PokerEngine.canRebuy(g, 2, level = 1))
+    }
+
+    @Test
+    fun recavePossibleMemeSiUnSeulJoueurRestait() {
+        val s = settings(rebuyUntil = 2)
+        val g = withBustedPlayer(s).let {
+            it.copy(
+                seats = listOf(PokerSeat(stack = 15000), PokerSeat(stack = 0, out = true), PokerSeat(stack = 0, out = true)),
+                eliminated = listOf(2, 1)
+            )
+        }
+        assertEquals(0, g.champion)
+        val r = PokerEngine.rebuy(g, 1, level = 1)
+        assertNull(r.champion)
+        // Le joueur 2 reste éliminé en dernière position.
+        assertEquals(listOf(2), r.eliminated)
+        assertEquals(3, PokerEngine.ranks(r)[2])
+    }
+
+    @Test
+    fun uneRecaveNEstPasUnClassementEtLesGainsSuiventLaCagnotte() {
+        val s = settings(buyIn = 10, payouts = listOf(100), rebuyUntil = 5)
+        // Joueur 2 éliminé, recave, puis éliminé de nouveau ; le joueur 0 gagne.
+        val g = PokerEngine.newGame(s, 3).copy(
+            seats = listOf(PokerSeat(stack = 15000), PokerSeat(stack = 0, out = true), PokerSeat(stack = 0, out = true)),
+            phase = PokerPhase.HAND_OVER,
+            eliminated = listOf(1, 2),
+            rebuys = listOf(0, 0, 1)
+        )
+        assertEquals(listOf(40, 0, 0), PokerPrizes.payouts(g))
+    }
+
+    @Test
+    fun recavesSauvegardeesEtSuiventLesJoueursAuChangementDeTable() {
+        val g = withBustedPlayer(settings(rebuyUntil = 3)).copy(rebuys = listOf(1, 0, 2))
+        assertEquals(g, PokerGame.fromJson(g.toJson()))
+        // Ancien enregistrement sans compteur de recaves.
+        val old = g.toJson().apply { remove("rebuys") }
+        assertEquals(listOf(0, 0, 0), PokerGame.fromJson(old).rebuys)
+
+        val reseat = PokerEngine.reseat(g.copy(seats = g.seats.map { it.copy(out = false, stack = 1000) }, eliminated = emptyList()),
+            remove = setOf(1), arrivalStacks = listOf(2000), random = kotlin.random.Random(1))!!
+        val newRebuys = reseat.game.rebuys
+        assertEquals(3, newRebuys.size)
+        assertEquals(1, newRebuys[reseat.oldToNew[0]])
+        assertEquals(2, newRebuys[reseat.oldToNew[2]])
+        assertEquals(0, newRebuys[reseat.arrivals[0]])
     }
 }
