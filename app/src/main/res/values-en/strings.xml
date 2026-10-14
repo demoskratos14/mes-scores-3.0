@@ -1135,4 +1135,14 @@
     <string name="sheet_wingspan_nectar_hint">Oceania expansion: in each habitat, 5 points for the most nectar spent and 2 for the second most. Leave empty without the expansion.</string>
     <string name="sheet_hanabi_hint">Value of the highest card played in this colour (0 if none).</string>
     <string name="sheet_hanabi_rainbow_hint">Rainbow variant: same principle. Leave at 0 if you do not play this variant.</string>
+    <string name="share_as_text">As text</string>
+    <string name="share_as_image">As image</string>
+    <string name="choose_share_game">Share</string>
+    <string name="choose_share_game_title">Share the game %1$s</string>
+    <string name="choose_share_game_failed">Could not share: %1$s</string>
+    <string name="choose_import_game">Import a shared game</string>
+    <string name="choose_import_ok">Games added: %1$d · already present: %2$d · unreadable: %3$d</string>
+    <string name="choose_import_not_game">This file is not a game shared from Mes Scores.</string>
+    <string name="choose_import_newer">This file comes from a newer version of the app: update the app to import it.</string>
+    <string name="choose_import_failed">Import failed: %1$s</string>
 </resources>

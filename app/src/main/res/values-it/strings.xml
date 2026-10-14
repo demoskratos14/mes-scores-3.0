@@ -1166,4 +1166,14 @@
     <string name="sheet_wingspan_nectar_hint">Espansione Oceania: in ogni habitat, 5 punti per più nettare speso e 2 per il secondo. Lascia vuoto senza l\'espansione.</string>
     <string name="sheet_hanabi_hint">Valore della carta più alta giocata in questo colore (0 se nessuna).</string>
     <string name="sheet_hanabi_rainbow_hint">Variante multicolore: stesso principio. Lascia a 0 se non giochi questa variante.</string>
+    <string name="share_as_text">Come testo</string>
+    <string name="share_as_image">Come immagine</string>
+    <string name="choose_share_game">Condividi</string>
+    <string name="choose_share_game_title">Condividi il gioco %1$s</string>
+    <string name="choose_share_game_failed">Condivisione non riuscita: %1$s</string>
+    <string name="choose_import_game">Importa un gioco condiviso</string>
+    <string name="choose_import_ok">Giochi aggiunti: %1$d · già presenti: %2$d · illeggibili: %3$d</string>
+    <string name="choose_import_not_game">Questo file non è un gioco condiviso da Mes Scores.</string>
+    <string name="choose_import_newer">Questo file proviene da una versione più recente dell\'app: aggiorna l\'app per importarlo.</string>
+    <string name="choose_import_failed">Importazione non riuscita: %1$s</string>
 </resources>

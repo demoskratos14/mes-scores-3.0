@@ -1156,4 +1156,14 @@
     <string name="sheet_wingspan_nectar_hint">Expansión Oceanía: en cada hábitat, 5 puntos por más néctar gastado y 2 por el segundo. Déjalo vacío sin la expansión.</string>
     <string name="sheet_hanabi_hint">Valor de la carta más alta jugada en este color (0 si no hay).</string>
     <string name="sheet_hanabi_rainbow_hint">Variante multicolor: mismo principio. Déjalo en 0 si no juegas esta variante.</string>
+    <string name="share_as_text">En texto</string>
+    <string name="share_as_image">En imagen</string>
+    <string name="choose_share_game">Compartir</string>
+    <string name="choose_share_game_title">Compartir el juego %1$s</string>
+    <string name="choose_share_game_failed">No se pudo compartir: %1$s</string>
+    <string name="choose_import_game">Importar un juego compartido</string>
+    <string name="choose_import_ok">Juegos añadidos: %1$d · ya presentes: %2$d · ilegibles: %3$d</string>
+    <string name="choose_import_not_game">Este archivo no es un juego compartido desde Mes Scores.</string>
+    <string name="choose_import_newer">Este archivo viene de una versión más reciente de la aplicación: actualízala para importarlo.</string>
+    <string name="choose_import_failed">No se pudo importar: %1$s</string>
 </resources>

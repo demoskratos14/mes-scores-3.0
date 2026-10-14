@@ -1156,4 +1156,14 @@
     <string name="sheet_wingspan_nectar_hint">Expansão Oceânia: em cada habitat, 5 pontos por mais néctar gasto e 2 pelo segundo. Deixa vazio sem a expansão.</string>
     <string name="sheet_hanabi_hint">Valor da carta mais alta jogada nesta cor (0 se nenhuma).</string>
     <string name="sheet_hanabi_rainbow_hint">Variante multicolor: mesmo princípio. Deixa a 0 se não jogares esta variante.</string>
+    <string name="share_as_text">Como texto</string>
+    <string name="share_as_image">Como imagem</string>
+    <string name="choose_share_game">Partilhar</string>
+    <string name="choose_share_game_title">Partilhar o jogo %1$s</string>
+    <string name="choose_share_game_failed">Não foi possível partilhar: %1$s</string>
+    <string name="choose_import_game">Importar um jogo partilhado</string>
+    <string name="choose_import_ok">Jogos adicionados: %1$d · já existentes: %2$d · ilegíveis: %3$d</string>
+    <string name="choose_import_not_game">Este ficheiro não é um jogo partilhado do Mes Scores.</string>
+    <string name="choose_import_newer">Este ficheiro vem de uma versão mais recente da aplicação: atualiza a aplicação para o importar.</string>
+    <string name="choose_import_failed">Importação não foi possível: %1$s</string>
 </resources>

@@ -796,6 +796,20 @@ class ScoreViewModel : ViewModel() {
         )
     }
 
+    /** Même classement que [shareText], mis en forme pour l'image partagée (voir [ResultImage]). */
+    fun shareImageContent(context: Context): ResultImage.Content {
+        val all = totals
+        return ResultImage.content(
+            context = context,
+            gameName = gameRules.name,
+            players = players,
+            totals = all,
+            ranks = ranksFor(all),
+            finished = isGameOver(),
+            winners = winners()
+        )
+    }
+
     /** Vrai si la condition de fin de partie définie par les règles du jeu est atteinte. */
     fun isGameOver(): Boolean {
         // Poker : terminé quand il ne reste qu'un joueur avec des jetons.

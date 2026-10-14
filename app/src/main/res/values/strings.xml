@@ -1171,4 +1171,14 @@
     <string name="sheet_wingspan_nectar_hint">Extension Océanie : 5 points pour le plus de nectar dépensé dans un habitat, 2 pour le deuxième, dans chaque habitat. Laisse vide sans l\'extension.</string>
     <string name="sheet_hanabi_hint">Valeur de la plus haute carte posée dans cette couleur (0 si aucune).</string>
     <string name="sheet_hanabi_rainbow_hint">Variante multicolore : même principe. Laisse à 0 si tu ne joues pas cette variante.</string>
+    <string name="share_as_text">En texte</string>
+    <string name="share_as_image">En image</string>
+    <string name="choose_share_game">Partager</string>
+    <string name="choose_share_game_title">Partager le jeu %1$s</string>
+    <string name="choose_share_game_failed">Partage impossible : %1$s</string>
+    <string name="choose_import_game">Importer un jeu partagé</string>
+    <string name="choose_import_ok">Jeux ajoutés : %1$d · déjà présents : %2$d · illisibles : %3$d</string>
+    <string name="choose_import_not_game">Ce fichier n\'est pas un jeu partagé par Mes Scores.</string>
+    <string name="choose_import_newer">Ce fichier vient d\'une version plus récente de l\'appli : mets l\'appli à jour pour l\'importer.</string>
+    <string name="choose_import_failed">Import impossible : %1$s</string>
 </resources>
