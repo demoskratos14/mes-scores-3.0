@@ -24,7 +24,19 @@ data class PokerSettings(
     /** Nombre d'augmentations de blinds avant l'arrivée des antes (0 = dès la première main). */
     val anteAfterIncreases: Int,
     /** Index du joueur qui a le bouton à la première main. */
-    val firstDealer: Int
+    val firstDealer: Int,
+    /** Vitesse de montée des blinds. */
+    val pace: PokerPace = PokerPace.REGULAR,
+    /** Pause programmée après ce nombre de niveaux (0 = pas de pause). */
+    val breakEveryLevels: Int = 0,
+    /** Durée de la pause en minutes (0 = pas de pause). */
+    val breakMinutes: Int = 0,
+    /** Son et vibration à chaque changement de niveau ou de pause. */
+    val levelAlert: Boolean = true,
+    /** Mise d'entrée par joueur (0 = pas de gains à répartir). */
+    val buyIn: Int = 0,
+    /** Part de la cagnotte (en %) de la 1re place, de la 2e… ; vide = pas de gains. */
+    val payoutPercents: List<Int> = emptyList()
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("startingStack", startingStack)
@@ -34,6 +46,12 @@ data class PokerSettings(
         put("anteEnabled", anteEnabled)
         put("anteAfterIncreases", anteAfterIncreases)
         put("firstDealer", firstDealer)
+        put("pace", pace.name)
+        put("breakEveryLevels", breakEveryLevels)
+        put("breakMinutes", breakMinutes)
+        put("levelAlert", levelAlert)
+        put("buyIn", buyIn)
+        put("payoutPercents", JSONArray(payoutPercents))
     }
 
     companion object {
@@ -44,12 +62,29 @@ data class PokerSettings(
             levelMinutes = obj.optInt("levelMinutes", 0),
             anteEnabled = obj.optBoolean("anteEnabled", false),
             anteAfterIncreases = obj.optInt("anteAfterIncreases", 0),
-            firstDealer = obj.optInt("firstDealer", 0)
+            firstDealer = obj.optInt("firstDealer", 0),
+            pace = try {
+                PokerPace.valueOf(obj.optString("pace", PokerPace.REGULAR.name))
+            } catch (e: IllegalArgumentException) {
+                PokerPace.REGULAR
+            },
+            breakEveryLevels = obj.optInt("breakEveryLevels", 0),
+            breakMinutes = obj.optInt("breakMinutes", 0),
+            levelAlert = obj.optBoolean("levelAlert", true),
+            buyIn = obj.optInt("buyIn", 0),
+            payoutPercents = obj.optJSONArray("payoutPercents")?.let { a -> (0 until a.length()).map { a.getInt(it) } }
+                ?: emptyList()
         )
     }
 }
 
-/** Structure des blinds : niveau 1 = réglages de départ, puis une marche de l'échelle « classique » à chaque niveau. */
+/** Vitesse de montée des blinds : [percent] = cible de la grosse blind du niveau suivant, en % de la courante (100 = palier suivant de l'échelle). */
+enum class PokerPace(val percent: Int) { REGULAR(100), FAST(150), TURBO(200) }
+
+/**
+ * Structure des blinds : niveau 1 = réglages de départ, puis une marche de l'échelle « classique »
+ * à chaque niveau, avec une pause programmée de temps en temps si elle est réglée.
+ */
 object PokerBlinds {
     private val MANTISSAS = longArrayOf(10, 12, 15, 20, 25, 30, 40, 50, 60, 80)
 
@@ -64,16 +99,28 @@ object PokerBlinds {
         values.toList()
     }
 
-    /** Grosse blind du niveau suivant : environ +30 %, arrondie à la valeur ronde supérieure. */
-    fun nextBigBlind(bigBlind: Int): Int {
-        val target = maxOf(bigBlind + 1L, (bigBlind * 13L + 9) / 10)
-        return (LADDER.firstOrNull { it >= target } ?: target).coerceAtMost(Int.MAX_VALUE.toLong() / 4).toInt()
+    /**
+     * Grosse blind du niveau suivant : la valeur ronde la plus proche de la cible (palier suivant, +50 % ou
+     * +100 % selon [pace]), et toujours strictement plus grande que la blind actuelle.
+     */
+    fun nextBigBlind(bigBlind: Int, pace: PokerPace = PokerPace.REGULAR): Int {
+        val target = (bigBlind.toLong() * pace.percent + 50) / 100
+        val lower = LADDER.lastOrNull { it <= target }
+        val upper = LADDER.firstOrNull { it >= target }
+        val nearest = when {
+            lower == null -> upper
+            upper == null -> lower
+            target - lower < upper - target -> lower
+            else -> upper
+        } ?: target
+        val chosen = if (nearest > bigBlind) nearest else (LADDER.firstOrNull { it > bigBlind } ?: (bigBlind + 1L))
+        return chosen.coerceAtMost(Int.MAX_VALUE.toLong() / 4).toInt()
     }
 
     /** Grosse blind du niveau [level] (1 = départ). */
     fun bigBlindAt(settings: PokerSettings, level: Int): Int {
         var bb = settings.bigBlind
-        repeat((level - 1).coerceAtLeast(0)) { bb = nextBigBlind(bb) }
+        repeat((level - 1).coerceAtLeast(0)) { bb = nextBigBlind(bb, settings.pace) }
         return bb
     }
 
@@ -90,19 +137,57 @@ object PokerBlinds {
         return maxOf(1, bigBlindAt(settings, level) / 10)
     }
 
-    /** Niveau atteint après [elapsedMs] millisecondes de jeu (1 si les blinds sont fixes). */
+    // ---------- Temps : niveaux et pauses ----------
+
+    private fun levelMs(s: PokerSettings) = s.levelMinutes * 60_000L
+
+    private fun breaksOn(s: PokerSettings) = s.levelMinutes > 0 && s.breakEveryLevels > 0 && s.breakMinutes > 0
+
+    private fun playMs(s: PokerSettings) = s.breakEveryLevels * levelMs(s)
+
+    private fun cycleMs(s: PokerSettings) = playMs(s) + s.breakMinutes * 60_000L
+
+    /**
+     * Niveau atteint après [elapsedMs] millisecondes (1 si les blinds sont fixes). Pendant une pause,
+     * c'est le dernier niveau joué : le niveau suivant arrive à la fin de la pause.
+     */
     fun levelAt(settings: PokerSettings, elapsedMs: Long): Int {
         if (settings.levelMinutes <= 0) return 1
-        return 1 + (elapsedMs.coerceAtLeast(0) / (settings.levelMinutes * 60_000L)).toInt()
+        val e = elapsedMs.coerceAtLeast(0)
+        if (!breaksOn(settings)) return 1 + (e / levelMs(settings)).toInt()
+        val cycle = cycleMs(settings)
+        val rest = e % cycle
+        val inBlock = if (rest < playMs(settings)) (rest / levelMs(settings)).toInt() else settings.breakEveryLevels - 1
+        return 1 + ((e / cycle) * settings.breakEveryLevels).toInt() + inBlock
     }
 
-    /** Temps de jeu écoulé au début du niveau suivant (pour le bouton « niveau suivant »). */
+    /** Vrai si une pause programmée est en cours après [elapsedMs] millisecondes. */
+    fun isBreak(settings: PokerSettings, elapsedMs: Long): Boolean =
+        breaksOn(settings) && elapsedMs.coerceAtLeast(0) % cycleMs(settings) >= playMs(settings)
+
+    /** Vrai si la fin du niveau en cours déclenche une pause (et non un nouveau niveau). */
+    fun breakStartsNext(settings: PokerSettings, elapsedMs: Long): Boolean {
+        if (!breaksOn(settings) || isBreak(settings, elapsedMs)) return false
+        val rest = elapsedMs.coerceAtLeast(0) % cycleMs(settings)
+        return (rest / levelMs(settings)).toInt() == settings.breakEveryLevels - 1
+    }
+
+    /** Vrai si une pause est programmée après le niveau [level] (pour l'aperçu de la structure). */
+    fun breakAfterLevel(settings: PokerSettings, level: Int): Boolean =
+        breaksOn(settings) && level >= 1 && level % settings.breakEveryLevels == 0
+
+    /** Temps de jeu écoulé au prochain changement : fin du niveau, ou fin de la pause si elle est en cours. */
     fun elapsedAtNextLevel(settings: PokerSettings, elapsedMs: Long): Long {
         if (settings.levelMinutes <= 0) return elapsedMs
-        return levelAt(settings, elapsedMs) * settings.levelMinutes * 60_000L
+        val e = elapsedMs.coerceAtLeast(0)
+        if (!breaksOn(settings)) return (e / levelMs(settings) + 1) * levelMs(settings)
+        val cycle = cycleMs(settings)
+        val base = (e / cycle) * cycle
+        val rest = e - base
+        return if (rest >= playMs(settings)) base + cycle else base + (rest / levelMs(settings) + 1) * levelMs(settings)
     }
 
-    /** Millisecondes restantes avant le niveau suivant, ou null si les blinds sont fixes. */
+    /** Millisecondes restantes avant le prochain changement (niveau, début ou fin de pause), ou null si les blinds sont fixes. */
     fun remainingMs(settings: PokerSettings, elapsedMs: Long): Long? {
         if (settings.levelMinutes <= 0) return null
         return elapsedAtNextLevel(settings, elapsedMs) - elapsedMs.coerceAtLeast(0)
@@ -311,6 +396,17 @@ data class PokerGame(
         }
     }
 }
+
+/** Chiffres de la table : joueurs en lice, tapis moyen, plus gros tapis (en jetons et en grosses blinds). */
+data class PokerTableInfo(
+    val alive: Int,
+    val total: Int,
+    val averageStack: Int,
+    val averageBigBlinds: Int,
+    val leader: Int,
+    val leaderChips: Int,
+    val leaderBigBlinds: Int
+)
 
 /**
  * Résultat de [PokerEngine.reseat] : la partie avec ses nouvelles places, la nouvelle place de chaque
@@ -746,6 +842,32 @@ object PokerEngine {
         return PokerReseat(reseated, oldToNew, arrivals)
     }
 
+    // ---------- Infos de table ----------
+
+    /**
+     * Joueurs restants, tapis moyen et plus gros tapis. Pendant une main, les jetons déjà misés
+     * comptent pour leur propriétaire (on compare les tapis du début de main). Les grosses blinds
+     * sont celles de la main en cours. Null si plus personne n'est en lice.
+     */
+    fun tableInfo(game: PokerGame): PokerTableInfo? {
+        val alive = game.seats.indices.filter { !game.seats[it].out }
+        if (alive.isEmpty()) return null
+        val midHand = game.phase != PokerPhase.HAND_OVER
+        fun chips(i: Int) = game.seats[i].stack + if (midHand) game.seats[i].totalBet else 0
+        val bb = maxOf(1, PokerBlinds.bigBlindAt(game.settings, game.handLevel))
+        val average = (alive.sumOf { chips(it).toLong() } / alive.size).toInt()
+        val leader = alive.maxByOrNull { chips(it) } ?: alive.first()
+        return PokerTableInfo(
+            alive = alive.size,
+            total = game.seats.size,
+            averageStack = average,
+            averageBigBlinds = average / bb,
+            leader = leader,
+            leaderChips = chips(leader),
+            leaderBigBlinds = chips(leader) / bb
+        )
+    }
+
     // ---------- Classement ----------
 
     /**
@@ -761,5 +883,44 @@ object PokerEngine {
         }
         game.eliminated.forEachIndexed { order, i -> ranks[i] = n - order }
         return ranks
+    }
+}
+
+/** Gains du tournoi : cagnotte = buy-in × nombre de joueurs, répartie selon le classement final. */
+object PokerPrizes {
+    /** Répartitions proposées à la création (en % de la cagnotte, de la 1re place vers les suivantes). */
+    val PRESETS: List<List<Int>> = listOf(listOf(100), listOf(65, 35), listOf(50, 30, 20))
+
+    /** Nombre minimal de joueurs pour qu'une répartition à [places] places ait un sens. */
+    fun minPlayers(places: Int): Int = places + 1
+
+    fun pool(settings: PokerSettings, playerCount: Int): Int =
+        (settings.buyIn.toLong() * playerCount).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+
+    /**
+     * Gain de chaque joueur (même ordre que les places), 0 si rien n'est à gagner. À appeler une fois
+     * le tournoi fini : les ex æquo se partagent les gains des places qu'ils occupent, et les jetons
+     * qui ne se divisent pas vont au joueur placé en premier dans la liste.
+     */
+    fun payouts(game: PokerGame): List<Int> {
+        val n = game.seats.size
+        val settings = game.settings
+        val result = MutableList(n) { 0 }
+        val percents = settings.payoutPercents.take(n)
+        if (settings.buyIn <= 0 || percents.isEmpty()) return result
+        val pool = pool(settings, n).toLong()
+        val prizes = percents.map { pool * it / 100 }.toMutableList()
+        prizes[0] += pool - prizes.sum() // reste des arrondis : à la première place
+        val ranks = PokerEngine.ranks(game)
+        ranks.indices.groupBy { ranks[it] }.forEach { (rank, members) ->
+            val total = (rank - 1 until rank - 1 + members.size).sumOf { prizes.getOrElse(it) { 0L } }
+            val share = total / members.size
+            var rest = total % members.size
+            members.sorted().forEach { i ->
+                result[i] = (share + if (rest > 0) 1 else 0).toInt()
+                if (rest > 0) rest--
+            }
+        }
+        return result
     }
 }

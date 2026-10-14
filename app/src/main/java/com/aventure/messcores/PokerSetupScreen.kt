@@ -62,6 +62,12 @@ fun PokerSetupScreen(
     var minutesText by rememberSaveable { mutableStateOf("15") }
     var anteOn by rememberSaveable { mutableStateOf(false) }
     var anteAfterText by rememberSaveable { mutableStateOf("3") }
+    var paceIndex by rememberSaveable { mutableIntStateOf(PokerPace.REGULAR.ordinal) }
+    var breakEveryText by rememberSaveable { mutableStateOf("0") }
+    var breakMinutesText by rememberSaveable { mutableStateOf("10") }
+    var alertOn by rememberSaveable { mutableStateOf(true) }
+    var buyInText by rememberSaveable { mutableStateOf("0") }
+    var payoutIndex by rememberSaveable { mutableIntStateOf(0) }
     // -1 = bouton tiré au sort.
     var dealerChoice by rememberSaveable { mutableIntStateOf(-1) }
 
@@ -70,11 +76,22 @@ fun PokerSetupScreen(
     val big = bigText.toIntOrNull()
     val minutes = minutesText.toIntOrNull()
     val anteAfter = anteAfterText.toIntOrNull()
+    val breakEvery = breakEveryText.toIntOrNull()
+    val breakMinutes = breakMinutesText.toIntOrNull()
+    val buyIn = buyInText.toIntOrNull()
+    val pace = PokerPace.entries[paceIndex.coerceIn(0, PokerPace.entries.size - 1)]
+    // Répartitions possibles : il faut plus de joueurs que de places payées.
+    val payoutOptions = PokerPrizes.PRESETS.filter { playerNames.size >= PokerPrizes.minPlayers(it.size) }
+    val payout = payoutOptions.getOrElse(payoutIndex) { payoutOptions.first() }
 
     val valid = stack != null && small != null && big != null && minutes != null && anteAfter != null &&
-        small >= 1 && big >= small && stack > big && minutes in 0..600 && anteAfter in 0..99
+        breakEvery != null && breakMinutes != null && buyIn != null &&
+        small >= 1 && big >= small && stack > big && minutes in 0..600 && anteAfter in 0..99 &&
+        breakEvery in 0..99 && breakMinutes in 0..180 && buyIn in 0..1_000_000
 
-    val previewSettings = if (valid && stack != null && small != null && big != null && minutes != null && anteAfter != null) {
+    val previewSettings = if (valid && stack != null && small != null && big != null && minutes != null &&
+        anteAfter != null && breakEvery != null && breakMinutes != null && buyIn != null
+    ) {
         PokerSettings(
             startingStack = stack,
             smallBlind = small,
@@ -82,7 +99,13 @@ fun PokerSetupScreen(
             levelMinutes = minutes,
             anteEnabled = anteOn,
             anteAfterIncreases = anteAfter,
-            firstDealer = 0
+            firstDealer = 0,
+            pace = pace,
+            breakEveryLevels = breakEvery,
+            breakMinutes = breakMinutes,
+            levelAlert = alertOn,
+            buyIn = buyIn,
+            payoutPercents = if (buyIn > 0) payout else emptyList()
         )
     } else {
         null
@@ -162,6 +185,66 @@ fun PokerSetupScreen(
                     }
                 }
 
+                // Structure : vitesse de montée des blinds
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.poker_setup_pace), style = MaterialTheme.typography.titleSmall)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PokerPace.entries.forEach { option ->
+                            FilterChip(
+                                selected = pace == option,
+                                onClick = { paceIndex = option.ordinal },
+                                label = { Text(stringResource(paceLabel(option))) }
+                            )
+                        }
+                    }
+                    Text(
+                        text = stringResource(paceHint(pace)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // Pauses programmées (seulement si les blinds montent avec le temps)
+                if (minutes != null && minutes > 0) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        PokerNumberField(
+                            value = breakEveryText,
+                            onChange = { breakEveryText = it },
+                            label = stringResource(R.string.poker_setup_break_every),
+                            modifier = Modifier.weight(1f)
+                        )
+                        PokerNumberField(
+                            value = breakMinutesText,
+                            onChange = { breakMinutesText = it },
+                            label = stringResource(R.string.poker_setup_break_minutes),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.poker_setup_break_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Alerte à chaque changement de niveau
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(value = alertOn, role = Role.Switch, onValueChange = { alertOn = it }),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.poker_setup_alert))
+                            Text(
+                                text = stringResource(R.string.poker_setup_alert_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(checked = alertOn, onCheckedChange = null)
+                    }
+                }
+
                 // Antes : la ligne entière est l'interrupteur (une seule cible pour TalkBack).
                 Row(
                     modifier = Modifier
@@ -186,6 +269,45 @@ fun PokerSetupScreen(
                         label = stringResource(R.string.poker_setup_ante_after),
                         supporting = stringResource(R.string.poker_setup_ante_after_hint)
                     )
+                }
+
+                // Buy-in et répartition des gains
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    PokerNumberField(
+                        value = buyInText,
+                        onChange = { buyInText = it },
+                        label = stringResource(R.string.poker_setup_buy_in),
+                        supporting = stringResource(R.string.poker_setup_buy_in_hint)
+                    )
+                    if (buyIn != null && buyIn > 0) {
+                        Text(stringResource(R.string.poker_setup_payout), style = MaterialTheme.typography.titleSmall)
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            payoutOptions.forEachIndexed { index, option ->
+                                FilterChip(
+                                    selected = option == payout,
+                                    onClick = { payoutIndex = index },
+                                    label = {
+                                        Text(
+                                            if (option.size == 1) {
+                                                stringResource(R.string.poker_setup_payout_winner)
+                                            } else {
+                                                stringResource(
+                                                    R.string.poker_setup_payout_places, option.size, option.joinToString(" / ")
+                                                )
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                        Text(
+                            text = stringResource(
+                                R.string.poker_setup_pool, (buyIn.toLong() * playerNames.size).toString()
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 // Joueur au bouton à la première main
@@ -224,6 +346,13 @@ fun PokerSetupScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            if (PokerBlinds.breakAfterLevel(previewSettings, level)) {
+                                Text(
+                                    text = stringResource(R.string.poker_level_break_line, previewSettings.breakMinutes),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 } else {
@@ -271,4 +400,16 @@ private fun PokerNumberField(
         },
         modifier = modifier.fillMaxWidth()
     )
+}
+
+private fun paceLabel(pace: PokerPace): Int = when (pace) {
+    PokerPace.REGULAR -> R.string.poker_pace_regular
+    PokerPace.FAST -> R.string.poker_pace_fast
+    PokerPace.TURBO -> R.string.poker_pace_turbo
+}
+
+private fun paceHint(pace: PokerPace): Int = when (pace) {
+    PokerPace.REGULAR -> R.string.poker_pace_regular_hint
+    PokerPace.FAST -> R.string.poker_pace_fast_hint
+    PokerPace.TURBO -> R.string.poker_pace_turbo_hint
 }
