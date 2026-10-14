@@ -22,7 +22,7 @@ android {
         // versionCode doit augmenter à chaque publication (Play Store / mise à jour par-dessus l'existant) :
         // en CI on reprend le numéro d'exécution du workflow GitHub (toujours croissant), en local 1.
         versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
-        versionName = "1.0"
+        versionName = "3.0"
     }
 
     // Signature release : les infos viennent de variables d'environnement (jamais du dépôt).

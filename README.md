@@ -16,7 +16,7 @@ Le wrapper Gradle est inclus (`gradlew`, `gradlew.bat`, `gradle/wrapper/`) : auc
 ./gradlew bundleRelease      # AAB pour le Play Store -> app/build/outputs/bundle/release/
 ```
 
-Le `versionCode` vaut `1` en local ; dans GitHub Actions il reprend le numéro d'exécution du workflow (`GITHUB_RUN_NUMBER`), qui ne fait qu'augmenter : chaque build publié peut donc s'installer par-dessus le précédent et être envoyé au Play Store. `versionName` (« 1.0 ») se change à la main dans `app/build.gradle.kts`.
+Le `versionCode` vaut `1` en local ; dans GitHub Actions il reprend le numéro d'exécution du workflow (`GITHUB_RUN_NUMBER`), qui ne fait qu'augmenter : chaque build publié peut donc s'installer par-dessus le précédent et être envoyé au Play Store. `versionName` (« 3.0 ») se change à la main dans `app/build.gradle.kts`, à chaque nouvelle version du projet.
 
 ## Tests
 
@@ -49,6 +49,16 @@ puis lancez le workflow à la main (*Run workflow*) en cochant « release » : i
 En local, la signature se configure avec les mêmes noms en variables d'environnement, plus `KEYSTORE_FILE` (chemin du `.jks`).
 Sans ces variables, la release est construite non signée. Gardez votre clé de signature en lieu sûr : sans elle, impossible de publier des mises à jour.
 
+## Avant de livrer une modification
+
+La même liste sert de modèle de pull request (`.github/pull_request_template.md`) ; à parcourir aussi quand on pousse directement sur `main` :
+
+- les tests passent (`./gradlew testDebugUnitTest`) et le lint ne signale rien (`./gradlew lintDebug`) ;
+- tout nouveau texte visible est dans `strings.xml` **dans les 5 langues** (français, anglais, espagnol, portugais, italien) ; un nombre suivi d'un mot (« 2 sets ») est un `<plurals>` ;
+- un nouveau jeu ou une nouvelle mécanique a ses tests, et sa fiche de règles (`GameRulesText.kt`) ;
+- le **README** est à jour : fonctionnalités, liste des tests, structure du projet, versions (Kotlin, AGP, Gradle) ;
+- `versionName` est changé si c'est une nouvelle version.
+
 ## Structure du projet
 
 ```
@@ -56,6 +66,7 @@ MesScores/
 ├── settings.gradle.kts, build.gradle.kts, gradle.properties
 ├── gradlew, gradlew.bat, gradle/wrapper/
 ├── .github/dependabot.yml
+├── .github/pull_request_template.md
 ├── .github/workflows/build.yml
 └── app/
     ├── build.gradle.kts, proguard-rules.pro
