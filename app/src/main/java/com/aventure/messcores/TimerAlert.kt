@@ -17,6 +17,7 @@ import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 
@@ -72,11 +73,13 @@ object TimerAlert {
             vibrate(appContext)
         } catch (e: Exception) {
             // Pas de vibreur ou permission refusée : on ignore.
+            Log.w("TimerAlert", "Vibration impossible", e)
         }
         try {
             beep()
         } catch (e: Exception) {
             // Pas de son disponible : on ignore.
+            Log.w("TimerAlert", "Bip impossible", e)
         }
     }
 
@@ -127,6 +130,7 @@ object TimerAlert {
             manager.notify(NOTIFICATION_ID, notification)
             true
         } catch (e: Exception) {
+            Log.w("TimerAlert", "Notification de fin de minuteur impossible", e)
             false
         }
     }

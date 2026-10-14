@@ -38,6 +38,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -83,6 +84,8 @@ fun GameHistoryScreen(
                         context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(json.toByteArray(Charsets.UTF_8)) }
                             ?: throw IOException(resources.getString(R.string.history_stream_unavailable))
                         resources.getString(R.string.history_export_ok, context.quantity(R.plurals.games_count, repository.listGames().size))
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         resources.getString(R.string.history_export_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }
@@ -102,6 +105,8 @@ fun GameHistoryScreen(
                         var error: JournalBackup.ImportError? = null
                         val summary = repository.importJson(text) { error = it }
                         if (summary == null) importErrorText(context, error) else importMessage(context, summary)
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         resources.getString(R.string.history_import_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }

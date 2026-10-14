@@ -5,6 +5,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.res.stringResource
 import android.content.Context
 import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -93,6 +94,8 @@ fun ChooseGameScreen(
                             error == CustomGameShare.ImportError.NEWER_VERSION -> true to resources.getString(R.string.choose_import_newer)
                             else -> true to resources.getString(R.string.choose_import_not_game)
                         }
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         true to resources.getString(R.string.choose_import_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }

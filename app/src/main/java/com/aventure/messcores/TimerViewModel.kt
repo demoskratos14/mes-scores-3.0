@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -130,6 +131,7 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
             manager.setAlarmClock(AlarmManager.AlarmClockInfo(triggerAt, showApp), alarmIntent())
         } catch (e: Exception) {
             // Alarme impossible : le minuteur interne continue de fonctionner, appli au premier plan.
+            Log.w("TimerViewModel", "Alarme de fin de minuteur impossible", e)
         }
     }
 

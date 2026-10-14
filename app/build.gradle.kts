@@ -67,11 +67,12 @@ android {
         }
     }
 
-    // ./gradlew lintDebug (lancé par le workflow) : les erreurs font échouer la construction,
-    // les avertissements apparaissent dans le rapport HTML sans la bloquer.
+    // ./gradlew lintDebug (lancé par le workflow) : erreurs ET avertissements font échouer la
+    // construction, pour garder le rapport vide. Un avertissement jugé acceptable se désactive
+    // explicitement (disable += "NomDeLaRègle") ou se corrige ; ne pas repasser à false.
     lint {
         abortOnError = true
-        warningsAsErrors = false
+        warningsAsErrors = true
         htmlReport = true
     }
 }

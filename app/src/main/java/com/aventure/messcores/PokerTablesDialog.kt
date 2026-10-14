@@ -39,6 +39,7 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -82,6 +83,8 @@ fun PokerTablesDialog(viewModel: ScoreViewModel, onDismiss: () -> Unit) {
                         context.contentResolver.openOutputStream(uri, "wt")?.use { it.write(json.toByteArray(Charsets.UTF_8)) }
                             ?: throw IOException(resources.getString(R.string.history_stream_unavailable))
                         null
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         e.message ?: resources.getString(R.string.error_unknown)
                     }
@@ -113,6 +116,8 @@ fun PokerTablesDialog(viewModel: ScoreViewModel, onDismiss: () -> Unit) {
                             ?: throw IOException(resources.getString(R.string.history_file_unreadable))
                         // Un fichier trop gros n'est pas une liste de joueurs : même message que pour un fichier invalide.
                         (if (bytes.size > MAX_FILE_BYTES) null else PokerTransfer.parse(bytes.toString(Charsets.UTF_8))) to null
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         null to (e.message ?: resources.getString(R.string.error_unknown))
                     }
