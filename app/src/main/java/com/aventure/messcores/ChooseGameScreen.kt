@@ -1,7 +1,14 @@
 package com.aventure.messcores
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.res.stringResource
 import android.content.Context
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,6 +69,38 @@ fun ChooseGameScreen(
     var genericMode by remember { mutableStateOf(ScoreMode.TABLE) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
+    // Résultat du dernier import de jeux partagés (hors erreur, qui passe par errorMessage).
+    var infoMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
+    // Sélecteur de fichier d'Android (aucune permission) : on choisit le fichier d'un jeu partagé.
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                // Premier élément : vrai si c'est une erreur.
+                val outcome = withContext(Dispatchers.IO) {
+                    try {
+                        val text = context.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
+                            ?: throw IOException(context.getString(R.string.history_file_unreadable))
+                        var error: CustomGameShare.ImportError? = null
+                        val summary = repository.importSharedGames(text) { error = it }
+                        when {
+                            summary != null -> false to context.getString(
+                                R.string.choose_import_ok, summary.added, summary.unchanged, summary.invalid
+                            )
+                            error == CustomGameShare.ImportError.NEWER_VERSION -> true to context.getString(R.string.choose_import_newer)
+                            else -> true to context.getString(R.string.choose_import_not_game)
+                        }
+                    } catch (e: Exception) {
+                        true to context.getString(R.string.choose_import_failed, e.message ?: context.getString(R.string.error_unknown))
+                    }
+                }
+                games = repository.allGames()
+                errorMessage = if (outcome.first) outcome.second else null
+                infoMessage = if (outcome.first) null else outcome.second
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
@@ -176,6 +215,27 @@ fun ChooseGameScreen(
                         OutlinedButton(onClick = { onEditGame(selected) }, modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.choose_edit_game))
                         }
+                        OutlinedButton(
+                            onClick = {
+                                try {
+                                    val file = ShareFiles.write(
+                                        context, CustomGameShare.fileName(selected),
+                                        repository.sharedGameJson(selected).toByteArray(Charsets.UTF_8)
+                                    )
+                                    ShareFiles.share(
+                                        context, file, "application/json",
+                                        context.getString(R.string.choose_share_game_title, selected.name)
+                                    )
+                                } catch (e: Exception) {
+                                    errorMessage = context.getString(
+                                        R.string.choose_share_game_failed, e.message ?: context.getString(R.string.error_unknown)
+                                    )
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(stringResource(R.string.choose_share_game))
+                        }
                         OutlinedButton(onClick = { confirmDelete = true }, modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.common_delete), color = MaterialTheme.colorScheme.error)
                         }
@@ -187,6 +247,17 @@ fun ChooseGameScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.choose_create_game))
+                }
+
+                OutlinedButton(
+                    onClick = { importLauncher.launch(arrayOf("application/json", "text/*", "application/octet-stream")) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.choose_import_game))
+                }
+
+                infoMessage?.let { message ->
+                    Text(text = message, style = MaterialTheme.typography.bodyMedium)
                 }
 
                 errorMessage?.let { message ->

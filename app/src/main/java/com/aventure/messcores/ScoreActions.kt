@@ -5,6 +5,13 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +39,7 @@ fun ScoreActionBar(
     justSaved: Boolean,
     onSave: () -> Unit,
     onShare: () -> Unit,
+    onShareImage: (() -> Unit)? = null,
     onUndo: (() -> Unit)? = null,
     canUndo: Boolean = false,
     onRedo: (() -> Unit)? = null,
@@ -65,13 +73,29 @@ fun ScoreActionBar(
                 Icon(Icons.AutoMirrored.Filled.Redo, contentDescription = stringResource(R.string.actions_redo))
             }
         }
-        OutlinedButton(
-            onClick = onShare,
-            colors = secondaryColors,
-            contentPadding = contentPadding
-        ) {
-            Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text(" " + stringResource(R.string.actions_share))
+        // Avec une image possible, « Partager » ouvre un petit menu : texte ou image.
+        var shareMenuOpen by remember { mutableStateOf(false) }
+        Box {
+            OutlinedButton(
+                onClick = { if (onShareImage == null) onShare() else shareMenuOpen = true },
+                colors = secondaryColors,
+                contentPadding = contentPadding
+            ) {
+                Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(" " + stringResource(R.string.actions_share))
+            }
+            if (onShareImage != null) {
+                DropdownMenu(expanded = shareMenuOpen, onDismissRequest = { shareMenuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.share_as_text)) },
+                        onClick = { shareMenuOpen = false; onShare() }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.share_as_image)) },
+                        onClick = { shareMenuOpen = false; onShareImage() }
+                    )
+                }
+            }
         }
         Button(
             onClick = onSave,

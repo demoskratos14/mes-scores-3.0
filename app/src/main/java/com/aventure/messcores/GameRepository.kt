@@ -79,6 +79,26 @@ class GameRepository(private val context: Context) {
 
     fun newId(): String = UUID.randomUUID().toString()
 
+    /** Bilan d'un import de jeux partagés. */
+    data class SharedImport(val added: Int, val unchanged: Int, val invalid: Int)
+
+    /** Texte du fichier à partager pour le jeu personnalisé [game] (voir [CustomGameShare]). */
+    fun sharedGameJson(game: GameRules): String = CustomGameShare.export(listOf(game), System.currentTimeMillis())
+
+    /**
+     * Ajoute à mes jeux personnalisés ceux du fichier [text] (voir [CustomGameShare.merge]) ; rien n'est
+     * écrasé. Renvoie null, et appelle [onError], si le fichier n'est pas un jeu partagé.
+     */
+    fun importSharedGames(text: String, onError: (CustomGameShare.ImportError) -> Unit): SharedImport? =
+        when (val result = CustomGameShare.parse(text)) {
+            is CustomGameShare.ParseResult.Error -> { onError(result.reason); null }
+            is CustomGameShare.ParseResult.Ok -> {
+                val outcome = CustomGameShare.merge(customGames(), result.games, ::newId)
+                if (outcome.added > 0) persist(outcome.games)
+                SharedImport(outcome.added, outcome.unchanged, result.invalid)
+            }
+        }
+
     private fun persist(games: List<GameRules>) {
         val array = JSONArray()
         games.forEach { array.put(it.toJson()) }

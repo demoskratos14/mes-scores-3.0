@@ -205,7 +205,8 @@ fun TeamRoundsScreen(
                 viewModel.saveToJournal(historyRepository)
                 justSaved = true
             },
-            onShare = { ResultText.share(context, viewModel.shareText(context)) }
+            onShare = { ResultText.share(context, viewModel.shareText(context)) },
+            onShareImage = { ResultImage.share(context, viewModel.shareImageContent(context)) }
         )
     }
 

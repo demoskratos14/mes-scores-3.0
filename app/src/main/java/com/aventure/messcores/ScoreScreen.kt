@@ -128,6 +128,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                 justSaved = true
             },
             onShare = { ResultText.share(context, viewModel.shareText(context)) },
+            onShareImage = { ResultImage.share(context, viewModel.shareImageContent(context)) },
             onUndo = { viewModel.undo() },
             canUndo = viewModel.canUndo,
             onRedo = { viewModel.redo() },

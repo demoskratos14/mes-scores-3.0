@@ -1087,4 +1087,83 @@
         <item quantity="many">%d de jogadores</item>
         <item quantity="other">%d jogadores</item>
     </plurals>
+    <string name="poker_setup_pace">Subida dos blinds</string>
+    <string name="poker_pace_regular">Regular</string>
+    <string name="poker_pace_fast">Rápida</string>
+    <string name="poker_pace_turbo">Turbo</string>
+    <string name="poker_pace_regular_hint" formatted="false">Um degrau da escala em cada nível (cerca de +20 a 25 %)</string>
+    <string name="poker_pace_fast_hint" formatted="false">Cerca de +50 % em cada nível, arredondado ao degrau mais próximo</string>
+    <string name="poker_pace_turbo_hint">O big blind duplica em cada nível</string>
+    <string name="poker_setup_break_every">Pausa a cada … níveis</string>
+    <string name="poker_setup_break_minutes">Duração da pausa (minutos)</string>
+    <string name="poker_setup_break_hint">0 = sem pausa. O relógio dos blinds continua durante a pausa; o nível seguinte começa no fim dela.</string>
+    <string name="poker_setup_alert">Alerta a cada mudança de nível</string>
+    <string name="poker_setup_alert_hint">Som e vibração a cada mudança de nível e no início e fim de uma pausa</string>
+    <string name="poker_setup_buy_in">Buy-in (por jogador)</string>
+    <string name="poker_setup_buy_in_hint">0 = sem prémios para repartir</string>
+    <string name="poker_setup_payout">Repartição dos prémios</string>
+    <string name="poker_setup_payout_winner">O vencedor leva tudo</string>
+    <string name="poker_setup_payout_places">%1$d lugares (%2$s)</string>
+    <string name="poker_setup_pool">Prémio total: %1$s</string>
+    <string name="poker_level_break_line">Pausa de %1$d min</string>
+    <string name="poker_break_clock">Pausa · retoma em %1$s</string>
+    <string name="poker_break_clock_paused">Pausa · relógio parado (retoma em %1$s)</string>
+    <string name="poker_level_clock_break">Nível %1$d · pausa em %2$s</string>
+    <string name="poker_break_banner">Pausa em curso: sem mãos até à retoma</string>
+    <string name="poker_info_remaining">Jogadores em jogo: %1$d de %2$d</string>
+    <string name="poker_info_average">Stack médio: %1$s (%2$d BB)</string>
+    <string name="poker_info_leader">Maior stack: %1$s, %2$s (%3$d BB)</string>
+    <string name="poker_info_prize_pool">Prémio total: %1$s</string>
+    <string name="poker_prizes_title">Prémios</string>
+    <string name="poker_prize_line">%1$d.º %2$s: %3$s</string>
+    <string name="poker_setup_rebuy">Recompras até ao nível</string>
+    <string name="poker_setup_rebuy_hint">0 = sem recompras. Um jogador eliminado pode voltar com o stack inicial (e outro buy-in no prémio total) enquanto este nível não for ultrapassado.</string>
+    <string name="poker_rebuy_button">Recompra de %1$s (stack de %2$s)</string>
+    <string name="poker_info_rebuys">Recompras: %1$d · possíveis até ao nível %2$d</string>
+    <string name="game_wingspan">Wingspan</string>
+    <string name="game_hanabi">Hanabi</string>
+    <string name="sheet_wingspan_birds">Aves</string>
+    <string name="sheet_wingspan_bonus">Cartas de bónus</string>
+    <string name="sheet_wingspan_goals">Objetivos de fim de ronda</string>
+    <string name="sheet_wingspan_eggs">Ovos</string>
+    <string name="sheet_wingspan_food">Comida nas cartas</string>
+    <string name="sheet_wingspan_tucked">Cartas escondidas</string>
+    <string name="sheet_hanabi_white">Branco</string>
+    <string name="sheet_hanabi_red">Vermelho</string>
+    <string name="sheet_hanabi_blue">Azul</string>
+    <string name="sheet_hanabi_yellow">Amarelo</string>
+    <string name="sheet_hanabi_green">Verde</string>
+    <string name="sheet_hanabi_rainbow">Multicolor</string>
+    <string name="rules_wingspan_1_title">Objetivo</string>
+    <string name="rules_wingspan_1_body">Atrair o maior número de aves para os três habitats (floresta, pradaria, pântano) ao longo de quatro rondas e contar os pontos. Ganha o total mais alto.</string>
+    <string name="rules_wingspan_2_title">Pontuação</string>
+    <string name="rules_wingspan_2_body">Somam-se: os pontos impressos nas aves jogadas, as cartas de bónus, os objetivos de fim de ronda, os ovos (1 ponto cada), a comida nas cartas (1 ponto cada) e as cartas escondidas sob aves (1 ponto cada). Com a expansão Oceânia, juntam-se os pontos de maioria de néctar de cada habitat.</string>
+    <string name="rules_wingspan_3_title">Na aplicação</string>
+    <string name="rules_wingspan_3_body">No fim da partida, introduz na coluna de cada jogador o total de cada família de pontos, uma família por linha.</string>
+    <string name="rules_hanabi_1_title">Objetivo</string>
+    <string name="rules_hanabi_1_body">Jogo cooperativo: toda a equipa constrói fogos de artifício, cor a cor, jogando as cartas de 1 a 5 por ordem. Cada jogador vê as cartas dos outros, mas não as suas.</string>
+    <string name="rules_hanabi_2_title">Pontuação</string>
+    <string name="rules_hanabi_2_body">A pontuação é a soma, por cada cor, do valor da carta mais alta jogada (0 a 5). No máximo 25 com cinco cores, 30 com a cor multicolor. Leitura da pontuação: 0 a 5, horrível, o público vaia; 6 a 10, medíocre, uns aplausos tímidos; 11 a 15, honroso, mas não ficará na memória; 16 a 20, excelente, o público está encantado; 21 a 24, extraordinário, os espectadores ficam maravilhados; 25, lendário, estrelas nos olhos.</string>
+    <string name="rules_hanabi_3_title">Na aplicação</string>
+    <string name="rules_hanabi_3_body">Uma só coluna para toda a equipa (muda-lhe o nome como quiseres). Uma linha por cor: escolhe o valor da carta mais alta jogada. Deixa a linha multicolor a 0 se não jogares essa variante.</string>
+    <string name="sheet_wingspan_nectar">Néctar (Oceânia)</string>
+    <string name="sheet_wingspan_birds_hint">Soma dos pontos impressos nas aves jogadas.</string>
+    <string name="sheet_wingspan_bonus_hint">Pontos das tuas cartas de bónus, conforme o que pedem.</string>
+    <string name="sheet_wingspan_goals_hint">Total de pontos dos quatro objetivos de fim de ronda.</string>
+    <string name="sheet_wingspan_eggs_hint">1 ponto por ovo nas tuas aves.</string>
+    <string name="sheet_wingspan_food_hint">1 ponto por ficha de comida nas tuas cartas.</string>
+    <string name="sheet_wingspan_tucked_hint">1 ponto por carta escondida sob uma ave.</string>
+    <string name="sheet_wingspan_nectar_hint">Expansão Oceânia: em cada habitat, 5 pontos por mais néctar gasto e 2 pelo segundo. Deixa vazio sem a expansão.</string>
+    <string name="sheet_hanabi_hint">Valor da carta mais alta jogada nesta cor (0 se nenhuma).</string>
+    <string name="sheet_hanabi_rainbow_hint">Variante multicolor: mesmo princípio. Deixa a 0 se não jogares esta variante.</string>
+    <string name="share_as_text">Como texto</string>
+    <string name="share_as_image">Como imagem</string>
+    <string name="choose_share_game">Partilhar</string>
+    <string name="choose_share_game_title">Partilhar o jogo %1$s</string>
+    <string name="choose_share_game_failed">Não foi possível partilhar: %1$s</string>
+    <string name="choose_import_game">Importar um jogo partilhado</string>
+    <string name="choose_import_ok">Jogos adicionados: %1$d · já existentes: %2$d · ilegíveis: %3$d</string>
+    <string name="choose_import_not_game">Este ficheiro não é um jogo partilhado do Mes Scores.</string>
+    <string name="choose_import_newer">Este ficheiro vem de uma versão mais recente da aplicação: atualiza a aplicação para o importar.</string>
+    <string name="choose_import_failed">Importação não foi possível: %1$s</string>
 </resources>

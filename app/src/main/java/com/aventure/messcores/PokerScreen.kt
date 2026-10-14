@@ -44,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -109,6 +110,16 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
     }
     val elapsed = viewModel.pokerElapsedMs(now)
     val level = PokerBlinds.levelAt(game.settings, elapsed)
+    val onBreak = PokerBlinds.isBreak(game.settings, elapsed)
+
+    // Alerte (son + vibration) à chaque changement de niveau, au début et à la fin d'une pause.
+    // La clé ne fait que croître : niveau n, puis pause après n, puis niveau n + 1.
+    val phaseKey = level * 2 + if (onBreak) 1 else 0
+    var lastPhaseKey by rememberSaveable { mutableIntStateOf(phaseKey) }
+    LaunchedEffect(phaseKey) {
+        if (phaseKey > lastPhaseKey && game.settings.levelAlert) TimerAlert.play(context)
+        lastPhaseKey = phaseKey
+    }
 
     var optionsIndex by remember { mutableStateOf<Int?>(null) }
     var justSaved by remember { mutableStateOf(false) }
@@ -128,11 +139,14 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                 title = viewModel.gameRules.name,
                 game = game,
                 level = level,
+                onBreak = onBreak,
                 elapsed = elapsed,
                 running = running,
                 onToggleClock = { viewModel.togglePokerClock() },
                 onNextLevel = { viewModel.pokerSkipToNextLevel() }
             )
+
+            PokerInfoCard(game = game, players = players)
 
             PokerTable(
                 game = game,
@@ -144,7 +158,7 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
             when (game.phase) {
                 PokerPhase.BETTING -> PokerActionPanel(viewModel, game, players)
                 PokerPhase.SHOWDOWN -> PokerShowdownPanel(viewModel, game, players)
-                PokerPhase.HAND_OVER -> PokerHandOverPanel(viewModel, game, players)
+                PokerPhase.HAND_OVER -> PokerHandOverPanel(viewModel, game, players, level)
             }
 
             if (game.log.isNotEmpty()) PokerLog(game, players)
@@ -158,6 +172,7 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                 justSaved = true
             },
             onShare = { ResultText.share(context, viewModel.shareText(context)) },
+            onShareImage = { ResultImage.share(context, viewModel.shareImageContent(context)) },
             onUndo = { viewModel.undo() },
             canUndo = viewModel.canUndo,
             onRedo = { viewModel.redo() },
@@ -177,6 +192,7 @@ private fun PokerHeader(
     title: String,
     game: PokerGame,
     level: Int,
+    onBreak: Boolean,
     elapsed: Long,
     running: Boolean,
     onToggleClock: () -> Unit,
@@ -187,6 +203,7 @@ private fun PokerHeader(
     val handBig = PokerBlinds.bigBlindAt(settings, game.handLevel)
     val handAnte = PokerBlinds.anteAt(settings, game.handLevel)
     val remaining = PokerBlinds.remainingMs(settings, elapsed)
+    val breakNext = PokerBlinds.breakStartsNext(settings, elapsed)
 
     Card(
         colors = CardDefaults.cardColors(containerColor = cardSurface()),
@@ -234,6 +251,9 @@ private fun PokerHeader(
             Text(
                 text = when {
                     remaining == null -> stringResource(R.string.poker_level_fixed, level)
+                    onBreak && running -> stringResource(R.string.poker_break_clock, formatBlindClock(remaining))
+                    onBreak -> stringResource(R.string.poker_break_clock_paused, formatBlindClock(remaining))
+                    breakNext && running -> stringResource(R.string.poker_level_clock_break, level, formatBlindClock(remaining))
                     running -> stringResource(R.string.poker_level_clock, level, formatBlindClock(remaining))
                     else -> stringResource(R.string.poker_level_clock_paused, level, formatBlindClock(remaining))
                 },
@@ -255,6 +275,16 @@ private fun PokerHeader(
                 )
             }
 
+            if (onBreak) {
+                Text(
+                    text = stringResource(R.string.poker_break_banner),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                )
+            }
+
             // Le niveau a monté pendant la main : les nouvelles blinds s'appliquent à la prochaine.
             if (level > game.handLevel) {
                 val upSmall = PokerBlinds.smallBlindAt(settings, level)
@@ -265,6 +295,53 @@ private fun PokerHeader(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                )
+            }
+        }
+    }
+}
+
+// ---------- Infos de table ----------
+
+@Composable
+private fun PokerInfoCard(game: PokerGame, players: List<String>) {
+    val info = PokerEngine.tableInfo(game) ?: return
+    Card(
+        colors = CardDefaults.cardColors(containerColor = cardSurface()),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(R.string.poker_info_remaining, info.alive, info.total),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Text(
+                text = stringResource(
+                    R.string.poker_info_average, formatChips(info.averageStack), info.averageBigBlinds
+                ),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = stringResource(
+                    R.string.poker_info_leader,
+                    players.getOrElse(info.leader) { "" },
+                    formatChips(info.leaderChips),
+                    info.leaderBigBlinds
+                ),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            if (game.settings.rebuyUntilLevel > 0) {
+                Text(
+                    text = stringResource(R.string.poker_info_rebuys, game.rebuys.sum(), game.settings.rebuyUntilLevel),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            if (game.settings.buyIn > 0 && game.settings.payoutPercents.isNotEmpty()) {
+                Text(
+                    text = stringResource(
+                        R.string.poker_info_prize_pool, formatChips(PokerPrizes.pool(game.settings, info.total, game.rebuys.sum()))
+                    ),
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
@@ -638,7 +715,7 @@ private fun PokerShowdownPanel(viewModel: ScoreViewModel, game: PokerGame, playe
 // ---------- Fin de main ----------
 
 @Composable
-private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, players: List<String>) {
+private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, players: List<String>, level: Int) {
     val champion = game.champion
     // Fenêtre pour réunir des tables : export / import de joueurs (voir PokerTablesDialog.kt).
     var showTables by rememberSaveable { mutableStateOf(false) }
@@ -666,6 +743,18 @@ private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, playe
             knockedOut.forEach { index ->
                 Text(stringResource(R.string.poker_player_eliminated, players.getOrElse(index) { "" }))
             }
+            // Recaves : les joueurs éliminés (à cette main ou avant) peuvent revenir tant que la période est ouverte.
+            game.seats.indices.filter { PokerEngine.canRebuy(game, it, level) }.forEach { index ->
+                OutlinedButton(onClick = { viewModel.pokerRebuy(index) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(
+                            R.string.poker_rebuy_button,
+                            players.getOrElse(index) { "" },
+                            formatChips(game.settings.startingStack)
+                        )
+                    )
+                }
+            }
             if (champion != null) {
                 Text(
                     text = stringResource(R.string.poker_champion, players.getOrElse(champion) { "" }),
@@ -673,6 +762,23 @@ private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, playe
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
+                val payouts = PokerPrizes.payouts(game)
+                val ranks = PokerEngine.ranks(game)
+                val paid = payouts.indices.filter { payouts[it] > 0 }.sortedWith(compareBy({ ranks[it] }, { it }))
+                if (paid.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.poker_prizes_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.semantics { heading() }
+                    )
+                    paid.forEach { index ->
+                        Text(
+                            text = stringResource(
+                                R.string.poker_prize_line, ranks[index], players.getOrElse(index) { "" }, formatChips(payouts[index])
+                            )
+                        )
+                    }
+                }
             } else {
                 Button(onClick = { viewModel.pokerNextHand() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.poker_next_hand))

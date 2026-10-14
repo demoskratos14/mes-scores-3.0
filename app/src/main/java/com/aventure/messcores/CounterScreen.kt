@@ -167,6 +167,7 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
                 justSaved = true
             },
             onShare = { ResultText.share(context, viewModel.shareText(context)) },
+            onShareImage = { ResultImage.share(context, viewModel.shareImageContent(context)) },
             onUndo = { viewModel.undo() },
             canUndo = viewModel.canUndo,
             onRedo = { viewModel.redo() },

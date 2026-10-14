@@ -597,6 +597,9 @@ class ScoreViewModel : ViewModel() {
     /** Désigne le(s) gagnant(s) de chaque pot à l'abattage (voir [PokerEngine.resolveShowdown]). */
     fun pokerResolve(winners: List<List<Int>>) = pokerApply { PokerEngine.resolveShowdown(it, winners) }
 
+    /** Recave d'un joueur éliminé (voir [PokerEngine.rebuy]) : se joue entre deux mains, pendant la période réglée. */
+    fun pokerRebuy(player: Int) = pokerApply { PokerEngine.rebuy(it, player, PokerBlinds.levelAt(it.settings, pokerElapsedMs())) }
+
     fun pokerNextHand() = pokerApply { PokerEngine.nextHand(it, PokerBlinds.levelAt(it.settings, pokerElapsedMs())) }
 
     // ---------- Changement de table (poker) ----------
@@ -783,6 +786,20 @@ class ScoreViewModel : ViewModel() {
     fun shareText(context: Context): String {
         val all = totals
         return ResultText.game(
+            context = context,
+            gameName = gameRules.name,
+            players = players,
+            totals = all,
+            ranks = ranksFor(all),
+            finished = isGameOver(),
+            winners = winners()
+        )
+    }
+
+    /** Même classement que [shareText], mis en forme pour l'image partagée (voir [ResultImage]). */
+    fun shareImageContent(context: Context): ResultImage.Content {
+        val all = totals
+        return ResultImage.content(
             context = context,
             gameName = gameRules.name,
             players = players,
