@@ -2,4 +2,6 @@
 <!-- Même règle pour Android 8 à 11 (minSdk 26), qui ne lisent pas data_extraction_rules.xml. -->
 <full-backup-content>
     <include domain="sharedpref" path="." />
+    <!-- Journal des parties : un fichier par partie (voir GameHistoryRepository.DIR_NAME). -->
+    <include domain="file" path="journal" />
 </full-backup-content>

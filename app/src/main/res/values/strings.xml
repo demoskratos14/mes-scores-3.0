@@ -191,7 +191,7 @@
     <string name="error_unknown">erreur inconnue</string>
     <string name="history_file_unreadable">fichier illisible</string>
     <string name="history_import_failed">Échec de l\'import : %1$s.</string>
-    <string name="history_limit" tools:ignore="PluralsCandidate">Les %1$d dernières parties sont conservées.</string>
+    <string name="history_limit" tools:ignore="PluralsCandidate">Les %1$d dernières parties de chaque jeu sont conservées.</string>
     <string name="history_clear_finished">Effacer les terminées</string>
     <string name="history_export">Exporter</string>
     <string name="history_import">Importer</string>
@@ -220,7 +220,7 @@
     <string name="stats_card_description">%1$d. %2$s, %3$s</string>
     <string name="stats_card_description_scores">%1$d. %2$s, %3$s, %4$s</string>
     <string name="stats_position_name">%1$d. %2$s</string>
-    <string name="stats_scope" tools:ignore="PluralsCandidate">Calculées sur %1$s du journal%2$s. Le journal garde les %3$d dernières parties.</string>
+    <string name="stats_scope" tools:ignore="PluralsCandidate">Calculées sur %1$s du journal%2$s. Le journal garde les %3$d dernières parties de chaque jeu.</string>
     <string name="stats_none">Aucune partie terminée dans le journal pour l\'instant. Les statistiques se construisent à partir des parties terminées et enregistrées.</string>
     <string name="stats_none_with_ongoing">Aucune partie terminée dans le journal pour l\'instant. Les statistiques se construisent à partir des parties terminées et enregistrées (les parties en cours ne comptent pas encore).</string>
     <string name="score_game_over">Partie terminée</string>
@@ -416,9 +416,9 @@
         <item quantity="many">%d de parties illisibles (ignorées)</item>
     </plurals>
     <plurals name="history_import_dropped">
-        <item quantity="one">%1$d partie ancienne supprimée (limite de %2$d)</item>
-        <item quantity="other">%1$d parties anciennes supprimées (limite de %2$d)</item>
-        <item quantity="many">%1$d de parties anciennes supprimées (limite de %2$d)</item>
+        <item quantity="one">%1$d partie ancienne supprimée (limite de %2$d par jeu)</item>
+        <item quantity="other">%1$d parties anciennes supprimées (limite de %2$d par jeu)</item>
+        <item quantity="many">%1$d de parties anciennes supprimées (limite de %2$d par jeu)</item>
     </plurals>
     <plurals name="stats_finished_count">
         <item quantity="one">%d partie terminée</item>

@@ -186,7 +186,7 @@
     <string name="error_unknown">errore sconosciuto</string>
     <string name="history_file_unreadable">file illeggibile</string>
     <string name="history_import_failed">Importazione non riuscita: %1$s.</string>
-    <string name="history_limit" tools:ignore="PluralsCandidate">Vengono conservate le ultime %1$d partite.</string>
+    <string name="history_limit" tools:ignore="PluralsCandidate">Vengono conservate le ultime %1$d partite di ogni gioco.</string>
     <string name="history_clear_finished">Cancella le terminate</string>
     <string name="history_export">Esporta</string>
     <string name="history_import">Importa</string>
@@ -215,7 +215,7 @@
     <string name="stats_card_description">%1$d. %2$s, %3$s</string>
     <string name="stats_card_description_scores">%1$d. %2$s, %3$s, %4$s</string>
     <string name="stats_position_name">%1$d. %2$s</string>
-    <string name="stats_scope" tools:ignore="PluralsCandidate">Calcolate su %1$s del registro%2$s. Il registro conserva le ultime %3$d partite.</string>
+    <string name="stats_scope" tools:ignore="PluralsCandidate">Calcolate su %1$s del registro%2$s. Il registro conserva le ultime %3$d partite di ogni gioco.</string>
     <string name="stats_none">Nessuna partita terminata nel registro per ora. Le statistiche si costruiscono a partire dalle partite terminate e salvate.</string>
     <string name="stats_none_with_ongoing">Nessuna partita terminata nel registro per ora. Le statistiche si costruiscono a partire dalle partite terminate e salvate (le partite in corso non contano ancora).</string>
     <string name="score_game_over">Partita terminata</string>
@@ -411,9 +411,9 @@
         <item quantity="many">%d di partite illeggibili (ignorate)</item>
     </plurals>
     <plurals name="history_import_dropped">
-        <item quantity="one">%1$d partita meno recente eliminata (limite di %2$d)</item>
-        <item quantity="other">%1$d partite meno recenti eliminate (limite di %2$d)</item>
-        <item quantity="many">%1$d di partite meno recenti eliminate (limite di %2$d)</item>
+        <item quantity="one">%1$d partita meno recente eliminata (limite di %2$d per gioco)</item>
+        <item quantity="other">%1$d partite meno recenti eliminate (limite di %2$d per gioco)</item>
+        <item quantity="many">%1$d di partite meno recenti eliminate (limite di %2$d per gioco)</item>
     </plurals>
     <plurals name="stats_finished_count">
         <item quantity="one">%d partita terminata</item>

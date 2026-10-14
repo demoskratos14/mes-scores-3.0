@@ -77,7 +77,7 @@ object JournalBackup {
     /**
      * Fusionne [incoming] dans [existing] sans rien effacer : une partie de même id n'est remplacée
      * que si la version importée est strictement plus récente ([SavedGame.savedAt]).
-     * Le résultat n'est pas limité à [GameHistoryRepository.MAX_SAVED_GAMES] : voir [trimToLimit].
+     * Le résultat n'est pas limité à [GameHistoryRepository.MAX_SAVED_GAMES] par jeu : voir [trimToLimitPerGame].
      */
     fun merge(existing: List<SavedGame>, incoming: List<SavedGame>): MergeOutcome {
         val byId = LinkedHashMap<String, SavedGame>()
@@ -111,5 +111,17 @@ object JournalBackup {
             .map { it.id }
             .toSet()
         return games.filterNot { it.id in dropped }
+    }
+
+    /**
+     * Applique [trimToLimit] à chaque jeu séparément (jeu = [GameRules.id] de la partie) : au plus
+     * [limit] parties par jeu, l'ordre de [games] est conservé.
+     */
+    fun trimToLimitPerGame(games: List<SavedGame>, limit: Int, keepId: String? = null): List<SavedGame> {
+        val keptIds = games.groupBy { it.gameRules.id }.values
+            .flatMap { trimToLimit(it, limit, keepId) }
+            .map { it.id }
+            .toSet()
+        return games.filter { it.id in keptIds }
     }
 }

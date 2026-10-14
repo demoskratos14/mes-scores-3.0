@@ -6,10 +6,10 @@ import org.junit.Test
 
 class JournalBackupTest {
 
-    private fun game(id: String, savedAt: Long, finished: Boolean = false, score: Int = 10) = SavedGame(
+    private fun game(id: String, savedAt: Long, finished: Boolean = false, score: Int = 10, gameId: String = "g") = SavedGame(
         id = id,
         savedAt = savedAt,
-        gameRules = GameRules(id = "g", name = "Jeu"),
+        gameRules = GameRules(id = gameId, name = "Jeu"),
         players = listOf("Anna", "Ben"),
         playerColorsArgb = listOf(1, 2),
         cellSnapshots = listOf(
@@ -100,5 +100,26 @@ class JournalBackupTest {
         val games = listOf(game("a", 1, finished = true), game("b", 2, finished = true))
         val kept = JournalBackup.trimToLimit(games, limit = 1, keepId = "a").map { it.id }
         assertEquals(listOf("a"), kept)
+    }
+
+    @Test
+    fun laLimiteParJeuNeCompteQueLesPartiesDeChaqueJeu() {
+        val games = listOf(
+            game("y1", 1, gameId = "yams"), game("y2", 2, gameId = "yams"), game("y3", 3, gameId = "yams"),
+            game("b1", 4, gameId = "belote")
+        )
+        val kept = JournalBackup.trimToLimitPerGame(games, limit = 2).map { it.id }
+        // Yams passe de 3 à 2 (la plus ancienne part) ; Belote, seul, n'est pas touché.
+        assertEquals(listOf("y2", "y3", "b1"), kept)
+    }
+
+    @Test
+    fun laLimiteParJeuProtegeLaPartieIndiquee() {
+        val games = listOf(
+            game("y1", 1, finished = true, gameId = "yams"),
+            game("y2", 2, finished = true, gameId = "yams")
+        )
+        val kept = JournalBackup.trimToLimitPerGame(games, limit = 1, keepId = "y1").map { it.id }
+        assertEquals(listOf("y1"), kept)
     }
 }

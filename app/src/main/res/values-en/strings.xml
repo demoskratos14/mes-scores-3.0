@@ -185,7 +185,7 @@
     <string name="error_unknown">unknown error</string>
     <string name="history_file_unreadable">unreadable file</string>
     <string name="history_import_failed">Import failed: %1$s.</string>
-    <string name="history_limit" tools:ignore="PluralsCandidate">The last %1$d games are kept.</string>
+    <string name="history_limit" tools:ignore="PluralsCandidate">For each game, the last %1$d plays are kept.</string>
     <string name="history_clear_finished">Clear finished games</string>
     <string name="history_export">Export</string>
     <string name="history_import">Import</string>
@@ -214,7 +214,7 @@
     <string name="stats_card_description">%1$d. %2$s, %3$s</string>
     <string name="stats_card_description_scores">%1$d. %2$s, %3$s, %4$s</string>
     <string name="stats_position_name">%1$d. %2$s</string>
-    <string name="stats_scope" tools:ignore="PluralsCandidate">Based on %1$s from the log%2$s. The log keeps the last %3$d games.</string>
+    <string name="stats_scope" tools:ignore="PluralsCandidate">Based on %1$s from the log%2$s. The log keeps the last %3$d plays of each game.</string>
     <string name="stats_none">No finished games in the log yet. Statistics are built from finished, saved games.</string>
     <string name="stats_none_with_ongoing">No finished games in the log yet. Statistics are built from finished, saved games (games in progress do not count yet).</string>
     <string name="score_game_over">Game over</string>
@@ -889,8 +889,8 @@
         <item quantity="other">%d unreadable games (ignored)</item>
     </plurals>
     <plurals name="history_import_dropped">
-        <item quantity="one">%1$d old game removed (limit of %2$d)</item>
-        <item quantity="other">%1$d old games removed (limit of %2$d)</item>
+        <item quantity="one">%1$d old game removed (limit of %2$d per game)</item>
+        <item quantity="other">%1$d old games removed (limit of %2$d per game)</item>
     </plurals>
     <plurals name="stats_finished_count">
         <item quantity="one">%d finished game</item>

@@ -185,7 +185,7 @@
     <string name="error_unknown">erro desconhecido</string>
     <string name="history_file_unreadable">ficheiro ilegível</string>
     <string name="history_import_failed">Falha na importação: %1$s.</string>
-    <string name="history_limit">São mantidas as últimas %1$d partidas.</string>
+    <string name="history_limit">São mantidas as últimas %1$d partidas de cada jogo.</string>
     <string name="history_clear_finished">Limpar as partidas terminadas</string>
     <string name="history_export">Exportar</string>
     <string name="history_import">Importar</string>
@@ -214,7 +214,7 @@
     <string name="stats_card_description">%1$d. %2$s, %3$s</string>
     <string name="stats_card_description_scores">%1$d. %2$s, %3$s, %4$s</string>
     <string name="stats_position_name">%1$d. %2$s</string>
-    <string name="stats_scope">Com base em %1$s do registo%2$s. O registo mantém as últimas %3$d partidas.</string>
+    <string name="stats_scope">Com base em %1$s do registo%2$s. O registo mantém as últimas %3$d partidas de cada jogo.</string>
     <string name="stats_none">Ainda não há partidas terminadas no registo. As estatísticas são elaboradas a partir de partidas terminadas e guardadas.</string>
     <string name="stats_none_with_ongoing">Ainda não há partidas terminadas no registo. As estatísticas são elaboradas a partir de partidas terminadas e guardadas (as partidas em curso ainda não contam).</string>
     <string name="score_game_over">Fim da partida</string>
@@ -897,9 +897,9 @@
         <item quantity="other">%d partidas ilegíveis (ignoradas)</item>
     </plurals>
     <plurals name="history_import_dropped">
-        <item quantity="one">%1$d partida antiga removida (limite de %2$d)</item>
-        <item quantity="many">%1$d de partidas antigas removidas (limite de %2$d)</item>
-        <item quantity="other">%1$d partidas antigas removidas (limite de %2$d)</item>
+        <item quantity="one">%1$d partida antiga removida (limite de %2$d por jogo)</item>
+        <item quantity="many">%1$d de partidas antigas removidas (limite de %2$d por jogo)</item>
+        <item quantity="other">%1$d partidas antigas removidas (limite de %2$d por jogo)</item>
     </plurals>
     <plurals name="stats_finished_count">
         <item quantity="one">%d partida terminada</item>

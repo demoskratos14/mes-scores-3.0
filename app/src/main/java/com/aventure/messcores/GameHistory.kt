@@ -1,11 +1,17 @@
 package com.aventure.messcores
 
 import android.content.Context
-import androidx.core.content.edit
+import android.net.Uri
+import android.util.AtomicFile
 import android.util.Log
+import androidx.core.content.edit
+import androidx.core.util.readText
+import androidx.core.util.writeText
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
+import java.io.IOException
 
 /** État figé d'une case du tableau (mode TABLE), pour la sauvegarde d'une partie en cours. */
 data class CellSnapshot(
@@ -242,61 +248,106 @@ data class SavedGame(
 }
 
 /**
- * Journal des parties : sauvegarde et relit la liste des parties (en cours ou terminées)
- * dans les SharedPreferences, indépendamment des jeux définis dans [GameRepository].
+ * Journal des parties : une partie (en cours ou terminée) = un fichier JSON dans
+ * `filesDir/journal/`, nommé `<jeu>@<id>.json` (les deux identifiants sont encodés pour être
+ * sûrs comme nom de fichier). Indépendant des jeux définis dans [GameRepository].
+ *
+ * - Enregistrer une partie n'écrit que son fichier (écriture atomique : [AtomicFile]) ; avant,
+ *   chaque auto-sauvegarde relisait et réécrivait tout le journal.
+ * - Un fichier illisible est mis de côté (extension `.bad`) sans gêner les autres parties.
+ * - La limite [MAX_SAVED_GAMES] s'applique à chaque jeu séparément ; le nom du fichier commence
+ *   par le jeu, donc la vérifier ne demande qu'une liste de noms, sans rien lire.
+ * - L'ancien journal (un seul texte JSON dans les SharedPreferences) est converti en fichiers au
+ *   premier accès, puis laissé en place comme filet de sécurité.
  */
 class GameHistoryRepository(context: Context) {
 
+    /** Ancien emplacement du journal : ne sert plus qu'à la migration et au marqueur de migration. */
     private val prefs = context.getSharedPreferences("mes_scores_history", Context.MODE_PRIVATE)
+    private val dir = File(context.filesDir, DIR_NAME)
 
     companion object {
-        /** Nombre maximal de parties conservées : au-delà, les plus anciennes sont supprimées. */
+        /** Nombre maximal de parties conservées *par jeu* : au-delà, les plus anciennes de ce jeu sont supprimées. */
         const val MAX_SAVED_GAMES = 100
+
+        /** Dossier du journal dans `filesDir` (à garder en phase avec les règles de sauvegarde Android). */
+        const val DIR_NAME = "journal"
+
+        private const val EXT = ".json"
+        private const val BAD_EXT = ".bad"
+        /** Sépare le jeu de la partie dans le nom de fichier ; « @ » est toujours encodé par [Uri.encode]. */
+        private const val SEP = "@"
         private const val KEY_SAVED_GAMES = "saved_games"
-        /** Copie de sécurité du texte brut quand au moins une entrée n'a pas pu être relue. */
+        /** Copie de sécurité du texte brut quand au moins une entrée de l'ancien journal n'a pas pu être relue. */
         private const val KEY_BACKUP = "saved_games_unreadable_backup"
+        private const val KEY_MIGRATED = "journal_migrated_to_files"
         private const val TAG = "GameHistory"
+    }
+
+    private fun gamePrefix(gameId: String) = Uri.encode(gameId) + SEP
+    private fun idSuffix(id: String) = SEP + Uri.encode(id) + EXT
+    private fun fileOf(game: SavedGame) = File(dir, gamePrefix(game.gameRules.id) + Uri.encode(game.id) + EXT)
+
+    /** Fichiers de parties du journal, éventuellement ceux d'un seul jeu ([prefix]) ou d'une seule partie ([suffix]). */
+    private fun journalFiles(prefix: String? = null, suffix: String? = null): List<File> =
+        dir.listFiles { f ->
+            f.isFile && f.name.endsWith(EXT) &&
+                (prefix == null || f.name.startsWith(prefix)) &&
+                (suffix == null || f.name.endsWith(suffix))
+        }.orEmpty().toList()
+
+    /** Relit un fichier ; un fichier au contenu abîmé est mis de côté, une simple erreur de lecture le laisse en place. */
+    private fun readFile(file: File): SavedGame? = try {
+        SavedGame.fromJson(JSONObject(AtomicFile(file).readText()))
+    } catch (e: IOException) {
+        Log.w(TAG, "Lecture impossible de ${file.name}, laissé en place", e)
+        null
+    } catch (e: Exception) {
+        Log.w(TAG, "Partie ${file.name} illisible, mise de côté", e)
+        file.renameTo(File(file.path + BAD_EXT))
+        null
     }
 
     /** Parties triées de la plus récente à la plus ancienne. */
     fun listGames(): List<SavedGame> {
-        val json = prefs.getString(KEY_SAVED_GAMES, null) ?: return emptyList()
-        val array = try {
-            JSONArray(json)
-        } catch (e: JSONException) {
-            // Tout le texte est illisible : on le met de côté avant qu'un enregistrement ne l'écrase.
-            Log.w(TAG, "Journal illisible, copie de sécurité conservée", e)
-            backUp(json)
-            return emptyList()
-        }
-        var skipped = 0
-        // Une entrée abîmée est ignorée seule : les autres parties restent lisibles.
-        val games = (0 until array.length()).mapNotNull { i ->
-            try {
-                SavedGame.fromJson(array.getJSONObject(i))
-            } catch (e: Exception) {
-                skipped++
-                Log.w(TAG, "Entrée $i du journal illisible, ignorée", e)
-                null
-            }
-        }
-        if (skipped > 0) backUp(json)
-        return games.sortedByDescending { it.savedAt }
+        migrateIfNeeded()
+        return journalFiles().mapNotNull { readFile(it) }.sortedByDescending { it.savedAt }
     }
 
-    /** Conserve le texte brut du journal (une seule copie, la plus ancienne) pour une récupération manuelle. */
-    private fun backUp(rawJson: String) {
-        if (!prefs.contains(KEY_BACKUP)) prefs.edit { putString(KEY_BACKUP, rawJson) }
+    /**
+     * Écrit le fichier de [game] (remplace le précédent de même id) sans appliquer la limite.
+     * Une erreur d'écriture (disque plein…) est journalisée mais ne fait pas planter l'appli.
+     */
+    private fun writeGame(game: SavedGame) {
+        try {
+            dir.mkdirs()
+            val target = fileOf(game)
+            AtomicFile(target).writeText(game.toJson().toString())
+            // Une seule entrée par id, même si le jeu enregistré avait changé de nom de fichier.
+            journalFiles(suffix = idSuffix(game.id)).filter { it != target }.forEach { it.delete() }
+        } catch (e: IOException) {
+            Log.w(TAG, "Écriture impossible de la partie ${game.id}", e)
+        }
     }
 
     /**
      * Enregistre [game] : remplace l'entrée existante de même id si elle existe, sinon l'ajoute.
-     * Si le journal dépasse [MAX_SAVED_GAMES], les parties les plus anciennes sont supprimées,
-     * les parties terminées d'abord, puis les parties en cours. [game] n'est jamais supprimée.
+     * Si ce jeu dépasse [MAX_SAVED_GAMES] parties, les plus anciennes sont supprimées, les parties
+     * terminées d'abord, puis les parties en cours. [game] n'est jamais supprimée.
      */
     fun saveGame(game: SavedGame) {
-        val current = listGames().filterNot { it.id == game.id } + game
-        persist(JournalBackup.trimToLimit(current, MAX_SAVED_GAMES, keepId = game.id))
+        migrateIfNeeded()
+        writeGame(game)
+        trimGame(game.gameRules.id, keepId = game.id)
+    }
+
+    /** Ne lit rien tant que le jeu [gameId] reste sous la limite : seuls les noms de fichiers sont comptés. */
+    private fun trimGame(gameId: String, keepId: String?) {
+        val files = journalFiles(prefix = gamePrefix(gameId))
+        if (files.size <= MAX_SAVED_GAMES) return
+        val games = files.mapNotNull { readFile(it) }
+        val kept = JournalBackup.trimToLimit(games, MAX_SAVED_GAMES, keepId).map { it.id }.toSet()
+        games.filter { it.id !in kept }.forEach { deleteGame(it.id) }
     }
 
     /** Contenu du fichier de sauvegarde du journal (voir [JournalBackup]). */
@@ -314,7 +365,8 @@ class GameHistoryRepository(context: Context) {
     /**
      * Importe le contenu d'un fichier de sauvegarde en le fusionnant au journal actuel (rien n'est
      * effacé ; voir [JournalBackup.merge]). Renvoie null et laisse le journal intact si le fichier
-     * n'est pas une sauvegarde valide ; [onError] reçoit alors la raison.
+     * n'est pas une sauvegarde valide ; [onError] reçoit alors la raison. Seules les parties ajoutées
+     * ou mises à jour sont écrites ; la limite par jeu est appliquée ensuite.
      */
     fun importJson(text: String, onError: (JournalBackup.ImportError) -> Unit): ImportSummary? {
         when (val parsed = JournalBackup.parse(text)) {
@@ -323,9 +375,13 @@ class GameHistoryRepository(context: Context) {
                 return null
             }
             is JournalBackup.ParseResult.Ok -> {
-                val merged = JournalBackup.merge(listGames(), parsed.games)
-                val kept = JournalBackup.trimToLimit(merged.games, MAX_SAVED_GAMES)
-                persist(kept)
+                val existing = listGames()
+                val merged = JournalBackup.merge(existing, parsed.games)
+                val kept = JournalBackup.trimToLimitPerGame(merged.games, MAX_SAVED_GAMES)
+                val keptIds = kept.map { it.id }.toSet()
+                val savedAtById = existing.associate { it.id to it.savedAt }
+                kept.filter { savedAtById[it.id] != it.savedAt }.forEach { writeGame(it) }
+                merged.games.filter { it.id !in keptIds }.forEach { deleteGame(it.id) }
                 return ImportSummary(
                     added = merged.added,
                     updated = merged.updated,
@@ -339,16 +395,61 @@ class GameHistoryRepository(context: Context) {
 
     /** Supprime toutes les parties terminées (les parties en cours sont conservées). */
     fun deleteFinishedGames() {
-        persist(listGames().filterNot { it.isFinished })
+        listGames().filter { it.isFinished }.forEach { deleteGame(it.id) }
     }
 
     fun deleteGame(id: String) {
-        persist(listGames().filterNot { it.id == id })
+        migrateIfNeeded()
+        journalFiles(suffix = idSuffix(id)).forEach { it.delete() }
     }
 
-    private fun persist(games: List<SavedGame>) {
-        val array = JSONArray()
-        games.forEach { array.put(it.toJson()) }
-        prefs.edit { putString(KEY_SAVED_GAMES, array.toString()) }
+    /**
+     * Convertit l'ancien journal (un texte JSON dans les SharedPreferences) en un fichier par partie.
+     * Rejouable sans risque : une partie déjà présente en fichier n'est pas touchée, et le marqueur
+     * n'est posé qu'une fois tout écrit. L'ancien texte reste dans les préférences (filet de sécurité).
+     */
+    private fun migrateIfNeeded() {
+        if (prefs.getBoolean(KEY_MIGRATED, false)) return
+        try {
+            dir.mkdirs()
+            legacyGames().forEach { game ->
+                if (journalFiles(suffix = idSuffix(game.id)).isEmpty()) {
+                    AtomicFile(fileOf(game)).writeText(game.toJson().toString())
+                }
+            }
+            prefs.edit(commit = true) { putBoolean(KEY_MIGRATED, true) }
+        } catch (e: IOException) {
+            Log.w(TAG, "Migration du journal reportée au prochain accès", e)
+        }
+    }
+
+    /** Relit l'ancien journal des SharedPreferences (même tolérance aux entrées abîmées qu'avant). */
+    private fun legacyGames(): List<SavedGame> {
+        val json = prefs.getString(KEY_SAVED_GAMES, null) ?: return emptyList()
+        val array = try {
+            JSONArray(json)
+        } catch (e: JSONException) {
+            // Tout le texte est illisible : on le met de côté, il ne sera jamais écrasé.
+            Log.w(TAG, "Ancien journal illisible, copie de sécurité conservée", e)
+            backUp(json)
+            return emptyList()
+        }
+        var skipped = 0
+        val games = (0 until array.length()).mapNotNull { i ->
+            try {
+                SavedGame.fromJson(array.getJSONObject(i))
+            } catch (e: Exception) {
+                skipped++
+                Log.w(TAG, "Entrée $i de l'ancien journal illisible, ignorée", e)
+                null
+            }
+        }
+        if (skipped > 0) backUp(json)
+        return games
+    }
+
+    /** Conserve le texte brut de l'ancien journal (une seule copie, la plus ancienne) pour une récupération manuelle. */
+    private fun backUp(rawJson: String) {
+        if (!prefs.contains(KEY_BACKUP)) prefs.edit { putString(KEY_BACKUP, rawJson) }
     }
 }
