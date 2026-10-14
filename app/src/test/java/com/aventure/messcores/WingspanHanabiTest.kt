@@ -25,9 +25,10 @@ class WingspanHanabiTest {
         assertEquals(GameCategory.SPECIAL, g.category())
         assertFalse(g.allowNegativeScores)
         val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben"), g) }
-        vm.setCell(0, 0, 40, true)
-        vm.setCell(1, 0, 7, true)
-        vm.setCell(0, 3, 12, true)
+        // setCell(ligne, joueur, valeur, négatif)
+        vm.setCell(0, 0, 40, false)
+        vm.setCell(0, 1, 7, false)
+        vm.setCell(3, 0, 12, false)
         assertEquals(52, vm.totalFor(0))
         assertEquals(7, vm.totalFor(1))
     }
@@ -41,7 +42,7 @@ class WingspanHanabiTest {
         assertEquals(6, rows.size)
         assertTrue(rows.all { it.options == listOf(0, 1, 2, 3, 4, 5) && it.hint != null })
         val vm = ScoreViewModel().also { it.initGame(listOf("Équipe"), g) }
-        for (row in 0 until 5) vm.setCell(0, row, 5, true)
+        for (row in 0 until 5) vm.setCell(row, 0, 5, false)
         assertEquals(25, vm.totalFor(0))
     }
 }
