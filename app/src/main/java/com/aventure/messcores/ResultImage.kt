@@ -10,6 +10,8 @@ import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withTranslation
 import java.io.ByteArrayOutputStream
 
 /**
@@ -94,7 +96,7 @@ object ResultImage {
         val footerTop = winnerTop + (winner?.height ?: 0) + 48f
         val height = (footerTop + 36f + 56f).toInt()
 
-        val bitmap = Bitmap.createBitmap(WIDTH, height, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(WIDTH, height)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.WHITE)
 
@@ -127,11 +129,8 @@ object ResultImage {
             canvas.drawText(totalText, WIDTH - MARGIN, centerY + 20f, totalPaint)
         }
 
-        winner?.let {
-            canvas.save()
-            canvas.translate(MARGIN, winnerTop)
-            it.draw(canvas)
-            canvas.restore()
+        winner?.let { layout ->
+            canvas.withTranslation(MARGIN, winnerTop) { layout.draw(this) }
         }
         footerPaint.textAlign = Paint.Align.RIGHT
         canvas.drawText(content.footer, WIDTH - MARGIN, footerTop + 36f, footerPaint)
