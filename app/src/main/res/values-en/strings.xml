@@ -1082,7 +1082,7 @@
     <string name="poker_setup_buy_in_hint">0 = no prize money to share</string>
     <string name="poker_setup_payout">Prize split</string>
     <string name="poker_setup_payout_winner">Winner takes all</string>
-    <string name="poker_setup_payout_places">%1$d places (%2$s)</string>
+    <string name="poker_setup_payout_places" tools:ignore="PluralsCandidate">%1$d places (%2$s)</string>
     <string name="poker_setup_pool">Prize pool: %1$s</string>
     <string name="poker_level_break_line">%1$d min break</string>
     <string name="poker_break_clock">Break · back in %1$s</string>
