@@ -99,6 +99,25 @@ internal fun otherGames(context: Context): List<GameRules> = listOf(
         scoreMode = ScoreMode.COUNTER,
         endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 25, stopImmediately = true, minLead = 2)
     ),
+    // Tennis et padel : écran dédié (points, jeux, sets) ; les réglages se choisissent sur l'écran de score.
+    GameRules(
+        id = RacketConfig.TENNIS_ID,
+        name = context.getString(R.string.game_tennis),
+        minPlayers = 2,
+        maxPlayers = 4,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.RACKET
+    ),
+    GameRules(
+        id = RacketConfig.PADEL_ID,
+        name = context.getString(R.string.game_padel),
+        minPlayers = 2,
+        maxPlayers = 4,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.RACKET
+    ),
     GameRules(
         id = "builtin_babyfoot",
         name = context.getString(R.string.game_babyfoot),

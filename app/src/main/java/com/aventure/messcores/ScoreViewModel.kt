@@ -21,6 +21,7 @@ import kotlin.random.Random
  * - mode COUNTER : un total par joueur, modifiable par +1/-1
  * - mode VARIABLE_TEAMS : un historique de [TeamRound]
  * - mode POKER : un tournoi suivi action par action ([PokerGame]), avec son minuteur de blinds
+ * - mode RACKET : un match de tennis ou de padel, déduit de la liste des points gagnés ([RacketScoring])
  */
 class ScoreViewModel : ViewModel() {
 
@@ -95,19 +96,41 @@ class ScoreViewModel : ViewModel() {
     var pokerClockRunning by mutableStateOf(false)
         private set
 
+    // --- Mode RACKET (tennis, padel) ---
+    /** Réglages du match (nombre de sets, point d'or, set décisif) : modifiables tant qu'aucun point n'est joué. */
+    var racketConfig by mutableStateOf(RacketConfig())
+        private set
+
+    /** Camp (0 ou 1) qui a gagné chaque point, dans l'ordre : tout le score s'en déduit. */
+    private val _racketPoints = mutableStateListOf<Int>()
+
+    // Points annulés, rétablissables tant qu'aucun nouveau point n'est joué.
+    private val _racketRedo = mutableStateListOf<Int>()
+
+    /** État du match (points, jeux, sets) : recalculé à partir des points gagnés. */
+    val racketState: RacketState get() = RacketScoring.replay(racketConfig, _racketPoints)
+
     // --- Annulation (modes TABLE et COUNTER) ---
     private val _undoStack = mutableStateListOf<UndoAction>()
 
     /** Vrai s'il y a une saisie à annuler (pour activer le bouton « Annuler »). */
     val canUndo: Boolean
-        get() = if (gameRules.scoreMode == ScoreMode.POKER) _pokerUndo.isNotEmpty() else _undoStack.isNotEmpty()
+        get() = when (gameRules.scoreMode) {
+            ScoreMode.POKER -> _pokerUndo.isNotEmpty()
+            ScoreMode.RACKET -> _racketPoints.isNotEmpty()
+            else -> _undoStack.isNotEmpty()
+        }
 
     // Saisies annulées, rétablissables tant qu'aucune nouvelle saisie n'est faite.
     private val _redoStack = mutableStateListOf<RedoAction>()
 
     /** Vrai s'il y a une saisie annulée à rétablir (pour activer le bouton « Rétablir »). */
     val canRedo: Boolean
-        get() = if (gameRules.scoreMode == ScoreMode.POKER) _pokerRedo.isNotEmpty() else _redoStack.isNotEmpty()
+        get() = when (gameRules.scoreMode) {
+            ScoreMode.POKER -> _pokerRedo.isNotEmpty()
+            ScoreMode.RACKET -> _racketRedo.isNotEmpty()
+            else -> _redoStack.isNotEmpty()
+        }
 
     companion object {
         private const val INITIAL_ROUNDS = 5
@@ -139,12 +162,13 @@ class ScoreViewModel : ViewModel() {
         _teamRounds.clear()
         _phases.clear()
         resetPoker()
+        resetRacket(RacketConfig.defaultsFor(rules))
         if (rules.phases != null) repeat(playerNames.size) { _phases.add(1) }
         when (rules.scoreMode) {
             ScoreMode.TABLE -> repeat(sheetRows?.size ?: INITIAL_ROUNDS) { addRound() }
             ScoreMode.COUNTER -> repeat(playerNames.size) { _counters.add(0) }
             // Le poker démarre avec ses réglages : voir [startPoker].
-            ScoreMode.VARIABLE_TEAMS, ScoreMode.POKER -> Unit
+            ScoreMode.VARIABLE_TEAMS, ScoreMode.POKER, ScoreMode.RACKET -> Unit
         }
     }
 
@@ -180,6 +204,7 @@ class ScoreViewModel : ViewModel() {
         _teamRounds.clear()
         _phases.clear()
         resetPoker()
+        resetRacket(saved.racket?.config ?: RacketConfig.defaultsFor(saved.gameRules))
         if (saved.gameRules.phases != null) {
             val savedPhases = saved.phases
             if (savedPhases != null && savedPhases.size == saved.players.size) {
@@ -225,6 +250,7 @@ class ScoreViewModel : ViewModel() {
                 poker = saved.poker
                 pokerClockBaseMs = saved.poker?.clockMs ?: 0L
             }
+            ScoreMode.RACKET -> saved.racket?.points?.forEach { _racketPoints.add(it) }
         }
     }
 
@@ -236,6 +262,7 @@ class ScoreViewModel : ViewModel() {
             ScoreMode.COUNTER -> _counters.any { it != 0 }
             ScoreMode.VARIABLE_TEAMS -> _teamRounds.isNotEmpty()
             ScoreMode.POKER -> poker?.let { it.handsPlayed > 0 || it.log.isNotEmpty() } == true
+            ScoreMode.RACKET -> _racketPoints.isNotEmpty()
         }
     }
 
@@ -248,6 +275,7 @@ class ScoreViewModel : ViewModel() {
         _undoStack.clear()
         _redoStack.clear()
         resetPoker()
+        resetRacket(RacketConfig())
     }
 
     /** Enregistrement voulu par l'utilisateur (bouton « Enregistrer », « Enregistrer et quitter »). */
@@ -314,7 +342,8 @@ class ScoreViewModel : ViewModel() {
             teamRounds = if (gameRules.scoreMode == ScoreMode.VARIABLE_TEAMS) _teamRounds.toList() else null,
             isFinished = isGameOver(),
             phases = if (gameRules.phases != null) _phases.toList() else null,
-            poker = if (gameRules.scoreMode == ScoreMode.POKER) poker?.copy(clockMs = pokerElapsedMs()) else null
+            poker = if (gameRules.scoreMode == ScoreMode.POKER) poker?.copy(clockMs = pokerElapsedMs()) else null,
+            racket = if (gameRules.scoreMode == ScoreMode.RACKET) RacketMatch(racketConfig, _racketPoints.toList()) else null
         )
     }
 
@@ -438,6 +467,11 @@ class ScoreViewModel : ViewModel() {
             poker = previous
             return
         }
+        if (gameRules.scoreMode == ScoreMode.RACKET) {
+            val lastPoint = _racketPoints.removeLastOrNull() ?: return
+            _racketRedo.add(lastPoint)
+            return
+        }
         val action = _undoStack.removeLastOrNull() ?: return
         when (action) {
             is UndoAction.CounterChange -> {
@@ -472,6 +506,11 @@ class ScoreViewModel : ViewModel() {
             val next = _pokerRedo.removeLastOrNull() ?: return
             poker?.let { _pokerUndo.add(it) }
             poker = next
+            return
+        }
+        if (gameRules.scoreMode == ScoreMode.RACKET) {
+            val nextPoint = _racketRedo.removeLastOrNull() ?: return
+            _racketPoints.add(nextPoint)
             return
         }
         val action = _redoStack.removeLastOrNull() ?: return
@@ -520,6 +559,36 @@ class ScoreViewModel : ViewModel() {
     fun removeTeamRound(index: Int) {
         if (index in _teamRounds.indices) _teamRounds.removeAt(index)
     }
+
+    // ---------- Mode RACKET (tennis, padel) ----------
+
+    private fun resetRacket(config: RacketConfig) {
+        racketConfig = config
+        _racketPoints.clear()
+        _racketRedo.clear()
+    }
+
+    /** Ajoute un point au camp [side] (0 ou 1). Sans effet une fois le match terminé. */
+    fun racketPoint(side: Int) {
+        if (gameRules.scoreMode != ScoreMode.RACKET || side !in 0..1) return
+        if (racketState.winner != null) return
+        _racketPoints.add(side)
+        _racketRedo.clear()
+    }
+
+    /** Change les réglages du match ; refusé dès que le premier point est joué. Renvoie vrai si changé. */
+    fun setRacketConfig(config: RacketConfig): Boolean {
+        if (gameRules.scoreMode != ScoreMode.RACKET || _racketPoints.isNotEmpty()) return false
+        racketConfig = config
+        _racketRedo.clear()
+        return true
+    }
+
+    /** Camp (0 ou 1) du joueur d'index [player] : voir [RacketScoring.sideOf]. */
+    fun racketSideOf(player: Int): Int = RacketScoring.sideOf(player, players.size)
+
+    /** Joueurs d'un camp, dans l'ordre de la liste. */
+    fun racketPlayers(side: Int): List<Int> = RacketScoring.playersOfSide(side, players.size)
 
     // ---------- Mode POKER ----------
 
@@ -719,6 +788,9 @@ class ScoreViewModel : ViewModel() {
             _counters.getOrNull(player) ?: 0
         ScoreMode.POKER ->
             poker?.seats?.getOrNull(player)?.stack ?: 0
+        // Tennis / padel : sets gagnés par le camp du joueur.
+        ScoreMode.RACKET ->
+            racketState.setsWon(racketSideOf(player))
         ScoreMode.VARIABLE_TEAMS ->
             _teamRounds.sumOf { round ->
                 round.deltas?.getOrNull(player)
@@ -780,6 +852,7 @@ class ScoreViewModel : ViewModel() {
         ScoreMode.VARIABLE_TEAMS -> _teamRounds.size
         ScoreMode.COUNTER -> 0
         ScoreMode.POKER -> poker?.handsPlayed ?: 0
+        ScoreMode.RACKET -> racketState.sets.size
     }
 
     /** Classement actuel en texte, prêt à être partagé (voir [ResultText]). */
@@ -787,7 +860,7 @@ class ScoreViewModel : ViewModel() {
         val all = totals
         return ResultText.game(
             context = context,
-            gameName = gameRules.name,
+            gameName = shareGameName(),
             players = players,
             totals = all,
             ranks = ranksFor(all),
@@ -796,12 +869,19 @@ class ScoreViewModel : ViewModel() {
         )
     }
 
+    /** Nom du jeu pour le partage ; tennis et padel y ajoutent le score en chiffres (« Tennis 6-4 3-6 2-1 »). */
+    private fun shareGameName(): String {
+        if (gameRules.scoreMode != ScoreMode.RACKET) return gameRules.name
+        val line = RacketScoring.scoreLine(racketState)
+        return if (line.isEmpty()) gameRules.name else gameRules.name + " " + line
+    }
+
     /** Même classement que [shareText], mis en forme pour l'image partagée (voir [ResultImage]). */
     fun shareImageContent(context: Context): ResultImage.Content {
         val all = totals
         return ResultImage.content(
             context = context,
-            gameName = gameRules.name,
+            gameName = shareGameName(),
             players = players,
             totals = all,
             ranks = ranksFor(all),
@@ -814,6 +894,8 @@ class ScoreViewModel : ViewModel() {
     fun isGameOver(): Boolean {
         // Poker : terminé quand il ne reste qu'un joueur avec des jetons.
         if (gameRules.scoreMode == ScoreMode.POKER) return poker?.champion != null
+        // Tennis / padel : terminé dès qu'un camp a gagné le nombre de sets prévu.
+        if (gameRules.scoreMode == ScoreMode.RACKET) return racketState.winner != null
         // Fléchettes : terminée dès qu'un joueur arrive à 0 pile.
         if (gameRules.countdownFrom != null) return _scores.isNotEmpty() && totals.any { it == 0 }
         // Phase 10 : terminée dès qu'un joueur a terminé la dernière phase.

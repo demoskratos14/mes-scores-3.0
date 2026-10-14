@@ -12,7 +12,9 @@ enum class ScoreMode {
     /** Manches où la composition des équipes peut changer à chaque fois (ex: Tarot). */
     VARIABLE_TEAMS,
     /** Tournoi de poker : tapis, blinds qui montent, tours d'enchères (voir [PokerEngine]). */
-    POKER
+    POKER,
+    /** Match de tennis ou de padel : points, jeux, sets, tie-break (voir [RacketScoring]). */
+    RACKET
 }
 
 /** Type de condition qui termine la partie. */

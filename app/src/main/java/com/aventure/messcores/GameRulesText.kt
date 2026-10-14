@@ -359,6 +359,16 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_badminton_1_title, R.string.rules_badminton_1_body),
         RulesSection(R.string.rules_badminton_2_title, R.string.rules_badminton_2_body)
     ),
+    "builtin_tennis" to listOf(
+        RulesSection(R.string.rules_tennis_1_title, R.string.rules_tennis_1_body),
+        RulesSection(R.string.rules_tennis_2_title, R.string.rules_tennis_2_body),
+        RulesSection(R.string.rules_tennis_3_title, R.string.rules_tennis_3_body)
+    ),
+    "builtin_padel" to listOf(
+        RulesSection(R.string.rules_padel_1_title, R.string.rules_padel_1_body),
+        RulesSection(R.string.rules_padel_2_title, R.string.rules_padel_2_body),
+        RulesSection(R.string.rules_padel_3_title, R.string.rules_padel_3_body)
+    ),
     "builtin_volley" to listOf(
         RulesSection(R.string.rules_volley_1_title, R.string.rules_volley_1_body),
         RulesSection(R.string.rules_volley_2_title, R.string.rules_volley_2_body)

@@ -112,7 +112,9 @@ data class SavedGame(
     /** Phase atteinte par chaque joueur (Phase 10), ou null pour les autres jeux. */
     val phases: List<Int>? = null,
     /** Tournoi de poker en cours (mode POKER), ou null pour les autres jeux. */
-    val poker: PokerGame? = null
+    val poker: PokerGame? = null,
+    /** Match de tennis ou de padel (mode RACKET) : réglages et points gagnés, ou null pour les autres jeux. */
+    val racket: RacketMatch? = null
 ) {
     /**
      * Le contenu de la partie sans ce qui change tout seul d'un instant à l'autre (heure
@@ -140,6 +142,9 @@ data class SavedGame(
         }
         ScoreMode.COUNTER -> players.indices.map { counters?.getOrNull(it) ?: 0 }
         ScoreMode.POKER -> players.indices.map { poker?.seats?.getOrNull(it)?.stack ?: 0 }
+        // Tennis / padel : sets gagnés par le camp de chaque joueur.
+        ScoreMode.RACKET -> racket?.let { RacketScoring.setsByPlayer(RacketScoring.replay(it), players.size) }
+            ?: players.map { 0 }
         ScoreMode.VARIABLE_TEAMS -> players.indices.map { p ->
             teamRounds.orEmpty().fold(0) { acc, round ->
                 acc + (round.deltas?.getOrNull(p)
@@ -171,6 +176,7 @@ data class SavedGame(
         counters?.let { obj.put("counters", JSONArray(it)) }
         phases?.let { obj.put("phases", JSONArray(it)) }
         poker?.let { obj.put("poker", it.toJson()) }
+        racket?.let { obj.put("racket", it.toJson()) }
         teamRounds?.let { rounds ->
             val array = JSONArray()
             rounds.forEach { array.put(it.toJson()) }
@@ -211,6 +217,7 @@ data class SavedGame(
             }
 
             val poker = obj.optJSONObject("poker")?.let { PokerGame.fromJson(it) }
+            val racket = obj.optJSONObject("racket")?.let { RacketMatch.fromJson(it) }
 
             val teamRounds = obj.optJSONArray("teamRounds")?.let { array ->
                 (0 until array.length()).map { i -> teamRoundFromJson(array.getJSONObject(i)) }
@@ -227,7 +234,8 @@ data class SavedGame(
                 teamRounds = teamRounds,
                 isFinished = obj.optBoolean("isFinished", false),
                 phases = phases,
-                poker = poker
+                poker = poker,
+                racket = racket
             )
         }
     }

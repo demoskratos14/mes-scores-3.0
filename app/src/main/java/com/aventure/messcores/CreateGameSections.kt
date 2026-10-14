@@ -49,8 +49,8 @@ internal fun ScoreModeSection(form: CreateGameForm) {
         }
         Text(
             text = when (scoreMode) {
-                // POKER n'est pas proposé ici (jeu prédéfini) : même texte que le tableau par défaut.
-                ScoreMode.TABLE, ScoreMode.POKER -> stringResource(R.string.create_mode_table_desc)
+                // POKER et RACKET ne sont pas proposés ici (jeux prédéfinis) : même texte que le tableau par défaut.
+                ScoreMode.TABLE, ScoreMode.POKER, ScoreMode.RACKET -> stringResource(R.string.create_mode_table_desc)
                 ScoreMode.COUNTER -> stringResource(R.string.create_mode_counter_desc)
                 ScoreMode.VARIABLE_TEAMS -> stringResource(R.string.create_mode_teams_desc)
             },

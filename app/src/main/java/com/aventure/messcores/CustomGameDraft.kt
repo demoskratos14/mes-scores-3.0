@@ -23,7 +23,7 @@ enum class GameVariant {
 fun variantsFor(mode: ScoreMode): List<GameVariant> = when (mode) {
     ScoreMode.TABLE -> listOf(GameVariant.NONE, GameVariant.SHEET, GameVariant.BID, GameVariant.EXACT_TARGET, GameVariant.COUNTDOWN)
     ScoreMode.VARIABLE_TEAMS -> listOf(GameVariant.NONE, GameVariant.TAROT)
-    ScoreMode.COUNTER, ScoreMode.POKER -> listOf(GameVariant.NONE)
+    ScoreMode.COUNTER, ScoreMode.POKER, ScoreMode.RACKET -> listOf(GameVariant.NONE)
 }
 
 /** Mécanique d'un jeu existant (pour préremplir le formulaire de modification). */
@@ -77,7 +77,7 @@ data class CustomGameDraft(
             else -> GameVariant.NONE
         }
         ScoreMode.VARIABLE_TEAMS -> if (variant == GameVariant.TAROT && tarotContracts.isNotEmpty()) variant else GameVariant.NONE
-        ScoreMode.COUNTER, ScoreMode.POKER -> GameVariant.NONE
+        ScoreMode.COUNTER, ScoreMode.POKER, ScoreMode.RACKET -> GameVariant.NONE
     }
 
     /** Vrai si le suivi des phases est possible (seulement pour un tableau de manches libres). */

@@ -17,7 +17,7 @@ object ScoreProgress {
         val result = when (game.gameRules.scoreMode) {
             ScoreMode.TABLE -> tableSeries(game)
             ScoreMode.VARIABLE_TEAMS -> teamSeries(game)
-            ScoreMode.COUNTER, ScoreMode.POKER -> return null
+            ScoreMode.COUNTER, ScoreMode.POKER, ScoreMode.RACKET -> return null
         }
         return result.takeIf { it.isNotEmpty() && it.all { values -> values.size >= MIN_POINTS } }
     }

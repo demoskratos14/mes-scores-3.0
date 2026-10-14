@@ -126,7 +126,7 @@ fun ScoreApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
-        currentRoute == "poker"
+        currentRoute == "poker" || currentRoute == "racket"
     var showQuitDialog by remember { mutableStateOf(false) }
 
     // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
@@ -162,6 +162,7 @@ fun ScoreApp(
         ScoreMode.COUNTER -> "counter"
         ScoreMode.VARIABLE_TEAMS -> "teamRounds"
         ScoreMode.POKER -> "poker"
+        ScoreMode.RACKET -> "racket"
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -302,6 +303,9 @@ fun ScoreApp(
             }
             composable("score") {
                 ScoreScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
+            }
+            composable("racket") {
+                RacketScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
             composable("counter") {
                 CounterScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
