@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,6 +65,7 @@ fun ChooseGameScreen(
     var selectedId by rememberSaveable { mutableStateOf("builtin_generic") }
     val selected = games.firstOrNull { it.id == selectedId } ?: games.first()
     val context = LocalContext.current
+    val resources = LocalResources.current
     var expandedCategory by remember { mutableStateOf<GameCategory?>(null) }
     var longGame by remember { mutableStateOf(false) }
     var genericMode by remember { mutableStateOf(ScoreMode.TABLE) }
@@ -81,18 +83,18 @@ fun ChooseGameScreen(
                 val outcome = withContext(Dispatchers.IO) {
                     try {
                         val text = context.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
-                            ?: throw IOException(context.getString(R.string.history_file_unreadable))
+                            ?: throw IOException(resources.getString(R.string.history_file_unreadable))
                         var error: CustomGameShare.ImportError? = null
                         val summary = repository.importSharedGames(text) { error = it }
                         when {
-                            summary != null -> false to context.getString(
+                            summary != null -> false to resources.getString(
                                 R.string.choose_import_ok, summary.added, summary.unchanged, summary.invalid
                             )
-                            error == CustomGameShare.ImportError.NEWER_VERSION -> true to context.getString(R.string.choose_import_newer)
-                            else -> true to context.getString(R.string.choose_import_not_game)
+                            error == CustomGameShare.ImportError.NEWER_VERSION -> true to resources.getString(R.string.choose_import_newer)
+                            else -> true to resources.getString(R.string.choose_import_not_game)
                         }
                     } catch (e: Exception) {
-                        true to context.getString(R.string.choose_import_failed, e.message ?: context.getString(R.string.error_unknown))
+                        true to resources.getString(R.string.choose_import_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }
                 }
                 games = repository.allGames()
@@ -224,11 +226,11 @@ fun ChooseGameScreen(
                                     )
                                     ShareFiles.share(
                                         context, file, "application/json",
-                                        context.getString(R.string.choose_share_game_title, selected.name)
+                                        resources.getString(R.string.choose_share_game_title, selected.name)
                                     )
                                 } catch (e: Exception) {
-                                    errorMessage = context.getString(
-                                        R.string.choose_share_game_failed, e.message ?: context.getString(R.string.error_unknown)
+                                    errorMessage = resources.getString(
+                                        R.string.choose_share_game_failed, e.message ?: resources.getString(R.string.error_unknown)
                                     )
                                 }
                             },
