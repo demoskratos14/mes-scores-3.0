@@ -125,6 +125,12 @@ data class GameRules(
     /** Vrai si les manches se saisissent avec l'écran de Tarot (jeu prédéfini, ou jeu personnalisé qui l'a activé). */
     val usesTarotScoring: Boolean get() = tarotScoring || id == "builtin_tarot"
 
+    /** Vrai pour le bridge prédéfini : les donnes se saisissent avec l'écran de contrat (voir [computeBridgeContract]). */
+    val usesBridgeScoring: Boolean get() = id == "builtin_bridge"
+
+    /** Vrai pour le skat prédéfini : les donnes se saisissent avec l'écran de skat (voir [computeSkatRound]). */
+    val usesSkatScoring: Boolean get() = id == "builtin_skat"
+
     /** Sérialise cette règle en JSON, pour la sauvegarde dans les SharedPreferences. */
     fun toJson(): JSONObject {
         val obj = JSONObject()

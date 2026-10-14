@@ -45,9 +45,17 @@ fun NewTeamRoundScreen(
     viewModel: ScoreViewModel,
     onDone: () -> Unit
 ) {
-    // Le Tarot a son propre écran, avec calcul automatique du score et des primes.
+    // Le Tarot, le bridge et le skat ont leur propre écran, avec calcul automatique du score.
     if (viewModel.gameRules.usesTarotScoring) {
         NewTarotRoundScreen(viewModel = viewModel, onDone = onDone)
+        return
+    }
+    if (viewModel.gameRules.usesBridgeScoring) {
+        NewBridgeRoundScreen(viewModel = viewModel, onDone = onDone)
+        return
+    }
+    if (viewModel.gameRules.usesSkatScoring) {
+        NewSkatRoundScreen(viewModel = viewModel, onDone = onDone)
         return
     }
 

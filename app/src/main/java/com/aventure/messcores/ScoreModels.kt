@@ -36,7 +36,12 @@ data class TeamRound(
      * pour les jeux qui répartissent le score de façon inégale (Tarot). Si null, on applique
      * la règle simple : [value] à l'équipe A et son opposé aux autres joueurs.
      */
-    val deltas: List<Int>? = null
+    val deltas: List<Int>? = null,
+    /**
+     * Saisie d'origine d'une donne de bridge ou de skat, sous forme de nombres (voir [BridgeInput] et
+     * [SkatInput]), conservée pour pouvoir la corriger. Null pour les autres jeux.
+     */
+    val contractInput: List<Int>? = null
 )
 
 /** Saisie brute d'une manche de Tarot (preneur, contrat, points, primes…), pour la modifier plus tard. */

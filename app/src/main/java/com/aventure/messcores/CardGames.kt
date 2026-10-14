@@ -24,6 +24,24 @@ internal fun cardGames(context: Context): List<GameRules> = listOf(
         )
     ),
     GameRules(
+        id = "builtin_bridge",
+        name = context.getString(R.string.game_bridge),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = true,
+        scoreMode = ScoreMode.VARIABLE_TEAMS
+    ),
+    GameRules(
+        id = "builtin_skat",
+        name = context.getString(R.string.game_skat),
+        minPlayers = 3,
+        maxPlayers = 4,
+        lowestWins = false,
+        allowNegativeScores = true,
+        scoreMode = ScoreMode.VARIABLE_TEAMS
+    ),
+    GameRules(
         id = "builtin_belote",
         name = context.getString(R.string.game_belote),
         minPlayers = 2,

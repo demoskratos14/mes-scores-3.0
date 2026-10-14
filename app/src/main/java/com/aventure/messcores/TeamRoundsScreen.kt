@@ -178,7 +178,7 @@ fun TeamRoundsScreen(
                                     modifier = Modifier.weight(1f),
                                     style = MaterialTheme.typography.bodySmall
                                 )
-                                if (round.tarotInput != null) {
+                                if (round.tarotInput != null || round.contractInput != null) {
                                     IconButton(onClick = {
                                         viewModel.editingTeamRoundIndex = index
                                         onAddRound()

@@ -55,6 +55,7 @@ private fun TeamRound.toJson(): JSONObject {
         list.forEach { deltasArray.put(it) }
         obj.put("deltas", deltasArray)
     }
+    contractInput?.let { list -> obj.put("contractInput", JSONArray(list)) }
     return obj
 }
 
@@ -83,6 +84,9 @@ private fun teamRoundFromJson(obj: JSONObject): TeamRound {
             )
         },
         deltas = obj.optJSONArray("deltas")?.let { array ->
+            (0 until array.length()).map { array.getInt(it) }
+        },
+        contractInput = obj.optJSONArray("contractInput")?.let { array ->
             (0 until array.length()).map { array.getInt(it) }
         }
     )
