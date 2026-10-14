@@ -29,7 +29,7 @@ class SkatScoringTest {
         assertTrue(result.won)
         // Carreau, 4 matadors : (1 + 4) × 9 = 45.
         assertEquals(45, round(SkatGame.DIAMONDS, matadors = 4).gameValue)
-        assertEquals(60, round(SkatGame.SPADES, matadors = 4).gameValue)
+        assertEquals(55, round(SkatGame.SPADES, matadors = 4).gameValue)
         assertEquals(50, round(SkatGame.HEARTS, matadors = 4).gameValue)
     }
 
