@@ -92,14 +92,14 @@ private val WIN_GREEN = Color(0xFF2E7D32)
 @Composable
 fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepository) {
     // Partie fermée pendant la transition de retour : rien à afficher.
-    val game = viewModel.poker ?: return
+    val game = viewModel.pokerSession.game ?: return
 
     KeepScreenOn()
     val context = LocalContext.current
     val players = viewModel.players
 
     // Horloge : se rafraîchit chaque demi-seconde tant que le minuteur de blinds tourne.
-    val running = viewModel.pokerClockRunning
+    val running = viewModel.pokerSession.clockRunning
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(running) {
         now = System.currentTimeMillis()
@@ -108,7 +108,7 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
             now = System.currentTimeMillis()
         }
     }
-    val elapsed = viewModel.pokerElapsedMs(now)
+    val elapsed = viewModel.pokerSession.elapsedMs(now)
     val level = PokerBlinds.levelAt(game.settings, elapsed)
     val onBreak = PokerBlinds.isBreak(game.settings, elapsed)
 
@@ -142,8 +142,8 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                 onBreak = onBreak,
                 elapsed = elapsed,
                 running = running,
-                onToggleClock = { viewModel.togglePokerClock() },
-                onNextLevel = { viewModel.pokerSkipToNextLevel() }
+                onToggleClock = { viewModel.pokerSession.toggleClock() },
+                onNextLevel = { viewModel.pokerSession.skipToNextLevel() }
             )
 
             PokerInfoCard(game = game, players = players)
@@ -527,13 +527,13 @@ private fun PokerActionPanel(viewModel: ScoreViewModel, game: PokerGame, players
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
-                    onClick = { viewModel.pokerFold() },
+                    onClick = { viewModel.pokerSession.fold() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(stringResource(R.string.poker_action_fold))
                 }
                 Button(
-                    onClick = { if (options.canCheck) viewModel.pokerCheck() else viewModel.pokerCall() },
+                    onClick = { if (options.canCheck) viewModel.pokerSession.check() else viewModel.pokerSession.call() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
@@ -604,7 +604,7 @@ private fun RaiseSection(viewModel: ScoreViewModel, game: PokerGame, options: Po
 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(
-            onClick = { if (amount != null) viewModel.pokerRaiseTo(amount) },
+            onClick = { if (amount != null) viewModel.pokerSession.raiseTo(amount) },
             enabled = valid,
             modifier = Modifier.weight(1f)
         ) {
@@ -621,7 +621,7 @@ private fun RaiseSection(viewModel: ScoreViewModel, game: PokerGame, options: Po
             )
         }
         OutlinedButton(
-            onClick = { viewModel.pokerAllIn() },
+            onClick = { viewModel.pokerSession.allIn() },
             modifier = Modifier.weight(1f)
         ) {
             Text(
@@ -702,7 +702,7 @@ private fun PokerShowdownPanel(viewModel: ScoreViewModel, game: PokerGame, playe
             }
 
             Button(
-                onClick = { viewModel.pokerResolve(pots.indices.map { choices[it]?.toList().orEmpty() }) },
+                onClick = { viewModel.pokerSession.resolve(pots.indices.map { choices[it]?.toList().orEmpty() }) },
                 enabled = complete,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -745,7 +745,7 @@ private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, playe
             }
             // Recaves : les joueurs éliminés (à cette main ou avant) peuvent revenir tant que la période est ouverte.
             game.seats.indices.filter { PokerEngine.canRebuy(game, it, level) }.forEach { index ->
-                OutlinedButton(onClick = { viewModel.pokerRebuy(index) }, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = { viewModel.pokerSession.rebuy(index) }, modifier = Modifier.fillMaxWidth()) {
                     Text(
                         stringResource(
                             R.string.poker_rebuy_button,
@@ -780,7 +780,7 @@ private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, playe
                     }
                 }
             } else {
-                Button(onClick = { viewModel.pokerNextHand() }, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = { viewModel.pokerSession.nextHand() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.poker_next_hand))
                 }
                 OutlinedButton(onClick = { showTables = true }, modifier = Modifier.fillMaxWidth()) {

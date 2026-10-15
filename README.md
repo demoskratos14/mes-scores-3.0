@@ -92,6 +92,7 @@ MesScores/
             │   ├── BidScoring.kt              annonce et plis réalisés (Wizard, Oh Hell)
             │   ├── ContractWidgets.kt         éléments communs aux saisies de Tarot, bridge et skat (points signés, choix exclusifs)
             │   ├── PokerEngine.kt, PokerModels.kt, PokerBlinds.kt, PokerPrizes.kt   tournoi de poker : règles (enchères, pots annexes), types de la partie, blinds, gains — purs, testés
+            │   ├── PokerSession.kt            tournoi de poker en cours : partie, annulation, minuteur de blinds (horloge injectable, testé)
             │   ├── PokerScreen.kt, PokerSetupScreen.kt, PokerChips.kt   table de poker, création d'une partie, jetons
             │   ├── PokerTablesDialog.kt, PokerTransfer.kt   réunion de tables par fichier d'échange (export/import des joueurs)
             │   ├── RacketScoring.kt, RacketScreen.kt   score du tennis et du padel (moteur pur, testé) et son écran

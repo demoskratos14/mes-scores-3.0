@@ -33,7 +33,7 @@ fun AutoSaveEffect(viewModel: ScoreViewModel, repository: GameHistoryRepository)
     LaunchedEffect(viewModel, repository) {
         while (true) {
             delay(AUTOSAVE_CLOCK_INTERVAL_MS)
-            if (viewModel.pokerClockRunning) viewModel.autoSave(repository, force = true)
+            if (viewModel.pokerSession.clockRunning) viewModel.autoSave(repository, force = true)
         }
     }
 }

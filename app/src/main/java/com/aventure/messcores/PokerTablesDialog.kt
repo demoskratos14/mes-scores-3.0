@@ -67,7 +67,7 @@ fun PokerTablesDialog(viewModel: ScoreViewModel, onDismiss: () -> Unit) {
     // Joueurs lus dans le fichier choisi, en attente de confirmation.
     var pending by remember { mutableStateOf<List<PokerTransferPlayer>?>(null) }
 
-    val alive = viewModel.pokerAliveIndices()
+    val alive = viewModel.pokerSession.aliveIndices()
     var selected by rememberSaveable { mutableStateOf(alive.toSet()) }
     var removeAfter by rememberSaveable { mutableStateOf(true) }
 
@@ -93,7 +93,7 @@ fun PokerTablesDialog(viewModel: ScoreViewModel, onDismiss: () -> Unit) {
                     message = resources.getString(R.string.poker_tables_export_failed, error)
                 } else {
                     val count = context.quantity(R.plurals.poker_players_count, toExport.size)
-                    val removed = removeAfter && viewModel.pokerCanRemove(selected) &&
+                    val removed = removeAfter && viewModel.pokerSession.canRemove(selected) &&
                         viewModel.pokerRemovePlayers(selected) == PokerReseatResult.DONE
                     message = resources.getString(
                         if (removed) R.string.poker_tables_export_ok_removed else R.string.poker_tables_export_ok,
@@ -173,7 +173,7 @@ fun PokerTablesDialog(viewModel: ScoreViewModel, onDismiss: () -> Unit) {
 
                     TablesStep.EXPORT -> {
                         val players = viewModel.players
-                        val seats = viewModel.poker?.seats.orEmpty()
+                        val seats = viewModel.pokerSession.game?.seats.orEmpty()
                         alive.forEach { index ->
                             val checked = index in selected
                             Row(
@@ -196,7 +196,7 @@ fun PokerTablesDialog(viewModel: ScoreViewModel, onDismiss: () -> Unit) {
                                 )
                             }
                         }
-                        val canRemove = viewModel.pokerCanRemove(selected)
+                        val canRemove = viewModel.pokerSession.canRemove(selected)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier

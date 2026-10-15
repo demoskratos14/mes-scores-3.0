@@ -2,7 +2,6 @@ package com.aventure.messcores
 
 import android.content.Context
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -82,19 +81,8 @@ class ScoreViewModel : ViewModel() {
     val teamRounds: List<TeamRound> get() = _teamRounds
 
     // --- Mode POKER ---
-    /** Tournoi de poker en cours (mode POKER), null sinon. */
-    var poker by mutableStateOf<PokerGame?>(null)
-        private set
-    private val _pokerUndo = mutableStateListOf<PokerGame>()
-    private val _pokerRedo = mutableStateListOf<PokerGame>()
-
-    /** Temps de jeu écoulé au dernier arrêt du minuteur de blinds (le temps qui court s'y ajoute). */
-    private var pokerClockBaseMs by mutableLongStateOf(0L)
-    private var pokerClockStartedAt: Long? = null
-
-    /** Vrai tant que le minuteur de blinds tourne. */
-    var pokerClockRunning by mutableStateOf(false)
-        private set
+    /** Tournoi de poker en cours (mode POKER) : partie, annulation et minuteur de blinds. */
+    val pokerSession = PokerSession()
 
     // --- Mode RACKET (tennis, padel) ---
     /** Réglages du match (nombre de sets, point d'or, set décisif) : modifiables tant qu'aucun point n'est joué. */
@@ -116,7 +104,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai s'il y a une saisie à annuler (pour activer le bouton « Annuler »). */
     val canUndo: Boolean
         get() = when (gameRules.scoreMode) {
-            ScoreMode.POKER -> _pokerUndo.isNotEmpty()
+            ScoreMode.POKER -> pokerSession.canUndo
             ScoreMode.RACKET -> _racketPoints.isNotEmpty()
             else -> _undoStack.isNotEmpty()
         }
@@ -127,7 +115,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai s'il y a une saisie annulée à rétablir (pour activer le bouton « Rétablir »). */
     val canRedo: Boolean
         get() = when (gameRules.scoreMode) {
-            ScoreMode.POKER -> _pokerRedo.isNotEmpty()
+            ScoreMode.POKER -> pokerSession.canRedo
             ScoreMode.RACKET -> _racketRedo.isNotEmpty()
             else -> _redoStack.isNotEmpty()
         }
@@ -137,9 +125,6 @@ class ScoreViewModel : ViewModel() {
 
         /** Nombre maximal de saisies mémorisées pour l'annulation. */
         private const val MAX_UNDO = 100
-
-        /** Nombre maximal d'actions de poker mémorisées pour l'annulation. */
-        private const val MAX_POKER_UNDO = 300
     }
 
     /**
@@ -161,7 +146,7 @@ class ScoreViewModel : ViewModel() {
         _counters.clear()
         _teamRounds.clear()
         _phases.clear()
-        resetPoker()
+        pokerSession.reset()
         resetRacket(RacketConfig.defaultsFor(rules))
         if (rules.phases != null) repeat(playerNames.size) { _phases.add(1) }
         when (rules.scoreMode) {
@@ -203,7 +188,7 @@ class ScoreViewModel : ViewModel() {
         _counters.clear()
         _teamRounds.clear()
         _phases.clear()
-        resetPoker()
+        pokerSession.reset()
         resetRacket(saved.racket?.config ?: RacketConfig.defaultsFor(saved.gameRules))
         if (saved.gameRules.phases != null) {
             val savedPhases = saved.phases
@@ -247,8 +232,7 @@ class ScoreViewModel : ViewModel() {
             }
             ScoreMode.POKER -> {
                 // Le minuteur reprend en pause : à l'utilisateur de le relancer quand la partie reprend.
-                poker = saved.poker
-                pokerClockBaseMs = saved.poker?.clockMs ?: 0L
+                pokerSession.restore(saved.poker)
             }
             ScoreMode.RACKET -> saved.racket?.points?.forEach { _racketPoints.add(it) }
         }
@@ -261,7 +245,7 @@ class ScoreViewModel : ViewModel() {
             ScoreMode.TABLE -> _scores.any { round -> round.any { it.baseValue != null } }
             ScoreMode.COUNTER -> _counters.any { it != 0 }
             ScoreMode.VARIABLE_TEAMS -> _teamRounds.isNotEmpty()
-            ScoreMode.POKER -> poker?.let { it.handsPlayed > 0 || it.log.isNotEmpty() } == true
+            ScoreMode.POKER -> pokerSession.hasProgress()
             ScoreMode.RACKET -> _racketPoints.isNotEmpty()
         }
     }
@@ -274,7 +258,7 @@ class ScoreViewModel : ViewModel() {
         lastSavedContent = null
         _undoStack.clear()
         _redoStack.clear()
-        resetPoker()
+        pokerSession.reset()
         resetRacket(RacketConfig())
     }
 
@@ -342,7 +326,7 @@ class ScoreViewModel : ViewModel() {
             teamRounds = if (gameRules.scoreMode == ScoreMode.VARIABLE_TEAMS) _teamRounds.toList() else null,
             isFinished = isGameOver(),
             phases = if (gameRules.phases != null) _phases.toList() else null,
-            poker = if (gameRules.scoreMode == ScoreMode.POKER) poker?.copy(clockMs = pokerElapsedMs()) else null,
+            poker = if (gameRules.scoreMode == ScoreMode.POKER) pokerSession.snapshot() else null,
             racket = if (gameRules.scoreMode == ScoreMode.RACKET) RacketMatch(racketConfig, _racketPoints.toList()) else null
         )
     }
@@ -462,9 +446,7 @@ class ScoreViewModel : ViewModel() {
     /** Annule la dernière saisie (case du tableau ou appui sur un compteur). Sans effet s'il n'y en a pas. */
     fun undo() {
         if (gameRules.scoreMode == ScoreMode.POKER) {
-            val previous = _pokerUndo.removeLastOrNull() ?: return
-            poker?.let { _pokerRedo.add(it) }
-            poker = previous
+            pokerSession.undo()
             return
         }
         if (gameRules.scoreMode == ScoreMode.RACKET) {
@@ -503,9 +485,7 @@ class ScoreViewModel : ViewModel() {
     /** Rétablit la dernière saisie annulée. Sans effet s'il n'y en a pas (ou si une nouvelle saisie a été faite depuis). */
     fun redo() {
         if (gameRules.scoreMode == ScoreMode.POKER) {
-            val next = _pokerRedo.removeLastOrNull() ?: return
-            poker?.let { _pokerUndo.add(it) }
-            poker = next
+            pokerSession.redo()
             return
         }
         if (gameRules.scoreMode == ScoreMode.RACKET) {
@@ -609,108 +589,14 @@ class ScoreViewModel : ViewModel() {
     fun racketPlayers(side: Int): List<Int> = RacketScoring.playersOfSide(side, players.size)
 
     // ---------- Mode POKER ----------
-
-    private fun resetPoker() {
-        poker = null
-        _pokerUndo.clear()
-        _pokerRedo.clear()
-        pokerClockBaseMs = 0L
-        pokerClockStartedAt = null
-        pokerClockRunning = false
-    }
+    // Partie, annulation et minuteur : voir [PokerSession]. Ici, ce qui touche aussi aux joueurs.
 
     /** Lance le tournoi avec les réglages choisis (après [initGame] avec les règles du poker). */
-    fun startPoker(settings: PokerSettings) {
-        resetPoker()
-        poker = PokerEngine.newGame(settings, players.size)
-        pokerClockStartedAt = System.currentTimeMillis()
-        pokerClockRunning = true
-    }
-
-    /** Temps de jeu écoulé, en millisecondes, minuteur en pause compris. */
-    fun pokerElapsedMs(now: Long = System.currentTimeMillis()): Long {
-        val started = pokerClockStartedAt
-        return pokerClockBaseMs + if (started != null) (now - started).coerceAtLeast(0L) else 0L
-    }
-
-    /** Niveau de blinds atteint à l'instant [now] (il s'appliquera à la prochaine main). */
-    fun pokerLevel(now: Long = System.currentTimeMillis()): Int {
-        val game = poker ?: return 1
-        return PokerBlinds.levelAt(game.settings, pokerElapsedMs(now))
-    }
-
-    fun togglePokerClock() {
-        val now = System.currentTimeMillis()
-        if (pokerClockRunning) {
-            pokerClockBaseMs = pokerElapsedMs(now)
-            pokerClockStartedAt = null
-            pokerClockRunning = false
-        } else {
-            pokerClockStartedAt = now
-            pokerClockRunning = true
-        }
-    }
-
-    /** Passe tout de suite au niveau de blinds suivant (sans attendre la fin du minuteur). */
-    fun pokerSkipToNextLevel() {
-        val game = poker ?: return
-        val now = System.currentTimeMillis()
-        pokerClockBaseMs = PokerBlinds.elapsedAtNextLevel(game.settings, pokerElapsedMs(now))
-        if (pokerClockRunning) pokerClockStartedAt = now
-    }
-
-    /** Applique une action de poker : l'état d'avant est gardé pour [undo] ; sans effet si rien ne change. */
-    private fun pokerApply(change: (PokerGame) -> PokerGame) {
-        val current = poker ?: return
-        val next = change(current)
-        if (next == current) return
-        _pokerUndo.add(current)
-        if (_pokerUndo.size > MAX_POKER_UNDO) _pokerUndo.removeAt(0)
-        _pokerRedo.clear()
-        poker = next
-    }
-
-    fun pokerFold() = pokerApply { PokerEngine.fold(it) }
-
-    fun pokerCheck() = pokerApply { PokerEngine.check(it) }
-
-    fun pokerCall() = pokerApply { PokerEngine.call(it) }
-
-    fun pokerAllIn() = pokerApply { PokerEngine.allIn(it) }
-
-    /** Miser ou relancer pour une mise totale de [to] jetons dans le tour (voir [PokerEngine.raiseTo]). */
-    fun pokerRaiseTo(to: Int) = pokerApply { PokerEngine.raiseTo(it, to) }
-
-    /** Désigne le(s) gagnant(s) de chaque pot à l'abattage (voir [PokerEngine.resolveShowdown]). */
-    fun pokerResolve(winners: List<List<Int>>) = pokerApply { PokerEngine.resolveShowdown(it, winners) }
-
-    /** Recave d'un joueur éliminé (voir [PokerEngine.rebuy]) : se joue entre deux mains, pendant la période réglée. */
-    fun pokerRebuy(player: Int) = pokerApply { PokerEngine.rebuy(it, player, PokerBlinds.levelAt(it.settings, pokerElapsedMs())) }
-
-    fun pokerNextHand() = pokerApply { PokerEngine.nextHand(it, PokerBlinds.levelAt(it.settings, pokerElapsedMs())) }
-
-    // ---------- Changement de table (poker) ----------
-
-    /** Vrai entre deux mains tant que le tournoi n'est pas terminé : seul moment où l'on peut déplacer des joueurs. */
-    val pokerCanReseat: Boolean
-        get() = poker?.let { it.phase == PokerPhase.HAND_OVER && it.champion == null } == true
-
-    /** Places des joueurs encore en lice, dans l'ordre de la table. */
-    fun pokerAliveIndices(): List<Int> {
-        val game = poker ?: return emptyList()
-        return game.seats.indices.filter { !game.seats[it].out }
-    }
-
-    /** Vrai si [indices] peuvent quitter la table : il doit rester au moins deux joueurs en lice. */
-    fun pokerCanRemove(indices: Collection<Int>): Boolean {
-        val game = poker ?: return false
-        val leaving = indices.filter { it in game.seats.indices && !game.seats[it].out }.toSet()
-        return pokerCanReseat && leaving.isNotEmpty() && pokerAliveIndices().count { it !in leaving } >= 2
-    }
+    fun startPoker(settings: PokerSettings) = pokerSession.start(settings, players.size)
 
     /** Joueurs (nom, tapis, couleur) des places [indices] encore en lice, prêts à être écrits dans un fichier. */
     fun pokerTransferPlayers(indices: Collection<Int>): List<PokerTransferPlayer> {
-        val game = poker ?: return emptyList()
+        val game = pokerSession.game ?: return emptyList()
         return indices.sorted()
             .filter { it in game.seats.indices && !game.seats[it].out }
             .map { i ->
@@ -724,17 +610,14 @@ class ScoreViewModel : ViewModel() {
 
     /** Fait quitter la table aux joueurs [indices] (après leur export). L'annulation est remise à zéro. */
     fun pokerRemovePlayers(indices: Collection<Int>): PokerReseatResult {
-        val game = poker ?: return PokerReseatResult.NOT_ALLOWED
+        val game = pokerSession.game ?: return PokerReseatResult.NOT_ALLOWED
         val leaving = indices.filter { it in game.seats.indices && !game.seats[it].out }.toSet()
-        if (leaving.isEmpty() || !pokerCanRemove(leaving)) return PokerReseatResult.NOT_ALLOWED
+        if (leaving.isEmpty() || !pokerSession.canRemove(leaving)) return PokerReseatResult.NOT_ALLOWED
         return applyReseat(game, leaving, emptyList(), Random.Default)
     }
 
     /** Vrai si l'arrivée de [count] joueurs obligerait à retirer de l'écran les joueurs déjà éliminés (table à 10 places). */
-    fun pokerImportNeedsRoom(count: Int): Boolean {
-        val game = poker ?: return false
-        return game.seats.size + count > gameRules.maxPlayers
-    }
+    fun pokerImportNeedsRoom(count: Int): Boolean = pokerSession.importNeedsRoom(count, gameRules.maxPlayers)
 
     /**
      * Ajoute à la table les joueurs [incoming] (avec leur tapis), assis au hasard entre les joueurs
@@ -742,9 +625,9 @@ class ScoreViewModel : ViewModel() {
      * à cause des joueurs éliminés, ceux-ci sont retirés de l'affichage. L'annulation est remise à zéro.
      */
     fun pokerImportPlayers(incoming: List<PokerTransferPlayer>, random: Random = Random.Default): PokerReseatResult {
-        val game = poker ?: return PokerReseatResult.NOT_ALLOWED
-        if (!pokerCanReseat || incoming.isEmpty()) return PokerReseatResult.NOT_ALLOWED
-        if (pokerAliveIndices().size + incoming.size > gameRules.maxPlayers) return PokerReseatResult.TABLE_FULL
+        val game = pokerSession.game ?: return PokerReseatResult.NOT_ALLOWED
+        if (!pokerSession.canReseat || incoming.isEmpty()) return PokerReseatResult.NOT_ALLOWED
+        if (pokerSession.aliveIndices().size + incoming.size > gameRules.maxPlayers) return PokerReseatResult.TABLE_FULL
         val purge = if (pokerImportNeedsRoom(incoming.size)) {
             game.seats.indices.filter { game.seats[it].out }.toSet()
         } else {
@@ -753,14 +636,14 @@ class ScoreViewModel : ViewModel() {
         return applyReseat(game, purge, incoming, random)
     }
 
-    /** Met à jour la partie, les noms et les couleurs après le départ et/ou l'arrivée de joueurs. */
+    /** Déplace les joueurs dans la partie, puis met à jour les noms et les couleurs en conséquence. */
     private fun applyReseat(
         game: PokerGame,
         remove: Set<Int>,
         incoming: List<PokerTransferPlayer>,
         random: Random
     ): PokerReseatResult {
-        val result = PokerEngine.reseat(game, remove, incoming.map { it.stack }, random)
+        val result = pokerSession.reseat(remove, incoming.map { it.stack }, random)
             ?: return PokerReseatResult.NOT_ALLOWED
         val kept = game.seats.indices.filter { it !in remove }
         // Noms : les joueurs présents gardent le leur, un arrivant au même nom est numéroté.
@@ -789,10 +672,6 @@ class ScoreViewModel : ViewModel() {
         }
         players = newNames
         playerColors = newColors
-        poker = result.game
-        // Les anciens états ne correspondent plus à la liste de joueurs : on ne peut plus les rétablir.
-        _pokerUndo.clear()
-        _pokerRedo.clear()
         return PokerReseatResult.DONE
     }
 
@@ -805,7 +684,7 @@ class ScoreViewModel : ViewModel() {
         ScoreMode.COUNTER ->
             _counters.getOrNull(player) ?: 0
         ScoreMode.POKER ->
-            poker?.seats?.getOrNull(player)?.stack ?: 0
+            pokerSession.game?.seats?.getOrNull(player)?.stack ?: 0
         // Tennis / padel : sets gagnés par le camp du joueur.
         ScoreMode.RACKET ->
             racketState.setsWon(racketSideOf(player))
@@ -826,7 +705,7 @@ class ScoreViewModel : ViewModel() {
     /** Rang (1 = premier) de chaque joueur d'après [totals] ; les ex æquo partagent le même rang. */
     fun ranksFor(totals: List<Int>): List<Int> {
         // Poker : joueurs en lice d'après leurs jetons, puis éliminés dans l'ordre inverse d'élimination.
-        if (gameRules.scoreMode == ScoreMode.POKER) poker?.let { return PokerEngine.ranks(it) }
+        if (gameRules.scoreMode == ScoreMode.POKER) pokerSession.game?.let { return PokerEngine.ranks(it) }
         val phases = if (hasPhases && _phases.size == totals.size) _phases.toList() else null
         return computeRanks(totals, gameRules.lowestWins, phases)
     }
@@ -869,7 +748,7 @@ class ScoreViewModel : ViewModel() {
         ScoreMode.TABLE -> _scores.count { round -> round.any { it.baseValue != null } }
         ScoreMode.VARIABLE_TEAMS -> _teamRounds.size
         ScoreMode.COUNTER -> 0
-        ScoreMode.POKER -> poker?.handsPlayed ?: 0
+        ScoreMode.POKER -> pokerSession.game?.handsPlayed ?: 0
         ScoreMode.RACKET -> racketState.sets.size
     }
 
@@ -911,7 +790,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la condition de fin de partie définie par les règles du jeu est atteinte. */
     fun isGameOver(): Boolean {
         // Poker : terminé quand il ne reste qu'un joueur avec des jetons.
-        if (gameRules.scoreMode == ScoreMode.POKER) return poker?.champion != null
+        if (gameRules.scoreMode == ScoreMode.POKER) return pokerSession.game?.champion != null
         // Tennis / padel : terminé dès qu'un camp a gagné le nombre de sets prévu.
         if (gameRules.scoreMode == ScoreMode.RACKET) return racketState.winner != null
         // Fléchettes : terminée dès qu'un joueur arrive à 0 pile.
