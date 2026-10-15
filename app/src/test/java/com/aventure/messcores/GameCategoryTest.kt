@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import org.junit.Assert.assertEquals
+import java.util.Locale
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -70,4 +71,31 @@ class GameCategoryTest {
             GameCategory.entries.toList()
         )
     }
+
+    private fun named(vararg names: String) = names.map { GameRules(id = "x_$it", name = it) }
+
+    @Test
+    fun lesJeuxSontRangesParOrdreAlphabetiqueSansTenirCompteDeLaCasseNiDesAccents() {
+        val sorted = named("zombie", "Écarté", "belote", "Abalone", "ecarte2", "Yams").sortedAlphabetically(Locale.FRENCH)
+        assertEquals(listOf("Abalone", "belote", "Écarté", "ecarte2", "Yams", "zombie"), sorted.map { it.name })
+    }
+
+    @Test
+    fun lesChiffresPassentAvantLesLettres() {
+        val sorted = named("Yams", "421", "Belote").sortedAlphabetically(Locale.FRENCH)
+        assertEquals(listOf("421", "Belote", "Yams"), sorted.map { it.name })
+    }
+
+    @Test
+    fun lesJeuxPredefinisDeChaqueRubriqueSontTriesDansLaLangueCourante() {
+        val locale = Locale.FRENCH
+        val sorted = builtIns.sortedAlphabetically(locale)
+        for (category in GameCategory.entries) {
+            val names = sorted.filter { it.category() == category }.map { it.name }
+            assertEquals(category.name, names.sortedAlphabeticallyByName(locale), names)
+        }
+    }
+
+    private fun List<String>.sortedAlphabeticallyByName(locale: Locale): List<String> =
+        map { GameRules(id = it, name = it) }.sortedAlphabetically(locale).map { it.name }
 }

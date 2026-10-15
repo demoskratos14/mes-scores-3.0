@@ -1,6 +1,8 @@
 package com.aventure.messcores
 
 import androidx.annotation.StringRes
+import java.text.Collator
+import java.util.Locale
 
 /** Rubrique d'un jeu dans la liste de choix (l'ordre de déclaration est l'ordre d'affichage). */
 enum class GameCategory(@StringRes val label: Int) {
@@ -43,4 +45,14 @@ fun GameRules.category(): GameCategory = when (id) {
     in DICE_GAMES -> GameCategory.DICE
     in SPECIAL_GAMES -> GameCategory.SPECIAL
     else -> GameCategory.OTHER
+}
+
+/**
+ * Jeux triés par ordre alphabétique du nom, selon la langue [locale] : la casse et les accents ne
+ * comptent pas (« Écarté » se range avec les E), les chiffres passent avant les lettres. À égalité,
+ * l'ordre d'origine est conservé. Sert à ranger chaque rubrique de la liste de choix.
+ */
+fun List<GameRules>.sortedAlphabetically(locale: Locale): List<GameRules> {
+    val collator = Collator.getInstance(locale).apply { strength = Collator.PRIMARY }
+    return sortedWith(Comparator { a, b -> collator.compare(a.name, b.name) })
 }

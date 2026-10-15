@@ -1239,6 +1239,9 @@
     <string name="racket_final_advantage">Sem tie-break (2 jogos de diferença)</string>
     <string name="racket_golden_point">Ponto de ouro aos 40-40 (sem vantagem)</string>
     <string name="racket_config_locked">As definições já não podem ser alteradas depois do primeiro ponto.</string>
+    <string name="racket_teams_title">Equipas</string>
+    <string name="racket_split_label">%1$s contra %2$s</string>
+    <string name="racket_swap_sides">Trocar os dois lados</string>
     <string name="racket_sets">Sets</string>
     <string name="racket_games">Jogos</string>
     <string name="racket_points">Pontos</string>

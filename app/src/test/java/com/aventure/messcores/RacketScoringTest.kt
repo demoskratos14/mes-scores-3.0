@@ -206,4 +206,21 @@ class RacketScoringTest {
         assertEquals(RacketConfig(), match.config)
         assertEquals(listOf(0, 1), match.points)
     }
+
+    @Test
+    fun lesFaconsDeFormerLesCampsSontDedoublonnees() {
+        // 1 contre 1 : une seule façon (échanger les camps ne change pas l'équipe).
+        assertEquals(listOf(listOf(0)), RacketScoring.teamSplits(2))
+        // 2 contre 1 : le joueur seul peut être n'importe lequel des trois.
+        assertEquals(listOf(listOf(0, 1), listOf(0, 2), listOf(1, 2)), RacketScoring.teamSplits(3))
+        // 2 contre 2 : trois paires possibles pour le joueur 0.
+        assertEquals(listOf(listOf(0, 1), listOf(0, 2), listOf(0, 3)), RacketScoring.teamSplits(4))
+    }
+
+    @Test
+    fun lOrdreDesJoueursMetLeCamp1EnPremier() {
+        assertEquals(listOf(0, 2, 1, 3), RacketScoring.orderForSide0(4, listOf(0, 2)))
+        assertEquals(listOf(2, 3, 0, 1), RacketScoring.orderForSide0(4, listOf(2, 3)))
+        assertEquals(listOf(0, 1, 2, 3), RacketScoring.orderForSide0(4, listOf(0, 1)))
+    }
 }

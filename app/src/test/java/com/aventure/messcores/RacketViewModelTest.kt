@@ -152,4 +152,57 @@ class RacketViewModelTest {
         val text = vm.shareText(RuntimeEnvironment.getApplication())
         assertTrue(text, text.contains("6-0 0-1"))
     }
+
+    @Test
+    fun avantLePremierPointOnPeutChangerLesEquipesEtLesCouleursSuiventLesJoueurs() {
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben", "Cleo", "Dan"), rules("builtin_padel")) }
+        val colorOfCleo = vm.playerColors[2]
+        assertEquals(listOf(0, 1), vm.racketPlayers(0))
+
+        // Anna fait équipe avec Cleo : le camp 1 devient Anna + Cleo, le camp 2 Ben + Dan.
+        assertTrue(vm.setRacketTeams(listOf(0, 2)))
+        assertEquals(listOf("Anna", "Cleo", "Ben", "Dan"), vm.players)
+        assertEquals(colorOfCleo, vm.playerColors[1])
+
+        // Les deux camps s'échangent.
+        assertTrue(vm.setRacketTeams(vm.racketPlayers(1)))
+        assertEquals(listOf("Ben", "Dan", "Anna", "Cleo"), vm.players)
+        // Même répartition qu'avant : rien ne change.
+        assertFalse(vm.setRacketTeams(listOf(0, 1)))
+    }
+
+    @Test
+    fun unContreUnPeutEchangerLesCamps() {
+        val vm = tennis("Anna", "Ben")
+        assertTrue(vm.setRacketTeams(vm.racketPlayers(1)))
+        assertEquals(listOf("Ben", "Anna"), vm.players)
+    }
+
+    @Test
+    fun lesEquipesNeChangentPlusUneFoisLePremierPointJoue() {
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben", "Cleo", "Dan"), rules("builtin_padel")) }
+        vm.racketPoint(0)
+        assertFalse(vm.setRacketTeams(listOf(0, 2)))
+        assertEquals(listOf("Anna", "Ben", "Cleo", "Dan"), vm.players)
+        // Même chose si le point est annulé : le match est de nouveau « avant le lancement ».
+        vm.undo()
+        assertTrue(vm.setRacketTeams(listOf(0, 2)))
+    }
+
+    @Test
+    fun uneRepartitionInvalideEstRefusee() {
+        val vm = ScoreViewModel().also { it.initGame(listOf("Anna", "Ben", "Cleo", "Dan"), rules("builtin_padel")) }
+        assertFalse(vm.setRacketTeams(listOf(0)))          // trop petit
+        assertFalse(vm.setRacketTeams(listOf(0, 0)))       // en double
+        assertFalse(vm.setRacketTeams(listOf(0, 4)))       // index inconnu
+        assertEquals(listOf("Anna", "Ben", "Cleo", "Dan"), vm.players)
+    }
+
+    @Test
+    fun aTroisJoueursOnChoisitCeluiQuiJoueSeul() {
+        val vm = tennis("Anna", "Ben", "Cleo")
+        assertTrue(vm.setRacketTeams(listOf(1, 2)))
+        assertEquals(listOf("Ben", "Cleo", "Anna"), vm.players)
+        assertEquals(listOf(2), vm.racketPlayers(1))
+    }
 }

@@ -272,6 +272,27 @@ object RacketScoring {
     fun playersOfSide(side: Int, playerCount: Int): List<Int> =
         (0 until playerCount).filter { sideOf(it, playerCount) == side }
 
+    /**
+     * Façons de former les camps avec [playerCount] joueurs, chacune donnée par les index des joueurs
+     * du camp 1 (le plus nombreux s'il y a une différence). Quand les camps sont de même taille, deux
+     * répartitions qui ne diffèrent que par l'échange des camps comptent pour une : on garde celle
+     * où le joueur 0 est dans le camp 1. 2 joueurs : 1 façon ; 3 joueurs : 3 ; 4 joueurs : 3.
+     */
+    fun teamSplits(playerCount: Int): List<List<Int>> {
+        val size = (playerCount + 1) / 2
+        fun combos(from: Int, left: Int): List<List<Int>> = when {
+            left == 0 -> listOf(emptyList())
+            from >= playerCount -> emptyList()
+            else -> combos(from + 1, left - 1).map { listOf(from) + it } + combos(from + 1, left)
+        }
+        val all = combos(0, size)
+        return if (playerCount % 2 == 0) all.filter { 0 in it } else all
+    }
+
+    /** Nouvel ordre des joueurs (anciens index) pour que ceux de [side0] forment le camp 1 : eux d'abord, puis les autres. */
+    fun orderForSide0(playerCount: Int, side0: List<Int>): List<Int> =
+        side0 + (0 until playerCount).filter { it !in side0 }
+
     /** Sets gagnés par chaque joueur (ceux d'un même camp ont le même nombre). */
     fun setsByPlayer(state: RacketState, playerCount: Int): List<Int> =
         (0 until playerCount).map { state.setsWon(sideOf(it, playerCount)) }

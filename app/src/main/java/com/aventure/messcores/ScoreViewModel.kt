@@ -584,6 +584,24 @@ class ScoreViewModel : ViewModel() {
         return true
     }
 
+    /**
+     * Change la composition des camps : les joueurs d'index [side0] (index actuels) forment le camp 1,
+     * les autres le camp 2. Les noms et les couleurs suivent les joueurs. Refusé dès que le premier
+     * point est joué, ou si [side0] n'a pas la taille du camp 1 ou contient un index invalide ou en
+     * double. Renvoie vrai si l'ordre des joueurs a changé.
+     */
+    fun setRacketTeams(side0: List<Int>): Boolean {
+        val count = players.size
+        if (gameRules.scoreMode != ScoreMode.RACKET || _racketPoints.isNotEmpty()) return false
+        if (side0.size != (count + 1) / 2 || side0.distinct().size != side0.size || side0.any { it !in 0 until count }) return false
+        val order = RacketScoring.orderForSide0(count, side0)
+        if (order == (0 until count).toList()) return false
+        players = order.map { players[it] }
+        if (playerColors.size == count) playerColors = order.map { playerColors[it] }
+        _racketRedo.clear()
+        return true
+    }
+
     /** Camp (0 ou 1) du joueur d'index [player] : voir [RacketScoring.sideOf]. */
     fun racketSideOf(player: Int): Int = RacketScoring.sideOf(player, players.size)
 

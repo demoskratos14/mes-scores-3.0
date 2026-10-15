@@ -67,6 +67,9 @@ fun ChooseGameScreen(
     val selected = games.firstOrNull { it.id == selectedId } ?: games.first()
     val context = LocalContext.current
     val resources = LocalResources.current
+    // Chaque rubrique est rangée par ordre alphabétique (dans la langue de l'appli).
+    val locale = resources.configuration.locales[0]
+    val sortedGames = remember(games, locale) { games.sortedAlphabetically(locale) }
     var expandedCategory by remember { mutableStateOf<GameCategory?>(null) }
     var longGame by remember { mutableStateOf(false) }
     var genericMode by remember { mutableStateOf(ScoreMode.TABLE) }
@@ -125,7 +128,7 @@ fun ChooseGameScreen(
                 // dans le menu de sa rubrique, les autres menus restent vides.
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     GameCategory.entries.forEach { category ->
-                        val inCategory = games.filter { it.category() == category }
+                        val inCategory = sortedGames.filter { it.category() == category }
                         if (inCategory.isNotEmpty()) {
                             val isOpen = expandedCategory == category
                             ExposedDropdownMenuBox(

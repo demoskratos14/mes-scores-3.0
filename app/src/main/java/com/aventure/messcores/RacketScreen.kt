@@ -20,6 +20,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -210,12 +211,50 @@ fun RacketScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposi
                 }
             }
 
-            // Réglages : possibles tant qu'aucun point n'est joué.
+            // Réglages et équipes : possibles tant qu'aucun point n'est joué.
             Card(
                 colors = CardDefaults.cardColors(containerColor = cardSurface()),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (players.size >= 2) {
+                        Text(stringResource(R.string.racket_teams_title), style = MaterialTheme.typography.titleSmall)
+                        // Une puce par façon de former les camps. Les puces sont rangées d'après les noms (pas
+                        // d'après la position des joueurs), pour ne pas changer de place quand on en choisit une.
+                        val splits = RacketScoring.teamSplits(players.size)
+                        if (splits.size > 1) {
+                            val currentSide0 = viewModel.racketPlayers(0)
+                            val options = splits.map { side0 ->
+                                val teams = listOf(side0, players.indices.filter { it !in side0 })
+                                    .map { team -> team.map { players[it] }.sortedWith(String.CASE_INSENSITIVE_ORDER) }
+                                    .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.first() })
+                                val label = stringResource(
+                                    R.string.racket_split_label,
+                                    teams[0].joinToString(" / "),
+                                    teams[1].joinToString(" / ")
+                                )
+                                Triple(side0, label, side0 == currentSide0)
+                            }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.second })
+                            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                options.forEach { (side0, label, isCurrent) ->
+                                    FilterChip(
+                                        selected = isCurrent,
+                                        enabled = !started,
+                                        onClick = { viewModel.setRacketTeams(side0) },
+                                        label = { Text(label, maxLines = 2) },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+                        // Camps de même taille : on peut les échanger (qui est « camp 1 » et s'affiche en premier).
+                        if (players.size % 2 == 0) {
+                            OutlinedButton(
+                                onClick = { viewModel.setRacketTeams(viewModel.racketPlayers(1)) },
+                                enabled = !started
+                            ) { Text(stringResource(R.string.racket_swap_sides)) }
+                        }
+                    }
                     Text(stringResource(R.string.racket_format_title), style = MaterialTheme.typography.titleSmall)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(1 to R.string.racket_sets_1, 2 to R.string.racket_sets_3, 3 to R.string.racket_sets_5)
