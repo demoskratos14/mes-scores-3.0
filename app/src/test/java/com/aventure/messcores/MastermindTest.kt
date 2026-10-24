@@ -28,19 +28,22 @@ class MastermindTest {
     /** Un essai qui n'est jamais la bonne suite. */
     private val wrong = listOf(5, 5, 5, 5)
 
-    /** Cherche la suite en cours : [attempts] essais, le dernier étant le bon ; puis passe à la suivante. */
-    private fun solveIn(state: MastermindState, attempts: Int): MastermindState {
-        var s = state
-        repeat(attempts - 1) { s = Mastermind.withGuess(s, wrong)!! }
-        s = Mastermind.withGuess(s, secret)!!
-        return Mastermind.nextTarget(s)
-    }
-
-    /** Épuise tous les essais sans trouver la suite en cours ; puis passe à la suivante. */
-    private fun failTarget(state: MastermindState): MastermindState {
-        var s = state
-        repeat(settings.maxAttempts) { s = Mastermind.withGuess(s, wrong)!! }
-        return Mastermind.nextTarget(s)
+    /**
+     * Joue la partie jusqu'aux résultats, un essai par tour comme dans l'appli. [attempts] donne, pour chaque
+     * suite, le numéro de l'essai qui la trouve (null : jamais trouvée). Renvoie la partie terminée et l'ordre
+     * des suites cherchées, tour après tour.
+     */
+    private fun playOut(start: MastermindState, attempts: List<Int?>): Pair<MastermindState, List<Int>> {
+        var state = start
+        val order = mutableListOf<Int>()
+        while (state.phase == MastermindPhase.PLAYING) {
+            val target = state.target
+            order += target
+            val number = state.guesses[target].size + 1
+            val pegs = if (attempts[target] == number) secret else wrong
+            state = Mastermind.nextTarget(Mastermind.withGuess(state, pegs)!!)
+        }
+        return state to order
     }
 
     // ---------- Réponse à un essai ----------
@@ -105,30 +108,58 @@ class MastermindTest {
     // ---------- Recherche ----------
 
     @Test
-    fun laSuiteEstTrouveeQuandTousLesPionsSontBienPlaces() {
+    fun lesSuitesSeCherchentEnAlternanceUnEssaiChacune() {
         var state = playing("A", "B", "C")
-        assertFalse(Mastermind.isSolved(state, 0))
-        state = Mastermind.withGuess(state, wrong)!!
-        assertEquals(1, state.guesses[0].size)
-        assertFalse(Mastermind.isOver(state, 0))
-        // Pas question de passer à la suite suivante tant que celle-ci n'est pas finie.
-        assertEquals(0, Mastermind.nextTarget(state).target)
+        val order = mutableListOf<Int>()
+        repeat(7) {
+            order += state.target
+            state = Mastermind.nextTarget(Mastermind.withGuess(state, wrong)!!)
+        }
+        // Un essai pour la suite 1, un pour la 2, un pour la 3, puis on recommence par la première.
+        assertEquals(listOf(0, 1, 2, 0, 1, 2, 0), order)
+        assertEquals(listOf(3, 2, 2), state.guesses.map { it.size })
+    }
 
-        state = Mastermind.withGuess(state, secret)!!
+    @Test
+    fun uneSuiteTrouveeEstSauteeEnsuite() {
+        val (state, order) = playOut(playing("A", "B", "C"), listOf(1, 3, 3))
+        assertEquals(listOf(0, 1, 2, 1, 2, 1, 2), order)
+        assertEquals(MastermindPhase.RESULTS, state.phase)
+    }
+
+    @Test
+    fun unSeulEssaiParTourEtPasDeSuiteSuivanteAvantDeLAvoirFait() {
+        var state = playing("A", "B", "C")
+        // Tant que l'essai de ce tour n'est pas fait, on ne passe pas à la suite.
+        assertEquals(0, Mastermind.nextTarget(state).target)
+        state = Mastermind.withGuess(state, wrong)!!
+        assertTrue(state.awaitingNext)
+        assertNull(Mastermind.withGuess(state, secret))
+        state = Mastermind.nextTarget(state)
+        assertEquals(1, state.target)
+        assertFalse(state.awaitingNext)
+    }
+
+    @Test
+    fun laSuiteEstTrouveeQuandTousLesPionsSontBienPlaces() {
+        var state = playing("A", "B")
+        state = Mastermind.nextTarget(Mastermind.withGuess(state, wrong)!!) // suite de A, essai 1
+        state = Mastermind.nextTarget(Mastermind.withGuess(state, wrong)!!) // suite de B, essai 1
+        assertFalse(Mastermind.isSolved(state, 0))
+        state = Mastermind.withGuess(state, secret)!! // suite de A, essai 2
         assertTrue(Mastermind.isSolved(state, 0))
         assertEquals(2, Mastermind.attempts(state, 0))
-        assertNull(Mastermind.withGuess(state, wrong))
         assertEquals(1, Mastermind.nextTarget(state).target)
     }
 
     @Test
     fun uneSuiteNonTrouveeCompteUnEssaiDePlusQueLaLimite() {
-        var state = playing("A", "B")
-        repeat(settings.maxAttempts) { state = Mastermind.withGuess(state, wrong)!! }
+        val (state, _) = playOut(playing("A", "B"), listOf(null, 1))
         assertTrue(Mastermind.isFailed(state, 0))
         assertFalse(Mastermind.isSolved(state, 0))
+        assertEquals(settings.maxAttempts, state.guesses[0].size)
         assertEquals(settings.maxAttempts + 1, Mastermind.attempts(state, 0))
-        assertNull(Mastermind.withGuess(state, secret))
+        assertEquals(1, Mastermind.attempts(state, 1))
     }
 
     @Test
@@ -140,23 +171,17 @@ class MastermindTest {
 
     @Test
     fun apresLaDerniereSuiteOnVoitLesResultats() {
-        var state = playing("A", "B")
-        state = solveIn(state, 2)
-        assertEquals(MastermindPhase.PLAYING, state.phase)
-        state = solveIn(state, 3)
+        val (state, _) = playOut(playing("A", "B"), listOf(2, 3))
         assertEquals(MastermindPhase.RESULTS, state.phase)
+        assertNull(Mastermind.withGuess(state, wrong))
     }
 
     // ---------- Moyennes et classement ----------
 
     @Test
     fun laPlusPetiteMoyenneDEssaisGagne() {
-        var state = playing("A", "B", "C", "D")
         // Essais pour trouver la suite de A, B, C, D.
-        state = solveIn(state, 3)
-        state = solveIn(state, 5)
-        state = solveIn(state, 2)
-        state = solveIn(state, 4)
+        val (state, _) = playOut(playing("A", "B", "C", "D"), listOf(3, 5, 2, 4))
 
         // Chaque joueur compte les suites des autres : A = (5+2+4)/3, B = (3+2+4)/3, C = (3+5+4)/3, D = (3+5+2)/3.
         assertEquals(11.0 / 3, Mastermind.average(state, 0), 1e-9)
@@ -170,10 +195,8 @@ class MastermindTest {
 
     @Test
     fun uneSuiteNonTrouveeCompteDansLesMoyennes() {
-        var state = playing("A", "B", "C")
-        state = failTarget(state) // la suite de A : 7 essais comptés
-        state = solveIn(state, 2)
-        state = solveIn(state, 2)
+        // La suite de A n'est jamais trouvée : 7 essais comptés.
+        val (state, _) = playOut(playing("A", "B", "C"), listOf(null, 2, 2))
         // A a créé la suite que personne n'a trouvée : il gagne, avec la moyenne la plus basse.
         assertEquals(listOf(0), Mastermind.winners(state))
         assertEquals((2.0 + 2.0) / 2, Mastermind.average(state, 0), 1e-9)
@@ -182,17 +205,15 @@ class MastermindTest {
 
     @Test
     fun enCasDEgaliteTousLesExAequoGagnent() {
-        var state = playing("A", "B", "C")
-        repeat(3) { state = solveIn(state, 4) }
+        val (state, _) = playOut(playing("A", "B", "C"), listOf(4, 4, 4))
         assertEquals(listOf(1, 1, 1), Mastermind.ranks(state))
         assertEquals(listOf(0, 1, 2), Mastermind.winners(state))
     }
 
     @Test
     fun aDeuxJoueursGagneCeluiQuiTrouveLaSuiteDeLAutreLePlusVite() {
-        var state = playing("A", "B")
-        state = solveIn(state, 4) // B cherche la suite de A en 4 essais
-        state = solveIn(state, 2) // A cherche la suite de B en 2 essais
+        // B cherche la suite de A en 4 essais, A cherche celle de B en 2 essais.
+        val (state, _) = playOut(playing("A", "B"), listOf(4, 2))
         assertEquals(2.0, Mastermind.average(state, 0), 1e-9)
         assertEquals(4.0, Mastermind.average(state, 1), 1e-9)
         assertEquals(listOf(0), Mastermind.winners(state))
