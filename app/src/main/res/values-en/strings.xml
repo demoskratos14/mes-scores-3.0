@@ -1297,13 +1297,13 @@
     <!-- Mastermind -->
     <string name="game_mastermind">Mastermind</string>
     <string name="rules_mastermind_1_title">Goal</string>
-    <string name="rules_mastermind_1_body">Each player creates a secret sequence of colors. The others search for one player’s sequence together, then another’s, until every sequence has been searched. The winner is the player with the lowest average number of attempts.</string>
+    <string name="rules_mastermind_1_body">Each player creates a secret sequence of colors. All the sequences are searched at the same time: one attempt at player 1’s sequence, then one at player 2’s, and so on, before starting again with the first. The players whose sequence it is not agree on the attempt. The winner is the player with the lowest average number of attempts.</string>
     <string name="rules_mastermind_2_title">Searching a sequence</string>
     <string name="rules_mastermind_2_body">The players who are searching agree on a combination, then submit it. The app answers with two numbers: pegs of the right color in the right place (well placed, black dot) and pegs of the right color in the wrong place (misplaced, white dot). The sequence is cracked when every peg is well placed; the number of attempts is limited.</string>
     <string name="rules_mastermind_3_title">Scoring</string>
     <string name="rules_mastermind_3_body">For each player, the app averages the attempts it took to crack the sequences they searched (their own is not included). A sequence that was not cracked counts as one more attempt than the limit. The lowest average wins; with 3 or more players, that means having created the hardest sequence to find.</string>
     <string name="rules_mastermind_4_title">In the app</string>
-    <string name="rules_mastermind_4_body">Choose the settings (pegs, colors, attempts), then everyone enters their sequence while passing the phone around. Each color carries a number, so you can recognize it without seeing it. The sequences are then searched one after the other.</string>
+    <string name="rules_mastermind_4_body">Choose the settings (pegs, colors, attempts), then everyone enters their sequence while passing the phone around. Each color carries a number, so you can recognize it without seeing it. After that, the phone keeps moving: each turn, the app says which sequence it is about. Tap a black or white dot to see what it means.</string>
     <string name="mm_color_red">Red</string>
     <string name="mm_color_blue">Blue</string>
     <string name="mm_color_green">Green</string>
@@ -1343,4 +1343,9 @@
     <string name="mm_quit_title">Quit the game?</string>
     <string name="mm_quit_message">The Mastermind game in progress will be lost.</string>
     <string name="mm_quit_confirm">Quit</string>
+    <string name="mm_legend_hint">Tap a black or white dot to see what it means.</string>
+    <string name="mm_legend_black">Black dot: well placed peg, the right color in the right place.</string>
+    <string name="mm_legend_white">White dot: misplaced peg, the right color but in the wrong place.</string>
+    <string name="mm_well_placed_description">Well placed: %1$d</string>
+    <string name="mm_misplaced_description">Misplaced: %1$d</string>
 </resources>
