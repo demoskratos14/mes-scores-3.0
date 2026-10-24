@@ -7,11 +7,6 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
-    inputs:
-      release:
-        description: "Construire aussi l'APK et le bundle AAB release signés (nécessite les secrets de signature)"
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -19,6 +14,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Vrai si le secret de signature existe : absent pour les pull requests venant d'un fork et pour
+      # Dependabot, qui n'ont pas accès aux secrets. Les secrets ne se lisent pas dans un « if: » :
+      # on passe donc par cette variable.
+      HAS_SIGNING: ${{ secrets.KEYSTORE_BASE64 != '' }}
     steps:
       - name: Récupérer le code
         uses: actions/checkout@v7
@@ -37,7 +37,7 @@ jobs:
           # platform-tools ; build-tools et platforms sont téléchargés par Gradle/AGP au besoin.
           packages: "platform-tools"
 
-      # Pas de "gradle-version" ici : on utilise le wrapper du dépôt (Gradle 9.8.1, voir
+      # Pas de "gradle-version" ici : on utilise le wrapper du dépôt (Gradle 9.8.2, voir
       # gradle/wrapper/gradle-wrapper.properties), pour avoir la même version qu'en local.
       - name: Préparer Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -81,20 +81,17 @@ jobs:
           path: "app/build/outputs/apk/debug/Mes scores-debug.apk"
           if-no-files-found: error
 
+      # --- Release : construite à chaque exécution, signée quand les secrets existent ---
       # La release est minifiée par R8 (isMinifyEnabled) : une règle manquante peut casser l'APK release
-      # sans jamais gêner le debug. On la construit donc à chaque push, non signée (aucun secret requis),
-      # pour que le problème se voie tout de suite et non au moment de publier.
-      # Quand la release signée est demandée, l'étape ci-dessous la construit déjà : pas de doublon.
-      - name: Vérifier que la release (R8) se construit
-        if: ${{ !inputs.release }}
-        run: ./gradlew assembleRelease --stacktrace
-
-      # --- Release signée : uniquement à la demande (Actions > Run workflow > release) ---
+      # sans jamais gêner le debug. On la construit donc à chaque push, pour que le problème se voie
+      # tout de suite et non au moment de publier.
       # Secrets à créer dans Settings > Secrets and variables > Actions :
       #   KEYSTORE_BASE64 (le fichier .jks encodé en base64), KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
-      # L'AAB (bundle) est le format demandé par le Play Store ; l'APK sert aux installations directes.
+      # Sans eux, la release est construite non signée : elle vérifie le build mais ne s'installe pas
+      # sur un téléphone. L'AAB (bundle) est le format demandé par le Play Store ; l'APK sert aux
+      # installations directes.
       - name: Construire l'APK et l'AAB (release signés)
-        if: ${{ inputs.release }}
+        if: ${{ env.HAS_SIGNING == 'true' }}
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -104,16 +101,28 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
           KEYSTORE_FILE="$RUNNER_TEMP/release.jks" ./gradlew assembleRelease bundleRelease --stacktrace
 
+      - name: Construire l'APK release (non signé, secrets absents)
+        if: ${{ env.HAS_SIGNING != 'true' }}
+        run: ./gradlew assembleRelease --stacktrace
+
       - name: Publier l'APK release
-        if: ${{ inputs.release }}
+        if: ${{ env.HAS_SIGNING == 'true' }}
         uses: actions/upload-artifact@v6
         with:
           name: "Mes scores (release)"
           path: "app/build/outputs/apk/release/Mes scores-release.apk"
           if-no-files-found: error
 
+      - name: Publier l'APK release non signé
+        if: ${{ env.HAS_SIGNING != 'true' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: "Mes scores (release non signée)"
+          path: "app/build/outputs/apk/release/*.apk"
+          if-no-files-found: error
+
       - name: Publier l'AAB release (Play Store)
-        if: ${{ inputs.release }}
+        if: ${{ env.HAS_SIGNING == 'true' }}
         uses: actions/upload-artifact@v6
         with:
           name: "Mes scores (release AAB)"
