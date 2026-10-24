@@ -38,7 +38,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
 @Composable
-fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepository) {
+fun ScoreScreen(
+    viewModel: ScoreViewModel,
+    historyRepository: GameHistoryRepository,
+    onOpenDice: (() -> Unit)? = null
+) {
     val players = viewModel.players
     // Totaux et rangs recalculés une seule fois par changement de score, pas une fois par ligne.
     val totals by remember(viewModel) { derivedStateOf { viewModel.totals } }
@@ -71,7 +75,7 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
             .navigationBarsPadding()
             .padding(16.dp)
     ) {
-        ScoreHeader(viewModel)
+        ScoreHeader(viewModel, onOpenDice)
         Spacer(modifier = Modifier.height(12.dp))
 
         if (viewModel.isGameOver()) {
@@ -141,9 +145,9 @@ fun ScoreScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
     }
 }
 
-/** Titre de l'écran : « Tableau des scores », nom du jeu, fiche de règles et courbe d'évolution. */
+/** Titre de l'écran : « Tableau des scores », nom du jeu, fiche de règles, courbe d'évolution et dés. */
 @Composable
-private fun ScoreHeader(viewModel: ScoreViewModel) {
+private fun ScoreHeader(viewModel: ScoreViewModel, onOpenDice: (() -> Unit)?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -166,6 +170,10 @@ private fun ScoreHeader(viewModel: ScoreViewModel) {
                 Spacer(modifier = Modifier.width(10.dp))
                 RulesButton(rules = viewModel.gameRules)
                 ScoreChartButton(viewModel)
+                if (onOpenDice != null && viewModel.gameRules.hasDice()) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    DiceButton(onClick = onOpenDice)
+                }
             }
         }
     }

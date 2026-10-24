@@ -47,7 +47,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
 @Composable
-fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepository) {
+fun CounterScreen(
+    viewModel: ScoreViewModel,
+    historyRepository: GameHistoryRepository,
+    onOpenDice: (() -> Unit)? = null
+) {
     val players = viewModel.players
     // Totaux et rangs recalculés une seule fois par changement de score, pas une fois par ligne.
     val totals by remember(viewModel) { derivedStateOf { viewModel.totals } }
@@ -81,11 +85,18 @@ fun CounterScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepos
                     color = Color.White,
                     modifier = Modifier.semantics { heading() }
                 )
-                Text(
-                    text = viewModel.gameRules.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.85f)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = viewModel.gameRules.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f),
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (onOpenDice != null && viewModel.gameRules.hasDice()) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        DiceButton(onClick = onOpenDice)
+                    }
+                }
             }
         }
         Spacer(modifier = Modifier.height(12.dp))

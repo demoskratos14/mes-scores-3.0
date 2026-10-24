@@ -1286,4 +1286,44 @@
     <string name="rules_padel_2_body">Nel padel si gioca spesso il punto d\'oro: sul 40-40 il punto successivo decide il game, senza vantaggio. L\'app lo attiva di default per il padel; puoi disattivarlo prima del primo punto. Nelle partite amatoriali il set decisivo è spesso sostituito da un super tie-break a 10 punti.</string>
     <string name="rules_padel_3_title">Nell\'app</string>
     <string name="rules_padel_3_body">Scegli il formato prima del primo punto, poi tocca il pulsante del giocatore o della squadra che vince lo scambio. L\'app conta punti, game e set, passa al tie-break e annuncia il vincitore; «Annulla» toglie l\'ultimo punto. I primi giocatori dell\'elenco formano il primo lato (in doppio: i primi due contro gli ultimi due).</string>
+
+    <!-- Flip 7 et dés virtuels -->
+    <string name="game_flip7">Flip 7</string>
+    <string name="rules_flip7_1_title">Obiettivo</string>
+    <string name="rules_flip7_1_body">Essere il primo a raggiungere 200 punti. La partita finisce alla fine del round in cui almeno un giocatore raggiunge o supera 200; vince il totale più alto. In caso di parità in testa, si gioca un round in più.</string>
+    <string name="rules_flip7_2_title">Un round</string>
+    <string name="rules_flip7_2_body">Al tuo turno, peschi una carta oppure ti fermi. Le carte numero vanno da 0 a 12. Pescare un numero che hai già davanti a te ti fa sballare: totalizzi 0 nel round, a meno che tu abbia una Seconda possibilità. Le carte azione (congela, pesca tre, seconda possibilità) e bonus (da +2 a +10, ×2) sono mescolate nel mazzo. Il round finisce quando nessuno gioca più, oppure appena un giocatore raccoglie 7 numeri diversi: un «Flip 7».</string>
+    <string name="rules_flip7_3_title">Punteggio di un round</string>
+    <string name="rules_flip7_3_body">Somma le tue carte numero; la carta ×2 raddoppia il totale, poi si aggiungono i bonus da +2 a +10. Un Flip 7 vale 15 punti in più. Chi è sballato totalizza 0.</string>
+    <string name="rules_flip7_4_title">Nell’app</string>
+    <string name="rules_flip7_4_body">Alla fine di ogni round, inserisci il punteggio di ogni giocatore (0 per chi è sballato). L’app somma i round e chiude la partita alla fine di quello in cui un giocatore arriva a 200.</string>
+    <string name="dice_button">Dadi</string>
+    <string name="dice_title">Lancio dei dadi</string>
+    <string name="dice_roll">Lancia</string>
+    <string name="dice_reroll">Rilancia</string>
+    <string name="dice_rolls_left">Lanci rimasti: %1$d</string>
+    <string name="dice_hold_hint">Tocca un dado per tenerlo prima di rilanciare.</string>
+    <string name="dice_die">Dado %1$d: %2$d</string>
+    <string name="dice_die_held">Dado %1$d: %2$d, tenuto</string>
+    <string name="dice_die_empty">Dado %1$d: non ancora lanciato</string>
+    <string name="dice_player_label">Giocatore</string>
+    <string name="dice_sum">Totale dei dadi: %1$d</string>
+    <string name="dice_combo_value">%1$s: %2$d</string>
+    <string name="dice_yams_prompt">Lancia i dadi per vedere i punteggi possibili.</string>
+    <string name="dice_yams_write">Segna %1$d</string>
+    <string name="dice_yams_crossed">Barrato</string>
+    <string name="dice_pig_total">Totale del turno: %1$d</string>
+    <string name="dice_pig_keep">Tieni %1$d</string>
+    <string name="dice_pig_bust">Un 1: il turno è perso!</string>
+    <string name="dice_pig_pass">Passa (0)</string>
+    <string name="dice_421_give">Gettoni da dare: %1$d. Scegli il giocatore:</string>
+    <string name="dice_421_name_421">421</string>
+    <string name="dice_421_name_111">Tre assi (111)</string>
+    <string name="dice_421_name_aces">Due assi</string>
+    <string name="dice_421_name_triple">Tris</string>
+    <string name="dice_421_name_straight">Scala</string>
+    <string name="dice_421_name_other">Altro lancio</string>
+    <string name="dice_qwixx_white">Dadi bianchi: %1$d</string>
+    <string name="dice_qwixx_option">%1$s: %2$d o %3$d</string>
+    <string name="dice_new_turn">Nuovo turno</string>
 </resources>

@@ -1253,4 +1253,44 @@
     <string name="rules_padel_2_body">In padel the golden point is often used: at 40-40 the next point decides the game, with no advantage. The app turns it on by default for padel; you can turn it off before the first point. In casual play the deciding set is often replaced by a super tie-break to 10 points.</string>
     <string name="rules_padel_3_title">In the app</string>
     <string name="rules_padel_3_body">Choose the format before the first point, then tap the button of the player or team that wins the rally. The app counts points, games and sets, switches to the tie-break and announces the winner; “Undo” removes the last point. The first players in the list form the first side (in doubles: the first two against the last two).</string>
+
+    <!-- Flip 7 et dés virtuels -->
+    <string name="game_flip7">Flip 7</string>
+    <string name="rules_flip7_1_title">Goal</string>
+    <string name="rules_flip7_1_body">Be the first to reach 200 points. The game ends at the end of the round in which at least one player reaches or passes 200; the highest total wins. If players are tied for the lead, play one more round.</string>
+    <string name="rules_flip7_2_title">A round</string>
+    <string name="rules_flip7_2_body">On your turn, draw a card or stay. Number cards go from 0 to 12. Drawing a number you already have in front of you makes you bust: you score 0 for the round, unless you have a Second Chance. Action cards (Freeze, Flip Three, Second Chance) and modifier cards (+2 to +10, ×2) are mixed into the deck. The round ends when nobody is still playing, or as soon as a player collects 7 different numbers: a “Flip 7”.</string>
+    <string name="rules_flip7_3_title">Scoring a round</string>
+    <string name="rules_flip7_3_body">Add up your number cards; the ×2 card doubles that total, then the +2 to +10 modifiers are added. A Flip 7 is worth 15 extra points. A player who busted scores 0.</string>
+    <string name="rules_flip7_4_title">In the app</string>
+    <string name="rules_flip7_4_body">At the end of each round, enter each player’s score (0 for a player who busted). The app adds the rounds up and ends the game at the end of the round in which a player reaches 200.</string>
+    <string name="dice_button">Dice</string>
+    <string name="dice_title">Dice roller</string>
+    <string name="dice_roll">Roll</string>
+    <string name="dice_reroll">Roll again</string>
+    <string name="dice_rolls_left">Rolls left: %1$d</string>
+    <string name="dice_hold_hint">Tap a die to keep it before rolling again.</string>
+    <string name="dice_die">Die %1$d: %2$d</string>
+    <string name="dice_die_held">Die %1$d: %2$d, kept</string>
+    <string name="dice_die_empty">Die %1$d: not rolled yet</string>
+    <string name="dice_player_label">Player</string>
+    <string name="dice_sum">Dice total: %1$d</string>
+    <string name="dice_combo_value">%1$s: %2$d</string>
+    <string name="dice_yams_prompt">Roll the dice to see the possible scores.</string>
+    <string name="dice_yams_write">Score %1$d</string>
+    <string name="dice_yams_crossed">Crossed out</string>
+    <string name="dice_pig_total">Turn total: %1$d</string>
+    <string name="dice_pig_keep">Keep %1$d</string>
+    <string name="dice_pig_bust">A 1: the turn is lost!</string>
+    <string name="dice_pig_pass">Pass (0)</string>
+    <string name="dice_421_give">Tokens to give: %1$d. Choose the player:</string>
+    <string name="dice_421_name_421">421</string>
+    <string name="dice_421_name_111">Three aces (111)</string>
+    <string name="dice_421_name_aces">Two aces</string>
+    <string name="dice_421_name_triple">Three of a kind</string>
+    <string name="dice_421_name_straight">Straight</string>
+    <string name="dice_421_name_other">Other roll</string>
+    <string name="dice_qwixx_white">White dice: %1$d</string>
+    <string name="dice_qwixx_option">%1$s: %2$d or %3$d</string>
+    <string name="dice_new_turn">New turn</string>
 </resources>

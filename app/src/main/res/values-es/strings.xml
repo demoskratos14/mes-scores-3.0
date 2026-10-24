@@ -1276,4 +1276,44 @@
     <string name="rules_padel_2_body">En el pádel suele jugarse el punto de oro: a 40-40, el siguiente punto decide el juego, sin ventaja. La app lo activa por defecto en el pádel; puedes desactivarlo antes del primer punto. En partidos amistosos, el set decisivo suele sustituirse por un súper tie-break a 10 puntos.</string>
     <string name="rules_padel_3_title">En la app</string>
     <string name="rules_padel_3_body">Elige el formato antes del primer punto y pulsa el botón del jugador o equipo que gana el punto. La app cuenta puntos, juegos y sets, pasa al tie-break y anuncia al ganador; «Deshacer» quita el último punto. Los primeros jugadores de la lista forman el primer bando (en dobles: los dos primeros contra los dos últimos).</string>
+
+    <!-- Flip 7 et dés virtuels -->
+    <string name="game_flip7">Flip 7</string>
+    <string name="rules_flip7_1_title">Objetivo</string>
+    <string name="rules_flip7_1_body">Ser el primero en llegar a 200 puntos. La partida termina al final de la ronda en la que al menos un jugador alcanza o supera los 200; gana el total más alto. Si hay empate en cabeza, se juega una ronda más.</string>
+    <string name="rules_flip7_2_title">Una ronda</string>
+    <string name="rules_flip7_2_body">En tu turno, robas una carta o te plantas. Las cartas de número van del 0 al 12. Robar un número que ya tienes delante te hace saltar: sumas 0 en la ronda, salvo que tengas una Segunda oportunidad. Las cartas de acción (congelar, roba tres, segunda oportunidad) y de bonificación (+2 a +10, ×2) están mezcladas en el mazo. La ronda termina cuando ya nadie juega, o en cuanto un jugador reúne 7 números distintos: un «Flip 7».</string>
+    <string name="rules_flip7_3_title">Puntuación de una ronda</string>
+    <string name="rules_flip7_3_body">Suma tus cartas de número; la carta ×2 duplica ese total y después se añaden las bonificaciones de +2 a +10. Un Flip 7 vale 15 puntos más. Un jugador que ha saltado suma 0.</string>
+    <string name="rules_flip7_4_title">En la app</string>
+    <string name="rules_flip7_4_body">Al final de cada ronda, introduce la puntuación de cada jugador (0 para quien ha saltado). La app suma las rondas y termina la partida al final de aquella en la que un jugador llega a 200.</string>
+    <string name="dice_button">Dados</string>
+    <string name="dice_title">Lanzador de dados</string>
+    <string name="dice_roll">Lanzar</string>
+    <string name="dice_reroll">Volver a lanzar</string>
+    <string name="dice_rolls_left">Lanzamientos restantes: %1$d</string>
+    <string name="dice_hold_hint">Toca un dado para guardarlo antes de volver a lanzar.</string>
+    <string name="dice_die">Dado %1$d: %2$d</string>
+    <string name="dice_die_held">Dado %1$d: %2$d, guardado</string>
+    <string name="dice_die_empty">Dado %1$d: aún sin lanzar</string>
+    <string name="dice_player_label">Jugador</string>
+    <string name="dice_sum">Total de los dados: %1$d</string>
+    <string name="dice_combo_value">%1$s: %2$d</string>
+    <string name="dice_yams_prompt">Lanza los dados para ver las puntuaciones posibles.</string>
+    <string name="dice_yams_write">Anotar %1$d</string>
+    <string name="dice_yams_crossed">Tachado</string>
+    <string name="dice_pig_total">Total del turno: %1$d</string>
+    <string name="dice_pig_keep">Guardar %1$d</string>
+    <string name="dice_pig_bust">¡Un 1: se pierde el turno!</string>
+    <string name="dice_pig_pass">Pasar (0)</string>
+    <string name="dice_421_give">Fichas a dar: %1$d. Elige el jugador:</string>
+    <string name="dice_421_name_421">421</string>
+    <string name="dice_421_name_111">Tres ases (111)</string>
+    <string name="dice_421_name_aces">Dos ases</string>
+    <string name="dice_421_name_triple">Trío</string>
+    <string name="dice_421_name_straight">Escalera</string>
+    <string name="dice_421_name_other">Otra jugada</string>
+    <string name="dice_qwixx_white">Dados blancos: %1$d</string>
+    <string name="dice_qwixx_option">%1$s: %2$d o %3$d</string>
+    <string name="dice_new_turn">Nuevo turno</string>
 </resources>

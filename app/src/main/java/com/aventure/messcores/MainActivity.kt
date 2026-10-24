@@ -302,13 +302,24 @@ fun ScoreApp(
                 PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
             composable("score") {
-                ScoreScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
+                ScoreScreen(
+                    viewModel = viewModel,
+                    historyRepository = gameHistoryRepository,
+                    onOpenDice = { navController.navigate("dice") }
+                )
+            }
+            composable("dice") {
+                DiceScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
             composable("racket") {
                 RacketScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
             composable("counter") {
-                CounterScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
+                CounterScreen(
+                    viewModel = viewModel,
+                    historyRepository = gameHistoryRepository,
+                    onOpenDice = { navController.navigate("dice") }
+                )
             }
             composable("teamRounds") {
                 TeamRoundsScreen(

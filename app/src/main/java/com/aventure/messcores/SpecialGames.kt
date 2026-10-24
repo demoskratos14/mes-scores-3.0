@@ -234,5 +234,18 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER,
         endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 6, stopImmediately = true)
+    ),
+    // Flip 7 : 200 points à atteindre ; la partie s'arrête à la fin de la manche où quelqu'un y arrive,
+    // et une égalité en tête se joue en manche supplémentaire. La règle officielle va jusqu'à 18 joueurs,
+    // l'appli s'arrête à 12 (la palette de couleurs et le tableau ne vont pas plus loin).
+    GameRules(
+        id = "builtin_flip7",
+        name = context.getString(R.string.game_flip7),
+        minPlayers = 3,
+        maxPlayers = 12,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.TABLE,
+        endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 200, stopImmediately = false, tieBreakOnEqualLeaders = true)
     )
 )

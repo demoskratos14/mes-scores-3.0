@@ -1276,4 +1276,44 @@
     <string name="rules_padel_2_body">No padel joga-se muitas vezes o ponto de ouro: aos 40-40, o ponto seguinte decide o jogo, sem vantagem. A app ativa-o por defeito no padel; podes desativá-lo antes do primeiro ponto. Em jogos amigáveis, o set decisivo é muitas vezes substituído por um super tie-break a 10 pontos.</string>
     <string name="rules_padel_3_title">Na app</string>
     <string name="rules_padel_3_body">Escolhe o formato antes do primeiro ponto e toca no botão do jogador ou equipa que ganha a jogada. A app conta pontos, jogos e sets, passa ao tie-break e anuncia o vencedor; «Anular» retira o último ponto. Os primeiros jogadores da lista formam o primeiro lado (em pares: os dois primeiros contra os dois últimos).</string>
+
+    <!-- Flip 7 et dés virtuels -->
+    <string name="game_flip7">Flip 7</string>
+    <string name="rules_flip7_1_title">Objetivo</string>
+    <string name="rules_flip7_1_body">Ser o primeiro a chegar aos 200 pontos. O jogo termina no fim da ronda em que pelo menos um jogador atinge ou ultrapassa os 200; ganha o total mais alto. Em caso de empate na frente, joga-se mais uma ronda.</string>
+    <string name="rules_flip7_2_title">Uma ronda</string>
+    <string name="rules_flip7_2_body">Na tua vez, tiras uma carta ou paras. As cartas de número vão de 0 a 12. Tirar um número que já tens à tua frente faz-te rebentar: marcas 0 na ronda, a menos que tenhas uma Segunda oportunidade. As cartas de ação (congelar, tirar três, segunda oportunidade) e de bónus (+2 a +10, ×2) estão misturadas no baralho. A ronda termina quando já ninguém joga, ou assim que um jogador reúne 7 números diferentes: um «Flip 7».</string>
+    <string name="rules_flip7_3_title">Pontuação de uma ronda</string>
+    <string name="rules_flip7_3_body">Soma as tuas cartas de número; a carta ×2 duplica esse total e depois somam-se os bónus de +2 a +10. Um Flip 7 vale mais 15 pontos. Um jogador que rebentou marca 0.</string>
+    <string name="rules_flip7_4_title">Na app</string>
+    <string name="rules_flip7_4_body">No fim de cada ronda, introduz a pontuação de cada jogador (0 para quem rebentou). A app soma as rondas e termina o jogo no fim daquela em que um jogador chega aos 200.</string>
+    <string name="dice_button">Dados</string>
+    <string name="dice_title">Lançador de dados</string>
+    <string name="dice_roll">Lançar</string>
+    <string name="dice_reroll">Lançar de novo</string>
+    <string name="dice_rolls_left">Lançamentos restantes: %1$d</string>
+    <string name="dice_hold_hint">Toca num dado para o guardar antes de lançar de novo.</string>
+    <string name="dice_die">Dado %1$d: %2$d</string>
+    <string name="dice_die_held">Dado %1$d: %2$d, guardado</string>
+    <string name="dice_die_empty">Dado %1$d: ainda não lançado</string>
+    <string name="dice_player_label">Jogador</string>
+    <string name="dice_sum">Total dos dados: %1$d</string>
+    <string name="dice_combo_value">%1$s: %2$d</string>
+    <string name="dice_yams_prompt">Lança os dados para ver as pontuações possíveis.</string>
+    <string name="dice_yams_write">Registar %1$d</string>
+    <string name="dice_yams_crossed">Riscado</string>
+    <string name="dice_pig_total">Total da jogada: %1$d</string>
+    <string name="dice_pig_keep">Guardar %1$d</string>
+    <string name="dice_pig_bust">Um 1: a jogada está perdida!</string>
+    <string name="dice_pig_pass">Passar (0)</string>
+    <string name="dice_421_give">Fichas a dar: %1$d. Escolhe o jogador:</string>
+    <string name="dice_421_name_421">421</string>
+    <string name="dice_421_name_111">Três ases (111)</string>
+    <string name="dice_421_name_aces">Dois ases</string>
+    <string name="dice_421_name_triple">Trio</string>
+    <string name="dice_421_name_straight">Sequência</string>
+    <string name="dice_421_name_other">Outra jogada</string>
+    <string name="dice_qwixx_white">Dados brancos: %1$d</string>
+    <string name="dice_qwixx_option">%1$s: %2$d ou %3$d</string>
+    <string name="dice_new_turn">Nova vez</string>
 </resources>

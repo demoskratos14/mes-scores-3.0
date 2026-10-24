@@ -1291,4 +1291,44 @@
     <string name="rules_padel_2_body">Au padel, on joue souvent le point d\'or : à 40-40, le point suivant décide du jeu, sans avantage. L\'appli l\'active par défaut pour le padel ; tu peux le désactiver avant le premier point. En amateur, le set décisif est souvent remplacé par un super tie-break à 10 points.</string>
     <string name="rules_padel_3_title">Dans l\'appli</string>
     <string name="rules_padel_3_body">Choisis le format avant le premier point, puis appuie sur le bouton du joueur ou de l\'équipe qui gagne l\'échange. L\'appli compte points, jeux et sets, passe au tie-break et annonce le vainqueur ; « Annuler » retire le dernier point. Les premiers joueurs de la liste forment le premier camp (en double : les deux premiers contre les deux derniers).</string>
+
+    <!-- Flip 7 et dés virtuels -->
+    <string name="game_flip7">Flip 7</string>
+    <string name="rules_flip7_1_title">But du jeu</string>
+    <string name="rules_flip7_1_body">Être le premier à atteindre 200 points. La partie s’arrête à la fin de la manche où au moins un joueur atteint ou dépasse 200 ; le total le plus haut gagne. En cas d’égalité en tête, on joue une manche de plus.</string>
+    <string name="rules_flip7_2_title">Une manche</string>
+    <string name="rules_flip7_2_body">À son tour, on pioche une carte ou on s’arrête. Les cartes Nombre vont de 0 à 12. Piocher un nombre que l’on a déjà devant soi fait « sauter » : on marque 0 pour la manche, sauf avec une Seconde chance. Les cartes Action (gel, pioche trois, seconde chance) et Bonus (+2 à +10, ×2) sont mélangées au paquet. La manche se termine quand plus personne ne joue, ou dès qu’un joueur réunit 7 nombres différents : c’est un « Flip 7 ».</string>
+    <string name="rules_flip7_3_title">Score d’une manche</string>
+    <string name="rules_flip7_3_body">Additionne tes cartes Nombre ; la carte ×2 double ce total, puis on ajoute les bonus +2 à +10. Un Flip 7 rapporte 15 points de plus. Un joueur qui a sauté marque 0.</string>
+    <string name="rules_flip7_4_title">Dans l’appli</string>
+    <string name="rules_flip7_4_body">À la fin de chaque manche, saisis le score de chaque joueur (0 pour celui qui a sauté). L’appli additionne les manches et arrête la partie à la fin de celle où un joueur atteint 200.</string>
+    <string name="dice_button">Dés</string>
+    <string name="dice_title">Lancer de dés</string>
+    <string name="dice_roll">Lancer</string>
+    <string name="dice_reroll">Relancer</string>
+    <string name="dice_rolls_left">Lancers restants : %1$d</string>
+    <string name="dice_hold_hint">Touche un dé pour le garder avant de relancer.</string>
+    <string name="dice_die">Dé %1$d : %2$d</string>
+    <string name="dice_die_held">Dé %1$d : %2$d, gardé</string>
+    <string name="dice_die_empty">Dé %1$d : pas encore lancé</string>
+    <string name="dice_player_label">Joueur</string>
+    <string name="dice_sum">Total des dés : %1$d</string>
+    <string name="dice_combo_value">%1$s : %2$d</string>
+    <string name="dice_yams_prompt">Lance les dés pour voir les scores possibles.</string>
+    <string name="dice_yams_write">Inscrire %1$d</string>
+    <string name="dice_yams_crossed">Barré</string>
+    <string name="dice_pig_total">Total du tour : %1$d</string>
+    <string name="dice_pig_keep">Garder %1$d</string>
+    <string name="dice_pig_bust">Un 1 : le tour est perdu !</string>
+    <string name="dice_pig_pass">Passer (0)</string>
+    <string name="dice_421_give">Jetons à donner : %1$d. Choisis le joueur :</string>
+    <string name="dice_421_name_421">421</string>
+    <string name="dice_421_name_111">Trois as (111)</string>
+    <string name="dice_421_name_aces">Deux as</string>
+    <string name="dice_421_name_triple">Brelan</string>
+    <string name="dice_421_name_straight">Suite</string>
+    <string name="dice_421_name_other">Autre jeu</string>
+    <string name="dice_qwixx_white">Dés blancs : %1$d</string>
+    <string name="dice_qwixx_option">%1$s : %2$d ou %3$d</string>
+    <string name="dice_new_turn">Nouveau tour</string>
 </resources>
