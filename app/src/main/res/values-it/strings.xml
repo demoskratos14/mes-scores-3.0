@@ -1330,13 +1330,13 @@
     <!-- Mastermind -->
     <string name="game_mastermind">Mastermind</string>
     <string name="rules_mastermind_1_title">Obiettivo</string>
-    <string name="rules_mastermind_1_body">Ogni giocatore crea una sequenza segreta di colori. Gli altri cercano insieme la sequenza di un giocatore, poi quella di un altro, finché tutte le sequenze sono state cercate. Vince chi ha la media di tentativi più bassa.</string>
+    <string name="rules_mastermind_1_body">Ogni giocatore crea una sequenza segreta di colori. Tutte le sequenze vengono cercate contemporaneamente: un tentativo sulla sequenza del giocatore 1, poi uno su quella del giocatore 2, e così via, prima di ricominciare dalla prima. I giocatori a cui la sequenza non appartiene si accordano sul tentativo. Vince chi ha la media di tentativi più bassa.</string>
     <string name="rules_mastermind_2_title">Cercare una sequenza</string>
     <string name="rules_mastermind_2_body">I giocatori che cercano si accordano su una combinazione e la confermano. L’app risponde con due numeri: le pedine del colore giusto al posto giusto (ben piazzate, punto nero) e quelle del colore giusto al posto sbagliato (mal piazzate, punto bianco). La sequenza è trovata quando tutte le pedine sono ben piazzate; il numero di tentativi è limitato.</string>
     <string name="rules_mastermind_3_title">Il punteggio</string>
     <string name="rules_mastermind_3_body">Per ogni giocatore, l’app calcola la media dei tentativi che sono serviti per trovare le sequenze che ha cercato (la sua non conta). Una sequenza non trovata vale un tentativo in più del limite. Vince la media più bassa; con 3 o più giocatori equivale ad aver creato la sequenza più difficile da trovare.</string>
     <string name="rules_mastermind_4_title">Nell’app</string>
-    <string name="rules_mastermind_4_body">Scegli le impostazioni (pedine, colori, tentativi), poi ognuno inserisce la propria sequenza passandosi il telefono. Ogni colore ha un numero, per riconoscerlo senza vederlo. Le sequenze vengono poi cercate una dopo l’altra.</string>
+    <string name="rules_mastermind_4_body">Scegli le impostazioni (pedine, colori, tentativi), poi ognuno inserisce la propria sequenza passandosi il telefono. Ogni colore ha un numero, per riconoscerlo senza vederlo. Poi il telefono continua a passare di mano: a ogni turno l’app indica di quale sequenza si tratta. Tocca un punto nero o bianco per sapere cosa significa.</string>
     <string name="mm_color_red">Rosso</string>
     <string name="mm_color_blue">Blu</string>
     <string name="mm_color_green">Verde</string>
@@ -1376,4 +1376,9 @@
     <string name="mm_quit_title">Uscire dalla partita?</string>
     <string name="mm_quit_message">La partita di Mastermind in corso andrà persa.</string>
     <string name="mm_quit_confirm">Esci</string>
+    <string name="mm_legend_hint">Tocca un punto nero o bianco per sapere cosa significa.</string>
+    <string name="mm_legend_black">Punto nero: pedina ben piazzata, del colore giusto al posto giusto.</string>
+    <string name="mm_legend_white">Punto bianco: pedina mal piazzata, del colore giusto ma al posto sbagliato.</string>
+    <string name="mm_well_placed_description">Ben piazzate: %1$d</string>
+    <string name="mm_misplaced_description">Mal piazzate: %1$d</string>
 </resources>
