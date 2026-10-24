@@ -1320,13 +1320,13 @@
     <!-- Mastermind -->
     <string name="game_mastermind">Mastermind</string>
     <string name="rules_mastermind_1_title">Objetivo</string>
-    <string name="rules_mastermind_1_body">Cada jogador cria uma sequência secreta de cores. Os outros procuram juntos a sequência de um jogador, depois a de outro, até todas terem sido procuradas. Ganha quem tiver a média de tentativas mais baixa.</string>
+    <string name="rules_mastermind_1_body">Cada jogador cria uma sequência secreta de cores. Todas as sequências são procuradas ao mesmo tempo: uma tentativa na sequência do jogador 1, depois uma na do jogador 2, e assim sucessivamente, antes de recomeçar pela primeira. Os jogadores a quem a sequência não pertence combinam a tentativa. Ganha quem tiver a média de tentativas mais baixa.</string>
     <string name="rules_mastermind_2_title">Procurar uma sequência</string>
     <string name="rules_mastermind_2_body">Os jogadores que procuram combinam uma sequência e validam-na. A app responde com dois números: as peças da cor certa no sítio certo (bem colocadas, ponto preto) e as da cor certa no sítio errado (mal colocadas, ponto branco). A sequência é descoberta quando todas as peças estão bem colocadas; o número de tentativas é limitado.</string>
     <string name="rules_mastermind_3_title">A pontuação</string>
     <string name="rules_mastermind_3_body">Para cada jogador, a app calcula a média das tentativas necessárias para descobrir as sequências que procurou (a sua não conta). Uma sequência não descoberta conta mais uma tentativa do que o limite. Ganha a média mais baixa; com 3 ou mais jogadores, equivale a ter criado a sequência mais difícil de encontrar.</string>
     <string name="rules_mastermind_4_title">Na app</string>
-    <string name="rules_mastermind_4_body">Escolhe as definições (peças, cores, tentativas) e depois cada um introduz a sua sequência passando o telemóvel. Cada cor tem um número, para a reconhecer sem a ver. As sequências são depois procuradas uma a uma.</string>
+    <string name="rules_mastermind_4_body">Escolhe as definições (peças, cores, tentativas) e depois cada um introduz a sua sequência passando o telemóvel. Cada cor tem um número, para a reconhecer sem a ver. Depois o telemóvel continua a circular: em cada vez, a app indica de que sequência se trata. Toca num ponto preto ou branco para saber o que significa.</string>
     <string name="mm_color_red">Vermelho</string>
     <string name="mm_color_blue">Azul</string>
     <string name="mm_color_green">Verde</string>
@@ -1366,4 +1366,9 @@
     <string name="mm_quit_title">Sair do jogo?</string>
     <string name="mm_quit_message">O jogo de Mastermind em curso será perdido.</string>
     <string name="mm_quit_confirm">Sair</string>
+    <string name="mm_legend_hint">Toca num ponto preto ou branco para saber o que significa.</string>
+    <string name="mm_legend_black">Ponto preto: peça bem colocada, da cor certa no sítio certo.</string>
+    <string name="mm_legend_white">Ponto branco: peça mal colocada, da cor certa mas no sítio errado.</string>
+    <string name="mm_well_placed_description">Bem colocadas: %1$d</string>
+    <string name="mm_misplaced_description">Mal colocadas: %1$d</string>
 </resources>
