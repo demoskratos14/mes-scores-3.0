@@ -1335,13 +1335,13 @@
     <!-- Mastermind -->
     <string name="game_mastermind">Mastermind</string>
     <string name="rules_mastermind_1_title">But du jeu</string>
-    <string name="rules_mastermind_1_body">Chaque joueur crée une suite secrète de couleurs. Les autres cherchent ensemble la suite d’un joueur, puis celle d’un autre, jusqu’à ce que toutes les suites aient été cherchées. Le gagnant est celui dont la moyenne d’essais est la plus basse.</string>
+    <string name="rules_mastermind_1_body">Chaque joueur crée une suite secrète de couleurs. Toutes les suites sont cherchées en même temps : un essai pour la suite du joueur 1, puis un essai pour celle du joueur 2, et ainsi de suite, avant de recommencer par la première. Les joueurs dont ce n’est pas la suite se mettent d’accord sur l’essai. Le gagnant est celui dont la moyenne d’essais est la plus basse.</string>
     <string name="rules_mastermind_2_title">Chercher une suite</string>
     <string name="rules_mastermind_2_body">Les joueurs qui cherchent se mettent d’accord sur une combinaison, puis la valident. L’appli répond avec deux nombres : les pions de la bonne couleur au bon endroit (bien placés, point noir) et ceux de la bonne couleur au mauvais endroit (mal placés, point blanc). La suite est trouvée quand tous les pions sont bien placés ; le nombre d’essais est limité.</string>
     <string name="rules_mastermind_3_title">Le score</string>
     <string name="rules_mastermind_3_body">Pour chaque joueur, l’appli fait la moyenne des essais qu’il a fallu pour trouver les suites qu’il a cherchées (la sienne n’en fait pas partie). Une suite non trouvée compte un essai de plus que la limite. La moyenne la plus basse gagne ; à partir de 3 joueurs, cela revient à avoir créé la suite la plus difficile à trouver.</string>
     <string name="rules_mastermind_4_title">Dans l’appli</string>
-    <string name="rules_mastermind_4_body">Choisis les réglages (pions, couleurs, essais), puis chacun saisit sa suite en passant le téléphone. Chaque couleur porte un numéro, pour la reconnaître sans la voir. Les suites sont ensuite cherchées l’une après l’autre.</string>
+    <string name="rules_mastermind_4_body">Choisis les réglages (pions, couleurs, essais), puis chacun saisit sa suite en passant le téléphone. Chaque couleur porte un numéro, pour la reconnaître sans la voir. Ensuite, le téléphone passe de main en main : à chaque tour, l’appli indique de quelle suite il s’agit. Touche un point noir ou blanc pour savoir ce qu’il signifie.</string>
     <string name="mm_color_red">Rouge</string>
     <string name="mm_color_blue">Bleu</string>
     <string name="mm_color_green">Vert</string>
@@ -1381,4 +1381,9 @@
     <string name="mm_quit_title">Quitter la partie ?</string>
     <string name="mm_quit_message">La partie de Mastermind en cours sera perdue.</string>
     <string name="mm_quit_confirm">Quitter</string>
+    <string name="mm_legend_hint">Touche un point noir ou blanc pour savoir ce qu’il signifie.</string>
+    <string name="mm_legend_black">Point noir : pion bien placé, de la bonne couleur au bon endroit.</string>
+    <string name="mm_legend_white">Point blanc : pion mal placé, de la bonne couleur mais au mauvais endroit.</string>
+    <string name="mm_well_placed_description">Bien placés : %1$d</string>
+    <string name="mm_misplaced_description">Mal placés : %1$d</string>
 </resources>
