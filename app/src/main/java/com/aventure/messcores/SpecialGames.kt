@@ -247,5 +247,15 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.TABLE,
         endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 200, stopImmediately = false, tieBreakOnEqualLeaders = true)
+    ),
+    // Mastermind : écran à part (voir MastermindScreen), le mode de score ci-dessous n'est pas utilisé.
+    GameRules(
+        id = MASTERMIND_ID,
+        name = context.getString(R.string.game_mastermind),
+        minPlayers = 2,
+        maxPlayers = 8,
+        lowestWins = true,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
     )
 )

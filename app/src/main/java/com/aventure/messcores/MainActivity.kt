@@ -115,6 +115,7 @@ fun ScoreApp(
     // Le minuteur (vibration, son, notification, alarme) est géré par TimerViewModel lui-même.
     val timerViewModel: TimerViewModel = viewModel()
     val tournamentViewModel: TournamentViewModel = viewModel()
+    val mastermindViewModel: MastermindViewModel = viewModel()
 
     val context = LocalContext.current
     val gameRepository = remember { GameRepository(context) }
@@ -241,7 +242,11 @@ fun ScoreApp(
                     repository = gameRepository,
                     playerCount = pendingPlayerNames.size,
                     onGameChosen = { rules ->
-                        if (rules.scoreMode == ScoreMode.POKER) {
+                        if (rules.id == MASTERMIND_ID) {
+                            // Le Mastermind a son propre écran et n'utilise ni le tableau ni les compteurs.
+                            mastermindViewModel.open(rules, pendingPlayerNames)
+                            navController.navigate("mastermind")
+                        } else if (rules.scoreMode == ScoreMode.POKER) {
                             // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
                             navController.navigate("pokerSetup")
                         } else {
@@ -306,6 +311,12 @@ fun ScoreApp(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
                     onOpenDice = { navController.navigate("dice") }
+                )
+            }
+            composable("mastermind") {
+                MastermindScreen(
+                    viewModel = mastermindViewModel,
+                    onExit = { navController.popBackStack("setup", inclusive = false) }
                 )
             }
             composable("dice") {
