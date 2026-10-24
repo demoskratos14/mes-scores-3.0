@@ -41,13 +41,16 @@ enum class MastermindPhase {
 }
 
 /**
- * Une partie de Mastermind à plusieurs : chaque joueur crée une suite secrète, puis tous les autres
- * la cherchent ensemble (un essai à la fois, d'un commun accord), suite après suite.
+ * Une partie de Mastermind à plusieurs : chaque joueur crée une suite secrète, puis toutes les suites sont
+ * cherchées en même temps, à tour de rôle : un essai pour la suite du joueur 1, un pour celle du joueur 2,
+ * et ainsi de suite, avant de recommencer par la première. Les joueurs dont ce n'est pas la suite se
+ * mettent d'accord sur l'essai. Une suite trouvée (ou dont les essais sont épuisés) est sautée ensuite.
  *
  * @param secrets suite de chaque joueur (null tant qu'il ne l'a pas saisie).
  * @param guesses essais faits pour chaque suite, dans l'ordre.
  * @param secretTurn joueur en train de saisir sa suite (phase [MastermindPhase.SECRETS]).
- * @param target joueur dont on cherche la suite (phase [MastermindPhase.PLAYING]).
+ * @param target suite cherchée à ce tour (phase [MastermindPhase.PLAYING]).
+ * @param awaitingNext vrai une fois l'essai de ce tour fait : on lit la réponse, puis [Mastermind.nextTarget].
  */
 data class MastermindState(
     val players: List<String>,
@@ -56,7 +59,8 @@ data class MastermindState(
     val secrets: List<List<Int>?> = List(players.size) { null },
     val guesses: List<List<MastermindGuess>> = List(players.size) { emptyList() },
     val secretTurn: Int = 0,
-    val target: Int = 0
+    val target: Int = 0,
+    val awaitingNext: Boolean = false
 )
 
 /** Règles du Mastermind : réponse à un essai, déroulement de la partie, moyennes et classement. */
@@ -103,14 +107,17 @@ object Mastermind {
         )
     }
 
-    /** Ajoute l'essai [pegs] à la suite cherchée ; null s'il est invalide ou si la suite est déjà trouvée ou épuisée. */
+    /**
+     * Ajoute l'essai [pegs] à la suite cherchée à ce tour ; null s'il est invalide, si l'essai de ce tour est
+     * déjà fait (il faut d'abord passer à la suite suivante) ou si la suite est déjà trouvée ou épuisée.
+     */
     fun withGuess(state: MastermindState, pegs: List<Int>): MastermindState? {
-        if (state.phase != MastermindPhase.PLAYING || !isValid(pegs, state.settings)) return null
+        if (state.phase != MastermindPhase.PLAYING || state.awaitingNext || !isValid(pegs, state.settings)) return null
         if (isOver(state, state.target)) return null
         val secret = state.secrets.getOrNull(state.target) ?: return null
         val guess = MastermindGuess(pegs.toList(), feedback(secret, pegs))
         val guesses = state.guesses.toMutableList().also { it[state.target] = it[state.target] + guess }
-        return state.copy(guesses = guesses)
+        return state.copy(guesses = guesses, awaitingNext = true)
     }
 
     /** Vrai si le dernier essai pour la suite de [target] a tous ses pions bien placés. */
@@ -123,13 +130,19 @@ object Mastermind {
 
     fun isOver(state: MastermindState, target: Int): Boolean = isSolved(state, target) || isFailed(state, target)
 
-    /** Passe à la suite suivante, ou aux résultats après la dernière ; sans effet tant que la suite en cours n'est pas finie. */
+    /**
+     * Passe à la suite suivante : la première suite non terminée après celle-ci, en repartant de la première
+     * après la dernière (la même si elle est la seule qui reste). Aux résultats quand toutes sont terminées.
+     * Sans effet tant que l'essai de ce tour n'est pas fait.
+     */
     fun nextTarget(state: MastermindState): MastermindState {
-        if (state.phase != MastermindPhase.PLAYING || !isOver(state, state.target)) return state
-        return if (state.target == state.players.lastIndex) {
-            state.copy(phase = MastermindPhase.RESULTS)
+        if (state.phase != MastermindPhase.PLAYING || !state.awaitingNext) return state
+        val count = state.players.size
+        val next = (1..count).map { (state.target + it) % count }.firstOrNull { !isOver(state, it) }
+        return if (next == null) {
+            state.copy(phase = MastermindPhase.RESULTS, awaitingNext = false)
         } else {
-            state.copy(target = state.target + 1)
+            state.copy(target = next, awaitingNext = false)
         }
     }
 

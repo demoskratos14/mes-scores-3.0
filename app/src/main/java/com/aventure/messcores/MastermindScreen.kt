@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -248,6 +249,10 @@ private fun SecretsContent(state: MastermindState, onSecret: (List<Int>) -> Unit
 
 // ---------- Recherche d'une suite ----------
 
+/**
+ * Un tour : un essai pour la suite de [MastermindState.target]. Une fois l'essai validé, on lit la réponse
+ * puis on passe à la suite suivante (les suites alternent, voir [Mastermind.nextTarget]).
+ */
 @Composable
 private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, onNext: () -> Unit) {
     val target = state.target
@@ -256,6 +261,8 @@ private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, on
     val solved = Mastermind.isSolved(state, target)
     val failed = Mastermind.isFailed(state, target)
     val searchers = state.players.filterIndexed { index, _ -> index != target }.joinToString(", ")
+    // Point dont on affiche la signification : 0 = noir (bien placé), 1 = blanc (mal placé), -1 = aucun.
+    var legend by rememberSaveable { mutableIntStateOf(-1) }
 
     Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -265,7 +272,7 @@ private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, on
                 modifier = Modifier.semantics { heading() }
             )
             Text(text = stringResource(R.string.mm_searchers, searchers), style = MaterialTheme.typography.bodyMedium)
-            if (!solved && !failed) {
+            if (!state.awaitingNext) {
                 Text(
                     text = stringResource(R.string.mm_attempt_counter, guesses.size + 1, state.settings.maxAttempts),
                     style = MaterialTheme.typography.bodyMedium
@@ -277,14 +284,30 @@ private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, on
     if (guesses.isNotEmpty()) {
         Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(
+                        when (legend) {
+                            0 -> R.string.mm_legend_black
+                            1 -> R.string.mm_legend_white
+                            else -> R.string.mm_legend_hint
+                        }
+                    ),
+                    style = MaterialTheme.typography.bodySmall
+                )
                 guesses.forEachIndexed { index, guess ->
-                    GuessRow(number = index + 1, guess = guess, pegSize = if (state.settings.codeLength > 4) 28.dp else 34.dp)
+                    GuessRow(
+                        number = index + 1,
+                        guess = guess,
+                        pegSize = if (state.settings.codeLength > 4) 28.dp else 34.dp,
+                        onDotClick = { dot -> legend = if (legend == dot) -1 else dot }
+                    )
                 }
             }
         }
     }
 
-    val nextLabel = if (state.target == state.players.lastIndex) R.string.mm_see_results else R.string.mm_next_code
+    val allOver = state.players.indices.all { Mastermind.isOver(state, it) }
+    val nextLabel = if (allOver) R.string.mm_see_results else R.string.mm_next_code
     when {
         solved -> Card(colors = CardDefaults.cardColors(containerColor = highlightContainer(), contentColor = highlightContent()), modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -303,6 +326,17 @@ private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, on
                 Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) { Text(stringResource(nextLabel)) }
             }
         }
+        state.awaitingNext -> Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                guesses.lastOrNull()?.let { last ->
+                    Text(
+                        text = stringResource(R.string.mm_feedback_description, last.feedback.wellPlaced, last.feedback.misplaced),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Button(onClick = onNext, modifier = Modifier.fillMaxWidth()) { Text(stringResource(nextLabel)) }
+            }
+        }
         else -> Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 CodeEntry(
@@ -318,7 +352,7 @@ private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, on
 
 /** Un essai passé : son numéro, ses pions et la réponse (noirs = bien placés, blancs = mal placés). */
 @Composable
-private fun GuessRow(number: Int, guess: MastermindGuess, pegSize: Dp) {
+private fun GuessRow(number: Int, guess: MastermindGuess, pegSize: Dp, onDotClick: (Int) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(text = number.toString(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(22.dp))
         guess.pegs.forEachIndexed { index, color ->
@@ -329,23 +363,52 @@ private fun GuessRow(number: Int, guess: MastermindGuess, pegSize: Dp) {
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        FeedbackView(guess.feedback)
+        FeedbackView(guess.feedback, onDotClick)
     }
 }
 
-/** La réponse à un essai : un point noir et son nombre, un point blanc et son nombre. */
+/**
+ * La réponse à un essai : un point noir et son nombre (bien placés), un point blanc et son nombre (mal placés).
+ * On touche un point pour afficher ce qu'il signifie ([onDotClick] reçoit 0 pour le noir, 1 pour le blanc).
+ */
 @Composable
-private fun FeedbackView(feedback: MastermindFeedback) {
-    val description = stringResource(R.string.mm_feedback_description, feedback.wellPlaced, feedback.misplaced)
+private fun FeedbackView(feedback: MastermindFeedback, onDotClick: (Int) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        FeedbackItem(
+            color = Color.Black,
+            count = feedback.wellPlaced,
+            description = stringResource(R.string.mm_well_placed_description, feedback.wellPlaced),
+            onClick = { onDotClick(0) }
+        )
+        FeedbackItem(
+            color = Color.White,
+            count = feedback.misplaced,
+            description = stringResource(R.string.mm_misplaced_description, feedback.misplaced),
+            onClick = { onDotClick(1) }
+        )
+    }
+}
+
+/** Un point de réponse et son nombre, assez grand pour être touché. */
+@Composable
+private fun FeedbackItem(color: Color, count: Int, description: String, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clearAndSetSemantics { contentDescription = description }
+        modifier = Modifier
+            .defaultMinSize(minHeight = 44.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 6.dp)
+            .semantics { contentDescription = description }
     ) {
-        Dot(Color.Black)
-        Text(text = feedback.wellPlaced.toString(), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(horizontal = 4.dp))
-        Spacer(modifier = Modifier.width(6.dp))
-        Dot(Color.White)
-        Text(text = feedback.misplaced.toString(), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(horizontal = 4.dp))
+        Dot(color)
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.bodyLarge,
+            // La description du point dit déjà le nombre.
+            modifier = Modifier
+                .padding(horizontal = 4.dp)
+                .clearAndSetSemantics { }
+        )
     }
 }
 
