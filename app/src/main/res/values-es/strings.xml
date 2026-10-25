@@ -1297,6 +1297,11 @@
     <string name="dice_die_held">Dado %1$d: %2$d, guardado</string>
     <string name="dice_die_empty">Dado %1$d: aún sin lanzar</string>
     <string name="dice_player_label">Jugador</string>
+    <string name="dice_shared_me">Este teléfono juega:</string>
+    <string name="dice_shared_all">Todos</string>
+    <string name="dice_shared_pick">Elige quién juega en este teléfono para poder lanzar los dados.</string>
+    <string name="dice_shared_wait">Le toca a %1$s.</string>
+    <string name="dice_see_scores">Ver el marcador</string>
     <string name="dice_sum">Total de los dados: %1$d</string>
     <string name="dice_combo_value">%1$s: %2$d</string>
     <string name="dice_yams_prompt">Lanza los dados para ver las puntuaciones posibles.</string>

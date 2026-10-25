@@ -1274,6 +1274,11 @@
     <string name="dice_die_held">Die %1$d: %2$d, kept</string>
     <string name="dice_die_empty">Die %1$d: not rolled yet</string>
     <string name="dice_player_label">Player</string>
+    <string name="dice_shared_me">This phone plays:</string>
+    <string name="dice_shared_all">Everyone</string>
+    <string name="dice_shared_pick">Choose who plays on this phone to roll the dice.</string>
+    <string name="dice_shared_wait">It’s %1$s’s turn.</string>
+    <string name="dice_see_scores">See the scoreboard</string>
     <string name="dice_sum">Dice total: %1$d</string>
     <string name="dice_combo_value">%1$s: %2$d</string>
     <string name="dice_yams_prompt">Roll the dice to see the possible scores.</string>

@@ -1307,6 +1307,11 @@
     <string name="dice_die_held">Dado %1$d: %2$d, tenuto</string>
     <string name="dice_die_empty">Dado %1$d: non ancora lanciato</string>
     <string name="dice_player_label">Giocatore</string>
+    <string name="dice_shared_me">Questo telefono gioca:</string>
+    <string name="dice_shared_all">Tutti</string>
+    <string name="dice_shared_pick">Scegli chi gioca su questo telefono per poter lanciare i dadi.</string>
+    <string name="dice_shared_wait">Tocca a %1$s.</string>
+    <string name="dice_see_scores">Vedi il tabellone</string>
     <string name="dice_sum">Totale dei dadi: %1$d</string>
     <string name="dice_combo_value">%1$s: %2$d</string>
     <string name="dice_yams_prompt">Lancia i dadi per vedere i punteggi possibili.</string>

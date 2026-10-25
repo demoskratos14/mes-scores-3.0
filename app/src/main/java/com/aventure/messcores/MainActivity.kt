@@ -347,7 +347,7 @@ fun ScoreApp(
                 )
             }
             composable("dice") {
-                DiceScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+                DiceScreen(viewModel = viewModel, session = sync, onBack = { navController.popBackStack() })
             }
             composable("racket") {
                 RacketScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)

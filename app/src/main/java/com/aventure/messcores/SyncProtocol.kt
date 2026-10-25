@@ -33,6 +33,12 @@ internal sealed interface SyncOp {
     data object Redo : SyncOp
 }
 
+/**
+ * Le tour de dés partagé entre les téléphones d'une partie de dés : à qui c'est de jouer, les dés ([turn], voir
+ * [DiceTurn.snapshot]) et, au Cochon, le total du tour et s'il est perdu.
+ */
+internal data class DiceTable(val player: Int, val turn: List<Int>, val pigTotal: Int, val pigBust: Boolean)
+
 /** Un message échangé entre les téléphones. */
 internal sealed interface SyncMessage {
     /** L'état complet de la partie, de l'organisateur vers les invités. [canUndo] et [canRedo] : boutons Annuler et Rétablir. */
@@ -43,6 +49,9 @@ internal sealed interface SyncMessage {
 
     /** Un message du Mastermind chacun sur son téléphone (voir [MastermindOnline]). */
     data class Mm(val mm: MmMessage) : SyncMessage
+
+    /** Le tour de dés en cours, envoyé par le téléphone du joueur qui joue (l'organisateur le relaie aux autres). */
+    data class Dice(val table: DiceTable) : SyncMessage
 }
 
 /** Exécute sur la partie de l'organisateur l'action reçue d'un invité. */
@@ -136,6 +145,9 @@ internal object SyncCodec {
                 .put("undo", message.canUndo).put("redo", message.canRedo)
             is SyncMessage.Operation -> json.put("t", "op").put("op", message.op.toJson())
             is SyncMessage.Mm -> json.put("t", "mm").put("mm", message.mm.toJson())
+            is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
+                .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
+                .put("pig", message.table.pigTotal).put("bust", message.table.pigBust)
         }
         val out = ByteArrayOutputStream()
         GZIPOutputStream(out).use { it.write(json.toString().toByteArray(Charsets.UTF_8)) }
@@ -156,6 +168,17 @@ internal object SyncCodec {
                 )
                 "op" -> syncOpFromJson(json.getJSONObject("op"))?.let { SyncMessage.Operation(it) }
                 "mm" -> mmMessageFromJson(json.getJSONObject("mm"))?.let { SyncMessage.Mm(it) }
+                "dice" -> {
+                    val turn = json.getJSONArray("turn")
+                    SyncMessage.Dice(
+                        DiceTable(
+                            player = json.getInt("player"),
+                            turn = (0 until turn.length()).map { turn.getInt(it) },
+                            pigTotal = json.getInt("pig"),
+                            pigBust = json.getBoolean("bust")
+                        )
+                    )
+                }
                 else -> null
             }
         } catch (e: Exception) {

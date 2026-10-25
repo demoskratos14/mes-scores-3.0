@@ -103,6 +103,14 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Le Mastermind chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var mastermind: MastermindOnline? = null
 
+    /** Le tour de dés partagé (jeux de dés) ; null tant que personne n'a lancé ni changé de joueur. */
+    var diceTable by mutableStateOf<DiceTable?>(null)
+        private set
+
+    /** Le joueur dont ce téléphone lance les dés : [DICE_UNSET] tant qu'on n'a pas choisi, [DICE_ALL] pour tous. */
+    var dicePlayer by mutableIntStateOf(DICE_UNSET)
+        private set
+
     /** Recherche en cours (invité). */
     var scanning by mutableStateOf(false)
         private set
@@ -221,6 +229,20 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         kind = SyncKind.SCORE
         hostCanUndo = false
         hostCanRedo = false
+        diceTable = null
+        dicePlayer = DICE_UNSET
+    }
+
+    /** Choisit le joueur dont ce téléphone lance les dés ([DICE_ALL] : tous les joueurs). */
+    fun chooseDicePlayer(player: Int) {
+        dicePlayer = player
+    }
+
+    /** Partage le tour de dés que ce téléphone vient de modifier : l'organisateur le reçoit et le relaie aux autres. */
+    fun publishDice(table: DiceTable) {
+        if (connected.isEmpty() || kind != SyncKind.SCORE) return
+        diceTable = table
+        send(connected.map { it.id }, SyncMessage.Dice(table))
     }
 
     /** À appeler à chaque changement de la partie : l'organisateur en envoie l'état complet à tous les invités. */
@@ -286,7 +308,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         pending = null
         connected.removeAll { it.id == id }
         connected.add(NearbyEndpoint(id, names[id] ?: id))
-        if (role == SyncRole.HOST && kind == SyncKind.SCORE) sendState(listOf(id))
+        if (role == SyncRole.HOST && kind == SyncKind.SCORE) {
+            sendState(listOf(id))
+            diceTable?.let { send(listOf(id), SyncMessage.Dice(it)) }
+        }
         mastermind?.onPeerConnected(id)
     }
 
@@ -321,6 +346,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
                     receivedStates++
                 }
             }
+            is SyncMessage.Dice -> {
+                if (kind != SyncKind.SCORE || connected.isEmpty()) return
+                diceTable = message.table
+                // L'organisateur relaie le tour aux autres invités.
+                if (role == SyncRole.HOST) {
+                    val others = connected.map { it.id }.filter { it != id }
+                    if (others.isNotEmpty()) send(others, message)
+                }
+            }
             is SyncMessage.Operation -> {
                 val game = game ?: return
                 if (role == SyncRole.HOST && kind == SyncKind.SCORE && game.isGameActive) message.op.applyTo(game)
@@ -337,3 +371,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         val SHAREABLE_MODES = setOf(ScoreMode.TABLE, ScoreMode.COUNTER, ScoreMode.VARIABLE_TEAMS)
     }
 }
+
+/** [SyncSession.dicePlayer] tant qu'on n'a pas choisi qui joue sur ce téléphone. */
+internal const val DICE_UNSET = -1
+
+/** [SyncSession.dicePlayer] quand ce téléphone lance les dés de tous les joueurs. */
+internal const val DICE_ALL = -2

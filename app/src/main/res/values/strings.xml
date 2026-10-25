@@ -1312,6 +1312,11 @@
     <string name="dice_die_held">Dé %1$d : %2$d, gardé</string>
     <string name="dice_die_empty">Dé %1$d : pas encore lancé</string>
     <string name="dice_player_label">Joueur</string>
+    <string name="dice_shared_me">Ce téléphone joue :</string>
+    <string name="dice_shared_all">Tous</string>
+    <string name="dice_shared_pick">Choisis qui joue sur ce téléphone pour pouvoir lancer les dés.</string>
+    <string name="dice_shared_wait">C’est à %1$s de jouer.</string>
+    <string name="dice_see_scores">Voir le tableau des scores</string>
     <string name="dice_sum">Total des dés : %1$d</string>
     <string name="dice_combo_value">%1$s : %2$d</string>
     <string name="dice_yams_prompt">Lance les dés pour voir les scores possibles.</string>

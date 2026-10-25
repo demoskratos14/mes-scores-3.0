@@ -89,7 +89,7 @@ private fun rememberDiceTurn(setup: DiceSetup): DiceTurn = rememberSaveable(
  * - autres jeux : les dés et leur total (Qwixx : les combinaisons possibles avec les dés blancs).
  */
 @Composable
-fun DiceScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
+internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null, onBack: () -> Unit) {
     val rules = viewModel.gameRules
     val setup = DiceSetups.forGame(rules.id)
     if (setup == null) {
@@ -113,28 +113,63 @@ fun DiceScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
     val gameOver = viewModel.isGameOver()
     val currentPlayer = player.coerceIn(0, (players.size - 1).coerceAtLeast(0))
 
-    fun newTurn() {
+    // Plusieurs téléphones : le tour de dés est partagé, et seul le joueur dont c'est le tour peut lancer.
+    val shared = session != null && session.isConnected && session.kind == SyncKind.SCORE
+    val myPlayer = session?.dicePlayer ?: DICE_UNSET
+    val canAct = !shared || myPlayer == DICE_ALL || myPlayer == currentPlayer
+
+    fun publish(forPlayer: Int = currentPlayer) {
+        if (shared) session?.publishDice(DiceTable(forPlayer, turn.snapshot(), pigTotal, pigBust))
+    }
+
+    // Ce que les autres téléphones ont fait : on reprend leur tour de dés tel quel.
+    val sharedTable = session?.diceTable
+    LaunchedEffect(sharedTable, shared) {
+        if (shared && sharedTable != null && sharedTable != DiceTable(currentPlayer, turn.snapshot(), pigTotal, pigBust)) {
+            turn.restoreFrom(sharedTable.turn)
+            player = sharedTable.player
+            pigTotal = sharedTable.pigTotal
+            pigBust = sharedTable.pigBust
+        }
+    }
+
+    // Un nouveau tour, un autre joueur ou la fin de partie : on remonte en haut, sinon la feuille du bas
+    // (Yams) garde l'écran défilé trop bas et les dés sortent de l'écran.
+    val scrollState = rememberScrollState()
+    LaunchedEffect(currentPlayer, turn.hasRolled, gameOver) {
+        if (!turn.hasRolled || gameOver) scrollState.animateScrollTo(0)
+    }
+
+    fun newTurn(forPlayer: Int = currentPlayer) {
         turn.reset()
         pigTotal = 0
         pigBust = false
+        publish(forPlayer)
     }
 
     fun nextPlayer() {
-        if (players.isNotEmpty()) player = (currentPlayer + 1) % players.size
-        newTurn()
+        val next = if (players.isNotEmpty()) (currentPlayer + 1) % players.size else currentPlayer
+        player = next
+        newTurn(next)
     }
 
     fun roll() {
         turn.roll()
         if (isPig) {
-            val value = turn.values.firstOrNull() ?: return
+            val value = turn.values.firstOrNull()
             if (value == 1) {
                 pigBust = true
                 pigTotal = 0
-            } else {
+            } else if (value != null) {
                 pigTotal += value
             }
         }
+        publish()
+    }
+
+    fun toggleHold(index: Int) {
+        turn.toggleHold(index)
+        publish()
     }
 
     Column(
@@ -162,11 +197,27 @@ fun DiceScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
         Column(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if ((isYams || isPig) && players.size > 1) {
-                PlayerChooser(players = players, selected = currentPlayer, onSelect = { player = it; newTurn() })
+            if (gameOver) {
+                // Toutes les cases sont remplies : la partie est terminée, avec son vainqueur.
+                GameOverBanner(players = players, winners = viewModel.winners())
+                Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.dice_see_scores))
+                }
+            }
+            if (shared && session != null) {
+                DiceSeatChooser(
+                    players = players,
+                    mine = myPlayer,
+                    current = currentPlayer,
+                    canAct = canAct,
+                    onChoose = { session.chooseDicePlayer(it) }
+                )
+            }
+            if ((isYams || isPig) && players.size > 1 && canAct) {
+                PlayerChooser(players = players, selected = currentPlayer, onSelect = { player = it; newTurn(it) })
             }
 
             Card(
@@ -175,8 +226,10 @@ fun DiceScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
             ) {
                 DiceTray(
                     turn = turn,
-                    rollEnabled = turn.canRoll && !(isPig && pigBust),
+                    rollEnabled = turn.canRoll && !(isPig && pigBust) && canAct,
+                    interactive = canAct,
                     onRoll = { roll() },
+                    onToggleHold = { toggleHold(it) },
                     onNewTurn = { newTurn() }
                 )
             }
@@ -186,7 +239,7 @@ fun DiceScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
                     viewModel = viewModel,
                     turn = turn,
                     player = currentPlayer,
-                    enabled = !gameOver,
+                    enabled = !gameOver && canAct,
                     onWritten = { nextPlayer() }
                 )
                 isPig -> PigPanel(
@@ -195,13 +248,13 @@ fun DiceScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
                     total = pigTotal,
                     bust = pigBust,
                     hasRolled = turn.hasRolled,
-                    enabled = !gameOver,
+                    enabled = !gameOver && canAct,
                     onWritten = { nextPlayer() }
                 )
                 is421 -> Panel421(
                     viewModel = viewModel,
                     turn = turn,
-                    enabled = !gameOver,
+                    enabled = !gameOver && canAct,
                     onGiven = { newTurn() }
                 )
                 isQwixx -> QwixxPanel(turn = turn)
@@ -257,9 +310,57 @@ private fun PlayerChooser(players: List<String>, selected: Int, onSelect: (Int) 
     }
 }
 
+/**
+ * Plusieurs téléphones : qui joue sur celui-ci (un joueur, ou tous), et à qui c'est de jouer quand ce n'est pas
+ * le joueur de ce téléphone.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DiceSeatChooser(players: List<String>, mine: Int, current: Int, canAct: Boolean, onChoose: (Int) -> Unit) {
+    Column {
+        Text(
+            text = stringResource(R.string.dice_shared_me),
+            style = MaterialTheme.typography.labelLarge,
+            color = Color.White
+        )
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            players.forEachIndexed { index, name ->
+                FilterChip(selected = index == mine, onClick = { onChoose(index) }, label = { Text(name) })
+            }
+            FilterChip(
+                selected = mine == DICE_ALL,
+                onClick = { onChoose(DICE_ALL) },
+                label = { Text(stringResource(R.string.dice_shared_all)) }
+            )
+        }
+        when {
+            mine == DICE_UNSET -> Text(
+                text = stringResource(R.string.dice_shared_pick),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White
+            )
+            !canAct -> Text(
+                text = stringResource(R.string.dice_shared_wait, players.getOrElse(current) { "" }),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White
+            )
+        }
+    }
+}
+
 /** Les dés, le bouton pour les lancer, les lancers restants et « Nouveau tour ». */
 @Composable
-private fun DiceTray(turn: DiceTurn, rollEnabled: Boolean, onRoll: () -> Unit, onNewTurn: () -> Unit) {
+private fun DiceTray(
+    turn: DiceTurn,
+    rollEnabled: Boolean,
+    interactive: Boolean,
+    onRoll: () -> Unit,
+    onToggleHold: (Int) -> Unit,
+    onNewTurn: () -> Unit
+) {
     val setup = turn.setup
     Column(
         modifier = Modifier
@@ -287,7 +388,7 @@ private fun DiceTray(turn: DiceTurn, rollEnabled: Boolean, onRoll: () -> Unit, o
                     held = held,
                     tint = setup.tints.getOrNull(index)?.let { Color(it) } ?: Color.White,
                     description = description,
-                    onClick = if (turn.canHold) ({ turn.toggleHold(index) }) else null,
+                    onClick = if (interactive && turn.canHold) ({ onToggleHold(index) }) else null,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -300,10 +401,10 @@ private fun DiceTray(turn: DiceTurn, rollEnabled: Boolean, onRoll: () -> Unit, o
         turn.rollsLeft?.let { left ->
             Text(text = stringResource(R.string.dice_rolls_left, left), style = MaterialTheme.typography.bodyMedium)
         }
-        if (turn.canHold) {
+        if (interactive && turn.canHold) {
             Text(text = stringResource(R.string.dice_hold_hint), style = MaterialTheme.typography.bodySmall)
         }
-        if (turn.hasRolled) {
+        if (interactive && turn.hasRolled) {
             TextButton(onClick = onNewTurn) { Text(stringResource(R.string.dice_new_turn)) }
         }
     }

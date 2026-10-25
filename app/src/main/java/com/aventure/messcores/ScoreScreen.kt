@@ -192,7 +192,7 @@ private fun ScoreHeader(
 
 /** Bandeau affiché quand la partie est terminée : vainqueur(s) ou simple fin de partie. */
 @Composable
-private fun GameOverBanner(players: List<String>, winners: List<Int>) {
+internal fun GameOverBanner(players: List<String>, winners: List<Int>) {
     Card(
         colors = CardDefaults.cardColors(containerColor = highlightContainer(), contentColor = highlightContent()),
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
