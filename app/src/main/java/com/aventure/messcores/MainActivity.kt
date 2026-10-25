@@ -18,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.listSaver
@@ -119,7 +120,7 @@ fun ScoreApp(
     // Partage de la partie avec un autre téléphone : vit au même niveau pour garder la connexion sur tous les écrans.
     val syncViewModel: SyncViewModel = viewModel()
     val sync = syncViewModel.session
-    remember(viewModel, sync) { sync.attach(viewModel) }
+    SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
     val gameRepository = remember { GameRepository(context) }
