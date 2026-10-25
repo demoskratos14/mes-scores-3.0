@@ -1436,4 +1436,11 @@
     <string name="mm_online_attempts_ok">%1$s: trovata in %2$d tentativi</string>
     <string name="mm_online_attempts_missed">%1$s: non trovata, contata come %2$d</string>
     <string name="share_your_name">Il tuo nome</string>
+    <string name="home_title">Cosa vuoi fare?</string>
+    <string name="home_scores">Fogli punteggio</string>
+    <string name="home_scores_hint">Conta i punti delle tue partite (carte, dadi, sport…)</string>
+    <string name="home_playable">Giochi giocabili</string>
+    <string name="home_playable_hint">Gioca direttamente nell\'app (dadi, Mastermind…), con un telefono o con più telefoni</string>
+    <string name="playable_one_phone">Un solo telefono</string>
+    <string name="playable_multi_phone">Si possono collegare più telefoni</string>
 </resources>

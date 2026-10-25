@@ -335,7 +335,7 @@ internal fun SyncEffects(
         val current = navController.currentDestination?.route
         // On n'arrache pas l'utilisateur à un autre écran (journal, statistiques…) : seulement à l'attente ou à une partie.
         if (current != target && (current == "share" || current == "setup" || current in GAME_ROUTES)) {
-            navController.navigate(target) { popUpTo("setup") }
+            navController.navigate(target) { popUpTo("home") }
         }
     }
 }

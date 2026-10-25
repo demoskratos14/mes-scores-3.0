@@ -71,7 +71,9 @@ fun SetupScreen(
     unfinishedGame: SavedGame? = null,
     onResumeGame: () -> Unit = {},
     // Partager une partie avec un autre téléphone, ou rejoindre celle d'un autre.
-    onOpenShare: () -> Unit = {}
+    onOpenShare: () -> Unit = {},
+    // Accueil « Jeux jouables » : on masque le championnat, le journal et les statistiques (côté feuilles de scores).
+    playableMode: Boolean = false
 ) {
     val context = LocalContext.current
     val playerPrefix = stringResource(R.string.player_default)
@@ -266,11 +268,13 @@ fun SetupScreen(
                     Text(stringResource(R.string.common_continue))
                 }
 
-                OutlinedButton(
-                    onClick = onOpenTournament,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.new_championship))
+                if (!playableMode) {
+                    OutlinedButton(
+                        onClick = onOpenTournament,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.new_championship))
+                    }
                 }
 
                 OutlinedButton(
@@ -280,62 +284,80 @@ fun SetupScreen(
                     Text(stringResource(R.string.share_join_button))
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(onClick = onOpenJournal, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.journal_title))
-                    }
-                    TextButton(onClick = onOpenStats, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.stats_title))
+                if (!playableMode) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TextButton(onClick = onOpenJournal, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.journal_title))
+                        }
+                        TextButton(onClick = onOpenStats, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.stats_title))
+                        }
                     }
                 }
 
-                // Apparence : Auto suit le réglage clair / sombre du téléphone.
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = stringResource(R.string.setup_appearance),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ThemeMode.values().forEach { mode ->
-                            FilterChip(
-                                selected = themeMode == mode,
-                                onClick = { onThemeModeChange(mode) },
-                                label = { Text(stringResource(mode.labelRes)) }
-                            )
-                        }
-                    }
-                    // Mode daltonien : un petit code (A, B, C…) s'écrit sur chaque couleur.
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .toggleable(
-                                value = colorBlindMode,
-                                role = Role.Switch,
-                                onValueChange = onColorBlindModeChange
-                            )
-                            .padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.setup_color_blind),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = stringResource(R.string.setup_color_blind_hint),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Switch(checked = colorBlindMode, onCheckedChange = null)
-                    }
-                }
+                AppearanceSettings(
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
+                    colorBlindMode = colorBlindMode,
+                    onColorBlindModeChange = onColorBlindModeChange
+                )
             }
         }
+        }
+    }
+}
+
+/** Apparence (clair / sombre / auto) et mode daltonien : sur l'accueil et sur l'écran de saisie des joueurs. */
+@Composable
+internal fun AppearanceSettings(
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    colorBlindMode: Boolean,
+    onColorBlindModeChange: (Boolean) -> Unit
+) {
+    // Apparence : Auto suit le réglage clair / sombre du téléphone.
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = stringResource(R.string.setup_appearance),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ThemeMode.values().forEach { mode ->
+                FilterChip(
+                    selected = themeMode == mode,
+                    onClick = { onThemeModeChange(mode) },
+                    label = { Text(stringResource(mode.labelRes)) }
+                )
+            }
+        }
+        // Mode daltonien : un petit code (A, B, C…) s'écrit sur chaque couleur.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(
+                    value = colorBlindMode,
+                    role = Role.Switch,
+                    onValueChange = onColorBlindModeChange
+                )
+                .padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.setup_color_blind),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = stringResource(R.string.setup_color_blind_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(checked = colorBlindMode, onCheckedChange = null)
         }
     }
 }

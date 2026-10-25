@@ -59,11 +59,13 @@ fun ChooseGameScreen(
     playerCount: Int,
     onGameChosen: (GameRules) -> Unit,
     onCreateNewGame: () -> Unit,
-    onEditGame: (GameRules) -> Unit
+    onEditGame: (GameRules) -> Unit,
+    // Vrai : seuls les jeux jouables dans l'appli sont proposés ; faux : les feuilles de scores (tous les jeux sauf le Mastermind).
+    playableOnly: Boolean = false
 ) {
-    var games by remember { mutableStateOf(repository.allGames()) }
+    var games by remember { mutableStateOf(repository.gamesFor(playableOnly)) }
     // On retient l'id (et non le jeu) : la sélection survit au passage par le formulaire de modification.
-    var selectedId by rememberSaveable { mutableStateOf("builtin_generic") }
+    var selectedId by rememberSaveable { mutableStateOf(if (playableOnly) "builtin_yams" else "builtin_generic") }
     val selected = games.firstOrNull { it.id == selectedId } ?: games.first()
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -103,7 +105,7 @@ fun ChooseGameScreen(
                         true to resources.getString(R.string.choose_import_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }
                 }
-                games = repository.allGames()
+                games = repository.gamesFor(playableOnly)
                 errorMessage = if (outcome.first) outcome.second else null
                 infoMessage = if (outcome.first) null else outcome.second
             }
@@ -123,6 +125,25 @@ fun ChooseGameScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(stringResource(R.string.choose_title), style = MaterialTheme.typography.headlineMedium)
+
+                // Légende des téléphones dessinés à droite de chaque jeu.
+                if (playableOnly) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf(false, true).forEach { multi ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                PhoneIcons(multi = multi, describe = false)
+                                Text(
+                                    text = stringResource(if (multi) R.string.playable_multi_phone else R.string.playable_one_phone),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
 
                 // Un menu déroulant par rubrique : chaque liste reste courte. Le jeu choisi s'affiche
                 // dans le menu de sa rubrique, les autres menus restent vides.
@@ -152,7 +173,13 @@ fun ChooseGameScreen(
                                         DropdownMenuItem(
                                             text = {
                                                 Column {
-                                                    Text(game.name)
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Text(game.name, modifier = Modifier.weight(1f))
+                                                        // Jeux jouables : un téléphone ou deux au bout de la ligne.
+                                                        if (playableOnly) {
+                                                            PhoneIcons(multi = game.isMultiPhone(), modifier = Modifier.padding(start = 8.dp))
+                                                        }
+                                                    }
                                                     Text(
                                                         text = ruleSummary(context, game),
                                                         style = MaterialTheme.typography.bodySmall,
@@ -250,18 +277,21 @@ fun ChooseGameScreen(
                     }
                 }
 
-                OutlinedButton(
-                    onClick = onCreateNewGame,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.choose_create_game))
-                }
+                // Créer ou importer un jeu, c'est pour les feuilles de scores.
+                if (!playableOnly) {
+                    OutlinedButton(
+                        onClick = onCreateNewGame,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.choose_create_game))
+                    }
 
-                OutlinedButton(
-                    onClick = { importLauncher.launch(arrayOf("application/json", "text/*", "application/octet-stream")) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.choose_import_game))
+                    OutlinedButton(
+                        onClick = { importLauncher.launch(arrayOf("application/json", "text/*", "application/octet-stream")) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.choose_import_game))
+                    }
                 }
 
                 infoMessage?.let { message ->
@@ -308,7 +338,7 @@ fun ChooseGameScreen(
             confirmButton = {
                 TextButton(onClick = {
                     repository.deleteCustomGame(selected.id)
-                    games = repository.allGames()
+                    games = repository.gamesFor(playableOnly)
                     selectedId = "builtin_generic"
                     errorMessage = null
                     confirmDelete = false
@@ -344,3 +374,7 @@ private fun ruleSummary(context: Context, game: GameRules): String {
     else context.getString(R.string.choose_rule_players_suffix, playersRange(context, game))
     return context.getString(R.string.choose_rule_summary, direction, negative, players)
 }
+
+/** Jeux proposés : ceux qui se jouent dans l'appli, ou les feuilles de scores (le Mastermind n'en a pas). */
+private fun GameRepository.gamesFor(playableOnly: Boolean): List<GameRules> =
+    allGames().filter { if (playableOnly) it.isPlayableGame() else it.id != MASTERMIND_ID }

@@ -1426,4 +1426,11 @@
     <string name="mm_online_attempts_ok">%1$s: descoberta em %2$d tentativas</string>
     <string name="mm_online_attempts_missed">%1$s: não descoberta, contada como %2$d</string>
     <string name="share_your_name">O teu nome</string>
+    <string name="home_title">O que queres fazer?</string>
+    <string name="home_scores">Folhas de pontuação</string>
+    <string name="home_scores_hint">Conta os pontos dos teus jogos (cartas, dados, desportos…)</string>
+    <string name="home_playable">Jogos jogáveis</string>
+    <string name="home_playable_hint">Joga diretamente na app (dados, Mastermind…), com um telemóvel ou com vários</string>
+    <string name="playable_one_phone">Um só telemóvel</string>
+    <string name="playable_multi_phone">Podem ligar-se vários telemóveis</string>
 </resources>

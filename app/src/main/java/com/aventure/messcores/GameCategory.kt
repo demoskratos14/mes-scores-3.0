@@ -36,6 +36,20 @@ private val SPECIAL_GAMES = setOf(
 )
 
 /**
+ * Vrai si le jeu se joue dans l'appli (accueil « Jeux jouables ») : le Mastermind, qui a son propre écran,
+ * et les jeux de dés qui ont des dés à lancer (voir [DiceSetups]). Le poker reste une feuille de score :
+ * les cartes n'y sont pas distribuées.
+ */
+fun GameRules.isPlayableGame(): Boolean = id == MASTERMIND_ID || DiceSetups.forGame(id) != null
+
+// Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones. Vide aujourd'hui : le Mastermind
+// a son salon en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
+private val SINGLE_PHONE_GAMES = emptySet<String>()
+
+/** Vrai si le jeu jouable peut se jouer en connectant plusieurs téléphones (deux téléphones dessinés dans la liste). */
+fun GameRules.isMultiPhone(): Boolean = isPlayableGame() && id !in SINGLE_PHONE_GAMES
+
+/**
  * Rubrique du jeu dans la liste. Elle se déduit de l'identifiant (rien n'est enregistré avec la partie) :
  * les sports et loisirs (pétanque, bowling, fléchettes…), les jeux créés par l'utilisateur et tout jeu
  * inconnu vont dans « Autres ».

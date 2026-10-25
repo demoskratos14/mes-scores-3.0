@@ -1441,4 +1441,11 @@
     <string name="mm_online_attempts_ok">%1$s : trouvée en %2$d essais</string>
     <string name="mm_online_attempts_missed">%1$s : non trouvée, comptée %2$d</string>
     <string name="share_your_name">Ton nom</string>
+    <string name="home_title">Que veux-tu faire ?</string>
+    <string name="home_scores">Feuilles de scores</string>
+    <string name="home_scores_hint">Compter les points de tes parties (cartes, dés, sports…)</string>
+    <string name="home_playable">Jeux jouables</string>
+    <string name="home_playable_hint">Jouer directement dans l\'appli (dés, Mastermind…), sur un téléphone ou à plusieurs</string>
+    <string name="playable_one_phone">Un seul téléphone</string>
+    <string name="playable_multi_phone">Plusieurs téléphones possibles</string>
 </resources>

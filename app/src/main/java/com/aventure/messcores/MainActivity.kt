@@ -151,7 +151,9 @@ fun ScoreApp(
         viewModel.closeGame()
         sync.disconnect()
         showQuitDialog = false
-        navController.popBackStack("setup", inclusive = false)
+        if (!navController.popBackStack("setup", inclusive = false)) {
+            navController.popBackStack("home", inclusive = false)
+        }
     }
 
     // Noms saisis à l'étape 1, en attente d'être associés à un jeu à l'étape 2.
@@ -163,6 +165,12 @@ fun ScoreApp(
         stateSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
     ) { mutableStateOf(listOf<Int>()) }
     fun pendingColors(): List<Color?> = pendingPlayerColors.map { if (it == 0) null else Color(it) }
+
+    // Accueil : false = feuilles de scores seules, true = jeux jouables dans l'appli (dés, Mastermind).
+    var playMode by rememberSaveable { mutableStateOf(false) }
+    // Le bouton « Dés » n'existe que côté jeux jouables ; un invité qui rejoint une partie le garde (les dés se partagent).
+    val openDice: (() -> Unit)? =
+        if (playMode || sync.role == SyncRole.GUEST) { { navController.navigate("dice") } } else null
 
     // Route vers l'écran de score adapté au mode du jeu choisi.
     fun scoreRouteFor(rules: GameRules): String = when (rules.scoreMode) {
@@ -177,7 +185,23 @@ fun ScoreApp(
         // Fond commun à tous les écrans, décodé une seule fois.
         AppBackground()
 
-        NavHost(navController = navController, startDestination = "setup") {
+        NavHost(navController = navController, startDestination = "home") {
+            composable("home") {
+                HomeScreen(
+                    onOpenScores = {
+                        playMode = false
+                        navController.navigate("setup")
+                    },
+                    onOpenPlayable = {
+                        playMode = true
+                        navController.navigate("setup")
+                    },
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
+                    colorBlindMode = colorBlindMode,
+                    onColorBlindModeChange = onColorBlindModeChange
+                )
+            }
             composable("setup") {
                 SetupScreen(
                     onNext = { names, colors ->
@@ -203,6 +227,7 @@ fun ScoreApp(
                         }
                     },
                     onOpenShare = { navController.navigate("share") },
+                    playableMode = playMode,
                     onOpenTournament = {
                         // Un championnat sauvegardé se reprend directement ; sinon on en prépare un.
                         navController.navigate(
@@ -267,7 +292,8 @@ fun ScoreApp(
                     },
                     onEditGame = { rules ->
                         navController.navigate("createGame?editId=${Uri.encode(rules.id)}")
-                    }
+                    },
+                    playableOnly = playMode
                 )
             }
             // editId absent : création d'un jeu ; présent : modification du jeu personnalisé correspondant.
@@ -318,7 +344,7 @@ fun ScoreApp(
                 ScoreScreen(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
-                    onOpenDice = { navController.navigate("dice") },
+                    onOpenDice = openDice,
                     onOpenShare = { navController.navigate("share") },
                     shareActive = sync.isConnected
                 )
@@ -330,7 +356,12 @@ fun ScoreApp(
                 MastermindScreen(
                     viewModel = mastermindViewModel,
                     online = mastermindOnline,
-                    onExit = { navController.popBackStack("setup", inclusive = false) },
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
                     onHostOnline = { navController.navigate("shareMastermind") }
                 )
             }
@@ -356,7 +387,7 @@ fun ScoreApp(
                 CounterScreen(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
-                    onOpenDice = { navController.navigate("dice") },
+                    onOpenDice = openDice,
                     onOpenShare = { navController.navigate("share") },
                     shareActive = sync.isConnected
                 )
@@ -391,7 +422,7 @@ fun ScoreApp(
             mastermind = mastermindOnline,
             onMastermindJoined = {
                 gameRepository.builtInGames().firstOrNull { it.id == MASTERMIND_ID }?.let { mastermindViewModel.prepareOnline(it) }
-                navController.navigate("mastermind") { popUpTo("setup") }
+                navController.navigate("mastermind") { popUpTo("home") }
             }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
