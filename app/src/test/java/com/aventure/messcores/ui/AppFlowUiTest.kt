@@ -28,16 +28,29 @@ class AppFlowUiTest {
 
     private val context get() = RuntimeEnvironment.getApplication()
 
-    @Test
-    fun deLAccueilOnArriveAuChoixDuJeuApresContinuer() {
+    /** Ouvre l'appli, choisit un côté de l'accueil, saisit deux joueurs puis appuie sur Continuer. */
+    private fun openFromHome(homeChoice: Int) {
         composeRule.setContent {
             MesScoresTheme(mode = ThemeMode.SYSTEM) { ScoreApp() }
         }
+        composeRule.onNodeWithText(context.getString(homeChoice)).performClick()
+        composeRule.waitForIdle()
         val fields = composeRule.onAllNodes(hasSetTextAction())
         fields[1].performTextInput("Anna")
         fields[2].performTextInput("Ben")
         composeRule.onNodeWithText(context.getString(R.string.common_continue)).performScrollTo().performClick()
         composeRule.waitForIdle()
+    }
+
+    @Test
+    fun deLAccueilOnArriveAuChoixDuJeuCoteFeuillesDeScores() {
+        openFromHome(R.string.home_scores)
+        composeRule.onNodeWithText(context.getString(R.string.choose_title)).assertIsDisplayed()
+    }
+
+    @Test
+    fun deLAccueilOnArriveAuChoixDuJeuCoteJeuxJouables() {
+        openFromHome(R.string.home_playable)
         composeRule.onNodeWithText(context.getString(R.string.choose_title)).assertIsDisplayed()
     }
 }
