@@ -257,5 +257,15 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         lowestWins = true,
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
+    ),
+    // Morpion : écran à part (voir TicTacToeScreen), à deux joueurs sur un téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = MORPION_ID,
+        name = context.getString(R.string.game_morpion),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
     )
 )

@@ -60,7 +60,7 @@ fun ChooseGameScreen(
     onGameChosen: (GameRules) -> Unit,
     onCreateNewGame: () -> Unit,
     onEditGame: (GameRules) -> Unit,
-    // Vrai : seuls les jeux jouables dans l'appli sont proposés ; faux : les feuilles de scores (tous les jeux sauf le Mastermind).
+    // Vrai : seuls les jeux jouables dans l'appli sont proposés ; faux : les feuilles de scores (tous les jeux sauf le Mastermind et le Morpion).
     playableOnly: Boolean = false
 ) {
     var games by remember { mutableStateOf(repository.gamesFor(playableOnly)) }
@@ -375,6 +375,6 @@ private fun ruleSummary(context: Context, game: GameRules): String {
     return context.getString(R.string.choose_rule_summary, direction, negative, players)
 }
 
-/** Jeux proposés : ceux qui se jouent dans l'appli, ou les feuilles de scores (le Mastermind n'en a pas). */
+/** Jeux proposés : ceux qui se jouent dans l'appli, ou les feuilles de scores (le Mastermind et le Morpion n'en ont pas). */
 private fun GameRepository.gamesFor(playableOnly: Boolean): List<GameRules> =
-    allGames().filter { if (playableOnly) it.isPlayableGame() else it.id != MASTERMIND_ID }
+    allGames().filter { if (playableOnly) it.isPlayableGame() else it.hasScoreSheet() }

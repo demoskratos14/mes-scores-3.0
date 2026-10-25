@@ -1433,4 +1433,13 @@
     <string name="home_playable_hint">Juega directamente en la app (dados, Mastermind…), con un teléfono o con varios</string>
     <string name="playable_one_phone">Un solo teléfono</string>
     <string name="playable_multi_phone">Se pueden conectar varios teléfonos</string>
+    <string name="game_morpion">Tres en raya</string>
+    <string name="morpion_turn">Turno de %1$s (%2$s)</string>
+    <string name="morpion_win">¡%1$s gana la ronda!</string>
+    <string name="morpion_draw">Empate</string>
+    <string name="morpion_new_round">Nueva ronda</string>
+    <string name="morpion_score">%1$s: %2$d · %3$s: %4$d · empates: %5$d</string>
+    <string name="morpion_cell_empty">Casilla %1$d, vacía</string>
+    <string name="morpion_cell_x">Casilla %1$d, cruz</string>
+    <string name="morpion_cell_o">Casilla %1$d, círculo</string>
 </resources>

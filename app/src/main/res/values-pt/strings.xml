@@ -1433,4 +1433,13 @@
     <string name="home_playable_hint">Joga diretamente na app (dados, Mastermind…), com um telemóvel ou com vários</string>
     <string name="playable_one_phone">Um só telemóvel</string>
     <string name="playable_multi_phone">Podem ligar-se vários telemóveis</string>
+    <string name="game_morpion">Jogo do galo</string>
+    <string name="morpion_turn">Vez de %1$s (%2$s)</string>
+    <string name="morpion_win">%1$s ganha a ronda!</string>
+    <string name="morpion_draw">Empate</string>
+    <string name="morpion_new_round">Nova ronda</string>
+    <string name="morpion_score">%1$s: %2$d · %3$s: %4$d · empates: %5$d</string>
+    <string name="morpion_cell_empty">Casa %1$d, vazia</string>
+    <string name="morpion_cell_x">Casa %1$d, cruz</string>
+    <string name="morpion_cell_o">Casa %1$d, círculo</string>
 </resources>

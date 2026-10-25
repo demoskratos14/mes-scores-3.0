@@ -1448,4 +1448,13 @@
     <string name="home_playable_hint">Jouer directement dans l\'appli (dés, Mastermind…), sur un téléphone ou à plusieurs</string>
     <string name="playable_one_phone">Un seul téléphone</string>
     <string name="playable_multi_phone">Plusieurs téléphones possibles</string>
+    <string name="game_morpion">Morpion</string>
+    <string name="morpion_turn">À %1$s de jouer (%2$s)</string>
+    <string name="morpion_win">%1$s gagne la manche !</string>
+    <string name="morpion_draw">Égalité</string>
+    <string name="morpion_new_round">Nouvelle manche</string>
+    <string name="morpion_score">%1$s : %2$d · %3$s : %4$d · égalités : %5$d</string>
+    <string name="morpion_cell_empty">Case %1$d, vide</string>
+    <string name="morpion_cell_x">Case %1$d, croix</string>
+    <string name="morpion_cell_o">Case %1$d, rond</string>
 </resources>

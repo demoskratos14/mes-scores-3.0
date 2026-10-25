@@ -1443,4 +1443,13 @@
     <string name="home_playable_hint">Gioca direttamente nell\'app (dadi, Mastermind…), con un telefono o con più telefoni</string>
     <string name="playable_one_phone">Un solo telefono</string>
     <string name="playable_multi_phone">Si possono collegare più telefoni</string>
+    <string name="game_morpion">Tris</string>
+    <string name="morpion_turn">Tocca a %1$s (%2$s)</string>
+    <string name="morpion_win">%1$s vince il round!</string>
+    <string name="morpion_draw">Pareggio</string>
+    <string name="morpion_new_round">Nuovo round</string>
+    <string name="morpion_score">%1$s: %2$d · %3$s: %4$d · pareggi: %5$d</string>
+    <string name="morpion_cell_empty">Casella %1$d, vuota</string>
+    <string name="morpion_cell_x">Casella %1$d, croce</string>
+    <string name="morpion_cell_o">Casella %1$d, cerchio</string>
 </resources>

@@ -279,6 +279,9 @@ fun ScoreApp(
                             // Le Mastermind a son propre écran et n'utilise ni le tableau ni les compteurs.
                             mastermindViewModel.open(rules, pendingPlayerNames)
                             navController.navigate("mastermind")
+                        } else if (rules.id == MORPION_ID) {
+                            // Le Morpion a son propre écran : deux joueurs, un seul téléphone.
+                            navController.navigate("morpion")
                         } else if (rules.scoreMode == ScoreMode.POKER) {
                             // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
                             navController.navigate("pokerSetup")
@@ -336,6 +339,9 @@ fun ScoreApp(
                         }
                     }
                 )
+            }
+            composable("morpion") {
+                TicTacToeScreen(players = pendingPlayerNames)
             }
             composable("poker") {
                 PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)

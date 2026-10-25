@@ -1410,4 +1410,13 @@
     <string name="home_playable_hint">Play right in the app (dice, Mastermind…), on one phone or with several</string>
     <string name="playable_one_phone">One phone only</string>
     <string name="playable_multi_phone">Can connect several phones</string>
+    <string name="game_morpion">Tic-tac-toe</string>
+    <string name="morpion_turn">%1$s\'s turn (%2$s)</string>
+    <string name="morpion_win">%1$s wins the round!</string>
+    <string name="morpion_draw">Draw</string>
+    <string name="morpion_new_round">New round</string>
+    <string name="morpion_score">%1$s: %2$d · %3$s: %4$d · draws: %5$d</string>
+    <string name="morpion_cell_empty">Square %1$d, empty</string>
+    <string name="morpion_cell_x">Square %1$d, cross</string>
+    <string name="morpion_cell_o">Square %1$d, circle</string>
 </resources>
