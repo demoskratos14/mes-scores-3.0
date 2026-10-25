@@ -47,6 +47,23 @@ class ScoreViewModel : ViewModel() {
     /** Vrai tant qu'une partie est ouverte (faux avant la première partie et après [closeGame]). */
     private var gameActive = false
 
+    /** Vrai tant qu'une partie est ouverte (faux avant la première partie et après [closeGame]). */
+    val isGameActive: Boolean get() = gameActive
+
+    /**
+     * Partage de la partie avec un autre téléphone (voir [SyncSession]). Sur un téléphone invité, les actions
+     * ne s'appliquent pas ici : elles sont envoyées à l'organisateur, qui renvoie l'état de la partie.
+     */
+    internal var remote: SyncRemote? = null
+
+    /** Envoie [op] à l'organisateur si ce téléphone est invité ; renvoie vrai dans ce cas (rien ne s'applique ici). */
+    private fun forwardToHost(op: SyncOp): Boolean {
+        val remote = remote ?: return false
+        if (!remote.isGuest) return false
+        remote.sendOp(op)
+        return true
+    }
+
     /**
      * Dernier état que l'utilisateur a lui-même validé dans le journal : la partie telle qu'elle était
      * à sa reprise depuis le journal, ou telle qu'elle était au dernier clic sur « Enregistrer ».
@@ -110,10 +127,10 @@ class ScoreViewModel : ViewModel() {
     val racketState: RacketState get() = racket.state
 
     /** Vrai s'il y a une saisie à annuler (pour activer le bouton « Annuler »). */
-    val canUndo: Boolean get() = mode.canUndo
+    val canUndo: Boolean get() = remote?.takeIf { it.isGuest }?.hostCanUndo ?: mode.canUndo
 
     /** Vrai s'il y a une saisie annulée à rétablir (pour activer le bouton « Rétablir »). */
-    val canRedo: Boolean get() = mode.canRedo
+    val canRedo: Boolean get() = remote?.takeIf { it.isGuest }?.hostCanRedo ?: mode.canRedo
 
     // ---------- Cycle de vie de la partie ----------
 
@@ -142,6 +159,7 @@ class ScoreViewModel : ViewModel() {
      * a déjà cette couleur : deux joueurs ne partagent jamais la même couleur.
      */
     fun setPlayerColor(playerIndex: Int, color: Color): Boolean {
+        if (forwardToHost(SyncOp.SetPlayerColor(playerIndex, color.toArgb()))) return true
         if (playerIndex !in players.indices || playerColors.size != players.size) return false
         if (isColorTakenByOther(playerColors, playerIndex, color)) return false
         playerColors = playerColors.toMutableList().also { it[playerIndex] = color }
@@ -263,12 +281,16 @@ class ScoreViewModel : ViewModel() {
      * Saisie d'un score dans la case (manche [round], joueur [player]) : l'état d'avant est
      * mémorisé pour [undo]. Sans effet (et rien à annuler) si la case ne change pas.
      */
-    fun setCell(round: Int, player: Int, baseValue: Int?, isNegative: Boolean) =
+    fun setCell(round: Int, player: Int, baseValue: Int?, isNegative: Boolean) {
+        if (forwardToHost(SyncOp.SetCell(round, player, baseValue, isNegative))) return
         table.setCell(round, player, baseValue, isNegative)
+    }
 
     /** Change la règle de multiplication appliquée à une case (annulable comme [setCell]). */
-    fun setMultiplier(round: Int, player: Int, multiplierId: String) =
+    fun setMultiplier(round: Int, player: Int, multiplierId: String) {
+        if (forwardToHost(SyncOp.SetMultiplier(round, player, multiplierId))) return
         table.setMultiplier(round, player, multiplierId)
+    }
 
     // ---------- Phases (Phase 10) ----------
 
@@ -281,7 +303,10 @@ class ScoreViewModel : ViewModel() {
     /** Phase d'un joueur : de 1 à [phaseCount], ou [phaseCount] + 1 s'il a terminé la dernière. */
     fun phaseFor(player: Int): Int = phases.phaseFor(player)
 
-    fun setPhase(player: Int, phase: Int) = phases.set(player, phase, phaseCount)
+    fun setPhase(player: Int, phase: Int) {
+        if (forwardToHost(SyncOp.SetPhase(player, phase))) return
+        phases.set(player, phase, phaseCount)
+    }
 
     // ---------- Feuille de catégories (Yams) ----------
 
@@ -299,15 +324,24 @@ class ScoreViewModel : ViewModel() {
 
     // ---------- Mode COUNTER ----------
 
-    fun incrementCounter(player: Int, delta: Int) = counter.increment(player, delta)
+    fun incrementCounter(player: Int, delta: Int) {
+        if (forwardToHost(SyncOp.IncrementCounter(player, delta))) return
+        counter.increment(player, delta)
+    }
 
     // ---------- Annulation ----------
 
     /** Annule la dernière saisie (case du tableau, appui sur un compteur, action de poker, point de tennis). Sans effet s'il n'y en a pas. */
-    fun undo() = mode.undo()
+    fun undo() {
+        if (forwardToHost(SyncOp.Undo)) return
+        mode.undo()
+    }
 
     /** Rétablit la dernière saisie annulée. Sans effet s'il n'y en a pas (ou si une nouvelle saisie a été faite depuis). */
-    fun redo() = mode.redo()
+    fun redo() {
+        if (forwardToHost(SyncOp.Redo)) return
+        mode.redo()
+    }
 
     // ---------- Mode VARIABLE_TEAMS ----------
 
@@ -316,16 +350,27 @@ class ScoreViewModel : ViewModel() {
      * l'équipe qui reçoit [baseValue] (signé et multiplié selon [multiplierId]) ;
      * tous les autres joueurs reçoivent l'opposé de ce score.
      */
-    fun addTeamRound(teamALabel: String, teamAPlayers: Set<Int>, baseValue: Int, isNegative: Boolean, multiplierId: String) =
+    fun addTeamRound(teamALabel: String, teamAPlayers: Set<Int>, baseValue: Int, isNegative: Boolean, multiplierId: String) {
+        if (forwardToHost(SyncOp.AddTeamRound(teamALabel, teamAPlayers, baseValue, isNegative, multiplierId))) return
         teams.add(teamALabel, teamAPlayers, baseValue, isNegative, multiplierId)
+    }
 
     /** Ajoute une manche déjà entièrement calculée (voir [TeamRound.deltas]). */
-    fun appendTeamRound(round: TeamRound) = teams.append(round)
+    fun appendTeamRound(round: TeamRound) {
+        if (forwardToHost(SyncOp.AppendTeamRound(round))) return
+        teams.append(round)
+    }
 
     /** Remplace la manche d'index [index] (correction d'une manche déjà saisie). */
-    fun replaceTeamRound(index: Int, round: TeamRound) = teams.replace(index, round)
+    fun replaceTeamRound(index: Int, round: TeamRound) {
+        if (forwardToHost(SyncOp.ReplaceTeamRound(index, round))) return
+        teams.replace(index, round)
+    }
 
-    fun removeTeamRound(index: Int) = teams.remove(index)
+    fun removeTeamRound(index: Int) {
+        if (forwardToHost(SyncOp.RemoveTeamRound(index))) return
+        teams.remove(index)
+    }
 
     // ---------- Mode RACKET (tennis, padel) ----------
 

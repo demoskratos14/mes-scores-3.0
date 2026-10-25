@@ -1348,4 +1348,31 @@
     <string name="mm_legend_white">White dot: misplaced peg, the right color but in the wrong place.</string>
     <string name="mm_well_placed_description">Well placed: %1$d</string>
     <string name="mm_misplaced_description">Misplaced: %1$d</string>
+
+    <!-- Partage entre téléphones -->
+    <string name="share_button">Share</string>
+    <string name="share_button_active">Sharing on</string>
+    <string name="share_title">Share the game</string>
+    <string name="share_intro">Two phones with this app can follow the same game, with no internet and no Wi-Fi network to join: Bluetooth and direct connection are used automatically. What one phone enters shows up on the other.</string>
+    <string name="share_host_button">Host this game</string>
+    <string name="share_join_button">Join a game</string>
+    <string name="share_no_game">To host a game, start one first from the home screen.</string>
+    <string name="share_not_shareable">This game (poker, tennis, padel) can’t be shared yet.</string>
+    <string name="share_replace_warning">If you join another phone’s game, it will replace the game in progress on this one.</string>
+    <string name="share_hosting_wait">Waiting for another phone… On the other phone, tap “Join a game”.</string>
+    <string name="share_searching">Looking for nearby games…</string>
+    <string name="share_join_endpoint">Join %1$s’s game</string>
+    <string name="share_pending_title">Connection request</string>
+    <string name="share_pending_host_message">%1$s wants to join the game. Check that the code %2$s is also shown on their phone, then accept.</string>
+    <string name="share_pending_guest">Code %1$s. Check that it is the same on the other phone, then wait for the host to accept.</string>
+    <string name="share_accept">Accept</string>
+    <string name="share_refuse">Decline</string>
+    <string name="share_connected">Connected: %1$s</string>
+    <string name="share_disconnect">Disconnect</string>
+    <string name="share_permission_denied">Without the “nearby devices” permission (or location on older Android versions), connecting is not possible.</string>
+    <string name="share_problem_start">The connection could not start. Check that Bluetooth is on (and location on older Android versions) and that Google Play services are available.</string>
+    <string name="share_problem_connection">The connection failed. Move the two phones closer and try again.</string>
+    <string name="share_problem_refused">The host declined the connection.</string>
+    <string name="share_problem_host_lost">The connection to the host was lost. The game stays on this phone, but what you enter is no longer shared.</string>
+    <string name="share_problem_too_big">The game is too large to be sent to the other phone.</string>
 </resources>

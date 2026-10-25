@@ -41,7 +41,9 @@ import kotlinx.coroutines.delay
 fun ScoreScreen(
     viewModel: ScoreViewModel,
     historyRepository: GameHistoryRepository,
-    onOpenDice: (() -> Unit)? = null
+    onOpenDice: (() -> Unit)? = null,
+    onOpenShare: (() -> Unit)? = null,
+    shareActive: Boolean = false
 ) {
     val players = viewModel.players
     // Totaux et rangs recalculés une seule fois par changement de score, pas une fois par ligne.
@@ -75,7 +77,7 @@ fun ScoreScreen(
             .navigationBarsPadding()
             .padding(16.dp)
     ) {
-        ScoreHeader(viewModel, onOpenDice)
+        ScoreHeader(viewModel, onOpenDice, onOpenShare, shareActive)
         Spacer(modifier = Modifier.height(12.dp))
 
         if (viewModel.isGameOver()) {
@@ -147,7 +149,12 @@ fun ScoreScreen(
 
 /** Titre de l'écran : « Tableau des scores », nom du jeu, fiche de règles, courbe d'évolution et dés. */
 @Composable
-private fun ScoreHeader(viewModel: ScoreViewModel, onOpenDice: (() -> Unit)?) {
+private fun ScoreHeader(
+    viewModel: ScoreViewModel,
+    onOpenDice: (() -> Unit)?,
+    onOpenShare: (() -> Unit)?,
+    shareActive: Boolean
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -174,6 +181,10 @@ private fun ScoreHeader(viewModel: ScoreViewModel, onOpenDice: (() -> Unit)?) {
                     Spacer(modifier = Modifier.width(6.dp))
                     DiceButton(onClick = onOpenDice)
                 }
+            }
+            if (onOpenShare != null) {
+                Spacer(modifier = Modifier.height(6.dp))
+                ShareButton(active = shareActive, onClick = onOpenShare)
             }
         }
     }

@@ -69,7 +69,9 @@ fun SetupScreen(
     onColorBlindModeChange: (Boolean) -> Unit = {},
     // Partie en cours la plus récente du journal (ou null) : proposée en haut de l'écran.
     unfinishedGame: SavedGame? = null,
-    onResumeGame: () -> Unit = {}
+    onResumeGame: () -> Unit = {},
+    // Partager une partie avec un autre téléphone, ou rejoindre celle d'un autre.
+    onOpenShare: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val playerPrefix = stringResource(R.string.player_default)
@@ -269,6 +271,13 @@ fun SetupScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.new_championship))
+                }
+
+                OutlinedButton(
+                    onClick = onOpenShare,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.share_join_button))
                 }
 
                 Row(

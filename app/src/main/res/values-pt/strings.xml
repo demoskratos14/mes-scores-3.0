@@ -1371,4 +1371,31 @@
     <string name="mm_legend_white">Ponto branco: peça mal colocada, da cor certa mas no sítio errado.</string>
     <string name="mm_well_placed_description">Bem colocadas: %1$d</string>
     <string name="mm_misplaced_description">Mal colocadas: %1$d</string>
+
+    <!-- Partage entre téléphones -->
+    <string name="share_button">Partilhar</string>
+    <string name="share_button_active">Partilha ativa</string>
+    <string name="share_title">Partilhar o jogo</string>
+    <string name="share_intro">Dois telemóveis com esta app podem seguir o mesmo jogo, sem internet nem rede Wi-Fi a que se ligar: o Bluetooth e a ligação direta são usados automaticamente. O que um introduz aparece no outro.</string>
+    <string name="share_host_button">Organizar este jogo</string>
+    <string name="share_join_button">Juntar-se a um jogo</string>
+    <string name="share_no_game">Para organizar um jogo, começa primeiro um a partir do ecrã inicial.</string>
+    <string name="share_not_shareable">Este jogo (póquer, ténis, padel) ainda não pode ser partilhado.</string>
+    <string name="share_replace_warning">Se te juntares ao jogo de outro telemóvel, ele substituirá o jogo em curso neste.</string>
+    <string name="share_hosting_wait">À espera de outro telemóvel… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
+    <string name="share_searching">A procurar jogos por perto…</string>
+    <string name="share_join_endpoint">Juntar-se ao jogo de %1$s</string>
+    <string name="share_pending_title">Pedido de ligação</string>
+    <string name="share_pending_host_message">%1$s quer juntar-se ao jogo. Confirma que o código %2$s também aparece no telemóvel dele e aceita.</string>
+    <string name="share_pending_guest">Código %1$s. Confirma que é o mesmo no outro telemóvel e espera que o organizador aceite.</string>
+    <string name="share_accept">Aceitar</string>
+    <string name="share_refuse">Recusar</string>
+    <string name="share_connected">Ligado: %1$s</string>
+    <string name="share_disconnect">Desligar</string>
+    <string name="share_permission_denied">Sem a autorização «dispositivos próximos» (ou a localização, nos Android antigos), não é possível ligar.</string>
+    <string name="share_problem_start">Não foi possível iniciar a ligação. Verifica se o Bluetooth está ativo (e a localização nos Android antigos) e se os serviços Google Play estão disponíveis.</string>
+    <string name="share_problem_connection">A ligação falhou. Aproxima os dois telemóveis e tenta de novo.</string>
+    <string name="share_problem_refused">O organizador recusou a ligação.</string>
+    <string name="share_problem_host_lost">A ligação ao organizador perdeu-se. O jogo fica neste telemóvel, mas o que introduzires já não é partilhado.</string>
+    <string name="share_problem_too_big">O jogo é demasiado grande para ser enviado ao outro telemóvel.</string>
 </resources>

@@ -49,7 +49,9 @@ import kotlinx.coroutines.delay
 fun TeamRoundsScreen(
     viewModel: ScoreViewModel,
     historyRepository: GameHistoryRepository,
-    onAddRound: () -> Unit
+    onAddRound: () -> Unit,
+    onOpenShare: (() -> Unit)? = null,
+    shareActive: Boolean = false
 ) {
     val players = viewModel.players
     // Totaux et rangs recalculés une seule fois par changement de score, pas une fois par ligne.
@@ -95,6 +97,10 @@ fun TeamRoundsScreen(
                     Spacer(modifier = Modifier.width(10.dp))
                     RulesButton(rules = viewModel.gameRules)
                     ScoreChartButton(viewModel)
+                }
+                if (onOpenShare != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    ShareButton(active = shareActive, onClick = onOpenShare)
                 }
             }
         }

@@ -1386,4 +1386,31 @@
     <string name="mm_legend_white">Point blanc : pion mal placé, de la bonne couleur mais au mauvais endroit.</string>
     <string name="mm_well_placed_description">Bien placés : %1$d</string>
     <string name="mm_misplaced_description">Mal placés : %1$d</string>
+
+    <!-- Partage entre téléphones -->
+    <string name="share_button">Partager</string>
+    <string name="share_button_active">Partage actif</string>
+    <string name="share_title">Partager la partie</string>
+    <string name="share_intro">Deux téléphones qui ont cette appli peuvent suivre la même partie, sans internet ni réseau Wi-Fi à rejoindre : le Bluetooth et la connexion directe sont utilisés automatiquement. Ce que l’un saisit apparaît sur l’autre.</string>
+    <string name="share_host_button">Organiser cette partie</string>
+    <string name="share_join_button">Rejoindre une partie</string>
+    <string name="share_no_game">Pour organiser une partie, commence-en d’abord une depuis l’accueil.</string>
+    <string name="share_not_shareable">Ce jeu (poker, tennis, padel) ne peut pas encore être partagé.</string>
+    <string name="share_replace_warning">Si tu rejoins la partie d’un autre téléphone, elle remplacera la partie en cours sur celui-ci.</string>
+    <string name="share_hosting_wait">En attente d’un autre téléphone… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
+    <string name="share_searching">Recherche des parties à proximité…</string>
+    <string name="share_join_endpoint">Rejoindre la partie de %1$s</string>
+    <string name="share_pending_title">Demande de connexion</string>
+    <string name="share_pending_host_message">%1$s veut rejoindre la partie. Vérifie que le code %2$s s’affiche aussi sur son téléphone, puis accepte.</string>
+    <string name="share_pending_guest">Code %1$s. Vérifie que c’est le même sur l’autre téléphone, puis attends que l’organisateur accepte.</string>
+    <string name="share_accept">Accepter</string>
+    <string name="share_refuse">Refuser</string>
+    <string name="share_connected">Connecté : %1$s</string>
+    <string name="share_disconnect">Se déconnecter</string>
+    <string name="share_permission_denied">Sans l’autorisation « appareils à proximité » (ou la position, sur les anciens Android), la connexion est impossible.</string>
+    <string name="share_problem_start">La connexion n’a pas pu démarrer. Vérifie que le Bluetooth est activé (et la localisation sur les anciens Android) et que les services Google Play sont disponibles.</string>
+    <string name="share_problem_connection">La connexion a échoué. Rapproche les deux téléphones et réessaie.</string>
+    <string name="share_problem_refused">L’organisateur a refusé la connexion.</string>
+    <string name="share_problem_host_lost">La connexion avec l’organisateur est perdue. La partie reste sur ce téléphone, mais ce que tu saisis n’est plus partagé.</string>
+    <string name="share_problem_too_big">La partie est trop volumineuse pour être envoyée à l’autre téléphone.</string>
 </resources>

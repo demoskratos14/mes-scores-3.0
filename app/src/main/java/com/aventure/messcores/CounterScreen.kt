@@ -50,7 +50,9 @@ import kotlinx.coroutines.delay
 fun CounterScreen(
     viewModel: ScoreViewModel,
     historyRepository: GameHistoryRepository,
-    onOpenDice: (() -> Unit)? = null
+    onOpenDice: (() -> Unit)? = null,
+    onOpenShare: (() -> Unit)? = null,
+    shareActive: Boolean = false
 ) {
     val players = viewModel.players
     // Totaux et rangs recalculés une seule fois par changement de score, pas une fois par ligne.
@@ -96,6 +98,10 @@ fun CounterScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         DiceButton(onClick = onOpenDice)
                     }
+                }
+                if (onOpenShare != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    ShareButton(active = shareActive, onClick = onOpenShare)
                 }
             }
         }

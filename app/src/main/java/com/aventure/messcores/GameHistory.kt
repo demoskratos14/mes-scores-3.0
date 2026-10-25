@@ -36,7 +36,7 @@ data class CellSnapshot(
     }
 }
 
-private fun TeamRound.toJson(): JSONObject {
+internal fun TeamRound.toJson(): JSONObject {
     val obj = JSONObject()
     obj.put("teamALabel", teamALabel)
     val playersArray = JSONArray()
@@ -65,7 +65,7 @@ private fun TeamRound.toJson(): JSONObject {
     return obj
 }
 
-private fun teamRoundFromJson(obj: JSONObject): TeamRound {
+internal fun teamRoundFromJson(obj: JSONObject): TeamRound {
     val playersArray = obj.optJSONArray("teamAPlayers")
     val playersSet = if (playersArray == null) {
         emptySet()

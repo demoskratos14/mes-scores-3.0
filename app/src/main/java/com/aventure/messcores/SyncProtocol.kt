@@ -1,0 +1,177 @@
+package com.aventure.messcores
+
+import androidx.compose.ui.graphics.Color
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
+
+/**
+ * Partage d'une partie entre deux téléphones : un téléphone, l'organisateur, détient la partie. L'invité
+ * ne la modifie jamais lui-même : il envoie ce qu'il fait ([SyncOp]) à l'organisateur, qui l'applique puis
+ * renvoie l'état complet de la partie ([SyncMessage.State]) à tous les téléphones connectés.
+ */
+internal sealed interface SyncOp {
+    data class SetCell(val round: Int, val player: Int, val baseValue: Int?, val isNegative: Boolean) : SyncOp
+    data class SetMultiplier(val round: Int, val player: Int, val multiplierId: String) : SyncOp
+    data class IncrementCounter(val player: Int, val delta: Int) : SyncOp
+    data class SetPhase(val player: Int, val phase: Int) : SyncOp
+    data class AddTeamRound(
+        val teamALabel: String,
+        val teamAPlayers: Set<Int>,
+        val baseValue: Int,
+        val isNegative: Boolean,
+        val multiplierId: String
+    ) : SyncOp
+    data class AppendTeamRound(val round: TeamRound) : SyncOp
+    data class ReplaceTeamRound(val index: Int, val round: TeamRound) : SyncOp
+    data class RemoveTeamRound(val index: Int) : SyncOp
+    data class SetPlayerColor(val player: Int, val colorArgb: Int) : SyncOp
+    data object Undo : SyncOp
+    data object Redo : SyncOp
+}
+
+/** Un message échangé entre les téléphones. */
+internal sealed interface SyncMessage {
+    /** L'état complet de la partie, de l'organisateur vers les invités. [canUndo] et [canRedo] : boutons Annuler et Rétablir. */
+    data class State(val game: SavedGame, val canUndo: Boolean, val canRedo: Boolean) : SyncMessage
+
+    /** Une action de l'invité, à faire exécuter par l'organisateur. */
+    data class Operation(val op: SyncOp) : SyncMessage
+}
+
+/** Exécute sur la partie de l'organisateur l'action reçue d'un invité. */
+internal fun SyncOp.applyTo(game: ScoreViewModel) {
+    when (this) {
+        is SyncOp.SetCell -> game.setCell(round, player, baseValue, isNegative)
+        is SyncOp.SetMultiplier -> game.setMultiplier(round, player, multiplierId)
+        is SyncOp.IncrementCounter -> game.incrementCounter(player, delta)
+        is SyncOp.SetPhase -> game.setPhase(player, phase)
+        is SyncOp.AddTeamRound -> game.addTeamRound(teamALabel, teamAPlayers, baseValue, isNegative, multiplierId)
+        is SyncOp.AppendTeamRound -> game.appendTeamRound(round)
+        is SyncOp.ReplaceTeamRound -> game.replaceTeamRound(index, round)
+        is SyncOp.RemoveTeamRound -> game.removeTeamRound(index)
+        is SyncOp.SetPlayerColor -> game.setPlayerColor(player, Color(colorArgb))
+        SyncOp.Undo -> game.undo()
+        SyncOp.Redo -> game.redo()
+    }
+}
+
+private fun SyncOp.toJson(): JSONObject {
+    val json = JSONObject()
+    when (this) {
+        is SyncOp.SetCell -> {
+            json.put("op", "setCell").put("round", round).put("player", player).put("negative", isNegative)
+            if (baseValue != null) json.put("value", baseValue)
+        }
+        is SyncOp.SetMultiplier ->
+            json.put("op", "setMultiplier").put("round", round).put("player", player).put("multiplier", multiplierId)
+        is SyncOp.IncrementCounter -> json.put("op", "increment").put("player", player).put("delta", delta)
+        is SyncOp.SetPhase -> json.put("op", "setPhase").put("player", player).put("phase", phase)
+        is SyncOp.AddTeamRound -> {
+            json.put("op", "addTeamRound").put("label", teamALabel).put("value", baseValue)
+                .put("negative", isNegative).put("multiplier", multiplierId)
+            json.put("players", JSONArray(teamAPlayers.sorted()))
+        }
+        is SyncOp.AppendTeamRound -> json.put("op", "appendTeamRound").put("round", round.toJson())
+        is SyncOp.ReplaceTeamRound -> json.put("op", "replaceTeamRound").put("index", index).put("round", round.toJson())
+        is SyncOp.RemoveTeamRound -> json.put("op", "removeTeamRound").put("index", index)
+        is SyncOp.SetPlayerColor -> json.put("op", "setColor").put("player", player).put("color", colorArgb)
+        SyncOp.Undo -> json.put("op", "undo")
+        SyncOp.Redo -> json.put("op", "redo")
+    }
+    return json
+}
+
+private fun syncOpFromJson(json: JSONObject): SyncOp? = when (json.getString("op")) {
+    "setCell" -> SyncOp.SetCell(
+        round = json.getInt("round"),
+        player = json.getInt("player"),
+        baseValue = if (json.has("value")) json.getInt("value") else null,
+        isNegative = json.optBoolean("negative")
+    )
+    "setMultiplier" -> SyncOp.SetMultiplier(json.getInt("round"), json.getInt("player"), json.getString("multiplier"))
+    "increment" -> SyncOp.IncrementCounter(json.getInt("player"), json.getInt("delta"))
+    "setPhase" -> SyncOp.SetPhase(json.getInt("player"), json.getInt("phase"))
+    "addTeamRound" -> {
+        val players = json.getJSONArray("players")
+        SyncOp.AddTeamRound(
+            teamALabel = json.getString("label"),
+            teamAPlayers = (0 until players.length()).map { players.getInt(it) }.toSet(),
+            baseValue = json.getInt("value"),
+            isNegative = json.optBoolean("negative"),
+            multiplierId = json.getString("multiplier")
+        )
+    }
+    "appendTeamRound" -> SyncOp.AppendTeamRound(teamRoundFromJson(json.getJSONObject("round")))
+    "replaceTeamRound" -> SyncOp.ReplaceTeamRound(json.getInt("index"), teamRoundFromJson(json.getJSONObject("round")))
+    "removeTeamRound" -> SyncOp.RemoveTeamRound(json.getInt("index"))
+    "setColor" -> SyncOp.SetPlayerColor(json.getInt("player"), json.getInt("color"))
+    "undo" -> SyncOp.Undo
+    "redo" -> SyncOp.Redo
+    else -> null
+}
+
+/** Met un [SyncMessage] en octets (JSON compressé) et inversement. */
+internal object SyncCodec {
+
+    /** Version du protocole : deux téléphones de versions incompatibles s'ignorent au lieu de se tromper. */
+    const val VERSION = 1
+
+    /** Taille maximale d'un message : celle qu'accepte Nearby Connections pour un envoi d'octets. */
+    const val MAX_BYTES = 32 * 1024
+
+    // Garde-fou à la lecture : un message décompressé ne dépasse jamais cette taille.
+    private const val MAX_DECODED_BYTES = 2_000_000
+
+    fun encode(message: SyncMessage): ByteArray {
+        val json = JSONObject().put("v", VERSION)
+        when (message) {
+            is SyncMessage.State -> json.put("t", "state").put("game", message.game.toJson())
+                .put("undo", message.canUndo).put("redo", message.canRedo)
+            is SyncMessage.Operation -> json.put("t", "op").put("op", message.op.toJson())
+        }
+        val out = ByteArrayOutputStream()
+        GZIPOutputStream(out).use { it.write(json.toString().toByteArray(Charsets.UTF_8)) }
+        return out.toByteArray()
+    }
+
+    /** Le message codé dans [bytes], ou null s'il est illisible, trop gros ou d'une autre version. */
+    fun decode(bytes: ByteArray): SyncMessage? {
+        return try {
+            val raw = inflate(bytes) ?: return null
+            val json = JSONObject(String(raw, Charsets.UTF_8))
+            if (json.optInt("v") != VERSION) return null
+            when (json.optString("t")) {
+                "state" -> SyncMessage.State(
+                    game = SavedGame.fromJson(json.getJSONObject("game")),
+                    canUndo = json.optBoolean("undo"),
+                    canRedo = json.optBoolean("redo")
+                )
+                "op" -> syncOpFromJson(json.getJSONObject("op"))?.let { SyncMessage.Operation(it) }
+                else -> null
+            }
+        } catch (e: Exception) {
+            // Message corrompu ou venant d'une autre version : on l'ignore.
+            null
+        }
+    }
+
+    private fun inflate(bytes: ByteArray): ByteArray? {
+        val out = ByteArrayOutputStream()
+        GZIPInputStream(ByteArrayInputStream(bytes)).use { input ->
+            val buffer = ByteArray(8192)
+            var total = 0
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                total += read
+                if (total > MAX_DECODED_BYTES) return null
+                out.write(buffer, 0, read)
+            }
+        }
+        return out.toByteArray()
+    }
+}

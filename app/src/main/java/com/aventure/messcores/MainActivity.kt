@@ -116,6 +116,10 @@ fun ScoreApp(
     val timerViewModel: TimerViewModel = viewModel()
     val tournamentViewModel: TournamentViewModel = viewModel()
     val mastermindViewModel: MastermindViewModel = viewModel()
+    // Partage de la partie avec un autre téléphone : vit au même niveau pour garder la connexion sur tous les écrans.
+    val syncViewModel: SyncViewModel = viewModel()
+    val sync = syncViewModel.session
+    remember(viewModel, sync) { sync.attach(viewModel) }
 
     val context = LocalContext.current
     val gameRepository = remember { GameRepository(context) }
@@ -143,6 +147,7 @@ fun ScoreApp(
         // Enregistrer : état actuel. Ne pas enregistrer : on défait l'auto-sauvegarde faite par onStop.
         if (save) viewModel.saveToJournal(gameHistoryRepository) else viewModel.discardToJournal(gameHistoryRepository)
         viewModel.closeGame()
+        sync.disconnect()
         showQuitDialog = false
         navController.popBackStack("setup", inclusive = false)
     }
@@ -195,6 +200,7 @@ fun ScoreApp(
                             navController.navigate(scoreRouteFor(saved.gameRules)) { popUpTo("setup") }
                         }
                     },
+                    onOpenShare = { navController.navigate("share") },
                     onOpenTournament = {
                         // Un championnat sauvegardé se reprend directement ; sinon on en prépare un.
                         navController.navigate(
@@ -310,8 +316,13 @@ fun ScoreApp(
                 ScoreScreen(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
-                    onOpenDice = { navController.navigate("dice") }
+                    onOpenDice = { navController.navigate("dice") },
+                    onOpenShare = { navController.navigate("share") },
+                    shareActive = sync.isConnected
                 )
+            }
+            composable("share") {
+                ShareScreen(game = viewModel, session = sync, onBack = { navController.popBackStack() })
             }
             composable("mastermind") {
                 MastermindScreen(
@@ -329,14 +340,18 @@ fun ScoreApp(
                 CounterScreen(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
-                    onOpenDice = { navController.navigate("dice") }
+                    onOpenDice = { navController.navigate("dice") },
+                    onOpenShare = { navController.navigate("share") },
+                    shareActive = sync.isConnected
                 )
             }
             composable("teamRounds") {
                 TeamRoundsScreen(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
-                    onAddRound = { navController.navigate("newTeamRound") }
+                    onAddRound = { navController.navigate("newTeamRound") },
+                    onOpenShare = { navController.navigate("share") },
+                    shareActive = sync.isConnected
                 )
             }
             composable("newTeamRound") {
@@ -350,6 +365,11 @@ fun ScoreApp(
         // Doit être déclaré APRÈS le NavHost : le dernier BackHandler enregistré est prioritaire,
         // sinon celui du NavHost quitte l'écran sans jamais afficher la confirmation.
         BackHandler(enabled = onScoreRoute && viewModel.hasProgress()) { showQuitDialog = true }
+
+        // Envoie la partie aux téléphones connectés à chaque changement, et ouvre la partie reçue (invité).
+        SyncEffects(game = viewModel, session = sync, navController = navController, routeFor = ::scoreRouteFor)
+        // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
+        SyncPendingDialog(sync)
 
         // Superposé à toutes les pages ci-dessus, sauf le poker qui a son propre minuteur de blinds.
         if (currentRoute != "poker") TimerOverlay(viewModel = timerViewModel)

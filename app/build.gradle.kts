@@ -104,6 +104,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.navigation:navigation-compose:2.10.2")
 
+    // Partage d'une partie entre deux téléphones sans internet (Bluetooth et connexion directe).
+    // Les services Google Play sont nécessaires sur les deux téléphones.
+    implementation("com.google.android.gms:play-services-nearby:19.5.1")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Tests unitaires (./gradlew testDebugUnitTest)

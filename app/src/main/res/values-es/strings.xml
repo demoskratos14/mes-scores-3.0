@@ -1371,4 +1371,31 @@
     <string name="mm_legend_white">Punto blanco: ficha mal colocada, del color correcto pero en el sitio equivocado.</string>
     <string name="mm_well_placed_description">Bien colocadas: %1$d</string>
     <string name="mm_misplaced_description">Mal colocadas: %1$d</string>
+
+    <!-- Partage entre téléphones -->
+    <string name="share_button">Compartir</string>
+    <string name="share_button_active">Compartiendo</string>
+    <string name="share_title">Compartir la partida</string>
+    <string name="share_intro">Dos teléfonos con esta app pueden seguir la misma partida, sin internet ni red Wi-Fi a la que unirse: el Bluetooth y la conexión directa se usan automáticamente. Lo que uno introduce aparece en el otro.</string>
+    <string name="share_host_button">Organizar esta partida</string>
+    <string name="share_join_button">Unirse a una partida</string>
+    <string name="share_no_game">Para organizar una partida, empieza primero una desde la pantalla de inicio.</string>
+    <string name="share_not_shareable">Este juego (póquer, tenis, pádel) todavía no se puede compartir.</string>
+    <string name="share_replace_warning">Si te unes a la partida de otro teléfono, sustituirá la partida en curso en este.</string>
+    <string name="share_hosting_wait">Esperando otro teléfono… En el otro teléfono, toca «Unirse a una partida».</string>
+    <string name="share_searching">Buscando partidas cercanas…</string>
+    <string name="share_join_endpoint">Unirse a la partida de %1$s</string>
+    <string name="share_pending_title">Solicitud de conexión</string>
+    <string name="share_pending_host_message">%1$s quiere unirse a la partida. Comprueba que el código %2$s también aparece en su teléfono y acepta.</string>
+    <string name="share_pending_guest">Código %1$s. Comprueba que es el mismo en el otro teléfono y espera a que el organizador acepte.</string>
+    <string name="share_accept">Aceptar</string>
+    <string name="share_refuse">Rechazar</string>
+    <string name="share_connected">Conectado: %1$s</string>
+    <string name="share_disconnect">Desconectar</string>
+    <string name="share_permission_denied">Sin el permiso de «dispositivos cercanos» (o de ubicación en Android antiguos), no es posible conectar.</string>
+    <string name="share_problem_start">No se pudo iniciar la conexión. Comprueba que el Bluetooth está activado (y la ubicación en Android antiguos) y que los servicios de Google Play están disponibles.</string>
+    <string name="share_problem_connection">La conexión falló. Acerca los dos teléfonos e inténtalo de nuevo.</string>
+    <string name="share_problem_refused">El organizador rechazó la conexión.</string>
+    <string name="share_problem_host_lost">Se perdió la conexión con el organizador. La partida sigue en este teléfono, pero lo que introduzcas ya no se comparte.</string>
+    <string name="share_problem_too_big">La partida es demasiado grande para enviarla al otro teléfono.</string>
 </resources>
