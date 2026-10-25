@@ -39,7 +39,7 @@ Pour régénérer le wrapper : `gradle wrapper --gradle-version 9.8.1`.
 
 ## GitHub Actions
 
-Le workflow `.github/workflows/build.yml` lance les tests unitaires et le lint (`./gradlew lintDebug`, où un avertissement fait échouer la construction comme une erreur), puis construit l'APK debug à chaque push et à chaque pull request vers `main` (Dependabot compris), et le publie comme artefact. Il vérifie aussi que la release (minifiée par R8) se construit, sans la publier. Le rapport de lint est publié en artefact à chaque exécution.
+Le workflow `.github/workflows/build.yml` lance les tests unitaires et le lint (`./gradlew lintDebug`, où un avertissement fait échouer la construction comme une erreur), puis construit la release (minifiée par R8) à chaque push et à chaque pull request vers `main` (Dependabot compris) et la publie comme artefact ; l'APK debug n'est plus construit par le workflow. Le rapport de lint est publié en artefact à chaque exécution.
 
 Le fichier `.github/dependabot.yml` demande à Dependabot de proposer chaque semaine les mises à jour de Kotlin, Compose, AndroidX, du plugin Android et de Gradle (et chaque mois celles des actions GitHub).
 
