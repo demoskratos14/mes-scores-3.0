@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -80,12 +81,22 @@ private fun rememberDiceTurn(setup: DiceSetup): DiceTurn = rememberSaveable(
     )
 ) { DiceTurn(setup) }
 
+/** Garde la manche de 421 quand l'écran tourne. */
+@Composable
+private fun rememberRound421(playerCount: Int, setup: DiceSetup): Round421 = rememberSaveable(
+    playerCount,
+    saver = Saver<Round421, List<Int>>(
+        save = { it.snapshot() },
+        restore = { data -> Round421(playerCount, setup.maxRolls ?: 3).also { it.restoreFrom(data) } }
+    )
+) { Round421(playerCount, setup.maxRolls ?: 3) }
+
 /**
  * Écran des dés d'un jeu : les dés du jeu à lancer, ceux que l'on garde pour relancer les autres, et
  * l'inscription du résultat là où le jeu le permet :
  * - Yams : le score de chaque ligne est calculé d'après les dés ; on l'inscrit (ou on barre la ligne) ;
  * - Cochon : total du tour, à garder ou perdu au premier 1 ;
- * - 421 : valeur du jeu, à donner au joueur qui prend les jetons ;
+ * - 421 : la manche se joue tour par tour (voir [Round421] et [Round421Section]), les jetons du perdant sont comptés seuls ;
  * - autres jeux : les dés et leur total (Qwixx : les combinaisons possibles avec les dés blancs).
  */
 @Composable
@@ -100,7 +111,10 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     KeepScreenOn()
 
     val players = viewModel.players
-    val turn = rememberDiceTurn(setup)
+    val is421 = rules.id == "builtin_421"
+    // Au 421, la manche (tirage, ordre des joueurs, limite de lancers) garde elle-même les dés du joueur qui joue.
+    val round: Round421? = if (is421) rememberRound421(players.size, setup) else null
+    val turn = round?.turn ?: rememberDiceTurn(setup)
     var player by rememberSaveable { mutableIntStateOf(0) }
     // Cochon : total du tour en cours, perdu dès qu'un 1 sort.
     var pigTotal by rememberSaveable { mutableIntStateOf(0) }
@@ -108,10 +122,12 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
 
     val isYams = rules.sheet == ScoreSheets.YAMS
     val isPig = rules.id == "builtin_cochon"
-    val is421 = rules.id == "builtin_421"
     val isQwixx = rules.id == "builtin_qwixx"
     val gameOver = viewModel.isGameOver()
-    val currentPlayer = player.coerceIn(0, (players.size - 1).coerceAtLeast(0))
+    val currentPlayer = (round?.currentPlayer ?: player).coerceIn(0, (players.size - 1).coerceAtLeast(0))
+
+    // Ce qui est partagé des dés : le tour de dés, ou toute la manche au 421.
+    fun tableTurn(): List<Int> = round?.snapshot() ?: turn.snapshot()
 
     // Plusieurs téléphones : le tour de dés est partagé, et seul le joueur dont c'est le tour peut lancer.
     val shared = session != null && session.isConnected && session.kind == SyncKind.SCORE
@@ -119,14 +135,14 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     val canAct = !shared || myPlayer == DICE_ALL || myPlayer == currentPlayer
 
     fun publish(forPlayer: Int = currentPlayer) {
-        if (shared) session?.publishDice(DiceTable(forPlayer, turn.snapshot(), pigTotal, pigBust))
+        if (shared) session?.publishDice(DiceTable(forPlayer, tableTurn(), pigTotal, pigBust))
     }
 
     // Ce que les autres téléphones ont fait : on reprend leur tour de dés tel quel.
     val sharedTable = session?.diceTable
     LaunchedEffect(sharedTable, shared) {
-        if (shared && sharedTable != null && sharedTable != DiceTable(currentPlayer, turn.snapshot(), pigTotal, pigBust)) {
-            turn.restoreFrom(sharedTable.turn)
+        if (shared && sharedTable != null && sharedTable != DiceTable(currentPlayer, tableTurn(), pigTotal, pigBust)) {
+            if (round != null) round.restoreFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
             player = sharedTable.player
             pigTotal = sharedTable.pigTotal
             pigBust = sharedTable.pigBust
@@ -187,11 +203,16 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
             color = Color.White,
             modifier = Modifier.semantics { heading() }
         )
-        Text(
-            text = rules.name,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.85f)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = rules.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.85f),
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            RulesButton(rules = rules)
+        }
         Spacer(modifier = Modifier.height(12.dp))
 
         Column(
@@ -220,18 +241,28 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
                 PlayerChooser(players = players, selected = currentPlayer, onSelect = { player = it; newTurn(it) })
             }
 
-            Card(
-                colors = CardDefaults.cardColors(containerColor = cardSurface()),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                DiceTray(
-                    turn = turn,
-                    rollEnabled = turn.canRoll && !(isPig && pigBust) && canAct,
-                    interactive = canAct,
-                    onRoll = { roll() },
-                    onToggleHold = { toggleHold(it) },
-                    onNewTurn = { newTurn() }
+            if (round != null) {
+                Round421Section(
+                    viewModel = viewModel,
+                    round = round,
+                    canAct = canAct,
+                    onChanged = { publish() },
+                    onBack = onBack
                 )
+            } else {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = cardSurface()),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    DiceTray(
+                        turn = turn,
+                        rollEnabled = turn.canRoll && !(isPig && pigBust) && canAct,
+                        interactive = canAct,
+                        onRoll = { roll() },
+                        onToggleHold = { toggleHold(it) },
+                        onNewTurn = { newTurn() }
+                    )
+                }
             }
 
             when {
@@ -251,13 +282,9 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
                     enabled = !gameOver && canAct,
                     onWritten = { nextPlayer() }
                 )
-                is421 -> Panel421(
-                    viewModel = viewModel,
-                    turn = turn,
-                    enabled = !gameOver && canAct,
-                    onGiven = { newTurn() }
-                )
                 isQwixx -> QwixxPanel(turn = turn)
+                // 421 : tout est dans la section de la manche, plus haut.
+                round != null -> Unit
                 turn.hasRolled -> Card(
                     colors = CardDefaults.cardColors(containerColor = cardSurface()),
                     modifier = Modifier.fillMaxWidth()
@@ -271,7 +298,8 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
             }
         }
 
-        if (viewModel.canUndo) {
+        // Au 421, les jetons suivent la manche : on la rejoue plutôt que d'annuler un seul compteur.
+        if (viewModel.canUndo && !is421) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { viewModel.undo() },
@@ -353,10 +381,11 @@ private fun DiceSeatChooser(players: List<String>, mine: Int, current: Int, canA
 
 /** Les dés, le bouton pour les lancer, les lancers restants et « Nouveau tour ». */
 @Composable
-private fun DiceTray(
+internal fun DiceTray(
     turn: DiceTurn,
     rollEnabled: Boolean,
     interactive: Boolean,
+    showNewTurn: Boolean = true,
     onRoll: () -> Unit,
     onToggleHold: (Int) -> Unit,
     onNewTurn: () -> Unit
@@ -404,7 +433,7 @@ private fun DiceTray(
         if (interactive && turn.canHold) {
             Text(text = stringResource(R.string.dice_hold_hint), style = MaterialTheme.typography.bodySmall)
         }
-        if (interactive && turn.hasRolled) {
+        if (interactive && showNewTurn && turn.hasRolled) {
             TextButton(onClick = onNewTurn) { Text(stringResource(R.string.dice_new_turn)) }
         }
     }
@@ -556,46 +585,6 @@ private fun PigPanel(
                 } else {
                     Button(onClick = { write(total) }, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.dice_pig_keep, total))
-                    }
-                }
-            }
-        }
-    }
-}
-
-/** 421 : valeur du jeu obtenu ; on la donne en jetons au joueur qui perd la manche. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun Panel421(viewModel: ScoreViewModel, turn: DiceTurn, enabled: Boolean, onGiven: () -> Unit) {
-    if (!turn.hasRolled) return
-    val combo = Dice421.combo(turn.values)
-    Card(
-        colors = CardDefaults.cardColors(containerColor = cardSurface()),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = stringResource(R.string.dice_combo_value, stringResource(combo.label), combo.points),
-                style = MaterialTheme.typography.titleMedium
-            )
-            if (enabled) {
-                Text(
-                    text = stringResource(R.string.dice_421_give, combo.points),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    viewModel.players.forEachIndexed { index, name ->
-                        FilterChip(
-                            selected = false,
-                            onClick = {
-                                viewModel.incrementCounter(index, combo.points)
-                                onGiven()
-                            },
-                            label = { Text(name) }
-                        )
                     }
                 }
             }

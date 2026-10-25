@@ -64,8 +64,14 @@ class DiceTurn(
 
     val hasRolled: Boolean get() = values.isNotEmpty()
 
+    /**
+     * Nombre de lancers autorisés à ce tour quand il est plus petit que celui du jeu : au 421, le premier
+     * joueur de la manche fixe le nombre de lancers de tous les autres. Null : le nombre du jeu s'applique.
+     */
+    var rollLimit by mutableStateOf<Int?>(null)
+
     /** Lancers restants dans ce tour ; null si leur nombre est libre. */
-    val rollsLeft: Int? get() = setup.maxRolls?.let { (it - rollsUsed).coerceAtLeast(0) }
+    val rollsLeft: Int? get() = (rollLimit ?: setup.maxRolls)?.let { (it - rollsUsed).coerceAtLeast(0) }
 
     /** Vrai s'il reste un lancer à faire et au moins un dé à lancer. */
     val canRoll: Boolean get() = (rollsLeft ?: 1) > 0 && (!hasRolled || held.size < setup.diceCount)
@@ -142,11 +148,55 @@ internal object YamsScoring {
         (1..(6 - length + 1)).any { start -> (start until start + length).all { counts[it] > 0 } }
 }
 
+/** Jetons déplacés à la fin d'une manche : [fromPot] vrai s'ils viennent du milieu, faux s'ils viennent du gagnant. */
+internal data class Settlement421(val tokens: Int, val fromPot: Boolean)
+
 /** Une combinaison du 421 et le nombre de jetons qu'elle vaut. */
 internal data class Combo421(val points: Int, @StringRes val label: Int)
 
-/** Valeur des jeux du 421 : voir la fiche de règles du jeu (« Valeur des jeux »). */
+/** Valeur et force des jeux du 421 : voir la fiche de règles du jeu (« Valeur des jeux »). */
 internal object Dice421 {
+
+    /** Nombre de jetons de la partie : 21, tous au milieu au départ (la « charge »). */
+    const val TOKENS = 21
+
+    /**
+     * Force d'un jeu, pour savoir lequel gagne la manche : 421, puis 111, puis les as doubles (611 … 211),
+     * les brelans (666 … 222), les suites (456 … 123) et enfin les autres jeux, du plus haut au plus bas.
+     */
+    fun strength(dice: List<Int>): Int {
+        if (dice.size != 3) return 0
+        val s = dice.sorted()
+        return when {
+            s == listOf(1, 2, 4) -> 1000
+            s == listOf(1, 1, 1) -> 900
+            s.count { it == 1 } == 2 -> 800 + s.last()
+            s[0] == s[2] -> 700 + s[0]
+            s[1] == s[0] + 1 && s[2] == s[1] + 1 -> 600 + s[0]
+            else -> (s[2] - 1) * 36 + (s[1] - 1) * 6 + (s[0] - 1)
+        }
+    }
+
+    /** Jetons restant au milieu quand les joueurs en tiennent [holdings] (la charge, tant qu'il en reste). */
+    fun pot(holdings: List<Int>): Int = (TOKENS - holdings.sum()).coerceAtLeast(0)
+
+    /** Joueurs qui jouent la manche : tous pendant la charge ; pendant la décharge, ceux qui ont encore des jetons. */
+    fun activePlayers(holdings: List<Int>): List<Int> =
+        if (pot(holdings) > 0) holdings.indices.toList() else holdings.indices.filter { holdings[it] > 0 }
+
+    /** Le joueur qui perd la partie : en fin de décharge, celui qui a pris tous les jetons ; sinon null. */
+    fun gameLoser(holdings: List<Int>): Int? =
+        if (pot(holdings) == 0 && holdings.count { it > 0 } == 1) holdings.indexOfFirst { it > 0 } else null
+
+    /**
+     * Jetons que le perdant d'une manche reçoit quand le gagnant a un jeu de [points] : pris au milieu pendant
+     * la charge (au plus ce qu'il y reste), puis au gagnant pendant la décharge (au plus ce qu'il a).
+     */
+    fun settle(points: Int, winner: Int, holdings: List<Int>): Settlement421 {
+        val pot = pot(holdings)
+        return if (pot > 0) Settlement421(minOf(points, pot), fromPot = true)
+        else Settlement421(minOf(points, holdings.getOrElse(winner) { 0 }), fromPot = false)
+    }
 
     fun combo(dice: List<Int>): Combo421 {
         if (dice.size != 3) return Combo421(1, R.string.dice_421_name_other)

@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -258,11 +260,20 @@ private fun MorpionCard(content: @Composable ColumnScope.() -> Unit) {
 
 @Composable
 private fun MorpionTitle() {
-    Text(
-        text = stringResource(R.string.game_morpion),
-        style = MaterialTheme.typography.headlineMedium,
-        modifier = Modifier.semantics { heading() }
-    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = stringResource(R.string.game_morpion),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.weight(1f, fill = false).semantics { heading() }
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        // Sur la carte claire, le bouton prend la couleur principale (il est blanc sur l'en-tête des autres parties).
+        RulesButton(
+            gameId = MORPION_ID,
+            gameName = stringResource(R.string.game_morpion),
+            contentColor = MaterialTheme.colorScheme.primary
+        )
+    }
 }
 
 /** La grille de 3 × 3 cases ; [enabled] : on peut toucher une case libre ; [line] : la ligne gagnante, mise en valeur. */

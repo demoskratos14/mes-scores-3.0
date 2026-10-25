@@ -299,6 +299,11 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_sevenwonders_2_title, R.string.rules_sevenwonders_2_body),
         RulesSection(R.string.rules_sevenwonders_3_title, R.string.rules_sevenwonders_3_body)
     ),
+    "builtin_morpion" to listOf(
+        RulesSection(R.string.rules_morpion_1_title, R.string.rules_morpion_1_body),
+        RulesSection(R.string.rules_morpion_2_title, R.string.rules_morpion_2_body),
+        RulesSection(R.string.rules_morpion_3_title, R.string.rules_morpion_3_body)
+    ),
     "builtin_mastermind" to listOf(
         RulesSection(R.string.rules_mastermind_1_title, R.string.rules_mastermind_1_body),
         RulesSection(R.string.rules_mastermind_2_title, R.string.rules_mastermind_2_body),
@@ -413,16 +418,23 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
  * personnalisés, qui n'ont pas de règles rédigées.
  */
 @Composable
-fun RulesButton(rules: GameRules, modifier: Modifier = Modifier) {
-    val sections = BUILT_IN_RULES[rules.id] ?: return
+fun RulesButton(rules: GameRules, modifier: Modifier = Modifier) = RulesButton(rules.id, rules.name, modifier)
+
+/**
+ * Comme ci-dessus pour un jeu qui n'a pas de [GameRules] (le Morpion) : son identifiant et son nom suffisent.
+ * [contentColor] : blanc sur l'en-tête coloré d'une partie ; une autre couleur sur une carte claire.
+ */
+@Composable
+internal fun RulesButton(gameId: String, gameName: String, modifier: Modifier = Modifier, contentColor: Color = Color.White) {
+    val sections = BUILT_IN_RULES[gameId] ?: return
     var showDialog by rememberSaveable { mutableStateOf(false) }
 
     OutlinedButton(
         onClick = { showDialog = true },
         modifier = modifier.height(32.dp),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.9f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+        border = BorderStroke(1.dp, contentColor.copy(alpha = 0.9f)),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor)
     ) {
         Text(stringResource(R.string.rules_button), style = MaterialTheme.typography.labelLarge)
     }
@@ -430,7 +442,7 @@ fun RulesButton(rules: GameRules, modifier: Modifier = Modifier) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text(stringResource(R.string.rules_dialog_title, rules.name)) },
+            title = { Text(stringResource(R.string.rules_dialog_title, gameName)) },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     sections.forEachIndexed { index, section ->
