@@ -1,7 +1,12 @@
 name: Nettoyer les anciens runs
 
-# Lancement manuel : onglet Actions > "Nettoyer les anciens runs" > Run workflow
+# Se lance tout seul à la fin de chaque build (workflow « Build APK », fichier build.yml), et à la main :
+# onglet Actions > "Nettoyer les anciens runs" > Run workflow
+# (à la main, la simulation est cochée par défaut ; en automatique, les anciens runs sont vraiment supprimés)
 on:
+  workflow_run:
+    workflows: ["Build APK"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       garder:
@@ -9,7 +14,7 @@ on:
         default: "20"
       workflow:
         description: "Fichier du workflow de build (vide = tous les workflows du dépôt)"
-        default: "build-apk.yml"
+        default: "build.yml"
       simulation:
         description: "Simulation (true = n'efface rien, affiche seulement)"
         default: "true"
@@ -17,6 +22,11 @@ on:
 permissions:
   actions: write
   contents: read
+
+# Un seul nettoyage à la fois (deux builds qui se suivent de près).
+concurrency:
+  group: nettoyage-runs
+  cancel-in-progress: false
 
 jobs:
   nettoyer:
@@ -30,8 +40,16 @@ jobs:
           WORKFLOW: ${{ inputs.workflow }}
           SIMULATION: ${{ inputs.simulation }}
           RUN_COURANT: ${{ github.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
+
+          # Lancement automatique (après chaque build) : valeurs par défaut, et vraie suppression.
+          if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
+            GARDER=20
+            WORKFLOW="build.yml"
+            SIMULATION="false"
+          fi
 
           filtre=()
           if [ -n "$WORKFLOW" ]; then filtre=(--workflow "$WORKFLOW"); fi

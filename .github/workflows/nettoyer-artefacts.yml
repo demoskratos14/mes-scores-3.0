@@ -1,7 +1,11 @@
 name: Nettoyer les artefacts
 
-# Lancement manuel : onglet Actions > "Nettoyer les artefacts" > Run workflow
+# Se lance tout seul à la fin de chaque build (workflow « Build APK », fichier build.yml), et à la main :
+# onglet Actions > "Nettoyer les artefacts" > Run workflow
 on:
+  workflow_run:
+    workflows: ["Build APK"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       garder:
@@ -9,7 +13,7 @@ on:
         default: "20"
       workflow:
         description: "Fichier du workflow de build (vide = tous les workflows du dépôt)"
-        default: "build-apk.yml"
+        default: "build.yml"
       simulation:
         description: "Simulation (true = n'efface rien, affiche seulement)"
         default: "false"
@@ -17,6 +21,11 @@ on:
 permissions:
   actions: write
   contents: read
+
+# Un seul nettoyage à la fois (deux builds qui se suivent de près).
+concurrency:
+  group: nettoyage-artefacts
+  cancel-in-progress: false
 
 jobs:
   nettoyer:
@@ -29,8 +38,16 @@ jobs:
           GARDER: ${{ inputs.garder }}
           WORKFLOW: ${{ inputs.workflow }}
           SIMULATION: ${{ inputs.simulation }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
+
+          # Lancement automatique (après chaque build) : valeurs par défaut, et vraie suppression.
+          if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
+            GARDER=20
+            WORKFLOW="build.yml"
+            SIMULATION="false"
+          fi
 
           # 1. Les N derniers runs du workflow de build : on garde leurs artefacts
           filtre=()

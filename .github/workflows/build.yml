@@ -71,16 +71,6 @@ jobs:
           path: app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
 
-      - name: Construire l'APK (debug)
-        run: ./gradlew assembleDebug --stacktrace
-
-      - name: Publier l'APK debug
-        uses: actions/upload-artifact@v6
-        with:
-          name: "Mes scores (debug)"
-          path: "app/build/outputs/apk/debug/Mes scores-debug.apk"
-          if-no-files-found: error
-
       # --- Release : construite à chaque exécution, signée quand les secrets existent ---
       # La release est minifiée par R8 (isMinifyEnabled) : une règle manquante peut casser l'APK release
       # sans jamais gêner le debug. On la construit donc à chaque push, pour que le problème se voie
