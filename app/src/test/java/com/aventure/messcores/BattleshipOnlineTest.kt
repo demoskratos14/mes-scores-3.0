@@ -120,13 +120,14 @@ class BattleshipOnlineTest {
     @Test
     fun unTouchePuisUnCouleSontAnnonces() {
         val (host, guest) = playing()
-        host.online.fire(40)
+        // Le torpilleur de Ben occupe les cases 9 et 19.
+        host.online.fire(9)
         assertEquals(ShotOutcome.HIT, host.online.myShots.last().outcome)
         guest.online.fire(99)
-        host.online.fire(41)
+        host.online.fire(19)
         val sunk = host.online.myShots.last()
         assertEquals(ShotOutcome.SUNK, sunk.outcome)
-        assertEquals(listOf(40, 41), sunk.sunk)
+        assertEquals(listOf(9, 19), sunk.sunk)
     }
 
     @Test
