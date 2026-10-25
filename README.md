@@ -114,6 +114,9 @@ MesScores/
             │   │   CreateGameForm.kt (état du formulaire + conversion en CustomGameDraft), CreateGameSections.kt,
             │   │   CreateGameRulesSections.kt (règles de multiplication, fin de partie), CreateGameWidgets.kt
             │   ├── CustomGameDraft.kt         formulaire de création -> GameRules (fonction pure, testée)
+            │   ├── DiceScreen.kt, DiceRules.kt            écran des dés d'un jeu, dés et lancers (`DiceTurn`), Yams, valeur et force des jeux du 421 (`Dice421`)
+            │   ├── Round421.kt, Dice421Panel.kt           421 tour par tour : moteur de la manche (pur, testé) et son interface
+            │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt   Morpion : règles, écran (un ou deux téléphones) et table en ligne
             │   ├── ScoreScreen.kt, CounterScreen.kt       tableau par manches / compteurs
             │   │   ScoreTable.kt (en-tête + corps), ScoreTableFooter.kt (phase, bonus, total),
             │   │   ScoreCell.kt (une case), ScoreEntry.kt (fenêtre de saisie partagée : passage au joueur suivant, flèches), ScoreDialogs.kt (fenêtres de saisie : nombre, choix, annonce, bowling)
@@ -166,6 +169,16 @@ Jeu prédéfini `builtin_poker` (`ScoreMode.POKER`, écran `PokerScreen`). Tourn
 ## Tarot, bridge et skat
 
 Trois jeux de cartes avec calcul automatique de la marque, chacun dans une fonction pure testée : `TarotScoring` (3 à 5 joueurs), `BridgeScoring` (deux camps : contrat, contre, vulnérabilité, plis) et `SkatScoring` (jeu, matadors, Hand / Ouvert, annonces). Les écrans de saisie (`NewTarotRoundScreen`, `NewBridgeRoundScreen`, `NewSkatRoundScreen`) partagent les éléments de `ContractWidgets.kt`.
+
+## 421 jouable tour par tour
+
+Le bouton « Dés » du 421 fait jouer la partie dans l'ordre (`Round421`, moteur pur testé par `Round421Test`) :
+
+- **Tirage du premier joueur** : chacun lance un dé à son tour, le plus fort commence, les ex æquo relancent entre eux. On peut aussi désigner le premier joueur directement. Ensuite, c'est le perdant de la manche précédente qui commence.
+- **Limite de lancers** : le premier joueur de la manche lance jusqu'à 3 fois et garde son jeu quand il veut ; son nombre de lancers devient la limite de tous les autres (`DiceTurn.rollLimit`). Un joueur ne peut pas « garder son jeu » avant d'avoir lancé.
+- **Perdant et jetons automatiques** : à la fin de la manche, le moins bon jeu (`Dice421.strength` : 421, 111, as doubles, brelans, suites, autres) perd. À jeu égal, celui qui a fait le moins de lancers est meilleur, puis celui qui a joué en premier. Pendant la charge (21 jetons au milieu, `Dice421.pot`), le perdant prend au milieu la valeur du meilleur jeu, sans dépasser ce qui reste ; ensuite, pendant la décharge, il la prend au gagnant. Seuls les joueurs qui ont encore des jetons jouent, et la partie s'arrête quand un joueur a tous les jetons (`Dice421.gameLoser`). « Rejouer la manche » rend les jetons et repart du même premier joueur.
+- **Plusieurs téléphones** : toute la manche (`Round421.snapshot`) passe dans `DiceTable.turn`, comme le tour de dés des autres jeux ; seul le joueur dont c'est le tour peut agir.
+- Le bouton « Règles » est sur la feuille de scores (compteurs), sur l'écran des dés et sur l'écran du Morpion (`RulesButton`).
 
 ## Couleurs des joueurs et mode daltonien
 

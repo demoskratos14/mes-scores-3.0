@@ -94,8 +94,10 @@ fun CounterScreen(
                         color = Color.White.copy(alpha = 0.85f),
                         modifier = Modifier.weight(1f, fill = false)
                     )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    RulesButton(rules = viewModel.gameRules)
                     if (onOpenDice != null && viewModel.gameRules.hasDice()) {
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         DiceButton(onClick = onOpenDice)
                     }
                 }
