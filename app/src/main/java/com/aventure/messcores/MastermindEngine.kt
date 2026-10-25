@@ -51,6 +51,13 @@ enum class MastermindPhase {
  * @param secretTurn joueur en train de saisir sa suite (phase [MastermindPhase.SECRETS]).
  * @param target suite cherchée à ce tour (phase [MastermindPhase.PLAYING]).
  * @param awaitingNext vrai une fois l'essai de ce tour fait : on lit la réponse, puis [Mastermind.nextTarget].
+ *
+ * Chacun sur son téléphone (voir [MastermindOnline]), la recherche est individuelle et en parallèle : chaque joueur
+ * cherche, l'une après l'autre, les suites de tous les autres. [secrets] n'est rempli qu'aux résultats, et deux champs
+ * s'ajoutent :
+ * @param ready joueurs qui ont saisi leur suite (phase [MastermindPhase.SECRETS]) ; vide hors de ce mode.
+ * @param results `results[chercheur][suite]` : essais comptés (voir [Mastermind.attempts]) une fois cette suite
+ *   terminée par ce chercheur, null sinon et pour sa propre suite ; vide hors de ce mode.
  */
 data class MastermindState(
     val players: List<String>,
@@ -60,7 +67,9 @@ data class MastermindState(
     val guesses: List<List<MastermindGuess>> = List(players.size) { emptyList() },
     val secretTurn: Int = 0,
     val target: Int = 0,
-    val awaitingNext: Boolean = false
+    val awaitingNext: Boolean = false,
+    val ready: List<Boolean> = emptyList(),
+    val results: List<List<Int?>> = emptyList()
 )
 
 /** Règles du Mastermind : réponse à un essai, déroulement de la partie, moyennes et classement. */
@@ -120,6 +129,64 @@ object Mastermind {
         return state.copy(guesses = guesses, awaitingNext = true)
     }
 
+    // ---------- Chacun sur son téléphone ----------
+
+    /** Une partie où chaque joueur saisit sa suite sur son propre téléphone et cherche seul celles des autres. */
+    fun newOnlineGame(players: List<String>, settings: MastermindSettings): MastermindState =
+        MastermindState(
+            players = players,
+            settings = settings.coerced(),
+            ready = List(players.size) { false },
+            results = List(players.size) { List<Int?>(players.size) { null } }
+        )
+
+    /** Le joueur [seat] a saisi sa suite ; quand tout le monde est prêt, la recherche commence. */
+    fun markReady(state: MastermindState, seat: Int): MastermindState? {
+        if (state.phase != MastermindPhase.SECRETS || seat !in state.ready.indices) return null
+        val ready = state.ready.toMutableList().also { it[seat] = true }
+        val allReady = ready.all { it }
+        return state.copy(ready = ready, phase = if (allReady) MastermindPhase.PLAYING else MastermindPhase.SECRETS)
+    }
+
+    /** L'ordre dans lequel le joueur [seat] cherche les suites des autres : à partir du joueur suivant. */
+    fun searchOrder(playerCount: Int, seat: Int): List<Int> = (1 until playerCount).map { (seat + it) % playerCount }
+
+    /**
+     * Essais comptés pour une recherche de [secret] qui a fait les essais [guesses] (une suite non trouvée compte un
+     * essai de plus que la limite), ou null si ces essais ne forment pas une recherche possible : un essai invalide,
+     * trop d'essais, des essais après la suite trouvée, ou une recherche arrêtée avant la fin sans l'avoir trouvée.
+     */
+    fun countRun(secret: List<Int>, guesses: List<List<Int>>, settings: MastermindSettings): Int? {
+        if (guesses.isEmpty() || guesses.size > settings.maxAttempts) return null
+        if (guesses.any { !isValid(it, settings) }) return null
+        val solvedAt = guesses.indexOf(secret)
+        return when {
+            solvedAt >= 0 -> if (solvedAt == guesses.lastIndex) guesses.size else null
+            guesses.size == settings.maxAttempts -> settings.maxAttempts + 1
+            else -> null
+        }
+    }
+
+    /**
+     * Enregistre que [searcher] a terminé la suite de [target] en [attempts] essais comptés. Aux résultats quand tous
+     * les joueurs ont terminé toutes les suites des autres. Null s'il n'y a rien à enregistrer (phase, places,
+     * suite déjà enregistrée).
+     */
+    fun withResult(state: MastermindState, searcher: Int, target: Int, attempts: Int): MastermindState? {
+        val results = state.results
+        if (state.phase != MastermindPhase.PLAYING || searcher == target) return null
+        if (searcher !in results.indices || target !in state.players.indices) return null
+        if (results[searcher].getOrNull(target) != null) return null
+        val updated = results.mapIndexed { index, row ->
+            if (index == searcher) row.toMutableList().also { it[target] = attempts } else row
+        }
+        val done = updated.indices.all { s -> updated[s].indices.all { t -> t == s || updated[s][t] != null } }
+        return state.copy(results = updated, phase = if (done) MastermindPhase.RESULTS else MastermindPhase.PLAYING)
+    }
+
+    /** Nombre de suites que [player] a terminées. */
+    fun searchedCount(state: MastermindState, player: Int): Int = state.results.getOrNull(player)?.count { it != null } ?: 0
+
     /** Vrai si le dernier essai pour la suite de [target] a tous ses pions bien placés. */
     fun isSolved(state: MastermindState, target: Int): Boolean =
         state.guesses.getOrNull(target)?.lastOrNull()?.feedback?.wellPlaced == state.settings.codeLength
@@ -158,7 +225,12 @@ object Mastermind {
 
     /** Somme des essais des suites que [player] a cherchées : toutes sauf la sienne. */
     fun attemptsSum(state: MastermindState, player: Int): Int =
-        state.players.indices.filter { it != player }.sumOf { attempts(state, it) ?: 0 }
+        if (state.results.isNotEmpty()) {
+            // Chacun sur son téléphone : les essais de ce joueur pour chacune des suites des autres.
+            state.results.getOrNull(player)?.sumOf { it ?: 0 } ?: 0
+        } else {
+            state.players.indices.filter { it != player }.sumOf { attempts(state, it) ?: 0 }
+        }
 
     /** Moyenne des essais des suites que [player] a cherchées ; la plus basse gagne. */
     fun average(state: MastermindState, player: Int): Double {

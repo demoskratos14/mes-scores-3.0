@@ -14,6 +14,9 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 
 internal enum class SyncRole { NONE, HOST, GUEST }
 
+/** Ce qui est partagé : la partie en cours d'un jeu de score, ou un Mastermind chacun sur son téléphone. */
+internal enum class SyncKind { SCORE, MASTERMIND }
+
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
     /** La recherche ou l'annonce n'a pas pu démarrer (Bluetooth coupé, services Google Play absents…). */
@@ -44,6 +47,9 @@ internal interface SyncTransport {
     fun acceptConnection(endpointId: String)
     fun rejectConnection(endpointId: String)
     fun send(endpointIds: Collection<String>, bytes: ByteArray)
+
+    /** Coupe la connexion avec un seul téléphone. */
+    fun disconnect(endpointId: String)
 
     /** Coupe toutes les connexions et arrête l'annonce et la recherche. */
     fun stopAll()
@@ -89,6 +95,13 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     var role by mutableStateOf(SyncRole.NONE)
         private set
+
+    /** Ce qui est partagé avec les téléphones connectés. Un invité l'apprend au premier message de l'organisateur. */
+    var kind by mutableStateOf(SyncKind.SCORE)
+        private set
+
+    /** Le Mastermind chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var mastermind: MastermindOnline? = null
 
     /** Recherche en cours (invité). */
     var scanning by mutableStateOf(false)
@@ -136,7 +149,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     val isConnected: Boolean get() = connected.isNotEmpty()
 
-    override val isGuest: Boolean get() = role == SyncRole.GUEST && connected.isNotEmpty()
+    override val isGuest: Boolean get() = role == SyncRole.GUEST && connected.isNotEmpty() && kind == SyncKind.SCORE
 
     /** Vrai si la partie en cours peut être partagée : une partie ouverte, au tableau, au compteur ou à manches. */
     fun canShareCurrentGame(): Boolean {
@@ -155,6 +168,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     }
 
     /** Cherche les parties annoncées à proximité. */
+    /** Annonce un Mastermind chacun sur son téléphone : les autres joueurs le rejoignent comme une partie de score. */
+    fun startHostingMastermind(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.MASTERMIND
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
     fun startJoining() {
         reset()
         role = SyncRole.GUEST
@@ -196,13 +218,14 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         connected.clear()
         names.clear()
         pending = null
+        kind = SyncKind.SCORE
         hostCanUndo = false
         hostCanRedo = false
     }
 
     /** À appeler à chaque changement de la partie : l'organisateur en envoie l'état complet à tous les invités. */
     fun broadcastState() {
-        if (role != SyncRole.HOST || connected.isEmpty()) return
+        if (role != SyncRole.HOST || kind != SyncKind.SCORE || connected.isEmpty()) return
         sendState(connected.map { it.id })
     }
 
@@ -214,6 +237,23 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     override fun sendOp(op: SyncOp) {
         if (role != SyncRole.GUEST || connected.isEmpty()) return
         send(connected.map { it.id }, SyncMessage.Operation(op))
+    }
+
+    /** Nom affiché par le téléphone [id]. */
+    fun nameOf(id: String): String = names[id] ?: id
+
+    /** Envoie [message] aux téléphones [ids]. */
+    fun sendTo(ids: Collection<String>, message: SyncMessage) = send(ids, message)
+
+    /** Envoie [message] à l'organisateur (invité). */
+    fun sendToHost(message: SyncMessage) {
+        if (role == SyncRole.GUEST) send(connected.map { it.id }, message)
+    }
+
+    /** Coupe la connexion avec un seul téléphone. */
+    fun disconnectEndpoint(id: String) {
+        transport.disconnect(id)
+        connected.removeAll { it.id == id }
     }
 
     private fun send(ids: Collection<String>, message: SyncMessage) {
@@ -246,7 +286,8 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         pending = null
         connected.removeAll { it.id == id }
         connected.add(NearbyEndpoint(id, names[id] ?: id))
-        if (role == SyncRole.HOST) sendState(listOf(id))
+        if (role == SyncRole.HOST && kind == SyncKind.SCORE) sendState(listOf(id))
+        mastermind?.onPeerConnected(id)
     }
 
     override fun onConnectionFailed(id: String, rejected: Boolean) {
@@ -256,6 +297,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     override fun onDisconnected(id: String) {
         connected.removeAll { it.id == id }
+        mastermind?.onPeerDisconnected(id)
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
             reset()
@@ -265,15 +307,24 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     override fun onMessage(id: String, bytes: ByteArray) {
         val message = SyncCodec.decode(bytes) ?: return
-        val game = game ?: return
         when (message) {
-            is SyncMessage.State -> if (role == SyncRole.GUEST) {
-                game.loadFromSaved(message.game)
-                hostCanUndo = message.canUndo
-                hostCanRedo = message.canRedo
-                receivedStates++
+            is SyncMessage.Mm -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.MASTERMIND
+                mastermind?.onMessage(id, message.mm)
             }
-            is SyncMessage.Operation -> if (role == SyncRole.HOST && game.isGameActive) message.op.applyTo(game)
+            is SyncMessage.State -> {
+                val game = game ?: return
+                if (role == SyncRole.GUEST) {
+                    game.loadFromSaved(message.game)
+                    hostCanUndo = message.canUndo
+                    hostCanRedo = message.canRedo
+                    receivedStates++
+                }
+            }
+            is SyncMessage.Operation -> {
+                val game = game ?: return
+                if (role == SyncRole.HOST && kind == SyncKind.SCORE && game.isGameActive) message.op.applyTo(game)
+            }
         }
     }
 

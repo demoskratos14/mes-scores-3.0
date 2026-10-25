@@ -99,6 +99,10 @@ internal class NearbyTransport(context: Context) : SyncTransport {
         client.sendPayload(endpointIds.toList(), Payload.fromBytes(bytes))
     }
 
+    override fun disconnect(endpointId: String) {
+        client.disconnectFromEndpoint(endpointId)
+    }
+
     override fun stopAll() {
         client.stopAdvertising()
         client.stopDiscovery()
@@ -117,6 +121,9 @@ internal class NearbyTransport(context: Context) : SyncTransport {
  */
 class SyncViewModel(application: Application) : AndroidViewModel(application) {
     internal val session = SyncSession(NearbyTransport(application))
+
+    /** Mastermind chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val mastermind = MastermindOnline(session)
 
     override fun onCleared() {
         session.disconnect()

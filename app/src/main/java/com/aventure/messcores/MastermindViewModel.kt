@@ -32,6 +32,11 @@ class MastermindViewModel : ViewModel() {
         state = null
     }
 
+    /** Un invité qui rejoint une partie à plusieurs téléphones : seules les règles du jeu servent (titre, fiche de règles). */
+    fun prepareOnline(rules: GameRules) {
+        this.rules = rules
+    }
+
     fun updateSettings(newSettings: MastermindSettings) {
         settings = newSettings.coerced()
     }

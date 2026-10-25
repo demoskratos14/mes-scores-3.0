@@ -1375,4 +1375,27 @@
     <string name="share_problem_refused">The host declined the connection.</string>
     <string name="share_problem_host_lost">The connection to the host was lost. The game stays on this phone, but what you enter is no longer shared.</string>
     <string name="share_problem_too_big">The game is too large to be sent to the other phone.</string>
+
+    <!-- Mastermind chacun sur son téléphone -->
+    <string name="mm_online_button">Play on separate phones</string>
+    <string name="mm_online_lobby_title">Players at the table</string>
+    <string name="mm_online_you">%1$s (you)</string>
+    <string name="mm_online_start">Start the game</string>
+    <string name="mm_online_need_players">At least 2 players are needed to start.</string>
+    <string name="mm_online_wait_start">Waiting for the host to start the game…</string>
+    <string name="mm_online_wait_players">The other players tap “Join a game” on their phones.</string>
+    <string name="mm_online_choose_secret">Choose your secret sequence: it is never shown on the other phones.</string>
+    <string name="mm_online_secret_set">Your sequence is saved. Players ready: %1$d of %2$d.</string>
+    <string name="mm_online_notice_left">A player disconnected: the game was interrupted. You can start a new one.</string>
+    <string name="mm_online_host_left">The host disconnected: the game is over.</string>
+    <string name="mm_online_wait_secrets">Receiving the other players’ sequences…</string>
+    <string name="mm_online_code_counter">Sequence %1$d of %2$d</string>
+    <string name="mm_online_finish">Finish</string>
+    <string name="mm_online_waiting_others">You have searched every sequence. Waiting for the other players…</string>
+    <string name="mm_online_progress_title">Progress</string>
+    <string name="mm_online_progress_line">%1$s: %2$d of %3$d sequences</string>
+    <string name="mm_online_code_of">%1$s’s sequence</string>
+    <string name="mm_online_attempts_ok">%1$s: cracked in %2$d attempts</string>
+    <string name="mm_online_attempts_missed">%1$s: not cracked, counted as %2$d</string>
+    <string name="share_your_name">Your name</string>
 </resources>

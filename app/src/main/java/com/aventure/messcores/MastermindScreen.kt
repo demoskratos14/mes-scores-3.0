@@ -78,14 +78,21 @@ private fun colorName(color: Int): String = stringResource(MASTERMIND_COLOR_NAME
  * suites l'une après l'autre (les autres joueurs se mettent d'accord sur chaque essai), puis résultats.
  */
 @Composable
-fun MastermindScreen(viewModel: MastermindViewModel, onExit: () -> Unit) {
+internal fun MastermindScreen(
+    viewModel: MastermindViewModel,
+    online: MastermindOnline,
+    onExit: () -> Unit,
+    onHostOnline: () -> Unit
+) {
     val rules = viewModel.rules
     val state = viewModel.state
     KeepScreenOn()
 
     var showQuit by rememberSaveable { mutableStateOf(false) }
     BackHandler {
-        if (state == null || state.phase == MastermindPhase.RESULTS) {
+        if (online.active) {
+            showQuit = true
+        } else if (state == null || state.phase == MastermindPhase.RESULTS) {
             viewModel.close()
             onExit()
         } else {
@@ -101,7 +108,7 @@ fun MastermindScreen(viewModel: MastermindViewModel, onExit: () -> Unit) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = rules?.name.orEmpty(),
+                text = rules?.name ?: stringResource(R.string.game_mastermind),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.White,
                 modifier = Modifier
@@ -122,10 +129,15 @@ fun MastermindScreen(viewModel: MastermindViewModel, onExit: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             when {
+                online.active -> OnlineContent(online = online, onExit = {
+                    online.leave()
+                    onExit()
+                })
                 state == null -> SettingsContent(
                     settings = viewModel.settings,
                     onChange = { viewModel.updateSettings(it) },
-                    onStart = { viewModel.start() }
+                    onStart = { viewModel.start() },
+                    onPlayOnline = onHostOnline
                 )
                 state.phase == MastermindPhase.SECRETS -> SecretsContent(state, onSecret = { viewModel.submitSecret(it) })
                 state.phase == MastermindPhase.PLAYING -> PlayContent(
@@ -153,7 +165,7 @@ fun MastermindScreen(viewModel: MastermindViewModel, onExit: () -> Unit) {
             confirmButton = {
                 TextButton(onClick = {
                     showQuit = false
-                    viewModel.close()
+                    if (online.active) online.leave() else viewModel.close()
                     onExit()
                 }) {
                     Text(stringResource(R.string.mm_quit_confirm), color = MaterialTheme.colorScheme.error)
@@ -169,7 +181,12 @@ fun MastermindScreen(viewModel: MastermindViewModel, onExit: () -> Unit) {
 // ---------- Réglages ----------
 
 @Composable
-private fun SettingsContent(settings: MastermindSettings, onChange: (MastermindSettings) -> Unit, onStart: () -> Unit) {
+private fun SettingsContent(
+    settings: MastermindSettings,
+    onChange: (MastermindSettings) -> Unit,
+    onStart: () -> Unit,
+    onPlayOnline: () -> Unit
+) {
     Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Stepper(
@@ -193,6 +210,9 @@ private fun SettingsContent(settings: MastermindSettings, onChange: (MastermindS
             Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.mm_start))
             }
+            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.mm_online_button))
+            }
         }
     }
 }
@@ -206,6 +226,108 @@ private fun Stepper(label: String, value: Int, range: IntRange, onChange: (Int) 
         }
         IconButton(onClick = { onChange(value + 1) }, enabled = value < range.last) {
             Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.mm_more))
+        }
+    }
+}
+
+// ---------- Chacun sur son téléphone ----------
+
+/** La partie à plusieurs téléphones : salle d'attente, saisie de ma suite, recherche, résultats. */
+@Composable
+private fun OnlineContent(online: MastermindOnline, onExit: () -> Unit) {
+    val state = online.state
+    when {
+        online.notice == MastermindNotice.HOST_LEFT -> {
+            Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(text = stringResource(R.string.mm_online_host_left), style = MaterialTheme.typography.titleMedium)
+                    Button(onClick = onExit, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.common_close)) }
+                }
+            }
+        }
+        state == null -> OnlineLobby(online, onExit)
+        state.phase == MastermindPhase.SECRETS -> OnlineSecrets(online, state)
+        state.phase == MastermindPhase.PLAYING -> OnlineSearchContent(online, state)
+        else -> ResultsContent(
+            state = state,
+            onReplay = { online.replay() },
+            onExit = onExit,
+            canReplay = online.isHost
+        )
+    }
+}
+
+/** Salle d'attente : les joueurs connectés ; l'organisateur lance la partie quand ils sont là. */
+@Composable
+private fun OnlineLobby(online: MastermindOnline, onExit: () -> Unit) {
+    Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (online.notice == MastermindNotice.PLAYER_LEFT) {
+                Text(
+                    text = stringResource(R.string.mm_online_notice_left),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            Text(
+                text = stringResource(R.string.mm_online_lobby_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.semantics { heading() }
+            )
+            online.lobby.forEachIndexed { index, name ->
+                Text(
+                    text = if (index == online.seat) stringResource(R.string.mm_online_you, name) else name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (index == online.seat) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+            if (online.isHost) {
+                if (online.lobby.size < MastermindOnline.MIN_PLAYERS) {
+                    Text(text = stringResource(R.string.mm_online_need_players), style = MaterialTheme.typography.bodyMedium)
+                }
+                Text(text = stringResource(R.string.mm_online_wait_players), style = MaterialTheme.typography.bodySmall)
+                Button(
+                    onClick = { online.startGame() },
+                    enabled = online.lobby.size >= MastermindOnline.MIN_PLAYERS,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.mm_online_start))
+                }
+            } else {
+                Text(text = stringResource(R.string.mm_online_wait_start), style = MaterialTheme.typography.bodyMedium)
+            }
+            OutlinedButton(onClick = onExit, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.mm_quit_confirm))
+            }
+        }
+    }
+}
+
+/** Chacun saisit sa suite sur son téléphone, puis attend les autres. */
+@Composable
+private fun OnlineSecrets(online: MastermindOnline, state: MastermindState) {
+    val ready = state.ready.getOrNull(online.seat) == true
+    Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (!ready) {
+                Text(text = stringResource(R.string.mm_online_choose_secret), style = MaterialTheme.typography.titleMedium)
+                CodeEntry(
+                    settings = state.settings,
+                    entryKey = "online-secret",
+                    confirmLabel = R.string.mm_validate_secret,
+                    onConfirm = { online.submitSecret(it) }
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.mm_online_secret_set, state.ready.count { it }, state.players.size),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                online.mySecret?.let { PegRow(pegs = it, pegSize = 40.dp) }
+            }
         }
     }
 }
@@ -254,16 +376,17 @@ private fun SecretsContent(state: MastermindState, onSecret: (List<Int>) -> Unit
  * puis on passe à la suite suivante (les suites alternent, voir [Mastermind.nextTarget]).
  */
 @Composable
-private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, onNext: () -> Unit) {
+private fun PlayContent(
+    state: MastermindState,
+    onGuess: (List<Int>) -> Unit,
+    onNext: () -> Unit
+) {
     val target = state.target
     val owner = state.players[target]
     val guesses = state.guesses[target]
     val solved = Mastermind.isSolved(state, target)
     val failed = Mastermind.isFailed(state, target)
     val searchers = state.players.filterIndexed { index, _ -> index != target }.joinToString(", ")
-    // Point dont on affiche la signification : 0 = noir (bien placé), 1 = blanc (mal placé), -1 = aucun.
-    var legend by rememberSaveable { mutableIntStateOf(-1) }
-
     Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
@@ -281,30 +404,7 @@ private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, on
         }
     }
 
-    if (guesses.isNotEmpty()) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(
-                        when (legend) {
-                            0 -> R.string.mm_legend_black
-                            1 -> R.string.mm_legend_white
-                            else -> R.string.mm_legend_hint
-                        }
-                    ),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                guesses.forEachIndexed { index, guess ->
-                    GuessRow(
-                        number = index + 1,
-                        guess = guess,
-                        pegSize = if (state.settings.codeLength > 4) 28.dp else 34.dp,
-                        onDotClick = { dot -> legend = if (legend == dot) -1 else dot }
-                    )
-                }
-            }
-        }
-    }
+    GuessesCard(guesses = guesses, codeLength = state.settings.codeLength)
 
     val allOver = state.players.indices.all { Mastermind.isOver(state, it) }
     val nextLabel = if (allOver) R.string.mm_see_results else R.string.mm_next_code
@@ -344,6 +444,147 @@ private fun PlayContent(state: MastermindState, onGuess: (List<Int>) -> Unit, on
                     entryKey = target to guesses.size,
                     confirmLabel = R.string.mm_validate_guess,
                     onConfirm = onGuess
+                )
+            }
+        }
+    }
+}
+
+/** Les essais passés et, en touchant un point de réponse, ce qu'il signifie. Rien tant qu'il n'y a pas d'essai. */
+@Composable
+private fun GuessesCard(guesses: List<MastermindGuess>, codeLength: Int) {
+    // Point dont on affiche la signification : 0 = noir (bien placé), 1 = blanc (mal placé), -1 = aucun.
+    var legend by rememberSaveable { mutableIntStateOf(-1) }
+    if (guesses.isEmpty()) return
+    Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(
+                    when (legend) {
+                        0 -> R.string.mm_legend_black
+                        1 -> R.string.mm_legend_white
+                        else -> R.string.mm_legend_hint
+                    }
+                ),
+                style = MaterialTheme.typography.bodySmall
+            )
+            guesses.forEachIndexed { index, guess ->
+                GuessRow(
+                    number = index + 1,
+                    guess = guess,
+                    pegSize = if (codeLength > 4) 28.dp else 34.dp,
+                    onDotClick = { dot -> legend = if (legend == dot) -1 else dot }
+                )
+            }
+        }
+    }
+}
+
+/** Un message seul dans une carte. */
+@Composable
+private fun MessageCard(@StringRes text: Int) {
+    Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Text(text = stringResource(text), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(16.dp))
+    }
+}
+
+// ---------- Recherche chacun sur son téléphone ----------
+
+/** Ma recherche, à mon rythme : les suites des autres l'une après l'autre, et l'avancement de chacun. */
+@Composable
+private fun OnlineSearchContent(online: MastermindOnline, state: MastermindState) {
+    val target = online.currentTarget
+    when {
+        !online.searchStarted -> MessageCard(R.string.mm_online_wait_secrets)
+        target == null -> MessageCard(R.string.mm_online_waiting_others)
+        else -> OnlineTargetContent(online, state, target)
+    }
+    OnlineProgressCard(state)
+}
+
+@Composable
+private fun OnlineTargetContent(online: MastermindOnline, state: MastermindState, target: Int) {
+    val guesses = online.guesses
+    val solved = online.runSolved
+    val failed = online.runOver && !solved
+    val nextLabel = if (online.position == online.order.lastIndex) R.string.mm_online_finish else R.string.mm_next_code
+
+    Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = stringResource(R.string.mm_target_title, state.players[target]),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { heading() }
+            )
+            Text(
+                text = stringResource(R.string.mm_online_code_counter, online.position + 1, online.order.size),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            if (!online.runOver) {
+                Text(
+                    text = stringResource(R.string.mm_attempt_counter, guesses.size + 1, state.settings.maxAttempts),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+
+    GuessesCard(guesses = guesses, codeLength = state.settings.codeLength)
+
+    when {
+        solved -> Card(
+            colors = CardDefaults.cardColors(containerColor = highlightContainer(), contentColor = highlightContent()),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.mm_found, guesses.size),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Button(onClick = { online.next() }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(nextLabel)) }
+            }
+        }
+        failed -> Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(text = stringResource(R.string.mm_failed), style = MaterialTheme.typography.titleMedium)
+                online.currentSecret?.let { PegRow(pegs = it, pegSize = 40.dp) }
+                Button(onClick = { online.next() }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(nextLabel)) }
+            }
+        }
+        else -> Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                CodeEntry(
+                    settings = state.settings,
+                    entryKey = target to guesses.size,
+                    confirmLabel = R.string.mm_validate_guess,
+                    onConfirm = { online.submitGuess(it) }
+                )
+            }
+        }
+    }
+}
+
+/** Combien de suites chaque joueur a terminées, pour savoir qui attendre. */
+@Composable
+private fun OnlineProgressCard(state: MastermindState) {
+    val total = state.players.size - 1
+    Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = stringResource(R.string.mm_online_progress_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.semantics { heading() }
+            )
+            state.players.indices.forEach { player ->
+                Text(
+                    text = stringResource(
+                        R.string.mm_online_progress_line,
+                        state.players[player],
+                        Mastermind.searchedCount(state, player),
+                        total
+                    ),
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
@@ -426,7 +667,7 @@ private fun Dot(color: Color) {
 // ---------- Résultats ----------
 
 @Composable
-private fun ResultsContent(state: MastermindState, onReplay: () -> Unit, onExit: () -> Unit) {
+private fun ResultsContent(state: MastermindState, onReplay: () -> Unit, onExit: () -> Unit, canReplay: Boolean = true) {
     val winners = Mastermind.winners(state)
     val ranks = Mastermind.ranks(state)
 
@@ -452,17 +693,38 @@ private fun ResultsContent(state: MastermindState, onReplay: () -> Unit, onExit:
                 modifier = Modifier.semantics { heading() }
             )
             state.players.indices.forEach { target ->
-                val attempts = Mastermind.attempts(state, target) ?: 0
                 val owner = state.players[target]
-                Text(
-                    text = if (Mastermind.isSolved(state, target)) {
-                        stringResource(R.string.mm_code_found, owner, attempts)
-                    } else {
-                        stringResource(R.string.mm_code_missed, owner, attempts)
-                    },
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                state.secrets[target]?.let { PegRow(pegs = it, pegSize = 28.dp) }
+                if (state.results.isEmpty()) {
+                    val attempts = Mastermind.attempts(state, target) ?: 0
+                    Text(
+                        text = if (Mastermind.isSolved(state, target)) {
+                            stringResource(R.string.mm_code_found, owner, attempts)
+                        } else {
+                            stringResource(R.string.mm_code_missed, owner, attempts)
+                        },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    state.secrets[target]?.let { PegRow(pegs = it, pegSize = 28.dp) }
+                } else {
+                    // Chacun sur son téléphone : la suite, puis le résultat de chaque joueur qui l'a cherchée.
+                    Text(
+                        text = stringResource(R.string.mm_online_code_of, owner),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    state.secrets[target]?.let { PegRow(pegs = it, pegSize = 28.dp) }
+                    state.players.indices.filter { it != target }.forEach { searcher ->
+                        val attempts = state.results[searcher][target] ?: 0
+                        Text(
+                            text = stringResource(
+                                if (attempts <= state.settings.maxAttempts) R.string.mm_online_attempts_ok else R.string.mm_online_attempts_missed,
+                                state.players[searcher],
+                                attempts
+                            ),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
             }
         }
     }
@@ -486,7 +748,9 @@ private fun ResultsContent(state: MastermindState, onReplay: () -> Unit, onExit:
     }
 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        Button(onClick = onReplay, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.mm_replay)) }
+        if (canReplay) {
+            Button(onClick = onReplay, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.mm_replay)) }
+        }
         OutlinedButton(onClick = onExit, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.common_close)) }
     }
 }

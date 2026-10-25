@@ -1408,4 +1408,27 @@
     <string name="share_problem_refused">L’organizzatore ha rifiutato la connessione.</string>
     <string name="share_problem_host_lost">La connessione con l’organizzatore è andata persa. La partita resta su questo telefono, ma ciò che inserisci non viene più condiviso.</string>
     <string name="share_problem_too_big">La partita è troppo grande per essere inviata all’altro telefono.</string>
+
+    <!-- Mastermind chacun sur son téléphone -->
+    <string name="mm_online_button">Giocare ciascuno sul proprio telefono</string>
+    <string name="mm_online_lobby_title">Giocatori al tavolo</string>
+    <string name="mm_online_you">%1$s (tu)</string>
+    <string name="mm_online_start">Avvia la partita</string>
+    <string name="mm_online_need_players">Servono almeno 2 giocatori per iniziare.</string>
+    <string name="mm_online_wait_start">In attesa che l’organizzatore avvii la partita…</string>
+    <string name="mm_online_wait_players">Gli altri giocatori toccano «Unisciti a una partita» sul loro telefono.</string>
+    <string name="mm_online_choose_secret">Scegli la tua sequenza segreta: non viene mai mostrata sugli altri telefoni.</string>
+    <string name="mm_online_secret_set">La tua sequenza è salvata. Giocatori pronti: %1$d su %2$d.</string>
+    <string name="mm_online_notice_left">Un giocatore si è disconnesso: la partita è stata interrotta. Potete avviarne una nuova.</string>
+    <string name="mm_online_host_left">L’organizzatore si è disconnesso: la partita è terminata.</string>
+    <string name="mm_online_wait_secrets">Ricezione delle sequenze degli altri giocatori…</string>
+    <string name="mm_online_code_counter">Sequenza %1$d di %2$d</string>
+    <string name="mm_online_finish">Termina</string>
+    <string name="mm_online_waiting_others">Hai cercato tutte le sequenze. In attesa degli altri giocatori…</string>
+    <string name="mm_online_progress_title">Avanzamento</string>
+    <string name="mm_online_progress_line">%1$s: %2$d sequenze su %3$d</string>
+    <string name="mm_online_code_of">Sequenza di %1$s</string>
+    <string name="mm_online_attempts_ok">%1$s: trovata in %2$d tentativi</string>
+    <string name="mm_online_attempts_missed">%1$s: non trovata, contata come %2$d</string>
+    <string name="share_your_name">Il tuo nome</string>
 </resources>

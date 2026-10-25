@@ -1398,4 +1398,27 @@
     <string name="share_problem_refused">El organizador rechazó la conexión.</string>
     <string name="share_problem_host_lost">Se perdió la conexión con el organizador. La partida sigue en este teléfono, pero lo que introduzcas ya no se comparte.</string>
     <string name="share_problem_too_big">La partida es demasiado grande para enviarla al otro teléfono.</string>
+
+    <!-- Mastermind chacun sur son téléphone -->
+    <string name="mm_online_button">Jugar cada uno en su teléfono</string>
+    <string name="mm_online_lobby_title">Jugadores en la mesa</string>
+    <string name="mm_online_you">%1$s (tú)</string>
+    <string name="mm_online_start">Empezar la partida</string>
+    <string name="mm_online_need_players">Hacen falta al menos 2 jugadores para empezar.</string>
+    <string name="mm_online_wait_start">Esperando a que el organizador empiece la partida…</string>
+    <string name="mm_online_wait_players">Los demás jugadores tocan «Unirse a una partida» en su teléfono.</string>
+    <string name="mm_online_choose_secret">Elige tu secuencia secreta: nunca se muestra en los demás teléfonos.</string>
+    <string name="mm_online_secret_set">Tu secuencia está guardada. Jugadores listos: %1$d de %2$d.</string>
+    <string name="mm_online_notice_left">Un jugador se desconectó: la partida se interrumpió. Podéis empezar otra.</string>
+    <string name="mm_online_host_left">El organizador se desconectó: la partida ha terminado.</string>
+    <string name="mm_online_wait_secrets">Recibiendo las secuencias de los demás jugadores…</string>
+    <string name="mm_online_code_counter">Secuencia %1$d de %2$d</string>
+    <string name="mm_online_finish">Terminar</string>
+    <string name="mm_online_waiting_others">Has buscado todas las secuencias. Esperando a los demás jugadores…</string>
+    <string name="mm_online_progress_title">Progreso</string>
+    <string name="mm_online_progress_line">%1$s: %2$d de %3$d secuencias</string>
+    <string name="mm_online_code_of">Secuencia de %1$s</string>
+    <string name="mm_online_attempts_ok">%1$s: descubierta en %2$d intentos</string>
+    <string name="mm_online_attempts_missed">%1$s: no descubierta, contada como %2$d</string>
+    <string name="share_your_name">Tu nombre</string>
 </resources>

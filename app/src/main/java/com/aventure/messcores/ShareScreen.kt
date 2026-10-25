@@ -23,6 +23,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -85,6 +86,10 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
     else -> listOf("android.permission.ACCESS_COARSE_LOCATION")
 }
 
+/** Ce que l'écran de partage organise. */
+internal enum class ShareKind { SCORE, MASTERMIND }
+
+private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
 private const val ACTION_JOIN = "join"
 
@@ -93,16 +98,36 @@ private const val ACTION_JOIN = "join"
  * suit la même partie ; ce que l'un saisit apparaît sur l'autre.
  */
 @Composable
-internal fun ShareScreen(game: ScoreViewModel, session: SyncSession, onBack: () -> Unit) {
+internal fun ShareScreen(
+    game: ScoreViewModel,
+    session: SyncSession,
+    onBack: () -> Unit,
+    // Ce qu'on organise : la partie de score en cours, ou un Mastermind chacun sur son téléphone.
+    kind: ShareKind = ShareKind.SCORE,
+    mastermind: MastermindOnline? = null,
+    mastermindSettings: MastermindSettings = MastermindSettings(),
+    onHostedMastermind: () -> Unit = {}
+) {
     val context = LocalContext.current
-    val deviceName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
+    val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
+    // Le nom que voient les autres téléphones (et, au Mastermind, le nom du joueur).
+    var playerName by rememberSaveable { mutableStateOf(defaultName) }
+    val deviceName = playerName.trim().ifBlank { defaultName }
 
     // Ce que l'utilisateur a demandé avant que les autorisations soient accordées.
     var requestedAction by rememberSaveable { mutableStateOf<String?>(null) }
     var permissionDenied by rememberSaveable { mutableStateOf(false) }
 
     fun start(action: String) {
-        if (action == ACTION_HOST) session.startHosting(deviceName) else session.startJoining()
+        when {
+            action != ACTION_HOST -> session.startJoining()
+            kind == ShareKind.MASTERMIND && mastermind != null -> {
+                session.startHostingMastermind(deviceName)
+                mastermind.openLobby(deviceName, mastermindSettings)
+                onHostedMastermind()
+            }
+            else -> session.startHosting(deviceName)
+        }
     }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
@@ -154,9 +179,19 @@ internal fun ShareScreen(game: ScoreViewModel, session: SyncSession, onBack: () 
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = stringResource(R.string.share_intro), style = MaterialTheme.typography.bodyMedium)
 
+                    if (session.role == SyncRole.NONE) {
+                        OutlinedTextField(
+                            value = playerName,
+                            onValueChange = { playerName = it.take(MAX_NAME_LENGTH) },
+                            label = { Text(stringResource(R.string.share_your_name)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
                     when (session.role) {
                         SyncRole.NONE -> {
-                            if (session.canShareCurrentGame()) {
+                            if (kind == ShareKind.MASTERMIND || session.canShareCurrentGame()) {
                                 Button(onClick = { request(ACTION_HOST) }, modifier = Modifier.fillMaxWidth()) {
                                     Text(stringResource(R.string.share_host_button))
                                 }
@@ -278,7 +313,9 @@ internal fun SyncEffects(
     game: ScoreViewModel,
     session: SyncSession,
     navController: NavHostController,
-    routeFor: (GameRules) -> String
+    routeFor: (GameRules) -> String,
+    mastermind: MastermindOnline,
+    onMastermindJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -286,6 +323,11 @@ internal fun SyncEffects(
                 delay(SYNC_DELAY_MS)
                 session.broadcastState()
             }
+    }
+    LaunchedEffect(mastermind.joined) {
+        if (mastermind.joined == 0 || mastermind.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup") onMastermindJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect

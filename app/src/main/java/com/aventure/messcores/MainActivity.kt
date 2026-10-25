@@ -120,6 +120,7 @@ fun ScoreApp(
     // Partage de la partie avec un autre téléphone : vit au même niveau pour garder la connexion sur tous les écrans.
     val syncViewModel: SyncViewModel = viewModel()
     val sync = syncViewModel.session
+    val mastermindOnline = syncViewModel.mastermind
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -328,7 +329,21 @@ fun ScoreApp(
             composable("mastermind") {
                 MastermindScreen(
                     viewModel = mastermindViewModel,
-                    onExit = { navController.popBackStack("setup", inclusive = false) }
+                    online = mastermindOnline,
+                    onExit = { navController.popBackStack("setup", inclusive = false) },
+                    onHostOnline = { navController.navigate("shareMastermind") }
+                )
+            }
+            composable("shareMastermind") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.MASTERMIND,
+                    mastermind = mastermindOnline,
+                    mastermindSettings = mastermindViewModel.settings,
+                    // La salle d'attente du Mastermind est l'écran du jeu, juste derrière.
+                    onHostedMastermind = { navController.popBackStack() }
                 )
             }
             composable("dice") {
@@ -368,7 +383,17 @@ fun ScoreApp(
         BackHandler(enabled = onScoreRoute && viewModel.hasProgress()) { showQuitDialog = true }
 
         // Envoie la partie aux téléphones connectés à chaque changement, et ouvre la partie reçue (invité).
-        SyncEffects(game = viewModel, session = sync, navController = navController, routeFor = ::scoreRouteFor)
+        SyncEffects(
+            game = viewModel,
+            session = sync,
+            navController = navController,
+            routeFor = ::scoreRouteFor,
+            mastermind = mastermindOnline,
+            onMastermindJoined = {
+                gameRepository.builtInGames().firstOrNull { it.id == MASTERMIND_ID }?.let { mastermindViewModel.prepareOnline(it) }
+                navController.navigate("mastermind") { popUpTo("setup") }
+            }
+        )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)
 

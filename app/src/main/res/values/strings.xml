@@ -1413,4 +1413,27 @@
     <string name="share_problem_refused">L’organisateur a refusé la connexion.</string>
     <string name="share_problem_host_lost">La connexion avec l’organisateur est perdue. La partie reste sur ce téléphone, mais ce que tu saisis n’est plus partagé.</string>
     <string name="share_problem_too_big">La partie est trop volumineuse pour être envoyée à l’autre téléphone.</string>
+
+    <!-- Mastermind chacun sur son téléphone -->
+    <string name="mm_online_button">Jouer chacun sur son téléphone</string>
+    <string name="mm_online_lobby_title">Joueurs à la table</string>
+    <string name="mm_online_you">%1$s (toi)</string>
+    <string name="mm_online_start">Lancer la partie</string>
+    <string name="mm_online_need_players">Il faut au moins 2 joueurs pour commencer.</string>
+    <string name="mm_online_wait_start">En attente du lancement de la partie par l’organisateur…</string>
+    <string name="mm_online_wait_players">Les autres joueurs touchent « Rejoindre une partie » sur leur téléphone.</string>
+    <string name="mm_online_choose_secret">Choisis ta suite secrète : elle n’est jamais affichée sur les autres téléphones.</string>
+    <string name="mm_online_secret_set">Ta suite est enregistrée. Joueurs prêts : %1$d sur %2$d.</string>
+    <string name="mm_online_notice_left">Un joueur s’est déconnecté : la partie est interrompue. Vous pouvez en relancer une.</string>
+    <string name="mm_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
+    <string name="mm_online_wait_secrets">Réception des suites des autres joueurs…</string>
+    <string name="mm_online_code_counter">Suite %1$d sur %2$d</string>
+    <string name="mm_online_finish">Terminer</string>
+    <string name="mm_online_waiting_others">Tu as cherché toutes les suites. En attente des autres joueurs…</string>
+    <string name="mm_online_progress_title">Avancement</string>
+    <string name="mm_online_progress_line">%1$s : %2$d suites sur %3$d</string>
+    <string name="mm_online_code_of">Suite de %1$s</string>
+    <string name="mm_online_attempts_ok">%1$s : trouvée en %2$d essais</string>
+    <string name="mm_online_attempts_missed">%1$s : non trouvée, comptée %2$d</string>
+    <string name="share_your_name">Ton nom</string>
 </resources>

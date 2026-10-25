@@ -40,6 +40,9 @@ internal sealed interface SyncMessage {
 
     /** Une action de l'invité, à faire exécuter par l'organisateur. */
     data class Operation(val op: SyncOp) : SyncMessage
+
+    /** Un message du Mastermind chacun sur son téléphone (voir [MastermindOnline]). */
+    data class Mm(val mm: MmMessage) : SyncMessage
 }
 
 /** Exécute sur la partie de l'organisateur l'action reçue d'un invité. */
@@ -118,7 +121,7 @@ private fun syncOpFromJson(json: JSONObject): SyncOp? = when (json.getString("op
 internal object SyncCodec {
 
     /** Version du protocole : deux téléphones de versions incompatibles s'ignorent au lieu de se tromper. */
-    const val VERSION = 1
+    const val VERSION = 2
 
     /** Taille maximale d'un message : celle qu'accepte Nearby Connections pour un envoi d'octets. */
     const val MAX_BYTES = 32 * 1024
@@ -132,6 +135,7 @@ internal object SyncCodec {
             is SyncMessage.State -> json.put("t", "state").put("game", message.game.toJson())
                 .put("undo", message.canUndo).put("redo", message.canRedo)
             is SyncMessage.Operation -> json.put("t", "op").put("op", message.op.toJson())
+            is SyncMessage.Mm -> json.put("t", "mm").put("mm", message.mm.toJson())
         }
         val out = ByteArrayOutputStream()
         GZIPOutputStream(out).use { it.write(json.toString().toByteArray(Charsets.UTF_8)) }
@@ -151,6 +155,7 @@ internal object SyncCodec {
                     canRedo = json.optBoolean("redo")
                 )
                 "op" -> syncOpFromJson(json.getJSONObject("op"))?.let { SyncMessage.Operation(it) }
+                "mm" -> mmMessageFromJson(json.getJSONObject("mm"))?.let { SyncMessage.Mm(it) }
                 else -> null
             }
         } catch (e: Exception) {
