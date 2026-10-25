@@ -1442,4 +1442,15 @@
     <string name="morpion_cell_empty">Casilla %1$d, vacía</string>
     <string name="morpion_cell_x">Casilla %1$d, cruz</string>
     <string name="morpion_cell_o">Casilla %1$d, círculo</string>
+    <string name="morpion_online_button">Jugar cada uno en su teléfono</string>
+    <string name="morpion_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
+    <string name="morpion_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
+    <string name="morpion_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
+    <string name="morpion_online_you_x">Juegas con las cruces (X) contra %1$s</string>
+    <string name="morpion_online_you_o">Juegas con los círculos (O) contra %1$s</string>
+    <string name="morpion_online_your_turn">Te toca (%1$s)</string>
+    <string name="morpion_online_you_win">¡Ganas la ronda!</string>
+    <string name="morpion_online_leave">Salir de la partida</string>
+    <string name="morpion_quit_title">¿Salir de la partida?</string>
+    <string name="morpion_quit_message">Se cortará la conexión con el otro teléfono y la sesión terminará.</string>
 </resources>

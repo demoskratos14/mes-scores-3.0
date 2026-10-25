@@ -1452,4 +1452,15 @@
     <string name="morpion_cell_empty">Casella %1$d, vuota</string>
     <string name="morpion_cell_x">Casella %1$d, croce</string>
     <string name="morpion_cell_o">Casella %1$d, cerchio</string>
+    <string name="morpion_online_button">Giocare ognuno col proprio telefono</string>
+    <string name="morpion_online_waiting">In attesa dell’altro giocatore… Sull’altro telefono, tocca «Unisciti a una partita».</string>
+    <string name="morpion_online_notice_left">L’altro giocatore si è disconnesso. Puoi aspettare che un telefono si riunisca alla partita.</string>
+    <string name="morpion_online_host_left">L’organizzatore si è disconnesso: la partita è finita.</string>
+    <string name="morpion_online_you_x">Giochi con le croci (X) contro %1$s</string>
+    <string name="morpion_online_you_o">Giochi con i cerchi (O) contro %1$s</string>
+    <string name="morpion_online_your_turn">Tocca a te (%1$s)</string>
+    <string name="morpion_online_you_win">Vinci il round!</string>
+    <string name="morpion_online_leave">Esci dalla partita</string>
+    <string name="morpion_quit_title">Uscire dalla partita?</string>
+    <string name="morpion_quit_message">La connessione con l’altro telefono verrà interrotta e la sessione terminerà.</string>
 </resources>

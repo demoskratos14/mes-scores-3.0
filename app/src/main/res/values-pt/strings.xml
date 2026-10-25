@@ -1442,4 +1442,15 @@
     <string name="morpion_cell_empty">Casa %1$d, vazia</string>
     <string name="morpion_cell_x">Casa %1$d, cruz</string>
     <string name="morpion_cell_o">Casa %1$d, círculo</string>
+    <string name="morpion_online_button">Jogar cada um no seu telemóvel</string>
+    <string name="morpion_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
+    <string name="morpion_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a entrar na partida.</string>
+    <string name="morpion_online_host_left">O organizador desligou-se: a partida terminou.</string>
+    <string name="morpion_online_you_x">Jogas com as cruzes (X) contra %1$s</string>
+    <string name="morpion_online_you_o">Jogas com os círculos (O) contra %1$s</string>
+    <string name="morpion_online_your_turn">É a tua vez (%1$s)</string>
+    <string name="morpion_online_you_win">Ganhas a ronda!</string>
+    <string name="morpion_online_leave">Sair da partida</string>
+    <string name="morpion_quit_title">Sair da partida?</string>
+    <string name="morpion_quit_message">A ligação com o outro telemóvel será cortada e a sessão terminará.</string>
 </resources>

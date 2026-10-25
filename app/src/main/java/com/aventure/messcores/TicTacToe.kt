@@ -47,3 +47,40 @@ internal object TicTacToe {
     fun nextPlayer(cells: List<Int>, first: Int): Int =
         if (cells.count { it != 0 } % 2 == 0) first else 3 - first
 }
+
+/**
+ * Une séance de Morpion : la grille de la manche en cours, qui a commencé (0 : le premier joueur, 1 : le deuxième)
+ * et le score. Sert au Morpion chacun sur son téléphone (voir [TicTacToeOnline]) : l'organisateur la tient, l'invité
+ * en reçoit une copie à chaque coup. Les croix (1) sont jouées par l'organisateur, les ronds (2) par l'invité.
+ */
+internal data class TicTacToeMatch(
+    val board: String = TicTacToe.EMPTY,
+    val starter: Int = 0,
+    val winsX: Int = 0,
+    val winsO: Int = 0,
+    val draws: Int = 0
+) {
+    val cells: List<Int> get() = TicTacToe.parse(board)
+
+    val winner: Int get() = TicTacToe.winner(cells)
+
+    val isOver: Boolean get() = winner != 0 || TicTacToe.isFull(cells)
+
+    /** Joueur (1 ou 2) à qui c'est de jouer. */
+    val current: Int get() = TicTacToe.nextPlayer(cells, starter + 1)
+
+    /** La séance après le coup de [player] en [index], ou null si ce n'est pas son tour ou si le coup n'est pas permis. */
+    fun play(index: Int, player: Int): TicTacToeMatch? {
+        if (player != current) return null
+        val next = TicTacToe.play(cells, index, player) ?: return null
+        return when {
+            TicTacToe.winner(next) == 1 -> copy(board = TicTacToe.format(next), winsX = winsX + 1)
+            TicTacToe.winner(next) == 2 -> copy(board = TicTacToe.format(next), winsO = winsO + 1)
+            TicTacToe.isFull(next) -> copy(board = TicTacToe.format(next), draws = draws + 1)
+            else -> copy(board = TicTacToe.format(next))
+        }
+    }
+
+    /** Manche suivante (l'autre joueur commence), ou null tant que la manche n'est pas finie. */
+    fun newRound(): TicTacToeMatch? = if (isOver) copy(board = TicTacToe.EMPTY, starter = 1 - starter) else null
+}

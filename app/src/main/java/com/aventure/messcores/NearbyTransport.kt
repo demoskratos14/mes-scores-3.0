@@ -125,6 +125,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Mastermind chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val mastermind = MastermindOnline(session)
 
+    /** Morpion chacun sur son téléphone, sur la même connexion. */
+    internal val ticTacToe = TicTacToeOnline(session)
+
     override fun onCleared() {
         session.disconnect()
     }

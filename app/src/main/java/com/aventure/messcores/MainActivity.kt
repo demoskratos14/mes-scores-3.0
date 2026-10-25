@@ -121,6 +121,7 @@ fun ScoreApp(
     val syncViewModel: SyncViewModel = viewModel()
     val sync = syncViewModel.session
     val mastermindOnline = syncViewModel.mastermind
+    val ticTacToeOnline = syncViewModel.ticTacToe
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -280,7 +281,7 @@ fun ScoreApp(
                             mastermindViewModel.open(rules, pendingPlayerNames)
                             navController.navigate("mastermind")
                         } else if (rules.id == MORPION_ID) {
-                            // Le Morpion a son propre écran : deux joueurs, un seul téléphone.
+                            // Le Morpion a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             navController.navigate("morpion")
                         } else if (rules.scoreMode == ScoreMode.POKER) {
                             // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
@@ -341,7 +342,28 @@ fun ScoreApp(
                 )
             }
             composable("morpion") {
-                TicTacToeScreen(players = pendingPlayerNames)
+                TicTacToeScreen(
+                    players = pendingPlayerNames,
+                    online = ticTacToeOnline,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareMorpion") }
+                )
+            }
+            composable("shareMorpion") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.MORPION,
+                    ticTacToe = ticTacToeOnline,
+                    // La table du Morpion est l'écran du jeu, juste derrière.
+                    onHostedTicTacToe = { navController.popBackStack() }
+                )
             }
             composable("poker") {
                 PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
@@ -429,7 +451,9 @@ fun ScoreApp(
             onMastermindJoined = {
                 gameRepository.builtInGames().firstOrNull { it.id == MASTERMIND_ID }?.let { mastermindViewModel.prepareOnline(it) }
                 navController.navigate("mastermind") { popUpTo("home") }
-            }
+            },
+            ticTacToe = ticTacToeOnline,
+            onTicTacToeJoined = { navController.navigate("morpion") { popUpTo("home") } }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)

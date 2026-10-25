@@ -45,9 +45,9 @@ fun GameRules.isPlayableGame(): Boolean = id == MASTERMIND_ID || id == MORPION_I
 /** Vrai si le jeu a une feuille de scores : le Mastermind et le Morpion ont chacun leur écran, sans feuille. */
 fun GameRules.hasScoreSheet(): Boolean = id != MASTERMIND_ID && id != MORPION_ID
 
-// Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : le Morpion, pour l'instant.
-// Le Mastermind a son salon en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
-private val SINGLE_PHONE_GAMES = setOf(MORPION_ID)
+// Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : aucun pour l'instant.
+// Le Mastermind et le Morpion ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
+private val SINGLE_PHONE_GAMES = emptySet<String>()
 
 /** Vrai si le jeu jouable peut se jouer en connectant plusieurs téléphones (deux téléphones dessinés dans la liste). */
 fun GameRules.isMultiPhone(): Boolean = isPlayableGame() && id !in SINGLE_PHONE_GAMES

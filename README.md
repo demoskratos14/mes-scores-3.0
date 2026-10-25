@@ -180,6 +180,7 @@ Le minuteur (`TimerViewModel`, `TimerOverlay`) accepte `5` (minutes), `4:30` ou 
 - **Classement** : le bouton « Partager » propose le texte (`ResultText`) ou une image PNG (`ResultImage`) ; les fichiers passent par un `FileProvider` (`ShareFiles`, `res/xml/file_paths.xml`), sans permission.
 - **Jeux personnalisés** et **joueurs d'une table de poker** : fichiers JSON (voir plus haut).
 - **Journal** : export/import JSON (`JournalBackup`).
+- **Morpion à deux téléphones** : depuis l'écran du Morpion, « Jouer chacun sur son téléphone » (proposé tant que rien n'a été joué) ouvre une table sur la connexion Nearby de `SyncSession`, comme le Mastermind. L'organisateur joue les croix et tient la partie (`TicTacToeOnline`, `TicTacToeMatch`) ; l'invité, les ronds, envoie ses coups (`TttMessage`) et reçoit l'état complet après chaque changement. L'organisateur vérifie le tour et la case ; chacun peut lancer la manche suivante. Testé sans téléphones avec `FakeTransport` (`TicTacToeOnlineTest`).
 
 ## Statistiques, apparence, formats de championnat
 

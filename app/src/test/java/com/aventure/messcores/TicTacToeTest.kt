@@ -62,3 +62,57 @@ class TicTacToeTest {
         assertEquals(List(9) { 0 }, TicTacToe.parse("333333333"))
     }
 }
+
+class TicTacToeMatchTest {
+
+    @Test
+    fun seulLeJoueurDontCEstLeTourPeutJouer() {
+        val match = TicTacToeMatch()
+        assertNull(match.play(0, 2))
+        val after = match.play(0, 1)!!
+        assertEquals("100000000", after.board)
+        assertNull(after.play(1, 1))
+        assertEquals("120000000", after.play(1, 2)!!.board)
+    }
+
+    @Test
+    fun uneCaseDejaPriseOuHorsDeLaGrilleEstRefusee() {
+        val after = TicTacToeMatch().play(4, 1)!!
+        assertNull(after.play(4, 2))
+        assertNull(after.play(9, 2))
+        assertNull(after.play(-1, 2))
+    }
+
+    @Test
+    fun uneVictoireOuUneEgaliteSontComptees() {
+        val almostX = TicTacToeMatch(board = "110220000")
+        val won = almostX.play(2, 1)!!
+        assertTrue(won.isOver)
+        assertEquals(1, won.winsX)
+        assertEquals(0, won.winsO)
+        assertNull(won.play(8, 2))
+
+        val almostO = TicTacToeMatch(board = "120120000", starter = 1)
+        assertEquals(2, almostO.current)
+        assertEquals(1, almostO.play(7, 2)!!.winsO)
+
+        val almostDraw = TicTacToeMatch(board = "121221102", winsX = 2)
+        val draw = almostDraw.play(7, 1)!!
+        assertTrue(draw.isOver)
+        assertEquals(0, draw.winner)
+        assertEquals(1, draw.draws)
+        assertEquals(2, draw.winsX)
+    }
+
+    @Test
+    fun laMancheSuivanteNeSeLancheQueQuandLaMancheEstFinieEtLAutreJoueurCommence() {
+        assertNull(TicTacToeMatch().newRound())
+        val over = TicTacToeMatch(board = "111220000", winsX = 1)
+        val next = over.newRound()!!
+        assertEquals(TicTacToe.EMPTY, next.board)
+        assertEquals(1, next.starter)
+        assertEquals(2, next.current)
+        assertEquals(1, next.winsX)
+        assertNull(next.newRound())
+    }
+}

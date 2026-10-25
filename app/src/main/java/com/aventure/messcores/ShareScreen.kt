@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -102,11 +102,13 @@ internal fun ShareScreen(
     game: ScoreViewModel,
     session: SyncSession,
     onBack: () -> Unit,
-    // Ce qu'on organise : la partie de score en cours, ou un Mastermind chacun sur son téléphone.
+    // Ce qu'on organise : la partie de score en cours, un Mastermind ou un Morpion chacun sur son téléphone.
     kind: ShareKind = ShareKind.SCORE,
     mastermind: MastermindOnline? = null,
     mastermindSettings: MastermindSettings = MastermindSettings(),
-    onHostedMastermind: () -> Unit = {}
+    onHostedMastermind: () -> Unit = {},
+    ticTacToe: TicTacToeOnline? = null,
+    onHostedTicTacToe: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
@@ -125,6 +127,11 @@ internal fun ShareScreen(
                 session.startHostingMastermind(deviceName)
                 mastermind.openLobby(deviceName, mastermindSettings)
                 onHostedMastermind()
+            }
+            kind == ShareKind.MORPION && ticTacToe != null -> {
+                session.startHostingTicTacToe(deviceName)
+                ticTacToe.openLobby(deviceName)
+                onHostedTicTacToe()
             }
             else -> session.startHosting(deviceName)
         }
@@ -191,7 +198,7 @@ internal fun ShareScreen(
 
                     when (session.role) {
                         SyncRole.NONE -> {
-                            if (kind == ShareKind.MASTERMIND || session.canShareCurrentGame()) {
+                            if (kind != ShareKind.SCORE || session.canShareCurrentGame()) {
                                 Button(onClick = { request(ACTION_HOST) }, modifier = Modifier.fillMaxWidth()) {
                                     Text(stringResource(R.string.share_host_button))
                                 }
@@ -315,7 +322,9 @@ internal fun SyncEffects(
     navController: NavHostController,
     routeFor: (GameRules) -> String,
     mastermind: MastermindOnline,
-    onMastermindJoined: () -> Unit
+    onMastermindJoined: () -> Unit,
+    ticTacToe: TicTacToeOnline,
+    onTicTacToeJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -328,6 +337,11 @@ internal fun SyncEffects(
         if (mastermind.joined == 0 || mastermind.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup") onMastermindJoined()
+    }
+    LaunchedEffect(ticTacToe.joined) {
+        if (ticTacToe.joined == 0 || ticTacToe.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareMorpion") onTicTacToeJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect

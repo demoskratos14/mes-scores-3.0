@@ -1457,4 +1457,15 @@
     <string name="morpion_cell_empty">Case %1$d, vide</string>
     <string name="morpion_cell_x">Case %1$d, croix</string>
     <string name="morpion_cell_o">Case %1$d, rond</string>
+    <string name="morpion_online_button">Jouer chacun sur son téléphone</string>
+    <string name="morpion_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
+    <string name="morpion_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
+    <string name="morpion_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
+    <string name="morpion_online_you_x">Tu joues les croix (X) contre %1$s</string>
+    <string name="morpion_online_you_o">Tu joues les ronds (O) contre %1$s</string>
+    <string name="morpion_online_your_turn">À toi de jouer (%1$s)</string>
+    <string name="morpion_online_you_win">Tu gagnes la manche !</string>
+    <string name="morpion_online_leave">Quitter la partie</string>
+    <string name="morpion_quit_title">Quitter la partie ?</string>
+    <string name="morpion_quit_message">La connexion avec l’autre téléphone sera coupée et la séance sera terminée.</string>
 </resources>

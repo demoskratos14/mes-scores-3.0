@@ -1419,4 +1419,15 @@
     <string name="morpion_cell_empty">Square %1$d, empty</string>
     <string name="morpion_cell_x">Square %1$d, cross</string>
     <string name="morpion_cell_o">Square %1$d, circle</string>
+    <string name="morpion_online_button">Play on separate phones</string>
+    <string name="morpion_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
+    <string name="morpion_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
+    <string name="morpion_online_host_left">The host disconnected: the game is over.</string>
+    <string name="morpion_online_you_x">You play crosses (X) against %1$s</string>
+    <string name="morpion_online_you_o">You play circles (O) against %1$s</string>
+    <string name="morpion_online_your_turn">Your turn (%1$s)</string>
+    <string name="morpion_online_you_win">You win the round!</string>
+    <string name="morpion_online_leave">Quit the game</string>
+    <string name="morpion_quit_title">Quit the game?</string>
+    <string name="morpion_quit_message">The connection with the other phone will be cut and the session will end.</string>
 </resources>
