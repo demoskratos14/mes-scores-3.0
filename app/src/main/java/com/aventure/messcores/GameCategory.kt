@@ -32,18 +32,19 @@ private val SPECIAL_GAMES = setOf(
     "builtin_rummikub", "builtin_dominos", "builtin_wizard", "builtin_phase10", "builtin_splendor",
     "builtin_dixit", "builtin_ttr", "builtin_azul", "builtin_carcassonne", "builtin_catane",
     "builtin_sevenwonders", "builtin_wingspan", "builtin_hanabi", "builtin_scrabble", "builtin_trivial",
-    "builtin_flip7", "builtin_mastermind", "builtin_morpion"
+    "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_battleship"
 )
 
 /**
- * Vrai si le jeu se joue dans l'appli (accueil « Jeux jouables ») : le Mastermind et le Morpion, qui ont leur
+ * Vrai si le jeu se joue dans l'appli (accueil « Jeux jouables ») : le Mastermind, le Morpion et le touché coulé, qui ont leur
  * propre écran, et les jeux de dés qui ont des dés à lancer (voir [DiceSetups]). Le poker reste une feuille de score :
  * les cartes n'y sont pas distribuées.
  */
-fun GameRules.isPlayableGame(): Boolean = id == MASTERMIND_ID || id == MORPION_ID || DiceSetups.forGame(id) != null
+fun GameRules.isPlayableGame(): Boolean =
+    id == MASTERMIND_ID || id == MORPION_ID || id == BATTLESHIP_ID || DiceSetups.forGame(id) != null
 
-/** Vrai si le jeu a une feuille de scores : le Mastermind et le Morpion ont chacun leur écran, sans feuille. */
-fun GameRules.hasScoreSheet(): Boolean = id != MASTERMIND_ID && id != MORPION_ID
+/** Vrai si le jeu a une feuille de scores : le Mastermind, le Morpion et le touché coulé ont chacun leur écran, sans feuille. */
+fun GameRules.hasScoreSheet(): Boolean = id != MASTERMIND_ID && id != MORPION_ID && id != BATTLESHIP_ID
 
 // Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : aucun pour l'instant.
 // Le Mastermind et le Morpion ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).

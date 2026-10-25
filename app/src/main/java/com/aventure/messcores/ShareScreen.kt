@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, BATTLESHIP }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -108,7 +108,10 @@ internal fun ShareScreen(
     mastermindSettings: MastermindSettings = MastermindSettings(),
     onHostedMastermind: () -> Unit = {},
     ticTacToe: TicTacToeOnline? = null,
-    onHostedTicTacToe: () -> Unit = {}
+    onHostedTicTacToe: () -> Unit = {},
+    battleship: BattleshipOnline? = null,
+    battleshipSettings: BattleshipSettings = BattleshipSettings(),
+    onHostedBattleship: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
@@ -132,6 +135,11 @@ internal fun ShareScreen(
                 session.startHostingTicTacToe(deviceName)
                 ticTacToe.openLobby(deviceName)
                 onHostedTicTacToe()
+            }
+            kind == ShareKind.BATTLESHIP && battleship != null -> {
+                session.startHostingBattleship(deviceName)
+                battleship.openLobby(deviceName, battleshipSettings)
+                onHostedBattleship()
             }
             else -> session.startHosting(deviceName)
         }
@@ -324,7 +332,9 @@ internal fun SyncEffects(
     mastermind: MastermindOnline,
     onMastermindJoined: () -> Unit,
     ticTacToe: TicTacToeOnline,
-    onTicTacToeJoined: () -> Unit
+    onTicTacToeJoined: () -> Unit,
+    battleship: BattleshipOnline,
+    onBattleshipJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -342,6 +352,11 @@ internal fun SyncEffects(
         if (ticTacToe.joined == 0 || ticTacToe.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup" || current == "shareMorpion") onTicTacToeJoined()
+    }
+    LaunchedEffect(battleship.joined) {
+        if (battleship.joined == 0 || battleship.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup") onBattleshipJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect

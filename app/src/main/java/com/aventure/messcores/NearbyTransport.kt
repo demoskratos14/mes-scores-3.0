@@ -128,6 +128,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Morpion chacun sur son téléphone, sur la même connexion. */
     internal val ticTacToe = TicTacToeOnline(session)
 
+    /** Touché coulé chacun sur son téléphone, sur la même connexion. */
+    internal val battleship = BattleshipOnline(session)
+
     override fun onCleared() {
         session.disconnect()
     }

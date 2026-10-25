@@ -267,5 +267,15 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         lowestWins = false,
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
+    ),
+    // Touché coulé : écran à part (voir BattleshipScreen), à deux joueurs ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = BATTLESHIP_ID,
+        name = context.getString(R.string.game_battleship),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
     )
 )
