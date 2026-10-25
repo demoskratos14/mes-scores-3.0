@@ -117,6 +117,7 @@ MesScores/
             │   ├── DiceScreen.kt, DiceRules.kt            écran des dés d'un jeu, dés et lancers (`DiceTurn`), Yams, valeur et force des jeux du 421 (`Dice421`)
             │   ├── Round421.kt, Dice421Panel.kt           421 tour par tour : moteur de la manche (pur, testé) et son interface
             │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt   Morpion : règles, écran (un ou deux téléphones) et table en ligne
+            │   ├── BattleshipEngine.kt, BattleshipViewModel.kt, BattleshipOnline.kt, BattleshipProtocol.kt, BattleshipScreen.kt   Touché coulé : règles, partie sur un téléphone, table en ligne, messages et écran
             │   ├── ScoreScreen.kt, CounterScreen.kt       tableau par manches / compteurs
             │   │   ScoreTable.kt (en-tête + corps), ScoreTableFooter.kt (phase, bonus, total),
             │   │   ScoreCell.kt (une case), ScoreEntry.kt (fenêtre de saisie partagée : passage au joueur suivant, flèches), ScoreDialogs.kt (fenêtres de saisie : nombre, choix, annonce, bowling)
@@ -194,6 +195,7 @@ Le minuteur (`TimerViewModel`, `TimerOverlay`) accepte `5` (minutes), `4:30` ou 
 - **Jeux personnalisés** et **joueurs d'une table de poker** : fichiers JSON (voir plus haut).
 - **Journal** : export/import JSON (`JournalBackup`).
 - **Morpion à deux téléphones** : depuis l'écran du Morpion, « Jouer chacun sur son téléphone » (proposé tant que rien n'a été joué) ouvre une table sur la connexion Nearby de `SyncSession`, comme le Mastermind. L'organisateur joue les croix et tient la partie (`TicTacToeOnline`, `TicTacToeMatch`) ; l'invité, les ronds, envoie ses coups (`TttMessage`) et reçoit l'état complet après chaque changement. L'organisateur vérifie le tour et la case ; chacun peut lancer la manche suivante. Testé sans téléphones avec `FakeTransport` (`TicTacToeOnlineTest`).
+- **Touché coulé** : écran propre (`BattleshipScreen`), à deux joueurs, sur un téléphone (il passe de main en main, l'écran se cache entre les joueurs : `BattleshipViewModel`) ou chacun sur le sien (`BattleshipOnline`, sur `SyncSession`). Aucune flotte ne circule pendant la partie : le tireur envoie la case (`BsMessage.Fire`) et le téléphone du défenseur répond (`Report`) ; à la fin chacun dévoile sa flotte (`Reveal`) et vérifie les réponses reçues (`Battleship.isConsistent`). Les cases se choisissent sur la grille ou par colonne et ligne (boutons), et se lisent par leur nom avec TalkBack. Testé sans téléphones (`BattleshipTest`, `BattleshipOnlineTest` avec `FakeTransport`).
 
 ## Statistiques, apparence, formats de championnat
 
