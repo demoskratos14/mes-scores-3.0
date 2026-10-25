@@ -1520,7 +1520,7 @@
     <string name="bs_ship_destroyer">Cacciatorpediniere</string>
     <string name="bs_ship_submarine">Sottomarino</string>
     <string name="bs_ship_torpedo">Torpediniera</string>
-    <string name="bs_ship_label">%1$s, %2$d caselle: %3$s</string>
+    <string name="bs_ship_label">%1$s (dimensione %2$d): %3$s</string>
     <string name="bs_ship_placed">posizionata</string>
     <string name="bs_ship_todo">da posizionare</string>
     <string name="bs_orientation_h">Orientamento: orizzontale, verso destra</string>
