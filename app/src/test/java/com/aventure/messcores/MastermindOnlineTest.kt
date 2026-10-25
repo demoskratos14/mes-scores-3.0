@@ -74,6 +74,8 @@ class MastermindOnlineTest {
     @Test
     fun ilFautAuMoinsDeuxJoueursPourLancerLaPartie() {
         val host = Phone("host")
+        // Le faux lien radio a besoin de son autre bout, même si personne ne se connecte.
+        host.transport.peer = Phone("guest").transport
         host.session.startHostingMastermind("Anna")
         host.online.openLobby("Anna", settings)
 
@@ -375,7 +377,8 @@ class MastermindOnlineTest {
         assertEquals(listOf(1, 2), Mastermind.searchOrder(3, 0))
         assertEquals(listOf(2, 0), Mastermind.searchOrder(3, 1))
         assertEquals(listOf(0, 1), Mastermind.searchOrder(3, 2))
-        assertEquals(listOf(1, 2, 3, 0), Mastermind.searchOrder(4, 0))
+        assertEquals(listOf(1, 2, 3), Mastermind.searchOrder(4, 0))
+        assertEquals(listOf(3, 0, 1), Mastermind.searchOrder(4, 2))
     }
 
     @Test
