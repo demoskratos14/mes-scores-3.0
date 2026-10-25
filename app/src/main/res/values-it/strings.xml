@@ -1337,7 +1337,11 @@
     <string name="dice_421_draw_result">Comincia %1$s!</string>
     <string name="dice_421_begin">Inizia il round</string>
     <string name="dice_421_turn">Turno di %1$s (giocatore %2$d di %3$d)</string>
-    <string name="dice_421_starter_hint">%1$s apre il round: il gioco si può tenere quando si vuole (al massimo %2$d lanci), e il numero di lanci fatti diventa il limite di tutti gli altri giocatori.</string>
+    <plurals name="dice_421_starter_hint">
+        <item quantity="one">%1$s apre il round: il gioco si può tenere quando si vuole (al massimo %2$d lancio), e il numero di lanci fatti diventa il limite di tutti gli altri giocatori.</item>
+        <item quantity="other">%1$s apre il round: il gioco si può tenere quando si vuole (al massimo %2$d lanci), e il numero di lanci fatti diventa il limite di tutti gli altri giocatori.</item>
+        <item quantity="many">%1$s apre il round: il gioco si può tenere quando si vuole (al massimo %2$d di lanci), e il numero di lanci fatti diventa il limite di tutti gli altri giocatori.</item>
+    </plurals>
     <string name="dice_421_limit">Lanci consentiti in questo round: %1$d (stabiliti da %2$s).</string>
     <string name="dice_421_keep">Tieni questo gioco</string>
     <string name="dice_421_no_roll_left">Nessun lancio rimasto: tieni questo gioco per passare al giocatore successivo.</string>

@@ -1304,7 +1304,10 @@
     <string name="dice_421_draw_result">%1$s starts!</string>
     <string name="dice_421_begin">Start the round</string>
     <string name="dice_421_turn">%1$s’s turn (player %2$d of %3$d)</string>
-    <string name="dice_421_starter_hint">%1$s opens the round: the hand can be kept whenever you like (up to %2$d rolls), and the number of rolls made becomes the limit for all the other players.</string>
+    <plurals name="dice_421_starter_hint">
+        <item quantity="one">%1$s opens the round: the hand can be kept whenever you like (up to %2$d roll), and the number of rolls made becomes the limit for all the other players.</item>
+        <item quantity="other">%1$s opens the round: the hand can be kept whenever you like (up to %2$d rolls), and the number of rolls made becomes the limit for all the other players.</item>
+    </plurals>
     <string name="dice_421_limit">Rolls allowed this round: %1$d (set by %2$s).</string>
     <string name="dice_421_keep">Keep this hand</string>
     <string name="dice_421_no_roll_left">No rolls left: keep this hand to move on to the next player.</string>

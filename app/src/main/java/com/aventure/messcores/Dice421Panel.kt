@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -185,7 +186,7 @@ private fun PlayPart(
         style = MaterialTheme.typography.titleMedium
     )
     if (round.isStarterTurn) {
-        Text(stringResource(R.string.dice_421_starter_hint, name, round.maxRolls), style = MaterialTheme.typography.bodyMedium)
+        Text(pluralStringResource(R.plurals.dice_421_starter_hint, round.maxRolls, name, round.maxRolls), style = MaterialTheme.typography.bodyMedium)
     } else {
         Text(
             text = stringResource(R.string.dice_421_limit, round.limit, players.getOrElse(round.order.first()) { "" }),

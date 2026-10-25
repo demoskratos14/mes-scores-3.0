@@ -1342,7 +1342,11 @@
     <string name="dice_421_draw_result">%1$s commence !</string>
     <string name="dice_421_begin">Commencer la manche</string>
     <string name="dice_421_turn">Tour de %1$s (joueur %2$d sur %3$d)</string>
-    <string name="dice_421_starter_hint">À %1$s d’ouvrir la manche : le jeu peut être gardé quand on veut (%2$d lancers au plus), et le nombre de lancers faits devient la limite de tous les autres joueurs.</string>
+    <plurals name="dice_421_starter_hint">
+        <item quantity="one">À %1$s d’ouvrir la manche : le jeu peut être gardé quand on veut (%2$d lancer au plus), et le nombre de lancers faits devient la limite de tous les autres joueurs.</item>
+        <item quantity="other">À %1$s d’ouvrir la manche : le jeu peut être gardé quand on veut (%2$d lancers au plus), et le nombre de lancers faits devient la limite de tous les autres joueurs.</item>
+        <item quantity="many">À %1$s d’ouvrir la manche : le jeu peut être gardé quand on veut (%2$d de lancers au plus), et le nombre de lancers faits devient la limite de tous les autres joueurs.</item>
+    </plurals>
     <string name="dice_421_limit">Lancers autorisés cette manche : %1$d (fixé par %2$s).</string>
     <string name="dice_421_keep">Garder ce jeu</string>
     <string name="dice_421_no_roll_left">Plus de lancer : garde ce jeu pour passer au joueur suivant.</string>
