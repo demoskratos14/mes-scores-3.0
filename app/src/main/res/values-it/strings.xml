@@ -1514,7 +1514,7 @@
     <string name="bs_pass_phone">Passa il telefono a %1$s</string>
     <string name="bs_im_ready">Sono io</string>
     <string name="bs_place_title">%1$s, posiziona le tue navi. L’avversario non deve guardare!</string>
-    <string name="bs_place_hint">Scegli una nave, un orientamento e una casella di partenza: la nave si estende verso destra o verso il basso a partire da quella casella.</string>
+    <string name="bs_place_hint">Trascina ogni nave dal porto sulla griglia e tocca una nave per ruotarla. Oppure scegli con i pulsanti una nave, un orientamento e una casella di partenza: la nave si estende verso destra o verso il basso a partire da quella casella.</string>
     <string name="bs_ship_carrier">Portaerei</string>
     <string name="bs_ship_cruiser">Incrociatore</string>
     <string name="bs_ship_destroyer">Cacciatorpediniere</string>
