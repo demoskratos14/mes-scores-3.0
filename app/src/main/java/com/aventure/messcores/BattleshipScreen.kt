@@ -1,10 +1,19 @@
 package com.aventure.messcores
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -37,22 +46,28 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -65,6 +80,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
+import kotlin.math.cos
+import kotlin.math.sin
 
 // Chaque état d'une case a sa couleur, mais aussi son symbole et sa description pour TalkBack : on ne doit
 // jamais avoir besoin de voir la couleur pour jouer. Les bateaux sont dessinés sous les marques de tir.
@@ -76,6 +94,7 @@ private val HULL_COLOR = Color(0xFF78909C)
 private val SUNK_HULL_COLOR = Color(0xFF5D4037)
 private val HULL_EDGE_COLOR = Color(0xFF263238)
 private val DECK_COLOR = Color(0xFFCFD8DC)
+private val DOCK_COLOR = Color(0xFF90CAF9)
 
 // Un nom par bateau de Battleship.FLEET, dans le même ordre.
 private val SHIP_NAMES = listOf(
@@ -628,7 +647,14 @@ private fun FleetPlacement(entryKey: Any, onConfirm: (List<List<Int>>) -> Unit) 
             Text(stringResource(if (horizontal) R.string.bs_orientation_h else R.string.bs_orientation_v))
         }
         CoordinatePicker(selected = selected, onSelect = pick)
-        ShotBoard(fleet = ships, shots = emptyList(), selected = selected, onCellClick = pick)
+        PlacementArea(
+            placement = placement,
+            selected = selected,
+            onPlacementChange = { placement = it },
+            onSelect = pick,
+            onPickShip = { current = it },
+            onFailed = { failed = it }
+        )
         Button(onClick = { place() }, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.bs_place_here, Battleship.cellName(selected)))
         }
@@ -735,14 +761,39 @@ private fun ShotBoard(
     val sunk = remember(shots) { Battleship.sunkCells(shots) }
     // Sans flotte connue, on ne voit que les bateaux coulés : leurs cases ont été annoncées avec le tir.
     val ships = remember(fleet, shots) { fleet ?: shots.filter { it.outcome == ShotOutcome.SUNK }.map { it.sunk } }
+
+    // Un tir de plus qu'à l'affichage précédent : on joue son effet (éclaboussure, explosion, bateau en feu).
+    // Les tirs déjà là quand la grille apparaît ne sont pas rejoués.
+    var seen by remember { mutableIntStateOf(shots.size) }
+    var effect by remember { mutableStateOf<ShotEffect?>(null) }
+    val progress = remember { Animatable(1f) }
+    LaunchedEffect(shots.size) {
+        if (shots.size > seen) {
+            val shot = shots.last()
+            effect = ShotEffect(shot.outcome, shot.cell, shot.sunk.sorted())
+            seen = shots.size
+            progress.snapTo(0f)
+            progress.animateTo(1f, tween(if (shot.outcome == ShotOutcome.SUNK) 1500 else 900, easing = LinearEasing))
+        } else {
+            seen = shots.size
+        }
+    }
     BoardView(
         ships = ships,
         sunkCells = sunk,
         display = { cell -> CellDisplay(ship = cell in shipCells, outcome = byCell[cell]?.outcome, sunk = cell in sunk) },
         selected = selected,
-        onCellClick = onCellClick
+        onCellClick = onCellClick,
+        effect = effect,
+        progress = { progress.value }
     )
 }
+
+/** L'effet du dernier tir : où il est tombé, et ce qu'il a donné ([ship] : les cases du bateau, s'il est coulé). */
+private class ShotEffect(val kind: ShotOutcome, val cell: Int, val ship: List<Int>)
+
+/** Taille d'une case : onze cases de large (les lettres des colonnes, puis les dix colonnes), au plus 40 dp. */
+private fun boardCellSize(maxWidth: Dp): Dp = minOf(maxWidth / (Battleship.SIZE + 1), 40.dp)
 
 @Composable
 private fun BoardView(
@@ -750,67 +801,210 @@ private fun BoardView(
     sunkCells: Set<Int>,
     display: (Int) -> CellDisplay,
     selected: Int?,
-    onCellClick: ((Int) -> Unit)?
+    onCellClick: ((Int) -> Unit)?,
+    effect: ShotEffect? = null,
+    progress: () -> Float = { 1f }
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-        // Onze cases de large : les lettres des colonnes, puis les dix colonnes (et autant de lignes sous les lettres).
-        val cellSize = minOf(maxWidth / (Battleship.SIZE + 1), 40.dp)
-        Box(modifier = Modifier.size(cellSize * (Battleship.SIZE + 1))) {
-            // Sous les cases : la mer et les bateaux. Les cases, transparentes, ne portent que les marques de tir.
-            Canvas(modifier = Modifier
-                .fillMaxSize()
-                .clearAndSetSemantics { }) {
-                val cs = cellSize.toPx()
-                drawRect(WATER_COLOR, topLeft = Offset(cs, cs), size = Size(cs * Battleship.SIZE, cs * Battleship.SIZE))
-                for (ship in ships) drawShip(ship, cs, sunk = ship.isNotEmpty() && ship.all { it in sunkCells })
+        BoardGrid(boardCellSize(maxWidth), ships, sunkCells, display, selected, onCellClick, effect, progress)
+    }
+}
+
+@Composable
+private fun BoardGrid(
+    cellSize: Dp,
+    ships: List<List<Int>>,
+    sunkCells: Set<Int>,
+    display: (Int) -> CellDisplay,
+    selected: Int?,
+    onCellClick: ((Int) -> Unit)?,
+    effect: ShotEffect? = null,
+    progress: () -> Float = { 1f }
+) {
+    // Les bateaux coulés brûlent tant que la grille est affichée.
+    val burning = ships.any { ship -> ship.isNotEmpty() && ship.all { it in sunkCells } }
+    val flame: State<Float>? = if (burning) {
+        rememberInfiniteTransition(label = "flames").animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing)),
+            label = "flame"
+        )
+    } else {
+        null
+    }
+    Box(modifier = Modifier.size(cellSize * (Battleship.SIZE + 1))) {
+        // Sous les cases : la mer et les bateaux. Les cases, transparentes, ne portent que les marques de tir.
+        Canvas(modifier = Modifier
+            .fillMaxSize()
+            .clearAndSetSemantics { }) {
+            val cs = cellSize.toPx()
+            val p = progress()
+            drawRect(WATER_COLOR, topLeft = Offset(cs, cs), size = Size(cs * Battleship.SIZE, cs * Battleship.SIZE))
+            for (ship in ships) {
+                val sunk = ship.isNotEmpty() && ship.all { it in sunkCells }
+                // Le bateau qui vient d'être coulé apparaît en fondu.
+                val fade = if (effect != null && effect.kind == ShotOutcome.SUNK && ship.sorted() == effect.ship) p else 1f
+                drawShip(ship, cs, sunk = sunk, alpha = fade)
             }
-            Column {
+        }
+        Column {
+            Row {
+                Spacer(modifier = Modifier.size(cellSize))
+                for (column in 0 until Battleship.SIZE) {
+                    BoardLabel(text = Battleship.columnLetter(column).toString(), size = cellSize)
+                }
+            }
+            for (row in 0 until Battleship.SIZE) {
                 Row {
-                    Spacer(modifier = Modifier.size(cellSize))
+                    BoardLabel(text = (row + 1).toString(), size = cellSize)
                     for (column in 0 until Battleship.SIZE) {
-                        BoardLabel(text = Battleship.columnLetter(column).toString(), size = cellSize)
+                        val cell = Battleship.cellOf(row, column)
+                        CellBox(
+                            cell = cell,
+                            size = cellSize,
+                            display = display(cell),
+                            selected = cell == selected,
+                            onClick = onCellClick
+                        )
                     }
                 }
-                for (row in 0 until Battleship.SIZE) {
-                    Row {
-                        BoardLabel(text = (row + 1).toString(), size = cellSize)
-                        for (column in 0 until Battleship.SIZE) {
-                            val cell = Battleship.cellOf(row, column)
-                            CellBox(
-                                cell = cell,
-                                size = cellSize,
-                                display = display(cell),
-                                selected = cell == selected,
-                                onClick = onCellClick
-                            )
-                        }
-                    }
+            }
+        }
+        // Par-dessus : les flammes des bateaux coulés, et l'effet du dernier tir.
+        Canvas(modifier = Modifier
+            .fillMaxSize()
+            .clearAndSetSemantics { }) {
+            val cs = cellSize.toPx()
+            val p = progress()
+            val time = flame?.value ?: 0f
+            for (ship in ships) {
+                if (ship.isEmpty() || !ship.all { it in sunkCells }) continue
+                val fade = if (effect != null && effect.kind == ShotOutcome.SUNK && ship.sorted() == effect.ship) p else 1f
+                for (cell in ship) drawFlame(cellCenter(cell, cs), cs, time, phase = cell * 1.7f, alpha = fade)
+            }
+            if (effect != null && p < 1f) {
+                val center = cellCenter(effect.cell, cs)
+                when (effect.kind) {
+                    ShotOutcome.MISS -> drawSplash(center, cs, p)
+                    ShotOutcome.HIT -> drawExplosion(center, cs, p, scale = 1f)
+                    ShotOutcome.SUNK -> drawExplosion(center, cs, p, scale = 1.6f)
                 }
             }
         }
     }
 }
 
+/** Le centre d'une case de la grille, en pixels (la grille commence à une case du bord : lettres et numéros). */
+private fun cellCenter(cell: Int, cs: Float): Offset =
+    Offset(cs + Battleship.column(cell) * cs + cs / 2, cs + Battleship.row(cell) * cs + cs / 2)
+
+private const val PI_F = 3.1415927f
+
+/** Le boulet tombe à l'eau : un anneau qui s'élargit et des gouttelettes projetées qui retombent. */
+private fun DrawScope.drawSplash(center: Offset, cs: Float, p: Float) {
+    val fade = 1f - p
+    drawCircle(
+        color = Color.White.copy(alpha = 0.85f * fade),
+        radius = cs * (0.1f + 0.55f * p),
+        center = center,
+        style = Stroke(width = cs * 0.07f)
+    )
+    for (i in 0 until 8) {
+        val angle = (i * 45f + 20f) * PI_F / 180f
+        val reach = cs * 0.5f * p
+        // Chaque goutte monte puis retombe.
+        val lift = sin(PI_F * p) * cs * 0.35f
+        val position = Offset(center.x + cos(angle) * reach, center.y + sin(angle) * reach * 0.6f - lift)
+        drawCircle(
+            color = Color(0xFFE3F2FD).copy(alpha = fade),
+            radius = cs * 0.075f * (1f - 0.4f * p),
+            center = position
+        )
+    }
+}
+
+/** Un bateau est touché : une boule de feu qui grossit en s'éteignant, avec des étincelles. */
+private fun DrawScope.drawExplosion(center: Offset, cs: Float, p: Float, scale: Float) {
+    val fade = 1f - p
+    val radius = cs * scale * (0.15f + 0.55f * p)
+    drawCircle(Color(0xFFFFEB3B).copy(alpha = 0.9f * fade), radius = radius, center = center)
+    drawCircle(Color(0xFFFF6D00).copy(alpha = 0.9f * fade), radius = radius * 0.6f, center = center)
+    drawCircle(Color.White.copy(alpha = fade), radius = radius * 0.25f, center = center)
+    for (i in 0 until 8) {
+        val angle = (i * 45f + 10f) * PI_F / 180f
+        val from = radius * 0.8f
+        val to = radius * (1.2f + 0.5f * p)
+        drawLine(
+            color = Color(0xFFFF9800).copy(alpha = fade),
+            start = Offset(center.x + cos(angle) * from, center.y + sin(angle) * from),
+            end = Offset(center.x + cos(angle) * to, center.y + sin(angle) * to),
+            strokeWidth = cs * 0.06f
+        )
+    }
+}
+
+/** Une flamme qui vacille ([time] de 0 à 1, en boucle ; [phase] la décale d'une case à l'autre), sur une case d'un bateau coulé. */
+private fun DrawScope.drawFlame(center: Offset, cs: Float, time: Float, phase: Float, alpha: Float) {
+    val angle = time * 2f * PI_F + phase
+    val height = cs * (0.6f + 0.18f * sin(angle * 2f))
+    val sway = sin(angle) * cs * 0.08f
+    val baseY = center.y + cs * 0.28f
+    // Une lueur sur la coque, puis la flamme orange avec un cœur jaune.
+    drawCircle(Color(0xFFFF3D00).copy(alpha = 0.25f * alpha), radius = cs * 0.4f, center = center)
+    drawPath(flamePath(center.x, baseY, cs * 0.38f, height, sway), Color(0xFFFF6D00).copy(alpha = 0.95f * alpha))
+    drawPath(flamePath(center.x, baseY, cs * 0.2f, height * 0.6f, sway * 0.6f), Color(0xFFFFEB3B).copy(alpha = alpha))
+}
+
+private fun flamePath(centerX: Float, baseY: Float, width: Float, height: Float, sway: Float): Path = Path().apply {
+    moveTo(centerX - width / 2, baseY)
+    quadraticBezierTo(centerX - width / 2, baseY - height * 0.5f, centerX + sway, baseY - height)
+    quadraticBezierTo(centerX + width / 2, baseY - height * 0.5f, centerX + width / 2, baseY)
+    close()
+}
+
 /**
- * Dessine un bateau vu de dessus : une coque à proue pointue qui couvre toutes ses cases, un pont avec des hublots
- * et une passerelle. [cs] : la taille d'une case en pixels ; la grille commence à une case du bord (lettres, numéros).
+ * Dessine un bateau de la grille (la grille commence à une case du bord : lettres et numéros) : voir [drawShipAt].
  */
-private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean) {
+private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean, alpha: Float = 1f) {
     val cells = ship.sorted()
     if (cells.isEmpty()) return
     val first = cells.first()
     val horizontal = cells.size > 1 && cells[1] - cells[0] == 1
-    val length = cells.size * cs
-    val left = cs + Battleship.column(first) * cs
-    val top = cs + Battleship.row(first) * cs
+    drawShipAt(
+        length = cells.size,
+        left = cs + Battleship.column(first) * cs,
+        top = cs + Battleship.row(first) * cs,
+        horizontal = horizontal,
+        cs = cs,
+        sunk = sunk,
+        alpha = alpha
+    )
+}
+
+/**
+ * Dessine un bateau vu de dessus : une coque à proue pointue, un pont avec des hublots et une passerelle.
+ * [left] et [top] : le coin haut gauche de l'espace qu'il occupe (largeur [length] cases s'il est [horizontal],
+ * hauteur [length] cases sinon) ; [cs] : la taille d'une case en pixels.
+ */
+private fun DrawScope.drawShipAt(
+    length: Int,
+    left: Float,
+    top: Float,
+    horizontal: Boolean,
+    cs: Float,
+    sunk: Boolean,
+    alpha: Float = 1f
+) {
+    val size = length * cs
     val margin = cs * 0.14f
     val pad = cs * 0.08f
     val bow = cs * 0.55f
     val hull = Path().apply {
         moveTo(pad, margin)
-        lineTo(length - bow, margin)
-        quadraticBezierTo(length - pad, margin, length - pad, cs / 2)
-        quadraticBezierTo(length - pad, cs - margin, length - bow, cs - margin)
+        lineTo(size - bow, margin)
+        quadraticBezierTo(size - pad, margin, size - pad, cs / 2)
+        quadraticBezierTo(size - pad, cs - margin, size - bow, cs - margin)
         lineTo(pad, cs - margin)
         close()
     }
@@ -823,14 +1017,16 @@ private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean) {
             rotate(90f, Offset.Zero)
         }
     }) {
-        drawPath(hull, color = if (sunk) SUNK_HULL_COLOR else HULL_COLOR)
-        drawPath(hull, color = HULL_EDGE_COLOR, style = Stroke(width = cs * 0.06f))
-        val bridge = cells.size / 2
-        for (index in cells.indices) {
-            if (index != bridge) drawCircle(DECK_COLOR, radius = cs * 0.09f, center = Offset(index * cs + cs / 2, cs / 2))
+        drawPath(hull, color = (if (sunk) SUNK_HULL_COLOR else HULL_COLOR).copy(alpha = alpha))
+        drawPath(hull, color = HULL_EDGE_COLOR.copy(alpha = alpha), style = Stroke(width = cs * 0.06f))
+        val bridge = length / 2
+        for (index in 0 until length) {
+            if (index != bridge) {
+                drawCircle(DECK_COLOR.copy(alpha = alpha), radius = cs * 0.09f, center = Offset(index * cs + cs / 2, cs / 2))
+            }
         }
         drawRoundRect(
-            color = DECK_COLOR,
+            color = DECK_COLOR.copy(alpha = alpha),
             topLeft = Offset(bridge * cs + cs * 0.22f, cs * 0.3f),
             size = Size(cs * 0.56f, cs * 0.4f),
             cornerRadius = CornerRadius(cs * 0.08f)
@@ -923,6 +1119,200 @@ private fun CellBox(cell: Int, size: Dp, display: CellDisplay, selected: Boolean
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+// ---------- Placement au doigt ----------
+
+// Place de chaque bateau au port, au-dessus de la grille, en cases : (x, y) du coin haut gauche, dans l'ordre de Battleship.FLEET.
+private val DOCK_SLOTS = listOf(0.25f to 0.2f, 5.5f to 0.2f, 0.25f to 1.4f, 3.5f to 1.4f, 7f to 1.4f)
+
+// Hauteur du port, en cases.
+private const val DOCK_HEIGHT = 2.6f
+
+/**
+ * Le port et la grille de placement : les bateaux non placés sont dessinés au port, au-dessus de la grille. On
+ * glisse un bateau avec le doigt pour le poser sur la grille (il s'aligne sur les cases), on le reprend pour le
+ * déplacer ou le ramener au port, et on le touche pour le tourner. Toucher une case vide la sélectionne.
+ *
+ * [placement] : pour chaque bateau, -1 s'il est au port, sinon sa case de départ × 2 (+ 1 s'il est vertical).
+ * [onPickShip] : le bateau touché devient le bateau courant. [onFailed] : un bateau n'a pas pu être posé ou tourné.
+ */
+@Composable
+private fun PlacementArea(
+    placement: List<Int>,
+    selected: Int,
+    onPlacementChange: (List<Int>) -> Unit,
+    onSelect: (Int) -> Unit,
+    onPickShip: (Int) -> Unit,
+    onFailed: (Boolean) -> Unit
+) {
+    // Le bateau tenu par le doigt (-1 : aucun), son coin haut gauche en pixels et son sens.
+    var dragShip by remember { mutableIntStateOf(-1) }
+    var dragTopLeft by remember { mutableStateOf(Offset.Zero) }
+    var dragHorizontal by remember { mutableStateOf(true) }
+    // Le geste est lancé une seule fois : il lit toujours les valeurs les plus récentes.
+    val currentPlacement by rememberUpdatedState(placement)
+    val change by rememberUpdatedState(onPlacementChange)
+    val select by rememberUpdatedState(onSelect)
+    val pickShip by rememberUpdatedState(onPickShip)
+    val fail by rememberUpdatedState(onFailed)
+
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        val cellSize = boardCellSize(maxWidth)
+        val cs = with(LocalDensity.current) { cellSize.toPx() }
+        val dock = cs * DOCK_HEIGHT
+        val lengths = Battleship.FLEET
+
+        // L'espace qu'occupe le bateau [i], au port ou sur la grille.
+        fun rectOf(i: Int): Rect {
+            val code = currentPlacement[i]
+            val size = lengths[i] * cs
+            if (code < 0) {
+                val (x, y) = DOCK_SLOTS[i]
+                return Rect(x * cs, y * cs, x * cs + size, y * cs + cs)
+            }
+            val start = code / 2
+            val left = cs + Battleship.column(start) * cs
+            val top = dock + cs + Battleship.row(start) * cs
+            return if (code % 2 == 0) Rect(left, top, left + size, top + cs) else Rect(left, top, left + cs, top + size)
+        }
+
+        // Les cases occupées par les autres bateaux que [i].
+        fun othersCells(i: Int): Set<Int> = currentPlacement.mapIndexedNotNull { index, code ->
+            if (index == i || code < 0) null else Battleship.shipCells(code / 2, lengths[index], code % 2 == 0)
+        }.flatten().toSet()
+
+        fun commit(i: Int, code: Int) {
+            val updated = currentPlacement.toMutableList()
+            updated[i] = code
+            change(updated)
+        }
+
+        fun hitShip(point: Offset): Int? =
+            lengths.indices.firstOrNull { rectOf(it).inflate(cs * 0.1f).contains(point) }
+
+        fun cellAt(point: Offset): Int? {
+            val column = Math.floor(((point.x - cs) / cs).toDouble()).toInt()
+            val row = Math.floor(((point.y - dock - cs) / cs).toDouble()).toInt()
+            return if (column in 0 until Battleship.SIZE && row in 0 until Battleship.SIZE) Battleship.cellOf(row, column) else null
+        }
+
+        // Le doigt lâche le bateau [i] : il se pose sur la grille, revient au port, ou reste où il était s'il ne peut pas se poser.
+        fun drop(i: Int, horizontal: Boolean, topLeft: Offset) {
+            val length = lengths[i]
+            val height = if (horizontal) cs else length * cs
+            if (topLeft.y + height / 2 < dock) {
+                commit(i, -1)
+                fail(false)
+                return
+            }
+            val column = ((topLeft.x - cs) / cs).roundToInt().coerceIn(0, Battleship.SIZE - (if (horizontal) length else 1))
+            val row = ((topLeft.y - dock - cs) / cs).roundToInt().coerceIn(0, Battleship.SIZE - (if (horizontal) 1 else length))
+            val start = Battleship.cellOf(row, column)
+            val cells = Battleship.shipCells(start, length, horizontal)
+            if (cells == null || cells.any { it in othersCells(i) }) {
+                fail(true)
+                return
+            }
+            commit(i, start * 2 + (if (horizontal) 0 else 1))
+            fail(false)
+            select(start)
+        }
+
+        // Toucher un bateau posé le tourne autour de sa première case (décalé si besoin pour rester dans la grille).
+        fun rotate(i: Int) {
+            val code = currentPlacement[i]
+            if (code < 0) return
+            val length = lengths[i]
+            val horizontal = code % 2 != 0
+            var row = Battleship.row(code / 2)
+            var column = Battleship.column(code / 2)
+            if (horizontal) column = minOf(column, Battleship.SIZE - length) else row = minOf(row, Battleship.SIZE - length)
+            val start = Battleship.cellOf(row, column)
+            val cells = Battleship.shipCells(start, length, horizontal)
+            if (cells == null || cells.any { it in othersCells(i) }) {
+                fail(true)
+                return
+            }
+            commit(i, start * 2 + (if (horizontal) 0 else 1))
+            fail(false)
+            select(start)
+        }
+
+        val shipCells = currentPlacement.mapIndexedNotNull { index, code ->
+            if (code < 0 || index == dragShip) null else Battleship.shipCells(code / 2, lengths[index], code % 2 == 0)
+        }
+        val occupied = shipCells.flatten().toSet()
+
+        Box(
+            modifier = Modifier
+                .size(width = cellSize * (Battleship.SIZE + 1), height = cellSize * (Battleship.SIZE + 1 + DOCK_HEIGHT))
+                .pointerInput(cs) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown()
+                        val touched = hitShip(down.position)
+                        if (touched == null) {
+                            // Une case vide : un simple toucher la sélectionne (un défilement de la page l'annule).
+                            val up = waitForUpOrCancellation()
+                            if (up != null) cellAt(up.position)?.let { select(it) }
+                            return@awaitEachGesture
+                        }
+                        down.consume()
+                        pickShip(touched)
+                        val origin = rectOf(touched).topLeft
+                        val grab = down.position - origin
+                        val horizontal = currentPlacement[touched] < 0 || currentPlacement[touched] % 2 == 0
+                        val slop = viewConfiguration.touchSlop
+                        var moved = false
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val pointer = event.changes.firstOrNull { it.id == down.id } ?: break
+                            pointer.consume()
+                            if (!moved && (pointer.position - down.position).getDistance() > slop) {
+                                moved = true
+                                dragShip = touched
+                                dragHorizontal = horizontal
+                            }
+                            if (moved) dragTopLeft = pointer.position - grab
+                            if (!pointer.pressed) break
+                        }
+                        val released = dragShip
+                        dragShip = -1
+                        if (moved && released >= 0) drop(touched, horizontal, dragTopLeft) else if (!moved) rotate(touched)
+                    }
+                }
+        ) {
+            Column {
+                Spacer(modifier = Modifier.height(cellSize * DOCK_HEIGHT))
+                BoardGrid(
+                    cellSize = cellSize,
+                    ships = shipCells,
+                    sunkCells = emptySet(),
+                    display = { cell -> CellDisplay(ship = cell in occupied, outcome = null, sunk = false) },
+                    selected = selected,
+                    onCellClick = null
+                )
+            }
+            // Par-dessus : le port, avec les bateaux pas encore posés, et le bateau tenu par le doigt.
+            Canvas(modifier = Modifier
+                .fillMaxSize()
+                .clearAndSetSemantics { }) {
+                drawRoundRect(
+                    color = DOCK_COLOR,
+                    size = Size(size.width, dock),
+                    cornerRadius = CornerRadius(cs * 0.3f)
+                )
+                for (i in lengths.indices) {
+                    if (placement[i] >= 0 || i == dragShip) continue
+                    val (x, y) = DOCK_SLOTS[i]
+                    drawShipAt(lengths[i], x * cs, y * cs, horizontal = true, cs = cs, sunk = false)
+                }
+                if (dragShip >= 0) {
+                    drawShipAt(lengths[dragShip], dragTopLeft.x, dragTopLeft.y, dragHorizontal, cs, sunk = false, alpha = 0.85f)
+                }
+            }
         }
     }
 }
