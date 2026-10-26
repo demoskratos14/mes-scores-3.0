@@ -1504,7 +1504,7 @@
     <string name="bs_pass_phone">Passa o telemóvel a %1$s</string>
     <string name="bs_im_ready">Sou eu</string>
     <string name="bs_place_title">%1$s, coloca os teus navios. O adversário não pode ver!</string>
-    <string name="bs_place_hint">Escolhe um navio, uma orientação e uma casa de partida: o navio estende-se para a direita ou para baixo a partir dessa casa.</string>
+    <string name="bs_place_hint">Arrasta cada navio do porto para a grelha e toca num navio para o rodar. Ou escolhe com os botões um navio, uma orientação e uma casa de partida: o navio estende-se para a direita ou para baixo a partir dessa casa.</string>
     <string name="bs_ship_carrier">Porta-aviões</string>
     <string name="bs_ship_cruiser">Cruzador</string>
     <string name="bs_ship_destroyer">Contratorpedeiro</string>
