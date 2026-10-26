@@ -1504,7 +1504,7 @@
     <string name="bs_pass_phone">Pasa el teléfono a %1$s</string>
     <string name="bs_im_ready">Soy yo</string>
     <string name="bs_place_title">%1$s, coloca tus barcos. ¡El rival no debe mirar!</string>
-    <string name="bs_place_hint">Elige un barco, una orientación y una casilla de inicio: el barco se extiende hacia la derecha o hacia abajo a partir de esa casilla.</string>
+    <string name="bs_place_hint">Arrastra cada barco desde el puerto hasta la cuadrícula y toca un barco para girarlo. También puedes elegir con los botones un barco, una orientación y una casilla de inicio: el barco se extiende hacia la derecha o hacia abajo a partir de esa casilla.</string>
     <string name="bs_ship_carrier">Portaaviones</string>
     <string name="bs_ship_cruiser">Crucero</string>
     <string name="bs_ship_destroyer">Destructor</string>
