@@ -34,7 +34,7 @@ class Connect4Test {
         assertEquals(1, one[Connect4.index(5, 3)])
         val two = play(3, 3)
         assertEquals(2, two[Connect4.index(4, 3)])
-        assertEquals(4, Connect4.landingRow(two, 3))
+        assertEquals(3, Connect4.landingRow(two, 3))
         assertEquals(5, Connect4.landingRow(two, 0))
     }
 
@@ -81,8 +81,10 @@ class Connect4Test {
     fun troisJetonsOuUneLigneQuiSeReplieNeGagnentPas() {
         assertEquals(0, Connect4.winner(play(0, 6, 1, 6, 2)))
         // Trois à la fin d'une rangée puis trois au début de la suivante ne forment pas une ligne.
-        val wrap = Connect4.parse("0".repeat(35) + "0001222".replace('2', '1').let { it } )
-        assertEquals(0, Connect4.winner(Connect4.parse(Connect4.format(wrap).take(42))))
+        // Rangée 4 : colonnes 4 à 6 ; rangée 5 : colonne 0. Ces quatre cases se suivent dans la liste, sans former une ligne.
+        val wrap = MutableList(Connect4.CELLS) { 0 }
+        listOf(Connect4.index(4, 4), Connect4.index(4, 5), Connect4.index(4, 6), Connect4.index(5, 0)).forEach { wrap[it] = 1 }
+        assertEquals(0, Connect4.winner(wrap))
     }
 
     @Test
