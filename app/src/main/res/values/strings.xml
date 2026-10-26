@@ -1519,7 +1519,7 @@
     <string name="bs_pass_phone">Passe le téléphone à %1$s</string>
     <string name="bs_im_ready">C’est moi</string>
     <string name="bs_place_title">%1$s, place tes bateaux. L’adversaire ne regarde pas !</string>
-    <string name="bs_place_hint">Choisis un bateau, une orientation et une case de départ : le bateau s’étend vers la droite ou vers le bas à partir de cette case.</string>
+    <string name="bs_place_hint">Fais glisser chaque bateau du port vers la grille, et touche un bateau pour le tourner. Sinon, choisis un bateau, une orientation et une case de départ avec les boutons : le bateau s’étend vers la droite ou vers le bas à partir de cette case.</string>
     <string name="bs_ship_carrier">Porte-avions</string>
     <string name="bs_ship_cruiser">Croiseur</string>
     <string name="bs_ship_destroyer">Contre-torpilleur</string>
