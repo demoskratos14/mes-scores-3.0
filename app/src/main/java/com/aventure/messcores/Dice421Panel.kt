@@ -186,8 +186,10 @@ private fun PlayPart(
         )
     }
 
+    val animation = rememberDiceRollAnimation(turn)
     DiceTray(
         turn = turn,
+        animation = animation,
         rollEnabled = turn.canRoll && canAct,
         interactive = canAct,
         showNewTurn = false,
@@ -202,7 +204,8 @@ private fun PlayPart(
         onNewTurn = {}
     )
 
-    if (turn.hasRolled) {
+    // Les dés tournent encore : la combinaison attend qu'ils soient arrêtés.
+    if (turn.hasRolled && !animation.rolling) {
         val combo = Dice421.combo(turn.values)
         Text(
             text = pluralStringResource(R.plurals.dice_combo_tokens, combo.points, stringResource(combo.label), combo.points),
@@ -212,7 +215,7 @@ private fun PlayPart(
             Text(stringResource(R.string.dice_421_no_roll_left), style = MaterialTheme.typography.bodyMedium)
         }
     }
-    Button(onClick = onKeep, enabled = canAct && round.canKeep, modifier = Modifier.fillMaxWidth()) {
+    Button(onClick = onKeep, enabled = canAct && round.canKeep && !animation.rolling, modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.dice_421_keep))
     }
 

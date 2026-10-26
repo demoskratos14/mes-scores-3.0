@@ -1,5 +1,9 @@
 package com.aventure.messcores
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -38,12 +42,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -115,6 +121,8 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     // Au 421, la manche (tirage, ordre des joueurs, limite de lancers) garde elle-même les dés du joueur qui joue.
     val round: Round421? = if (is421) rememberRound421(players.size, setup) else null
     val turn = round?.turn ?: rememberDiceTurn(setup)
+    // Les dés tournent puis s'arrêtent un à un ; ce qui dévoile le résultat attend la fin (voir DiceRollAnimation).
+    val rollAnimation = rememberDiceRollAnimation(turn)
     var player by rememberSaveable { mutableIntStateOf(0) }
     // Cochon : total du tour en cours, perdu dès qu'un 1 sort.
     var pigTotal by rememberSaveable { mutableIntStateOf(0) }
@@ -256,6 +264,7 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
                 ) {
                     DiceTray(
                         turn = turn,
+                        animation = rollAnimation,
                         rollEnabled = turn.canRoll && !(isPig && pigBust) && canAct,
                         interactive = canAct,
                         onRoll = { roll() },
@@ -266,6 +275,8 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
             }
 
             when {
+                // Les dés tournent encore : rien ne dit déjà ce qu'ils valent.
+                rollAnimation.rolling && round == null -> Unit
                 isYams -> YamsPanel(
                     viewModel = viewModel,
                     turn = turn,
@@ -383,6 +394,7 @@ private fun DiceSeatChooser(players: List<String>, mine: Int, current: Int, canA
 @Composable
 internal fun DiceTray(
     turn: DiceTurn,
+    animation: DiceRollAnimation,
     rollEnabled: Boolean,
     interactive: Boolean,
     showNewTurn: Boolean = true,
@@ -405,35 +417,38 @@ internal fun DiceTray(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             for (index in 0 until setup.diceCount) {
-                val value = turn.values.getOrNull(index)
+                val spinning = animation.isSpinning(index)
+                // Un dé qui tourne montre des faces au hasard ; il se fige sur sa vraie valeur quand son tour vient.
+                val value = if (spinning) animation.faceOf(index) else turn.values.getOrNull(index)
                 val held = index in turn.held
                 val description = when {
-                    value == null -> stringResource(R.string.dice_die_empty, index + 1)
-                    held -> stringResource(R.string.dice_die_held, index + 1, value)
-                    else -> stringResource(R.string.dice_die, index + 1, value)
+                    turn.values.getOrNull(index) == null -> stringResource(R.string.dice_die_empty, index + 1)
+                    held -> stringResource(R.string.dice_die_held, index + 1, turn.values[index])
+                    else -> stringResource(R.string.dice_die, index + 1, turn.values[index])
                 }
                 DieFace(
                     value = value,
                     held = held,
+                    spinning = spinning,
                     tint = setup.tints.getOrNull(index)?.let { Color(it) } ?: Color.White,
                     description = description,
-                    onClick = if (interactive && turn.canHold) ({ onToggleHold(index) }) else null,
+                    onClick = if (interactive && turn.canHold && !animation.rolling) ({ onToggleHold(index) }) else null,
                     modifier = Modifier.weight(1f)
                 )
             }
         }
 
-        Button(onClick = onRoll, enabled = rollEnabled, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = onRoll, enabled = rollEnabled && !animation.rolling, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(if (turn.hasRolled) R.string.dice_reroll else R.string.dice_roll))
         }
 
         turn.rollsLeft?.let { left ->
             Text(text = stringResource(R.string.dice_rolls_left, left), style = MaterialTheme.typography.bodyMedium)
         }
-        if (interactive && turn.canHold) {
+        if (interactive && turn.canHold && !animation.rolling) {
             Text(text = stringResource(R.string.dice_hold_hint), style = MaterialTheme.typography.bodySmall)
         }
-        if (interactive && showNewTurn && turn.hasRolled) {
+        if (interactive && showNewTurn && turn.hasRolled && !animation.rolling) {
             TextButton(onClick = onNewTurn) { Text(stringResource(R.string.dice_new_turn)) }
         }
     }
@@ -444,6 +459,7 @@ internal fun DiceTray(
 private fun DieFace(
     value: Int?,
     held: Boolean,
+    spinning: Boolean,
     tint: Color,
     description: String,
     onClick: (() -> Unit)?,
@@ -451,8 +467,27 @@ private fun DieFace(
 ) {
     val shape = RoundedCornerShape(14.dp)
     val borderColor = if (held) MaterialTheme.colorScheme.primary else Color.Gray
+    // Le dé tourne sur lui-même tant qu'il est lancé, un peu grossi ; à l'arrêt il se remet droit par le plus court chemin.
+    val rotation = remember { Animatable(0f) }
+    LaunchedEffect(spinning) {
+        if (spinning) {
+            while (true) {
+                rotation.snapTo(0f)
+                rotation.animateTo(360f, tween(durationMillis = 300, easing = LinearEasing))
+            }
+        } else {
+            rotation.animateTo(if (rotation.value > 180f) 360f else 0f, tween(durationMillis = 120))
+            rotation.snapTo(0f)
+        }
+    }
+    val scale by animateFloatAsState(if (spinning) 1.08f else 1f, tween(durationMillis = 120), label = "dieScale")
     Box(
         modifier = modifier
+            .graphicsLayer {
+                rotationZ = rotation.value
+                scaleX = scale
+                scaleY = scale
+            }
             .aspectRatio(1f)
             .clip(shape)
             .background(tint, shape)
