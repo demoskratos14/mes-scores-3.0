@@ -115,6 +115,7 @@ MesScores/
             │   │   CreateGameRulesSections.kt (règles de multiplication, fin de partie), CreateGameWidgets.kt
             │   ├── CustomGameDraft.kt         formulaire de création -> GameRules (fonction pure, testée)
             │   ├── DiceScreen.kt, DiceRules.kt            écran des dés d'un jeu, dés et lancers (`DiceTurn`), Yams, valeur et force des jeux du 421 (`Dice421`)
+│   ├── DiceRollAnimation.kt                   animation d'un lancer : les dés tournent puis s'arrêtent un à un (`DiceRollTimingTest`) ; le score, la combinaison ou le total du Cochon attendent la fin
             │   ├── Round421.kt, Dice421Panel.kt           421 tour par tour : moteur de la manche (pur, testé) et son interface
             │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt   Morpion : règles, écran (un ou deux téléphones) et table en ligne
 │   ├── Nim.kt, NimScreen.kt, NimOnline.kt, NimProtocol.kt   Jeu des allumettes (Nim) : règles, écran (un ou deux téléphones), table en ligne et messages
