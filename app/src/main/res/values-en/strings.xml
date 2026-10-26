@@ -1480,7 +1480,7 @@
     <string name="bs_pass_phone">Pass the phone to %1$s</string>
     <string name="bs_im_ready">That’s me</string>
     <string name="bs_place_title">%1$s, place your ships. Your opponent must not look!</string>
-    <string name="bs_place_hint">Choose a ship, an orientation and a starting square: the ship extends to the right or downward from that square.</string>
+    <string name="bs_place_hint">Drag each ship from the harbor onto the grid, and tap a ship to rotate it. Or choose a ship, an orientation and a starting square with the buttons: the ship extends to the right or downward from that square.</string>
     <string name="bs_ship_carrier">Aircraft carrier</string>
     <string name="bs_ship_cruiser">Cruiser</string>
     <string name="bs_ship_destroyer">Destroyer</string>
