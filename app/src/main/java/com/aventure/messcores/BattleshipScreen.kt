@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -43,7 +45,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -58,12 +67,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 // Chaque état d'une case a sa couleur, mais aussi son symbole et sa description pour TalkBack : on ne doit
-// jamais avoir besoin de voir la couleur pour jouer.
+// jamais avoir besoin de voir la couleur pour jouer. Les bateaux sont dessinés sous les marques de tir.
 private val WATER_COLOR = Color(0xFFBBDEFB)
-private val SHIP_COLOR = Color(0xFF546E7A)
 private val MISS_COLOR = Color(0xFFEEEEEE)
 private val HIT_COLOR = Color(0xFFFFA726)
 private val SUNK_COLOR = Color(0xFFB71C1C)
+private val HULL_COLOR = Color(0xFF78909C)
+private val SUNK_HULL_COLOR = Color(0xFF5D4037)
+private val HULL_EDGE_COLOR = Color(0xFF263238)
+private val DECK_COLOR = Color(0xFFCFD8DC)
 
 // Un nom par bateau de Battleship.FLEET, dans le même ordre.
 private val SHIP_NAMES = listOf(
@@ -708,8 +720,8 @@ private fun ResultsView(
 private class CellDisplay(val ship: Boolean, val outcome: ShotOutcome?, val sunk: Boolean)
 
 /**
- * Une grille : [fleet] donne les cases des bateaux visibles (null : aucun) et [shots] les tirs et leurs réponses.
- * Si [onCellClick] est renseigné, toucher une case la sélectionne ([selected]).
+ * Une grille : [fleet] donne les bateaux visibles (null : aucun, sauf ceux que les tirs ont coulés) et [shots] les
+ * tirs et leurs réponses. Si [onCellClick] est renseigné, toucher une case la sélectionne ([selected]).
  */
 @Composable
 private fun ShotBoard(
@@ -721,7 +733,11 @@ private fun ShotBoard(
     val shipCells = remember(fleet) { fleet?.flatten()?.toSet().orEmpty() }
     val byCell = remember(shots) { shots.associateBy { it.cell } }
     val sunk = remember(shots) { Battleship.sunkCells(shots) }
+    // Sans flotte connue, on ne voit que les bateaux coulés : leurs cases ont été annoncées avec le tir.
+    val ships = remember(fleet, shots) { fleet ?: shots.filter { it.outcome == ShotOutcome.SUNK }.map { it.sunk } }
     BoardView(
+        ships = ships,
+        sunkCells = sunk,
         display = { cell -> CellDisplay(ship = cell in shipCells, outcome = byCell[cell]?.outcome, sunk = cell in sunk) },
         selected = selected,
         onCellClick = onCellClick
@@ -729,33 +745,96 @@ private fun ShotBoard(
 }
 
 @Composable
-private fun BoardView(display: (Int) -> CellDisplay, selected: Int?, onCellClick: ((Int) -> Unit)?) {
+private fun BoardView(
+    ships: List<List<Int>>,
+    sunkCells: Set<Int>,
+    display: (Int) -> CellDisplay,
+    selected: Int?,
+    onCellClick: ((Int) -> Unit)?
+) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
         // Onze cases de large : les lettres des colonnes, puis les dix colonnes (et autant de lignes sous les lettres).
         val cellSize = minOf(maxWidth / (Battleship.SIZE + 1), 40.dp)
-        Column {
-            Row {
-                Spacer(modifier = Modifier.size(cellSize))
-                for (column in 0 until Battleship.SIZE) {
-                    BoardLabel(text = Battleship.columnLetter(column).toString(), size = cellSize)
-                }
+        Box(modifier = Modifier.size(cellSize * (Battleship.SIZE + 1))) {
+            // Sous les cases : la mer et les bateaux. Les cases, transparentes, ne portent que les marques de tir.
+            Canvas(modifier = Modifier
+                .fillMaxSize()
+                .clearAndSetSemantics { }) {
+                val cs = cellSize.toPx()
+                drawRect(WATER_COLOR, topLeft = Offset(cs, cs), size = Size(cs * Battleship.SIZE, cs * Battleship.SIZE))
+                for (ship in ships) drawShip(ship, cs, sunk = ship.isNotEmpty() && ship.all { it in sunkCells })
             }
-            for (row in 0 until Battleship.SIZE) {
+            Column {
                 Row {
-                    BoardLabel(text = (row + 1).toString(), size = cellSize)
+                    Spacer(modifier = Modifier.size(cellSize))
                     for (column in 0 until Battleship.SIZE) {
-                        val cell = Battleship.cellOf(row, column)
-                        CellBox(
-                            cell = cell,
-                            size = cellSize,
-                            display = display(cell),
-                            selected = cell == selected,
-                            onClick = onCellClick
-                        )
+                        BoardLabel(text = Battleship.columnLetter(column).toString(), size = cellSize)
+                    }
+                }
+                for (row in 0 until Battleship.SIZE) {
+                    Row {
+                        BoardLabel(text = (row + 1).toString(), size = cellSize)
+                        for (column in 0 until Battleship.SIZE) {
+                            val cell = Battleship.cellOf(row, column)
+                            CellBox(
+                                cell = cell,
+                                size = cellSize,
+                                display = display(cell),
+                                selected = cell == selected,
+                                onClick = onCellClick
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * Dessine un bateau vu de dessus : une coque à proue pointue qui couvre toutes ses cases, un pont avec des hublots
+ * et une passerelle. [cs] : la taille d'une case en pixels ; la grille commence à une case du bord (lettres, numéros).
+ */
+private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean) {
+    val cells = ship.sorted()
+    if (cells.isEmpty()) return
+    val first = cells.first()
+    val horizontal = cells.size > 1 && cells[1] - cells[0] == 1
+    val length = cells.size * cs
+    val left = cs + Battleship.column(first) * cs
+    val top = cs + Battleship.row(first) * cs
+    val margin = cs * 0.14f
+    val pad = cs * 0.08f
+    val bow = cs * 0.55f
+    val hull = Path().apply {
+        moveTo(pad, margin)
+        lineTo(length - bow, margin)
+        quadraticBezierTo(length - pad, margin, length - pad, cs / 2)
+        quadraticBezierTo(length - pad, cs - margin, length - bow, cs - margin)
+        lineTo(pad, cs - margin)
+        close()
+    }
+    // Le bateau est dessiné couché vers la droite ; à la verticale, on le tourne d'un quart de tour (la proue vers le bas).
+    withTransform({
+        if (horizontal) {
+            translate(left, top)
+        } else {
+            translate(left + cs, top)
+            rotate(90f, Offset.Zero)
+        }
+    }) {
+        drawPath(hull, color = if (sunk) SUNK_HULL_COLOR else HULL_COLOR)
+        drawPath(hull, color = HULL_EDGE_COLOR, style = Stroke(width = cs * 0.06f))
+        val bridge = cells.size / 2
+        for (index in cells.indices) {
+            if (index != bridge) drawCircle(DECK_COLOR, radius = cs * 0.09f, center = Offset(index * cs + cs / 2, cs / 2))
+        }
+        drawRoundRect(
+            color = DECK_COLOR,
+            topLeft = Offset(bridge * cs + cs * 0.22f, cs * 0.3f),
+            size = Size(cs * 0.56f, cs * 0.4f),
+            cornerRadius = CornerRadius(cs * 0.08f)
+        )
     }
 }
 
@@ -772,37 +851,43 @@ private fun BoardLabel(text: String, size: Dp) {
 @Composable
 private fun CellBox(cell: Int, size: Dp, display: CellDisplay, selected: Boolean, onClick: ((Int) -> Unit)?) {
     val symbol: String
-    val background: Color
+    val overlay: Color
+    val marker: Color?
     val textColor: Color
     val descriptionRes: Int
     when {
         display.sunk -> {
             symbol = "✖"
-            background = SUNK_COLOR
+            overlay = SUNK_COLOR.copy(alpha = 0.55f)
+            marker = null
             textColor = Color.White
             descriptionRes = R.string.bs_cell_sunk
         }
         display.outcome == ShotOutcome.HIT || display.outcome == ShotOutcome.SUNK -> {
             symbol = "✕"
-            background = HIT_COLOR
+            overlay = Color.Transparent
+            marker = HIT_COLOR
             textColor = Color.Black
             descriptionRes = R.string.bs_cell_hit
         }
         display.outcome == ShotOutcome.MISS -> {
             symbol = "•"
-            background = MISS_COLOR
+            overlay = Color.Transparent
+            marker = MISS_COLOR
             textColor = Color.Black
             descriptionRes = R.string.bs_cell_miss
         }
         display.ship -> {
-            symbol = "■"
-            background = SHIP_COLOR
-            textColor = Color.White
+            symbol = ""
+            overlay = Color.Transparent
+            marker = null
+            textColor = Color.Black
             descriptionRes = R.string.bs_cell_ship
         }
         else -> {
             symbol = ""
-            background = WATER_COLOR
+            overlay = Color.Transparent
+            marker = null
             textColor = Color.Black
             descriptionRes = R.string.bs_cell_water
         }
@@ -814,23 +899,30 @@ private fun CellBox(cell: Int, size: Dp, display: CellDisplay, selected: Boolean
     Box(
         modifier = Modifier
             .size(size)
-            .padding(1.dp)
-            .background(background)
+            .background(overlay)
             .border(
                 width = if (selected) 3.dp else 0.5.dp,
-                color = if (selected) MaterialTheme.colorScheme.primary else Color.Gray
+                color = if (selected) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.5f)
             )
             .then(clickable)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = symbol,
-            color = textColor,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            // La description de la case est déjà lue par TalkBack : pas le symbole en plus.
-            modifier = Modifier.clearAndSetSemantics { }
-        )
+        // Un rond de couleur derrière le symbole d'un tir : on le voit même par-dessus la coque d'un bateau.
+        val symbolModifier = if (marker != null) {
+            Modifier
+                .size(size * 0.66f)
+                .background(marker, CircleShape)
+        } else {
+            Modifier
+        }
+        Box(modifier = symbolModifier.clearAndSetSemantics { }, contentAlignment = Alignment.Center) {
+            Text(
+                text = symbol,
+                color = textColor,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }

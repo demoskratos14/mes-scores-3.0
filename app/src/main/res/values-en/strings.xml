@@ -1523,7 +1523,7 @@
     <string name="bs_continue_shoot">Fire again</string>
     <string name="bs_pass_to">Pass the phone to %1$s</string>
     <string name="bs_see_results">See the result</string>
-    <string name="bs_legend">Key: • miss, ✕ hit, ✖ sunk, ■ your ship.</string>
+    <string name="bs_legend">Key: • miss, ✕ hit, ✖ sunk.</string>
     <string name="bs_results_title">Result</string>
     <string name="bs_winner">%1$s won!</string>
     <string name="bs_fleet_of">%1$s’s fleet</string>

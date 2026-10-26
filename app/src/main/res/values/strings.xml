@@ -1562,7 +1562,7 @@
     <string name="bs_continue_shoot">Tirer encore</string>
     <string name="bs_pass_to">Passer le téléphone à %1$s</string>
     <string name="bs_see_results">Voir le résultat</string>
-    <string name="bs_legend">Légende : • à l’eau, ✕ touché, ✖ coulé, ■ ton bateau.</string>
+    <string name="bs_legend">Légende : • à l’eau, ✕ touché, ✖ coulé.</string>
     <string name="bs_results_title">Résultat</string>
     <string name="bs_winner">%1$s a gagné !</string>
     <string name="bs_fleet_of">Flotte de %1$s</string>

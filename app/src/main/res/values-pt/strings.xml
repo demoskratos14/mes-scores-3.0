@@ -1547,7 +1547,7 @@
     <string name="bs_continue_shoot">Disparar outra vez</string>
     <string name="bs_pass_to">Passar o telemóvel a %1$s</string>
     <string name="bs_see_results">Ver o resultado</string>
-    <string name="bs_legend">Legenda: • água, ✕ atingido, ✖ afundado, ■ o teu navio.</string>
+    <string name="bs_legend">Legenda: • água, ✕ atingido, ✖ afundado.</string>
     <string name="bs_results_title">Resultado</string>
     <string name="bs_winner">%1$s ganhou!</string>
     <string name="bs_fleet_of">Frota de %1$s</string>

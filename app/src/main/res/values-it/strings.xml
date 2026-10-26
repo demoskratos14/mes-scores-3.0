@@ -1557,7 +1557,7 @@
     <string name="bs_continue_shoot">Spara ancora</string>
     <string name="bs_pass_to">Passa il telefono a %1$s</string>
     <string name="bs_see_results">Vedi il risultato</string>
-    <string name="bs_legend">Legenda: • acqua, ✕ colpito, ✖ affondato, ■ la tua nave.</string>
+    <string name="bs_legend">Legenda: • acqua, ✕ colpito, ✖ affondato.</string>
     <string name="bs_results_title">Risultato</string>
     <string name="bs_winner">%1$s ha vinto!</string>
     <string name="bs_fleet_of">Flotta di %1$s</string>
