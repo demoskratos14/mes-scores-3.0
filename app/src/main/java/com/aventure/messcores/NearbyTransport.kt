@@ -128,6 +128,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Morpion chacun sur son téléphone, sur la même connexion. */
     internal val ticTacToe = TicTacToeOnline(session)
 
+    /** Puissance 4 chacun sur son téléphone, sur la même connexion. */
+    internal val connect4 = Connect4Online(session)
+
     /** Touché coulé chacun sur son téléphone, sur la même connexion. */
     internal val battleship = BattleshipOnline(session)
 

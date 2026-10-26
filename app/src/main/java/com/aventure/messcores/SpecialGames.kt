@@ -278,6 +278,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Puissance 4 : écran à part (voir Connect4Screen), à deux joueurs sur un téléphone ou chacun sur le sien ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = CONNECT4_ID,
+        name = context.getString(R.string.game_connect4),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Jeu des allumettes : écran à part (voir NimScreen), à deux joueurs sur un téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = NIM_ID,

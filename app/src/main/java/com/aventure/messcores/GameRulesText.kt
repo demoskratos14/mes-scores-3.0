@@ -310,6 +310,11 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_battleship_3_title, R.string.rules_battleship_3_body),
         RulesSection(R.string.rules_battleship_4_title, R.string.rules_battleship_4_body)
     ),
+    "builtin_connect4" to listOf(
+        RulesSection(R.string.rules_connect4_1_title, R.string.rules_connect4_1_body),
+        RulesSection(R.string.rules_connect4_2_title, R.string.rules_connect4_2_body),
+        RulesSection(R.string.rules_connect4_3_title, R.string.rules_connect4_3_body)
+    ),
     "builtin_nim" to listOf(
         RulesSection(R.string.rules_nim_1_title, R.string.rules_nim_1_body),
         RulesSection(R.string.rules_nim_2_title, R.string.rules_nim_2_body),

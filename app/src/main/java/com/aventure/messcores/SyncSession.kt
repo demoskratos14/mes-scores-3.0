@@ -15,7 +15,7 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 internal enum class SyncRole { NONE, HOST, GUEST }
 
 /** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé ou un jeu des allumettes chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, BATTLESHIP, NIM }
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -105,6 +105,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Le Morpion chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var ticTacToe: TicTacToeOnline? = null
+
+    /** Le Puissance 4 chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var connect4: Connect4Online? = null
 
     /** Le touché coulé chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var battleship: BattleshipOnline? = null
@@ -199,6 +202,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         reset()
         role = SyncRole.HOST
         kind = SyncKind.MORPION
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
+    /** Annonce un Puissance 4 chacun sur son téléphone : l'autre joueur le rejoint comme une partie de score. */
+    fun startHostingConnect4(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.CONNECT4
         advertising = true
         transport.startHosting(deviceName)
     }
@@ -350,6 +362,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         }
         mastermind?.onPeerConnected(id)
         ticTacToe?.onPeerConnected(id)
+        connect4?.onPeerConnected(id)
         battleship?.onPeerConnected(id)
         nim?.onPeerConnected(id)
     }
@@ -363,6 +376,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         connected.removeAll { it.id == id }
         mastermind?.onPeerDisconnected(id)
         ticTacToe?.onPeerDisconnected(id)
+        connect4?.onPeerDisconnected(id)
         battleship?.onPeerDisconnected(id)
         nim?.onPeerDisconnected(id)
         if (role == SyncRole.GUEST && connected.isEmpty()) {
@@ -382,6 +396,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Ttt -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.MORPION
                 ticTacToe?.onMessage(id, message.ttt)
+            }
+            is SyncMessage.C4 -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.CONNECT4
+                connect4?.onMessage(id, message.c4)
             }
             is SyncMessage.Bs -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.BATTLESHIP

@@ -123,6 +123,7 @@ fun ScoreApp(
     val sync = syncViewModel.session
     val mastermindOnline = syncViewModel.mastermind
     val ticTacToeOnline = syncViewModel.ticTacToe
+    val connect4Online = syncViewModel.connect4
     val battleshipOnline = syncViewModel.battleship
     val nimOnline = syncViewModel.nim
     SideEffect { sync.attach(viewModel) }
@@ -290,6 +291,9 @@ fun ScoreApp(
                             // Le touché coulé a lui aussi son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             battleshipViewModel.open(rules, pendingPlayerNames)
                             navController.navigate("battleship")
+                        } else if (rules.id == CONNECT4_ID) {
+                            // Le Puissance 4 a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            navController.navigate("connect4")
                         } else if (rules.id == NIM_ID) {
                             // Le jeu des allumettes a aussi son écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             navController.navigate("nim")
@@ -398,6 +402,30 @@ fun ScoreApp(
                     ticTacToe = ticTacToeOnline,
                     // La table du Morpion est l'écran du jeu, juste derrière.
                     onHostedTicTacToe = { navController.popBackStack() }
+                )
+            }
+            composable("connect4") {
+                Connect4Screen(
+                    players = pendingPlayerNames,
+                    online = connect4Online,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareConnect4") }
+                )
+            }
+            composable("shareConnect4") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.CONNECT4,
+                    connect4 = connect4Online,
+                    // La table du Puissance 4 est l'écran du jeu, juste derrière.
+                    onHostedConnect4 = { navController.popBackStack() }
                 )
             }
             composable("nim") {
@@ -513,6 +541,8 @@ fun ScoreApp(
             },
             ticTacToe = ticTacToeOnline,
             onTicTacToeJoined = { navController.navigate("morpion") { popUpTo("home") } },
+            connect4 = connect4Online,
+            onConnect4Joined = { navController.navigate("connect4") { popUpTo("home") } },
             battleship = battleshipOnline,
             onBattleshipJoined = {
                 gameRepository.builtInGames().firstOrNull { it.id == BATTLESHIP_ID }?.let { battleshipViewModel.prepareOnline(it) }
