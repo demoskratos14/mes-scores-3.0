@@ -1635,4 +1635,37 @@
         <item quantity="many">%d di fiammiferi rimasti</item>
         <item quantity="other">%d fiammiferi rimasti</item>
     </plurals>
+    <string name="game_pfc">Sasso carta forbici</string>
+    <string name="pfc_rock">Sasso</string>
+    <string name="pfc_paper">Carta</string>
+    <string name="pfc_scissors">Forbici</string>
+    <string name="pfc_score">%1$s: %2$d · %3$s: %4$d · pareggi: %5$d</string>
+    <string name="pfc_goal">Round da vincere: %1$d</string>
+    <string name="pfc_target_label">Round da vincere per aggiudicarsi la partita</string>
+    <string name="pfc_pick_turn">%1$s, scegli in segreto</string>
+    <string name="pfc_handover">Passa il telefono a %1$s</string>
+    <string name="pfc_handover_button">Sono %1$s, scelgo</string>
+    <string name="pfc_round_win">%1$s vince il round!</string>
+    <string name="pfc_round_draw">Pareggio: si rigioca</string>
+    <string name="pfc_match_win">%1$s vince la partita!</string>
+    <string name="pfc_next_round">Round successivo</string>
+    <string name="pfc_new_match">Nuova partita</string>
+    <string name="pfc_online_button">Giocare ognuno sul proprio telefono</string>
+    <string name="pfc_online_waiting">In attesa dell’altro giocatore… Sull’altro telefono, tocca «Unisciti a una partita».</string>
+    <string name="pfc_online_notice_left">L’altro giocatore si è disconnesso. Puoi aspettare che un telefono si unisca di nuovo alla partita.</string>
+    <string name="pfc_online_host_left">L’organizzatore si è disconnesso: la partita è finita.</string>
+    <string name="pfc_online_vs">Giochi contro %1$s</string>
+    <string name="pfc_online_pick">Tocca a te scegliere!</string>
+    <string name="pfc_online_wait_opponent">Hai scelto. In attesa di %1$s…</string>
+    <string name="pfc_online_you_win_round">Vinci il round!</string>
+    <string name="pfc_online_you_win_match">Vinci la partita!</string>
+    <string name="pfc_online_leave">Esci dalla partita</string>
+    <string name="pfc_quit_title">Uscire dalla partita?</string>
+    <string name="pfc_quit_message">La connessione con l’altro telefono verrà interrotta e la partita terminerà.</string>
+    <string name="rules_pfc_1_title">Obiettivo</string>
+    <string name="rules_pfc_1_body">Vincere prima dell’avversario il numero di round scelto.</string>
+    <string name="rules_pfc_2_title">Un round</string>
+    <string name="rules_pfc_2_body">I due giocatori scelgono in segreto sasso, carta o forbici, poi le scelte vengono rivelate insieme. Il sasso spezza le forbici, le forbici tagliano la carta, la carta avvolge il sasso. Due scelte uguali sono un pareggio: si rigioca senza punto.</string>
+    <string name="rules_pfc_3_title">Nell’app</string>
+    <string name="rules_pfc_3_body">Prima di cominciare si sceglie il numero di round da vincere (1, 2, 3 o 5). Su un solo telefono ci si passa il telefono: la scelta del primo resta nascosta finché non sceglie il secondo. Ognuno sul proprio, con «Giocare ognuno sul proprio telefono» (proposto finché non si è giocato nulla), ogni scelta lascia il telefono solo alla rivelazione.</string>
 </resources>

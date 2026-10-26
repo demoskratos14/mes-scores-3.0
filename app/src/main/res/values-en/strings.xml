@@ -1598,4 +1598,37 @@
         <item quantity="one">%d match left</item>
         <item quantity="other">%d matches left</item>
     </plurals>
+    <string name="game_pfc">Rock paper scissors</string>
+    <string name="pfc_rock">Rock</string>
+    <string name="pfc_paper">Paper</string>
+    <string name="pfc_scissors">Scissors</string>
+    <string name="pfc_score">%1$s: %2$d · %3$s: %4$d · draws: %5$d</string>
+    <string name="pfc_goal">Rounds to win: %1$d</string>
+    <string name="pfc_target_label">Rounds to win the game</string>
+    <string name="pfc_pick_turn">%1$s, choose in secret</string>
+    <string name="pfc_handover">Pass the phone to %1$s</string>
+    <string name="pfc_handover_button">I’m %1$s, let me choose</string>
+    <string name="pfc_round_win">%1$s wins the round!</string>
+    <string name="pfc_round_draw">Draw: play again</string>
+    <string name="pfc_match_win">%1$s wins the game!</string>
+    <string name="pfc_next_round">Next round</string>
+    <string name="pfc_new_match">New game</string>
+    <string name="pfc_online_button">Play on separate phones</string>
+    <string name="pfc_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
+    <string name="pfc_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
+    <string name="pfc_online_host_left">The host disconnected: the game is over.</string>
+    <string name="pfc_online_vs">You’re playing against %1$s</string>
+    <string name="pfc_online_pick">Your turn to choose!</string>
+    <string name="pfc_online_wait_opponent">Your choice is made. Waiting for %1$s…</string>
+    <string name="pfc_online_you_win_round">You win the round!</string>
+    <string name="pfc_online_you_win_match">You win the game!</string>
+    <string name="pfc_online_leave">Leave the game</string>
+    <string name="pfc_quit_title">Leave the game?</string>
+    <string name="pfc_quit_message">The connection with the other phone will be cut and the game will end.</string>
+    <string name="rules_pfc_1_title">Goal</string>
+    <string name="rules_pfc_1_body">Win the chosen number of rounds before your opponent.</string>
+    <string name="rules_pfc_2_title">A round</string>
+    <string name="rules_pfc_2_body">Both players secretly choose rock, paper or scissors, then the choices are revealed together. Rock breaks scissors, scissors cut paper, paper covers rock. Two identical choices are a draw: play again, no point scored.</string>
+    <string name="rules_pfc_3_title">In the app</string>
+    <string name="rules_pfc_3_body">Before starting, pick the number of rounds to win (1, 2, 3 or 5). On a single phone, pass it around: the first player’s choice stays hidden until the second has chosen. On separate phones, with “Play on separate phones” (offered until something has been played), each choice only leaves its phone at the reveal.</string>
 </resources>

@@ -62,6 +62,9 @@ internal sealed interface SyncMessage {
     /** Un message du jeu des allumettes chacun sur son téléphone (voir [NimOnline]). */
     data class Nim(val nim: NimMessage) : SyncMessage
 
+    /** Un message de Pierre-feuille-ciseaux chacun sur son téléphone (voir [RockPaperScissorsOnline]). */
+    data class Rps(val rps: RpsMessage) : SyncMessage
+
     /** Le tour de dés en cours, envoyé par le téléphone du joueur qui joue (l'organisateur le relaie aux autres). */
     data class Dice(val table: DiceTable) : SyncMessage
 }
@@ -161,6 +164,7 @@ internal object SyncCodec {
             is SyncMessage.Ttt -> json.put("t", "ttt").put("ttt", message.ttt.toJson())
             is SyncMessage.C4 -> json.put("t", "c4").put("c4", message.c4.toJson())
             is SyncMessage.Nim -> json.put("t", "nim").put("nim", message.nim.toJson())
+            is SyncMessage.Rps -> json.put("t", "rps").put("rps", message.rps.toJson())
             is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
                 .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
                 .put("pig", message.table.pigTotal).put("bust", message.table.pigBust)
@@ -188,6 +192,7 @@ internal object SyncCodec {
                 "ttt" -> tttMessageFromJson(json.getJSONObject("ttt"))?.let { SyncMessage.Ttt(it) }
                 "c4" -> c4MessageFromJson(json.getJSONObject("c4"))?.let { SyncMessage.C4(it) }
                 "nim" -> nimMessageFromJson(json.getJSONObject("nim"))?.let { SyncMessage.Nim(it) }
+                "rps" -> rpsMessageFromJson(json.getJSONObject("rps"))?.let { SyncMessage.Rps(it) }
                 "dice" -> {
                     val turn = json.getJSONArray("turn")
                     SyncMessage.Dice(

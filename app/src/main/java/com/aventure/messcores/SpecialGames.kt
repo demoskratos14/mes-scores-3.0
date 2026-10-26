@@ -297,5 +297,15 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         lowestWins = false,
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
+    ),
+    // Pierre-feuille-ciseaux : écran à part (voir RockPaperScissorsScreen), à deux joueurs sur un téléphone ou chacun sur le sien ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = PFC_ID,
+        name = context.getString(R.string.game_pfc),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
     )
 )

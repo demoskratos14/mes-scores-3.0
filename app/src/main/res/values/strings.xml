@@ -1640,4 +1640,37 @@
         <item quantity="many">%d d’allumettes restantes</item>
         <item quantity="other">%d allumettes restantes</item>
     </plurals>
+    <string name="game_pfc">Pierre-feuille-ciseaux</string>
+    <string name="pfc_rock">Pierre</string>
+    <string name="pfc_paper">Feuille</string>
+    <string name="pfc_scissors">Ciseaux</string>
+    <string name="pfc_score">%1$s : %2$d · %3$s : %4$d · égalités : %5$d</string>
+    <string name="pfc_goal">Manches à gagner : %1$d</string>
+    <string name="pfc_target_label">Manches à gagner pour remporter la partie</string>
+    <string name="pfc_pick_turn">%1$s, choisis en secret</string>
+    <string name="pfc_handover">Passe le téléphone à %1$s</string>
+    <string name="pfc_handover_button">C’est %1$s, je choisis</string>
+    <string name="pfc_round_win">%1$s gagne la manche !</string>
+    <string name="pfc_round_draw">Égalité : on recommence</string>
+    <string name="pfc_match_win">%1$s remporte la partie !</string>
+    <string name="pfc_next_round">Manche suivante</string>
+    <string name="pfc_new_match">Nouvelle partie</string>
+    <string name="pfc_online_button">Jouer chacun sur son téléphone</string>
+    <string name="pfc_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
+    <string name="pfc_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
+    <string name="pfc_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
+    <string name="pfc_online_vs">Tu joues contre %1$s</string>
+    <string name="pfc_online_pick">À toi de choisir !</string>
+    <string name="pfc_online_wait_opponent">Ton choix est fait. En attente de %1$s…</string>
+    <string name="pfc_online_you_win_round">Tu gagnes la manche !</string>
+    <string name="pfc_online_you_win_match">Tu remportes la partie !</string>
+    <string name="pfc_online_leave">Quitter la partie</string>
+    <string name="pfc_quit_title">Quitter la partie ?</string>
+    <string name="pfc_quit_message">La connexion avec l’autre téléphone sera coupée et la partie sera terminée.</string>
+    <string name="rules_pfc_1_title">But du jeu</string>
+    <string name="rules_pfc_1_body">Remporter le nombre de manches choisi avant l’adversaire.</string>
+    <string name="rules_pfc_2_title">Une manche</string>
+    <string name="rules_pfc_2_body">Les deux joueurs choisissent en secret pierre, feuille ou ciseaux, puis les choix sont révélés ensemble. La pierre casse les ciseaux, les ciseaux coupent la feuille, la feuille enveloppe la pierre. Deux choix identiques : égalité, on recommence sans point.</string>
+    <string name="rules_pfc_3_title">Dans l’appli</string>
+    <string name="rules_pfc_3_body">Avant de commencer, on choisit le nombre de manches à gagner (1, 2, 3 ou 5). Sur un seul téléphone, on se le passe : le choix du premier reste caché jusqu’à ce que le second ait choisi. Chacun sur le sien, avec « Jouer chacun sur son téléphone » (proposé tant que rien n’a été joué), le choix de chacun ne part qu’à la révélation.</string>
 </resources>

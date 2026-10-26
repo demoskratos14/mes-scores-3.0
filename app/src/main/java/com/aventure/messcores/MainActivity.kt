@@ -126,6 +126,7 @@ fun ScoreApp(
     val connect4Online = syncViewModel.connect4
     val battleshipOnline = syncViewModel.battleship
     val nimOnline = syncViewModel.nim
+    val rockPaperScissorsOnline = syncViewModel.rockPaperScissors
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -294,6 +295,9 @@ fun ScoreApp(
                         } else if (rules.id == CONNECT4_ID) {
                             // Le Puissance 4 a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             navController.navigate("connect4")
+                        } else if (rules.id == PFC_ID) {
+                            // Pierre-feuille-ciseaux a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            navController.navigate("pfc")
                         } else if (rules.id == NIM_ID) {
                             // Le jeu des allumettes a aussi son écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             navController.navigate("nim")
@@ -452,6 +456,30 @@ fun ScoreApp(
                     onHostedNim = { navController.popBackStack() }
                 )
             }
+            composable("pfc") {
+                RockPaperScissorsScreen(
+                    players = pendingPlayerNames,
+                    online = rockPaperScissorsOnline,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("sharePfc") }
+                )
+            }
+            composable("sharePfc") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.PFC,
+                    rockPaperScissors = rockPaperScissorsOnline,
+                    // La table est l'écran du jeu, juste derrière.
+                    onHostedRockPaperScissors = { navController.popBackStack() }
+                )
+            }
             composable("poker") {
                 PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
@@ -549,7 +577,9 @@ fun ScoreApp(
                 navController.navigate("battleship") { popUpTo("home") }
             },
             nim = nimOnline,
-            onNimJoined = { navController.navigate("nim") { popUpTo("home") } }
+            onNimJoined = { navController.navigate("nim") { popUpTo("home") } },
+            rockPaperScissors = rockPaperScissorsOnline,
+            onRockPaperScissorsJoined = { navController.navigate("pfc") { popUpTo("home") } }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)

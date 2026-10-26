@@ -1625,4 +1625,37 @@
         <item quantity="many">Restam %d de fósforos</item>
         <item quantity="other">Restam %d fósforos</item>
     </plurals>
+    <string name="game_pfc">Pedra, papel e tesoura</string>
+    <string name="pfc_rock">Pedra</string>
+    <string name="pfc_paper">Papel</string>
+    <string name="pfc_scissors">Tesoura</string>
+    <string name="pfc_score">%1$s: %2$d · %3$s: %4$d · empates: %5$d</string>
+    <string name="pfc_goal">Rondas a ganhar: %1$d</string>
+    <string name="pfc_target_label">Rondas a ganhar para vencer o jogo</string>
+    <string name="pfc_pick_turn">%1$s, escolhe em segredo</string>
+    <string name="pfc_handover">Passa o telemóvel a %1$s</string>
+    <string name="pfc_handover_button">Sou %1$s, vou escolher</string>
+    <string name="pfc_round_win">%1$s ganha a ronda!</string>
+    <string name="pfc_round_draw">Empate: joga-se outra vez</string>
+    <string name="pfc_match_win">%1$s ganha o jogo!</string>
+    <string name="pfc_next_round">Ronda seguinte</string>
+    <string name="pfc_new_match">Novo jogo</string>
+    <string name="pfc_online_button">Jogar cada um no seu telemóvel</string>
+    <string name="pfc_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
+    <string name="pfc_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a juntar-se ao jogo.</string>
+    <string name="pfc_online_host_left">O organizador desligou-se: o jogo terminou.</string>
+    <string name="pfc_online_vs">Jogas contra %1$s</string>
+    <string name="pfc_online_pick">É a tua vez de escolher!</string>
+    <string name="pfc_online_wait_opponent">Já escolheste. À espera de %1$s…</string>
+    <string name="pfc_online_you_win_round">Ganhas a ronda!</string>
+    <string name="pfc_online_you_win_match">Ganhas o jogo!</string>
+    <string name="pfc_online_leave">Sair do jogo</string>
+    <string name="pfc_quit_title">Sair do jogo?</string>
+    <string name="pfc_quit_message">A ligação com o outro telemóvel será cortada e o jogo terminará.</string>
+    <string name="rules_pfc_1_title">Objetivo</string>
+    <string name="rules_pfc_1_body">Ganhar, antes do adversário, o número de rondas escolhido.</string>
+    <string name="rules_pfc_2_title">Uma ronda</string>
+    <string name="rules_pfc_2_body">Os dois jogadores escolhem em segredo pedra, papel ou tesoura e depois as escolhas são reveladas ao mesmo tempo. A pedra parte a tesoura, a tesoura corta o papel, o papel embrulha a pedra. Duas escolhas iguais são um empate: joga-se outra vez, sem ponto.</string>
+    <string name="rules_pfc_3_title">Na app</string>
+    <string name="rules_pfc_3_body">Antes de começar, escolhe-se o número de rondas a ganhar (1, 2, 3 ou 5). Num só telemóvel, passa-se de mão em mão: a escolha do primeiro fica escondida até o segundo escolher. Cada um no seu, com «Jogar cada um no seu telemóvel» (disponível enquanto nada tiver sido jogado), cada escolha só sai do telemóvel na revelação.</string>
 </resources>

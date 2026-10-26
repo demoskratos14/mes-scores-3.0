@@ -1625,4 +1625,37 @@
         <item quantity="many">Quedan %d de cerillas</item>
         <item quantity="other">Quedan %d cerillas</item>
     </plurals>
+    <string name="game_pfc">Piedra, papel o tijera</string>
+    <string name="pfc_rock">Piedra</string>
+    <string name="pfc_paper">Papel</string>
+    <string name="pfc_scissors">Tijera</string>
+    <string name="pfc_score">%1$s: %2$d · %3$s: %4$d · empates: %5$d</string>
+    <string name="pfc_goal">Rondas por ganar: %1$d</string>
+    <string name="pfc_target_label">Rondas que hay que ganar para llevarse la partida</string>
+    <string name="pfc_pick_turn">%1$s, elige en secreto</string>
+    <string name="pfc_handover">Pasa el teléfono a %1$s</string>
+    <string name="pfc_handover_button">Soy %1$s, voy a elegir</string>
+    <string name="pfc_round_win">¡%1$s gana la ronda!</string>
+    <string name="pfc_round_draw">Empate: se repite</string>
+    <string name="pfc_match_win">¡%1$s gana la partida!</string>
+    <string name="pfc_next_round">Ronda siguiente</string>
+    <string name="pfc_new_match">Nueva partida</string>
+    <string name="pfc_online_button">Jugar cada uno en su teléfono</string>
+    <string name="pfc_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
+    <string name="pfc_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono se una de nuevo a la partida.</string>
+    <string name="pfc_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
+    <string name="pfc_online_vs">Juegas contra %1$s</string>
+    <string name="pfc_online_pick">¡Te toca elegir!</string>
+    <string name="pfc_online_wait_opponent">Ya has elegido. Esperando a %1$s…</string>
+    <string name="pfc_online_you_win_round">¡Ganas la ronda!</string>
+    <string name="pfc_online_you_win_match">¡Ganas la partida!</string>
+    <string name="pfc_online_leave">Salir de la partida</string>
+    <string name="pfc_quit_title">¿Salir de la partida?</string>
+    <string name="pfc_quit_message">Se cortará la conexión con el otro teléfono y la partida terminará.</string>
+    <string name="rules_pfc_1_title">Objetivo</string>
+    <string name="rules_pfc_1_body">Ganar antes que el rival el número de rondas elegido.</string>
+    <string name="rules_pfc_2_title">Una ronda</string>
+    <string name="rules_pfc_2_body">Los dos jugadores eligen en secreto piedra, papel o tijera y luego se revelan las elecciones a la vez. La piedra rompe la tijera, la tijera corta el papel, el papel envuelve la piedra. Dos elecciones iguales son empate: se repite sin punto.</string>
+    <string name="rules_pfc_3_title">En la app</string>
+    <string name="rules_pfc_3_body">Antes de empezar se elige el número de rondas por ganar (1, 2, 3 o 5). En un solo teléfono, se pasa de mano en mano: la elección del primero queda oculta hasta que elige el segundo. Cada uno en el suyo, con «Jugar cada uno en su teléfono» (disponible mientras no se haya jugado nada), cada elección solo sale del teléfono en la revelación.</string>
 </resources>

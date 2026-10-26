@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -115,7 +115,9 @@ internal fun ShareScreen(
     battleshipSettings: BattleshipSettings = BattleshipSettings(),
     onHostedBattleship: () -> Unit = {},
     nim: NimOnline? = null,
-    onHostedNim: () -> Unit = {}
+    onHostedNim: () -> Unit = {},
+    rockPaperScissors: RockPaperScissorsOnline? = null,
+    onHostedRockPaperScissors: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
@@ -154,6 +156,11 @@ internal fun ShareScreen(
                 session.startHostingNim(deviceName)
                 nim.openLobby(deviceName)
                 onHostedNim()
+            }
+            kind == ShareKind.PFC && rockPaperScissors != null -> {
+                session.startHostingRockPaperScissors(deviceName)
+                rockPaperScissors.openLobby(deviceName)
+                onHostedRockPaperScissors()
             }
             else -> session.startHosting(deviceName)
         }
@@ -352,7 +359,9 @@ internal fun SyncEffects(
     battleship: BattleshipOnline,
     onBattleshipJoined: () -> Unit,
     nim: NimOnline,
-    onNimJoined: () -> Unit
+    onNimJoined: () -> Unit,
+    rockPaperScissors: RockPaperScissorsOnline,
+    onRockPaperScissorsJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -385,6 +394,11 @@ internal fun SyncEffects(
         if (nim.joined == 0 || nim.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup" || current == "shareNim") onNimJoined()
+    }
+    LaunchedEffect(rockPaperScissors.joined) {
+        if (rockPaperScissors.joined == 0 || rockPaperScissors.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "sharePfc") onRockPaperScissorsJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect

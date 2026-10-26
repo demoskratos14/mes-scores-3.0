@@ -15,7 +15,7 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 internal enum class SyncRole { NONE, HOST, GUEST }
 
 /** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé ou un jeu des allumettes chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM }
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -114,6 +114,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Le jeu des allumettes chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var nim: NimOnline? = null
+
+    /** Pierre-feuille-ciseaux chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var rockPaperScissors: RockPaperScissorsOnline? = null
 
     /** Le tour de dés partagé (jeux de dés) ; null tant que personne n'a lancé ni changé de joueur. */
     var diceTable by mutableStateOf<DiceTable?>(null)
@@ -229,6 +232,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         reset()
         role = SyncRole.HOST
         kind = SyncKind.NIM
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
+    /** Annonce un Pierre-feuille-ciseaux chacun sur son téléphone : l'autre joueur le rejoint comme une partie de score. */
+    fun startHostingRockPaperScissors(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.PFC
         advertising = true
         transport.startHosting(deviceName)
     }
@@ -365,6 +377,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         connect4?.onPeerConnected(id)
         battleship?.onPeerConnected(id)
         nim?.onPeerConnected(id)
+        rockPaperScissors?.onPeerConnected(id)
     }
 
     override fun onConnectionFailed(id: String, rejected: Boolean) {
@@ -379,6 +392,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         connect4?.onPeerDisconnected(id)
         battleship?.onPeerDisconnected(id)
         nim?.onPeerDisconnected(id)
+        rockPaperScissors?.onPeerDisconnected(id)
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
             reset()
@@ -408,6 +422,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Nim -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.NIM
                 nim?.onMessage(id, message.nim)
+            }
+            is SyncMessage.Rps -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.PFC
+                rockPaperScissors?.onMessage(id, message.rps)
             }
             is SyncMessage.State -> {
                 val game = game ?: return
