@@ -400,7 +400,7 @@
     <string name="rules_421_1_title">Objetivo</string>
     <string name="rules_421_1_body">Evitar acumular fichas. En cada ronda, el perdedor se lleva algunas; al final de la partida, gana el jugador con menos. La aplicación cuenta las fichas de cada jugador con los botones +1 y −1.</string>
     <string name="rules_421_2_title">Cómo se juega un turno</string>
-    <string name="rules_421_2_body">En tu turno, lanza 3 dados hasta 3 veces, conservando los dados que quieras. El primer jugador de la ronda decide cuántos lanzamientos puede hacer cada uno de los demás. La mejor mano gana la ronda y la peor la pierde.</string>
+    <string name="rules_421_2_body">En tu turno, lanza 3 dados hasta 3 veces, conservando los dados que quieras. El primer jugador de la ronda decide cuántos lanzamientos puede hacer cada uno de los demás. La mejor mano gana la ronda y la peor la pierde. Si la mejor y la peor mano son idénticas (misma mano, mismo número de lanzamientos), la ronda es nula: no se mueve ninguna ficha y se repite.</string>
     <string name="rules_421_3_title">Valor de las manos</string>
     <string name="rules_421_3_body">De mejor a peor: 421 (10 fichas), 111 (7 fichas), una pareja de ases con otro dado, como 116 (tantas fichas como el tercer dado), después los tríos 666 (6 fichas), 555 (5), 444 (4), 333 (3), 222 (2), y por último las escaleras 456, 345, 234, 123 (2 fichas cada una). Todas las demás manos valen 1 ficha.</string>
     <string name="rules_421_4_title">Carga y descarga</string>
@@ -1303,7 +1303,11 @@
     <string name="dice_shared_wait">Le toca a %1$s.</string>
     <string name="dice_see_scores">Ver el marcador</string>
     <string name="dice_sum">Total de los dados: %1$d</string>
-    <string name="dice_combo_value">%1$s: %2$d</string>
+    <plurals name="dice_combo_tokens">
+        <item quantity="one">%1$s: %2$d ficha</item>
+        <item quantity="many">%1$s: %2$d de fichas</item>
+        <item quantity="other">%1$s: %2$d fichas</item>
+    </plurals>
     <string name="dice_yams_prompt">Lanza los dados para ver las puntuaciones posibles.</string>
     <string name="dice_yams_write">Anotar %1$d</string>
     <string name="dice_yams_crossed">Tachado</string>
@@ -1320,11 +1324,14 @@
     <string name="dice_421_pot">Fichas en el centro: %1$d</string>
     <string name="dice_421_discharge">Descarga: el perdedor de la ronda toma fichas del ganador.</string>
     <string name="dice_421_draw_title">¿Quién empieza?</string>
-    <string name="dice_421_draw_intro">Cada jugador lanza un dado por turno: el más alto empieza. En caso de empate, los empatados vuelven a lanzar.</string>
-    <string name="dice_421_draw_tie">Empate: %1$s vuelven a lanzar.</string>
-    <string name="dice_421_draw_roll">%1$s lanza el dado</string>
+    <string name="dice_421_draw_intro">Primero se juega una ronda inicial, sin fichas: quien tenga la mejor mano empieza la partida.</string>
+    <string name="dice_421_draw_roll">Jugar la ronda inicial</string>
     <string name="dice_421_draw_pick">O elige directamente quién empieza:</string>
     <string name="dice_421_draw_result">¡Empieza %1$s!</string>
+    <string name="dice_421_opening_title">Ronda inicial (sin fichas)</string>
+    <string name="dice_421_opening_result">¡%1$s tiene la mejor mano y empieza la partida!</string>
+    <string name="dice_421_opening_draw">Empate perfecto: se repite la ronda inicial.</string>
+    <string name="dice_421_opening_begin">Empezar la partida</string>
     <string name="dice_421_begin">Empezar la ronda</string>
     <string name="dice_421_turn">Turno de %1$s (jugador %2$d de %3$d)</string>
     <plurals name="dice_421_starter_hint">
@@ -1341,6 +1348,7 @@
     <string name="dice_421_round_over">Ronda terminada</string>
     <string name="dice_421_result_best">Mejor juego: %1$s con %2$s (valor: %3$d).</string>
     <string name="dice_421_result_pot">%1$s pierde la ronda. Fichas tomadas del centro: %2$d.</string>
+    <string name="dice_421_result_draw">Empate perfecto: ronda nula, no se mueve ninguna ficha. Se repite la ronda.</string>
     <string name="dice_421_result_discharge">%1$s pierde la ronda. Fichas tomadas de %3$s: %2$d.</string>
     <string name="dice_421_next_round">Siguiente ronda</string>
     <string name="dice_421_replay_round">Repetir la ronda</string>

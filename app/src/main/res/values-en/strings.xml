@@ -400,7 +400,7 @@
     <string name="rules_421_1_title">Goal</string>
     <string name="rules_421_1_body">Avoid collecting tokens. Each round, the loser takes some; at the end of the game, the player with the fewest wins. The app counts each player’s tokens with the +1 and −1 buttons.</string>
     <string name="rules_421_2_title">Taking a turn</string>
-    <string name="rules_421_2_body">On your turn, roll 3 dice up to 3 times, keeping the dice you want. The first player of the round decides how many rolls everyone else is allowed. The best hand wins the round, the worst loses it.</string>
+    <string name="rules_421_2_body">On your turn, roll 3 dice up to 3 times, keeping the dice you want. The first player of the round decides how many rolls everyone else is allowed. The best hand wins the round, the worst loses it. If the best and the worst hands are identical (same hand, same number of rolls), the round is void: no tokens move and it is replayed.</string>
     <string name="rules_421_3_title">Hand values</string>
     <string name="rules_421_3_body">From best to worst: 421 (10 tokens), 111 (7 tokens), a pair of aces with another die such as 116 (as many tokens as the third die), then the three of a kind 666 (6 tokens), 555 (5), 444 (4), 333 (3), 222 (2), then the straights 456, 345, 234, 123 (2 tokens each). All other hands are worth 1 token.</string>
     <string name="rules_421_4_title">Charge and discharge</string>
@@ -1280,7 +1280,10 @@
     <string name="dice_shared_wait">It’s %1$s’s turn.</string>
     <string name="dice_see_scores">See the scoreboard</string>
     <string name="dice_sum">Dice total: %1$d</string>
-    <string name="dice_combo_value">%1$s: %2$d</string>
+    <plurals name="dice_combo_tokens">
+        <item quantity="one">%1$s: %2$d token</item>
+        <item quantity="other">%1$s: %2$d tokens</item>
+    </plurals>
     <string name="dice_yams_prompt">Roll the dice to see the possible scores.</string>
     <string name="dice_yams_write">Score %1$d</string>
     <string name="dice_yams_crossed">Crossed out</string>
@@ -1297,11 +1300,14 @@
     <string name="dice_421_pot">Tokens in the middle: %1$d</string>
     <string name="dice_421_discharge">Discharge: the loser of the round takes tokens from the winner.</string>
     <string name="dice_421_draw_title">Who starts?</string>
-    <string name="dice_421_draw_intro">Each player rolls one die in turn: the highest starts. On a tie, the tied players roll again.</string>
-    <string name="dice_421_draw_tie">Tie: %1$s roll again.</string>
-    <string name="dice_421_draw_roll">%1$s rolls the die</string>
+    <string name="dice_421_draw_intro">First comes an opening round, with no tokens: the player with the best hand starts the game.</string>
+    <string name="dice_421_draw_roll">Play the opening round</string>
     <string name="dice_421_draw_pick">Or pick who starts directly:</string>
     <string name="dice_421_draw_result">%1$s starts!</string>
+    <string name="dice_421_opening_title">Opening round (no tokens)</string>
+    <string name="dice_421_opening_result">%1$s has the best hand and starts the game!</string>
+    <string name="dice_421_opening_draw">Perfect tie: the opening round is replayed.</string>
+    <string name="dice_421_opening_begin">Start the game</string>
     <string name="dice_421_begin">Start the round</string>
     <string name="dice_421_turn">%1$s’s turn (player %2$d of %3$d)</string>
     <plurals name="dice_421_starter_hint">
@@ -1317,6 +1323,7 @@
     <string name="dice_421_round_over">Round over</string>
     <string name="dice_421_result_best">Best hand: %1$s with %2$s (value: %3$d).</string>
     <string name="dice_421_result_pot">%1$s loses the round. Tokens taken from the middle: %2$d.</string>
+    <string name="dice_421_result_draw">Perfect tie: round void, no tokens move. The round is replayed.</string>
     <string name="dice_421_result_discharge">%1$s loses the round. Tokens taken from %3$s: %2$d.</string>
     <string name="dice_421_next_round">Next round</string>
     <string name="dice_421_replay_round">Replay the round</string>

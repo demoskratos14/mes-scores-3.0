@@ -9,12 +9,12 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** Le 421 jouable tour par tour : tirage du premier joueur, limite de lancers, jetons comptés seuls. */
+/** Le 421 jouable tour par tour : manche de départ, limite de lancers, jetons comptés seuls. */
 @RunWith(RobolectricTestRunner::class)
 @Config(qualifiers = "fr")
 class Round421Test {
 
-    /** Une manche dont les dés sortent dans l'ordre donné (tirage compris). */
+    /** Une manche dont les dés sortent dans l'ordre donné . */
     private fun round(players: Int, vararg dice: Int): Round421 {
         val queue = ArrayDeque(dice.toList())
         return Round421(players) { queue.removeFirst() }
@@ -77,30 +77,52 @@ class Round421Test {
         assertNull(Dice421.gameLoser(listOf(0, 8, 0)))
     }
 
-    // ---------- Tirage du premier joueur ----------
+    // ---------- Manche de départ ----------
 
     @Test
-    fun auTirageLeDePlusFortCommenceEtLesExAequoRelancent() {
-        // Joueur 1 et joueur 2 font 5 : ils relancent (2 puis 6), le joueur 3 (index 2) commence.
-        val round = round(3, 3, 5, 5, 2, 6)
-        assertEquals(Phase421.DRAW, round.phase)
-        assertEquals(0, round.drawNext)
-        round.drawRoll()
-        round.drawRoll()
-        round.drawRoll()
-        assertTrue(round.drawTie)
-        assertEquals(listOf(1, 2), round.drawPool)
-        assertEquals(1, round.drawNext)
-        assertEquals(-1, round.starter)
-        round.drawRoll()
-        assertEquals(2, round.drawNext)
-        round.drawRoll()
-        assertEquals(2, round.starter)
-        assertNull(round.drawNext)
+    fun laMancheDeDepartDesigneLeMeilleurJeuCommePremierJoueur() {
+        // Le joueur 1 fait 421 : il commence la première vraie manche, sans jetons en jeu pendant la manche de départ.
+        val round = round(3, 5, 3, 2, 4, 2, 1, 6, 6, 6)
+        round.startOpening(listOf(0, 1, 2))
+        assertTrue(round.opening)
+        assertEquals(Phase421.PLAY, round.phase)
+        assertEquals(listOf(0, 1, 2), round.order)
+        repeat(3) { playOnce(round) }
+        assertEquals(Phase421.DONE, round.phase)
+        assertEquals(1, round.result()?.winner)
+
+        round.finishOpening(listOf(0, 1, 2))
+        assertFalse(round.opening)
+        assertEquals(Phase421.PLAY, round.phase)
+        assertEquals(listOf(1, 2, 0), round.order)
+        assertTrue(round.hands.all { it.isEmpty() })
     }
 
     @Test
-    fun onPeutChoisirLePremierJoueurSansTirage() {
+    fun uneEgaliteParfaiteALaMancheDeDepartLaFaitRejouer() {
+        val round = round(2, 5, 3, 2, 5, 3, 2)
+        round.startOpening(listOf(0, 1))
+        repeat(2) { playOnce(round) }
+        assertTrue(round.result()?.draw == true)
+
+        round.finishOpening(listOf(0, 1))
+        assertTrue(round.opening)
+        assertEquals(Phase421.PLAY, round.phase)
+        assertEquals(listOf(0, 1), round.order)
+        assertTrue(round.hands.all { it.isEmpty() })
+    }
+
+    @Test
+    fun onNePeutPasLancerLaMancheDeDepartApresAvoirChoisiLePremierJoueur() {
+        val round = round(3)
+        round.chooseStarter(1)
+        round.startOpening(listOf(0, 1, 2))
+        assertFalse(round.opening)
+        assertEquals(Phase421.DRAW, round.phase)
+    }
+
+    @Test
+    fun onPeutChoisirLePremierJoueurSansMancheDeDepart() {
         val round = round(3)
         round.chooseStarter(1)
         assertEquals(1, round.starter)
@@ -110,7 +132,7 @@ class Round421Test {
     }
 
     @Test
-    fun laManchePeutSeCommencerSeulementApresLeTirage() {
+    fun laManchePeutSeCommencerSeulementApresLeChoixDuPremierJoueur() {
         val round = round(3)
         round.begin(listOf(0, 1, 2))
         assertEquals(Phase421.DRAW, round.phase)
@@ -121,8 +143,8 @@ class Round421Test {
     @Test
     fun lePremierJoueurFixeLeNombreDeLancersDesAutres() {
         // Le joueur 2 commence : un seul lancer, donc un seul lancer pour les autres.
-        val round = round(3, 3, 5, 5, 2, 6, 4, 2, 1, 6, 6, 6, 5, 3, 2)
-        repeat(5) { round.drawRoll() }
+        val round = round(3, 4, 2, 1, 6, 6, 6, 5, 3, 2)
+        round.chooseStarter(2)
         round.begin(listOf(0, 1, 2))
         assertEquals(listOf(2, 0, 1), round.order)
         assertTrue(round.isStarterTurn)
@@ -192,7 +214,20 @@ class Round421Test {
         round.begin(listOf(0, 1))
         playOnce(round)
         assertTrue(playOnce(round))
-        assertEquals(Result421(winner = 0, loser = 1, points = 1), round.result())
+        // Même jeu, même nombre de lancers : le premier à jouer gagne, mais la manche est nulle.
+        assertEquals(Result421(winner = 0, loser = 1, points = 1, draw = true), round.result())
+    }
+
+    @Test
+    fun uneMancheNulleSeRejoueAvecLeMemePremierJoueur() {
+        val round = round(3, 5, 3, 2, 5, 3, 2, 5, 3, 2)
+        round.chooseStarter(1)
+        round.begin(listOf(0, 1, 2))
+        repeat(3) { playOnce(round) }
+        assertTrue(round.result()?.draw == true)
+        round.nextRound(listOf(0, 1, 2))
+        assertFalse(round.opening)
+        assertEquals(listOf(1, 2, 0), round.order)
     }
 
     @Test
@@ -270,14 +305,15 @@ class Round421Test {
     }
 
     @Test
-    fun leTirageEnCoursSurvitAussiAUnePartage() {
-        val round = round(3, 3, 5, 5)
-        repeat(3) { round.drawRoll() }
+    fun laMancheDeDepartSurvitAUnePartage() {
+        val round = round(3, 5, 3, 2)
+        round.startOpening(listOf(0, 1, 2))
+        playOnce(round)
         val copy = Round421(3)
         copy.restoreFrom(round.snapshot())
-        assertTrue(copy.drawTie)
-        assertEquals(listOf(1, 2), copy.drawPool)
-        assertEquals(1, copy.drawNext)
+        assertTrue(copy.opening)
+        assertEquals(Phase421.PLAY, copy.phase)
+        assertEquals(round.hands, copy.hands)
         assertEquals(round.snapshot(), copy.snapshot())
     }
 
@@ -295,6 +331,5 @@ class Round421Test {
         val other = Round421(4)
         other.restoreFrom(Round421(3).snapshot())
         assertEquals(Phase421.DRAW, other.phase)
-        assertEquals(4, other.drawValues.size)
     }
 }

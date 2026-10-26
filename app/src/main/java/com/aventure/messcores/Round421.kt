@@ -6,17 +6,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlin.random.Random
 
-/** Où en est la partie de 421 : tirage du premier joueur, manche en cours, ou manche terminée. */
+/** Où en est la partie de 421 : avant la manche de départ, manche en cours (de départ ou non), ou manche terminée. */
 internal enum class Phase421 { DRAW, PLAY, DONE }
 
-/** Résultat d'une manche : celui qui a le meilleur jeu, celui qui a le moins bon et la valeur du meilleur jeu. */
-internal data class Result421(val winner: Int, val loser: Int, val points: Int)
+/**
+ * Résultat d'une manche : celui qui a le meilleur jeu, celui qui a le moins bon et la valeur du meilleur jeu.
+ * [draw] : le meilleur et le moins bon jeu sont à égalité parfaite (même jeu, même nombre de lancers) : la manche
+ * est nulle, aucun jeton ne bouge et elle est rejouée.
+ */
+internal data class Result421(val winner: Int, val loser: Int, val points: Int, val draw: Boolean = false)
 
 /**
  * Une manche de 421 jouée tour par tour, de la même façon pour tous les téléphones.
  *
- * - Au départ, on tire au sort le premier joueur : chacun lance un dé à son tour, le plus fort commence (les
- *   ex æquo relancent entre eux). On peut aussi le choisir directement.
+ * - Au départ, on joue une manche de départ ([opening]) : une vraie manche, mais sans jetons. Celui qui a le meilleur
+ *   jeu commence la partie ; en cas d'égalité parfaite, la manche de départ est rejouée. On peut aussi choisir
+ *   directement le premier joueur.
  * - Le premier joueur de la manche lance jusqu'à 3 fois et garde son jeu quand il veut : le nombre de lancers
  *   qu'il a faits devient la limite de tous les autres joueurs.
  * - Chacun joue dans l'ordre de la table ; quand le dernier a gardé son jeu, la manche est terminée. Le moins bon
@@ -36,19 +41,11 @@ internal class Round421(
     var phase by mutableStateOf(Phase421.DRAW)
         private set
 
-    /** Tirage : le dé de chaque joueur (0 : pas encore lancé). */
-    var drawValues by mutableStateOf(List(playerCount) { 0 })
+    /** Vrai pendant la manche de départ : elle désigne le premier joueur, mais aucun jeton ne bouge. */
+    var opening by mutableStateOf(false)
         private set
 
-    /** Tirage : les joueurs encore en lice (tous au début, puis les ex æquo qui relancent). */
-    var drawPool by mutableStateOf((0 until playerCount).toList())
-        private set
-
-    /** Tirage : vrai quand un ex æquo vient de faire relancer des joueurs. */
-    var drawTie by mutableStateOf(false)
-        private set
-
-    /** Le premier joueur de la manche ; -1 tant que le tirage n'a pas désigné personne. */
+    /** Le premier joueur de la manche ; -1 tant qu'il n'a pas été désigné ou choisi. */
     var starter by mutableIntStateOf(-1)
         private set
 
@@ -80,13 +77,10 @@ internal class Round421(
     var tokensFromPot by mutableStateOf(true)
         private set
 
-    /** Le prochain joueur à lancer son dé au tirage, ou null quand le tirage est fait. */
-    val drawNext: Int? get() = if (starter >= 0) null else drawPool.firstOrNull { drawValues.getOrElse(it) { 0 } == 0 }
-
-    /** Le joueur à qui c'est de jouer : celui du tirage, de la manche, ou le perdant d'une manche terminée. */
+    /** Le joueur à qui c'est de jouer : celui de la manche, ou le perdant d'une manche terminée. */
     val currentPlayer: Int
         get() = when (phase) {
-            Phase421.DRAW -> drawNext ?: starter.coerceAtLeast(0)
+            Phase421.DRAW -> starter.coerceAtLeast(0)
             Phase421.PLAY -> order.getOrElse(position) { 0 }
             Phase421.DONE -> result()?.loser ?: 0
         }
@@ -97,41 +91,40 @@ internal class Round421(
     /** Vrai quand le joueur qui joue a lancé les dés au moins une fois, donc peut garder son jeu. */
     val canKeep: Boolean get() = phase == Phase421.PLAY && turn.hasRolled
 
-    // ---------- Tirage du premier joueur ----------
+    // ---------- Manche de départ ----------
 
-    /** Le joueur dont c'est le tour lance son dé ; quand tous ont lancé, le plus fort commence, les ex æquo relancent. */
-    fun drawRoll() {
-        if (phase != Phase421.DRAW) return
-        val player = drawNext ?: return
-        drawTie = false
-        val values = drawValues.toMutableList()
-        values[player] = rollDie()
-        if (drawPool.any { values[it] == 0 }) {
-            drawValues = values
-            return
-        }
-        val best = drawPool.maxOf { values[it] }
-        val leaders = drawPool.filter { values[it] == best }
-        if (leaders.size == 1) {
-            drawValues = values
-            starter = leaders.first()
+    /**
+     * Lance la manche de départ : tous les joueurs de [active] jouent une manche, en commençant par le premier de la
+     * table, sans que les jetons comptent. Le meilleur jeu désigne le premier joueur (voir [finishOpening]).
+     */
+    fun startOpening(active: List<Int>) {
+        if (phase != Phase421.DRAW || starter >= 0) return
+        opening = true
+        startRound(0, active)
+    }
+
+    /**
+     * Termine la manche de départ : le gagnant commence la première vraie manche ; en cas d'égalité parfaite, la
+     * manche de départ est rejouée avec le même premier joueur. [active] : les joueurs de la manche.
+     */
+    fun finishOpening(active: List<Int>) {
+        if (phase != Phase421.DONE || !opening) return
+        val result = result() ?: return
+        if (result.draw) {
+            startRound(order.first(), active)
         } else {
-            // Égalité en tête : seuls les ex æquo relancent, leur dé est remis à zéro.
-            leaders.forEach { values[it] = 0 }
-            drawTie = true
-            drawPool = leaders
-            drawValues = values
+            opening = false
+            startRound(result.winner, active)
         }
     }
 
     /** Choisit directement le premier joueur, sans tirage. */
     fun chooseStarter(player: Int) {
         if (phase != Phase421.DRAW || player !in 0 until playerCount) return
-        drawTie = false
         starter = player
     }
 
-    /** Commence la première manche avec le joueur désigné par le tirage (ou choisi) ; [active] : les joueurs de la manche. */
+    /** Commence la première manche avec le joueur choisi directement ; [active] : les joueurs de la manche. */
     fun begin(active: List<Int>) {
         if (phase != Phase421.DRAW || starter < 0) return
         startRound(starter, active)
@@ -140,7 +133,9 @@ internal class Round421(
     /** Manche suivante : le perdant de la manche qui vient de finir commence ; [active] : les joueurs de la manche. */
     fun nextRound(active: List<Int>) {
         if (phase != Phase421.DONE) return
-        startRound(result()?.loser ?: starter, active)
+        // Manche nulle : on la rejoue, avec le même premier joueur.
+        val result = result()
+        startRound(if (result?.draw == true) order.first() else result?.loser ?: starter, active)
     }
 
     private fun startRound(first: Int, active: List<Int>) {
@@ -185,7 +180,8 @@ internal class Round421(
 
     /**
      * Le résultat de la manche, une fois que tous les joueurs ont gardé leur jeu. À jeux égaux, celui qui a fait
-     * le moins de lancers est meilleur ; à lancers égaux, celui qui a joué le premier.
+     * le moins de lancers est meilleur ; à lancers égaux, celui qui a joué le premier. Si le meilleur et le moins
+     * bon jeu sont à égalité parfaite (même force, même nombre de lancers), la manche est nulle ([Result421.draw]).
      */
     fun result(): Result421? {
         if (order.isEmpty() || order.any { hands.getOrNull(it).isNullOrEmpty() }) return null
@@ -195,7 +191,9 @@ internal class Round421(
                 .thenBy { it.index }
         )
         val winner = ranked.first().value
-        return Result421(winner = winner, loser = ranked.last().value, points = Dice421.combo(hands[winner]).points)
+        val loser = ranked.last().value
+        val draw = Dice421.strength(hands[winner]) == Dice421.strength(hands[loser]) && rolls[winner] == rolls[loser]
+        return Result421(winner = winner, loser = loser, points = Dice421.combo(hands[winner]).points, draw = draw)
     }
 
     /** Retient les jetons déplacés ([fromPot] : pris au milieu), pour les afficher sur tous les téléphones. */
@@ -217,9 +215,7 @@ internal class Round421(
 
     private fun resetAll() {
         phase = Phase421.DRAW
-        drawValues = List(playerCount) { 0 }
-        drawPool = (0 until playerCount).toList()
-        drawTie = false
+        opening = false
         starter = -1
         order = emptyList()
         position = 0
@@ -234,19 +230,16 @@ internal class Round421(
 
     /** État sous forme de liste d'entiers, pour survivre à une rotation de l'écran et être partagé (voir [restoreFrom]). */
     fun snapshot(): List<Int> = buildList {
-        add(phase.ordinal)
+        // La manche de départ est codée dans la phase (+10), pour garder un format simple.
+        add(phase.ordinal + if (opening) 10 else 0)
         add(playerCount)
         add(starter)
         add(position)
         add(limit)
         add(tokens)
         add(if (tokensFromPot) 1 else 0)
-        add(if (drawTie) 1 else 0)
         add(order.size)
         addAll(order)
-        add(drawPool.size)
-        addAll(drawPool)
-        addAll(drawValues)
         addAll(rolls)
         hands.forEach { hand ->
             add(hand.size)
@@ -267,21 +260,21 @@ internal class Round421(
                 require(list.all { it in 0 until playerCount })
             }
 
-            val newPhase = Phase421.values()[next()]
+            val rawPhase = next()
+            require(rawPhase >= 0)
+            val newOpening = rawPhase >= 10
+            val newPhase = Phase421.values()[rawPhase % 10]
             require(next() == playerCount)
             val newStarter = next()
             val newPosition = next()
             val newLimit = next()
             val newTokens = next()
             val newFromPot = next() == 1
-            val newTie = next() == 1
             val newOrder = players()
-            val newPool = players()
-            val newDraw = List(playerCount) { next() }
             val newRolls = List(playerCount) { next() }
             val newHands = List(playerCount) { List(size(3)) { next() } }
             require(newStarter in -1 until playerCount && newLimit in 1..maxRolls && newPosition in 0..newOrder.size)
-            require(newDraw.all { it in 0..6 } && newRolls.all { it in 0..maxRolls })
+            require(newRolls.all { it in 0..maxRolls })
             require(newHands.all { it.isEmpty() || (it.size == 3 && it.all { die -> die in 1..6 }) })
 
             phase = newPhase
@@ -290,10 +283,8 @@ internal class Round421(
             limit = newLimit
             tokens = newTokens
             tokensFromPot = newFromPot
-            drawTie = newTie
+            opening = newOpening
             order = newOrder
-            drawPool = newPool
-            drawValues = newDraw
             rolls = newRolls
             hands = newHands
             turn.restoreFrom(data.drop(cursor))

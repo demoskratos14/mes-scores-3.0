@@ -400,7 +400,7 @@
     <string name="rules_421_1_title">Objetivo</string>
     <string name="rules_421_1_body">Evitar acumular fichas. Em cada ronda, o perdedor fica com algumas; no fim da partida, ganha o jogador com menos. A aplicação conta as fichas de cada jogador com os botões +1 e −1.</string>
     <string name="rules_421_2_title">A tua vez</string>
-    <string name="rules_421_2_body">Na tua vez, lança 3 dados até 3 vezes, guardando os dados que quiseres. O primeiro jogador da ronda decide quantos lançamentos cada um dos outros pode fazer. A melhor mão ganha a ronda, a pior perde-a.</string>
+    <string name="rules_421_2_body">Na tua vez, lança 3 dados até 3 vezes, guardando os dados que quiseres. O primeiro jogador da ronda decide quantos lançamentos cada um dos outros pode fazer. A melhor mão ganha a ronda, a pior perde-a. Se a melhor e a pior mão forem idênticas (mesma mão, mesmo número de lançamentos), a ronda é nula: nenhuma ficha se move e repete-se.</string>
     <string name="rules_421_3_title">Valor das mãos</string>
     <string name="rules_421_3_body">Da melhor para a pior: 421 (10 fichas), 111 (7 fichas), um par de ases com outro dado, como 116 (tantas fichas como o terceiro dado), depois as trincas 666 (6 fichas), 555 (5), 444 (4), 333 (3), 222 (2), e por fim as sequências 456, 345, 234, 123 (2 fichas cada). Todas as outras mãos valem 1 ficha.</string>
     <string name="rules_421_4_title">Carga e descarga</string>
@@ -1303,7 +1303,11 @@
     <string name="dice_shared_wait">É a vez de %1$s.</string>
     <string name="dice_see_scores">Ver o placar</string>
     <string name="dice_sum">Total dos dados: %1$d</string>
-    <string name="dice_combo_value">%1$s: %2$d</string>
+    <plurals name="dice_combo_tokens">
+        <item quantity="one">%1$s: %2$d ficha</item>
+        <item quantity="many">%1$s: %2$d de fichas</item>
+        <item quantity="other">%1$s: %2$d fichas</item>
+    </plurals>
     <string name="dice_yams_prompt">Lança os dados para ver as pontuações possíveis.</string>
     <string name="dice_yams_write">Registar %1$d</string>
     <string name="dice_yams_crossed">Riscado</string>
@@ -1320,11 +1324,14 @@
     <string name="dice_421_pot">Fichas no meio: %1$d</string>
     <string name="dice_421_discharge">Descarga: quem perde a ronda tira fichas ao vencedor.</string>
     <string name="dice_421_draw_title">Quem começa?</string>
-    <string name="dice_421_draw_intro">Cada jogador lança um dado à vez: o mais alto começa. Em caso de empate, os empatados voltam a lançar.</string>
-    <string name="dice_421_draw_tie">Empate: %1$s voltam a lançar.</string>
-    <string name="dice_421_draw_roll">%1$s lança o dado</string>
+    <string name="dice_421_draw_intro">Primeiro joga-se uma ronda inicial, sem fichas: quem tiver a melhor mão começa a partida.</string>
+    <string name="dice_421_draw_roll">Jogar a ronda inicial</string>
     <string name="dice_421_draw_pick">Ou escolhe diretamente quem começa:</string>
     <string name="dice_421_draw_result">%1$s começa!</string>
+    <string name="dice_421_opening_title">Ronda inicial (sem fichas)</string>
+    <string name="dice_421_opening_result">%1$s tem a melhor mão e começa a partida!</string>
+    <string name="dice_421_opening_draw">Empate perfeito: a ronda inicial é repetida.</string>
+    <string name="dice_421_opening_begin">Começar a partida</string>
     <string name="dice_421_begin">Começar a ronda</string>
     <string name="dice_421_turn">Vez de %1$s (jogador %2$d de %3$d)</string>
     <plurals name="dice_421_starter_hint">
@@ -1341,6 +1348,7 @@
     <string name="dice_421_round_over">Ronda terminada</string>
     <string name="dice_421_result_best">Melhor jogo: %1$s com %2$s (valor: %3$d).</string>
     <string name="dice_421_result_pot">%1$s perde a ronda. Fichas tiradas do meio: %2$d.</string>
+    <string name="dice_421_result_draw">Empate perfeito: ronda nula, nenhuma ficha se move. A ronda é repetida.</string>
     <string name="dice_421_result_discharge">%1$s perde a ronda. Fichas tiradas a %3$s: %2$d.</string>
     <string name="dice_421_next_round">Ronda seguinte</string>
     <string name="dice_421_replay_round">Repetir a ronda</string>

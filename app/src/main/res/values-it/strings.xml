@@ -488,7 +488,7 @@
     <string name="rules_421_1_title">Obiettivo del gioco</string>
     <string name="rules_421_1_body">Evitare di raccogliere gettoni. A ogni round, chi perde ne prende; alla fine della partita, vince chi ne ha meno. L\'app conta i gettoni di ogni giocatore con i pulsanti +1 e −1.</string>
     <string name="rules_421_2_title">Un turno di gioco</string>
-    <string name="rules_421_2_body">Al proprio turno si lanciano 3 dadi fino a 3 volte, tenendo i dadi desiderati. Il primo giocatore del round decide il numero di lanci consentiti a tutti gli altri. La combinazione migliore vince il round, la peggiore lo perde.</string>
+    <string name="rules_421_2_body">Al proprio turno si lanciano 3 dadi fino a 3 volte, tenendo i dadi desiderati. Il primo giocatore del round decide il numero di lanci consentiti a tutti gli altri. La combinazione migliore vince il round, la peggiore lo perde. Se la combinazione migliore e la peggiore sono identiche (stessa combinazione, stesso numero di lanci), il round è nullo: nessun gettone si sposta e si rigioca.</string>
     <string name="rules_421_3_title">Valore delle combinazioni</string>
     <string name="rules_421_3_body">Dalla migliore alla peggiore: 421 (10 gettoni), 111 (7 gettoni), un doppio asso con un altro dado come 116 (tanti gettoni quanto vale il terzo dado), poi i tris 666 (6 gettoni), 555 (5), 444 (4), 333 (3), 222 (2), poi le scale 456, 345, 234, 123 (2 gettoni ciascuna). Tutte le altre combinazioni valgono 1 gettone.</string>
     <string name="rules_421_4_title">Carica e scarica</string>
@@ -1313,7 +1313,11 @@
     <string name="dice_shared_wait">Tocca a %1$s.</string>
     <string name="dice_see_scores">Vedi il tabellone</string>
     <string name="dice_sum">Totale dei dadi: %1$d</string>
-    <string name="dice_combo_value">%1$s: %2$d</string>
+    <plurals name="dice_combo_tokens">
+        <item quantity="one">%1$s: %2$d gettone</item>
+        <item quantity="many">%1$s: %2$d di gettoni</item>
+        <item quantity="other">%1$s: %2$d gettoni</item>
+    </plurals>
     <string name="dice_yams_prompt">Lancia i dadi per vedere i punteggi possibili.</string>
     <string name="dice_yams_write">Segna %1$d</string>
     <string name="dice_yams_crossed">Barrato</string>
@@ -1330,11 +1334,14 @@
     <string name="dice_421_pot">Gettoni al centro: %1$d</string>
     <string name="dice_421_discharge">Scarica: chi perde il round prende i gettoni dal vincitore.</string>
     <string name="dice_421_draw_title">Chi comincia?</string>
-    <string name="dice_421_draw_intro">Ogni giocatore lancia un dado a turno: il più alto comincia. In caso di parità, i pari merito rilanciano.</string>
-    <string name="dice_421_draw_tie">Parità: %1$s rilanciano.</string>
-    <string name="dice_421_draw_roll">%1$s lancia il dado</string>
+    <string name="dice_421_draw_intro">Si gioca prima un round di apertura, senza gettoni: chi ha la combinazione migliore comincia la partita.</string>
+    <string name="dice_421_draw_roll">Gioca il round di apertura</string>
     <string name="dice_421_draw_pick">Oppure scegli direttamente chi comincia:</string>
     <string name="dice_421_draw_result">Comincia %1$s!</string>
+    <string name="dice_421_opening_title">Round di apertura (senza gettoni)</string>
+    <string name="dice_421_opening_result">%1$s ha la combinazione migliore e comincia la partita!</string>
+    <string name="dice_421_opening_draw">Pareggio perfetto: il round di apertura viene rigiocato.</string>
+    <string name="dice_421_opening_begin">Inizia la partita</string>
     <string name="dice_421_begin">Inizia il round</string>
     <string name="dice_421_turn">Turno di %1$s (giocatore %2$d di %3$d)</string>
     <plurals name="dice_421_starter_hint">
@@ -1351,6 +1358,7 @@
     <string name="dice_421_round_over">Round terminato</string>
     <string name="dice_421_result_best">Gioco migliore: %1$s con %2$s (valore: %3$d).</string>
     <string name="dice_421_result_pot">%1$s perde il round. Gettoni presi dal centro: %2$d.</string>
+    <string name="dice_421_result_draw">Pareggio perfetto: round nullo, nessun gettone si sposta. Il round viene rigiocato.</string>
     <string name="dice_421_result_discharge">%1$s perde il round. Gettoni presi a %3$s: %2$d.</string>
     <string name="dice_421_next_round">Round successivo</string>
     <string name="dice_421_replay_round">Rigioca il round</string>

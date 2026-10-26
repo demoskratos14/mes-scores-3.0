@@ -493,7 +493,7 @@
     <string name="rules_421_1_title">But du jeu</string>
     <string name="rules_421_1_body">Éviter de ramasser des jetons. À chaque manche, le perdant en prend ; à la fin de la partie, celui qui en a le moins gagne. L\'appli compte les jetons de chaque joueur avec les boutons +1 et −1.</string>
     <string name="rules_421_2_title">Un tour de jeu</string>
-    <string name="rules_421_2_body">À son tour, on lance 3 dés jusqu\'à 3 fois, en gardant les dés voulus. Le premier joueur de la manche décide du nombre de lancers autorisés pour tous les autres. Le meilleur jeu gagne la manche, le moins bon la perd.</string>
+    <string name="rules_421_2_body">À son tour, on lance 3 dés jusqu\'à 3 fois, en gardant les dés voulus. Le premier joueur de la manche décide du nombre de lancers autorisés pour tous les autres. Le meilleur jeu gagne la manche, le moins bon la perd. Si le meilleur et le moins bon jeu sont identiques (même jeu, même nombre de lancers), la manche est nulle : aucun jeton ne bouge et on la rejoue.</string>
     <string name="rules_421_3_title">Valeur des jeux</string>
     <string name="rules_421_3_body">Du meilleur au moins bon : 421 (10 jetons), 111 (7 jetons), un as double avec un autre dé comme 116 (autant de jetons que le troisième dé), puis les brelans 666 (6 jetons), 555 (5), 444 (4), 333 (3), 222 (2), puis les suites 456, 345, 234, 123 (2 jetons chacune). Tous les autres jeux valent 1 jeton.</string>
     <string name="rules_421_4_title">Charge et décharge</string>
@@ -1318,7 +1318,11 @@
     <string name="dice_shared_wait">C’est à %1$s de jouer.</string>
     <string name="dice_see_scores">Voir le tableau des scores</string>
     <string name="dice_sum">Total des dés : %1$d</string>
-    <string name="dice_combo_value">%1$s : %2$d</string>
+    <plurals name="dice_combo_tokens">
+        <item quantity="one">%1$s : %2$d jeton</item>
+        <item quantity="many">%1$s : %2$d de jetons</item>
+        <item quantity="other">%1$s : %2$d jetons</item>
+    </plurals>
     <string name="dice_yams_prompt">Lance les dés pour voir les scores possibles.</string>
     <string name="dice_yams_write">Inscrire %1$d</string>
     <string name="dice_yams_crossed">Barré</string>
@@ -1335,11 +1339,14 @@
     <string name="dice_421_pot">Jetons au milieu : %1$d</string>
     <string name="dice_421_discharge">Décharge : le perdant de la manche prend ses jetons au gagnant.</string>
     <string name="dice_421_draw_title">Qui commence ?</string>
-    <string name="dice_421_draw_intro">Chaque joueur lance un dé à son tour : le plus fort commence. En cas d’égalité, les ex æquo relancent.</string>
-    <string name="dice_421_draw_tie">Égalité : %1$s relancent.</string>
-    <string name="dice_421_draw_roll">%1$s lance le dé</string>
+    <string name="dice_421_draw_intro">On joue d’abord une manche de départ, sans jetons : celui qui a le meilleur jeu commence la partie.</string>
+    <string name="dice_421_draw_roll">Jouer la manche de départ</string>
     <string name="dice_421_draw_pick">Ou choisis directement qui commence :</string>
     <string name="dice_421_draw_result">%1$s commence !</string>
+    <string name="dice_421_opening_title">Manche de départ (sans jetons)</string>
+    <string name="dice_421_opening_result">%1$s a le meilleur jeu et commence la partie !</string>
+    <string name="dice_421_opening_draw">Égalité parfaite : la manche de départ est rejouée.</string>
+    <string name="dice_421_opening_begin">Commencer la partie</string>
     <string name="dice_421_begin">Commencer la manche</string>
     <string name="dice_421_turn">Tour de %1$s (joueur %2$d sur %3$d)</string>
     <plurals name="dice_421_starter_hint">
@@ -1356,6 +1363,7 @@
     <string name="dice_421_round_over">Manche terminée</string>
     <string name="dice_421_result_best">Meilleur jeu : %1$s avec %2$s (valeur : %3$d).</string>
     <string name="dice_421_result_pot">%1$s perd la manche. Jetons pris au milieu : %2$d.</string>
+    <string name="dice_421_result_draw">Égalité parfaite : manche nulle, aucun jeton ne bouge. La manche est rejouée.</string>
     <string name="dice_421_result_discharge">%1$s perd la manche. Jetons pris à %3$s : %2$d.</string>
     <string name="dice_421_next_round">Manche suivante</string>
     <string name="dice_421_replay_round">Rejouer la manche</string>

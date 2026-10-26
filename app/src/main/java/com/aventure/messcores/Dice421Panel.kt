@@ -24,8 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * Le 421 jouable, tour par tour (voir [Round421]) : tirage du premier joueur, puis chaque joueur lance ses dés à
- * son tour, le premier fixant le nombre de lancers de tous les autres, et à la fin de la manche les jetons du perdant
+ * Le 421 jouable, tour par tour (voir [Round421]) : manche de départ (sans jetons) pour désigner le premier joueur,
+ * puis chaque joueur lance ses dés à son tour, le premier fixant le nombre de lancers de tous les autres, et à la fin de la manche les jetons du perdant
  * sont comptés automatiquement (charge, puis décharge).
  *
  * [canAct] : ce téléphone joue pour le joueur dont c'est le tour. [onChanged] : la manche a changé, à partager aux
@@ -47,6 +47,11 @@ internal fun Round421Section(
     // Les jetons du perdant sont comptés une seule fois, par le téléphone qui a fait jouer le dernier joueur.
     fun settleRound() {
         val result = round.result() ?: return
+        if (round.opening || result.draw) {
+            // Manche de départ, ou égalité parfaite : aucun jeton ne bouge.
+            round.recordTokens(0, true)
+            return
+        }
         val settlement = Dice421.settle(result.points, result.winner, viewModel.totals)
         if (settlement.tokens > 0) {
             viewModel.incrementCounter(result.loser, settlement.tokens)
@@ -62,7 +67,11 @@ internal fun Round421Section(
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (round.phase != Phase421.DRAW) {
                 Text(
-                    text = if (pot > 0) stringResource(R.string.dice_421_pot, pot) else stringResource(R.string.dice_421_discharge),
+                    text = when {
+                        round.opening -> stringResource(R.string.dice_421_opening_title)
+                        pot > 0 -> stringResource(R.string.dice_421_pot, pot)
+                        else -> stringResource(R.string.dice_421_discharge)
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -88,7 +97,8 @@ internal fun Round421Section(
                         onChanged()
                     },
                     onNext = {
-                        round.nextRound(Dice421.activePlayers(viewModel.totals))
+                        val active = Dice421.activePlayers(viewModel.totals)
+                        if (round.opening) round.finishOpening(active) else round.nextRound(active)
                         onChanged()
                     },
                     onBack = onBack
@@ -98,7 +108,7 @@ internal fun Round421Section(
     }
 }
 
-/** Tirage du premier joueur : un dé chacun, le plus fort commence ; on peut aussi le choisir directement. */
+/** Avant la partie : on lance la manche de départ, qui désigne le premier joueur, ou on le choisit directement. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DrawPart(viewModel: ScoreViewModel, round: Round421, canAct: Boolean, onChanged: () -> Unit) {
@@ -106,33 +116,15 @@ private fun DrawPart(viewModel: ScoreViewModel, round: Round421, canAct: Boolean
     Text(stringResource(R.string.dice_421_draw_title), style = MaterialTheme.typography.titleMedium)
     if (round.starter < 0) {
         Text(stringResource(R.string.dice_421_draw_intro), style = MaterialTheme.typography.bodyMedium)
-        if (round.drawTie) {
-            Text(
-                text = stringResource(R.string.dice_421_draw_tie, round.drawPool.joinToString(", ") { players.getOrElse(it) { "" } }),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
-    players.forEachIndexed { index, name ->
-        val value = round.drawValues.getOrElse(index) { 0 }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            Text(text = if (value > 0) value.toString() else "–", fontWeight = FontWeight.Bold)
-        }
-    }
-
-    val next = round.drawNext
-    if (next != null) {
         Button(
             onClick = {
-                round.drawRoll()
+                round.startOpening(Dice421.activePlayers(viewModel.totals))
                 onChanged()
             },
             enabled = canAct,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(stringResource(R.string.dice_421_draw_roll, players.getOrElse(next) { "" }))
+            Text(stringResource(R.string.dice_421_draw_roll))
         }
         Text(stringResource(R.string.dice_421_draw_pick), style = MaterialTheme.typography.bodyMedium)
         Row(
@@ -213,7 +205,7 @@ private fun PlayPart(
     if (turn.hasRolled) {
         val combo = Dice421.combo(turn.values)
         Text(
-            text = stringResource(R.string.dice_combo_value, stringResource(combo.label), combo.points),
+            text = pluralStringResource(R.plurals.dice_combo_tokens, combo.points, stringResource(combo.label), combo.points),
             style = MaterialTheme.typography.titleMedium
         )
         if ((turn.rollsLeft ?: 0) == 0) {
@@ -243,7 +235,27 @@ private fun DonePart(
 
     Text(stringResource(R.string.dice_421_round_over), style = MaterialTheme.typography.titleMedium)
     HandsList(round, players)
-    if (result != null) {
+    if (result != null && round.opening) {
+        // Manche de départ : pas de jetons, le meilleur jeu commence la partie.
+        Text(
+            text = if (result.draw) {
+                stringResource(R.string.dice_421_opening_draw)
+            } else {
+                stringResource(R.string.dice_421_opening_result, nameOf(result.winner))
+            },
+            style = MaterialTheme.typography.titleMedium
+        )
+        Button(onClick = onNext, enabled = canAct, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(if (result.draw) R.string.dice_421_replay_round else R.string.dice_421_opening_begin))
+        }
+        return
+    }
+    if (result != null && result.draw) {
+        Text(
+            text = stringResource(R.string.dice_421_result_draw),
+            style = MaterialTheme.typography.titleMedium
+        )
+    } else if (result != null) {
         val best = Dice421.combo(round.hands[result.winner])
         Text(
             text = stringResource(R.string.dice_421_result_best, nameOf(result.winner), stringResource(best.label), result.points),
@@ -296,7 +308,7 @@ private fun HandsList(round: Round421, players: List<String>) {
                         R.string.dice_421_hand,
                         name,
                         hand.joinToString(" "),
-                        stringResource(combo.label),
+                        pluralStringResource(R.plurals.dice_combo_tokens, combo.points, stringResource(combo.label), combo.points),
                         round.rolls.getOrElse(player) { 0 }
                     )
                 },
