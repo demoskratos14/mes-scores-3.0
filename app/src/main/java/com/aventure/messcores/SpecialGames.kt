@@ -277,5 +277,15 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         lowestWins = false,
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
+    ),
+    // Jeu des allumettes : écran à part (voir NimScreen), à deux joueurs sur un téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = NIM_ID,
+        name = context.getString(R.string.game_nim),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
     )
 )

@@ -14,8 +14,8 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 
 internal enum class SyncRole { NONE, HOST, GUEST }
 
-/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion ou un touché coulé chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, BATTLESHIP }
+/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé ou un jeu des allumettes chacun sur son téléphone. */
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, BATTLESHIP, NIM }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -108,6 +108,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Le touché coulé chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var battleship: BattleshipOnline? = null
+
+    /** Le jeu des allumettes chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var nim: NimOnline? = null
 
     /** Le tour de dés partagé (jeux de dés) ; null tant que personne n'a lancé ni changé de joueur. */
     var diceTable by mutableStateOf<DiceTable?>(null)
@@ -205,6 +208,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         reset()
         role = SyncRole.HOST
         kind = SyncKind.BATTLESHIP
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
+    /** Annonce un jeu des allumettes chacun sur son téléphone : l'autre joueur le rejoint comme une partie de score. */
+    fun startHostingNim(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.NIM
         advertising = true
         transport.startHosting(deviceName)
     }
@@ -339,6 +351,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         mastermind?.onPeerConnected(id)
         ticTacToe?.onPeerConnected(id)
         battleship?.onPeerConnected(id)
+        nim?.onPeerConnected(id)
     }
 
     override fun onConnectionFailed(id: String, rejected: Boolean) {
@@ -351,6 +364,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         mastermind?.onPeerDisconnected(id)
         ticTacToe?.onPeerDisconnected(id)
         battleship?.onPeerDisconnected(id)
+        nim?.onPeerDisconnected(id)
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
             reset()
@@ -372,6 +386,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Bs -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.BATTLESHIP
                 battleship?.onMessage(id, message.bs)
+            }
+            is SyncMessage.Nim -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.NIM
+                nim?.onMessage(id, message.nim)
             }
             is SyncMessage.State -> {
                 val game = game ?: return

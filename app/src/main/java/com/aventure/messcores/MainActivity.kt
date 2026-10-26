@@ -124,6 +124,7 @@ fun ScoreApp(
     val mastermindOnline = syncViewModel.mastermind
     val ticTacToeOnline = syncViewModel.ticTacToe
     val battleshipOnline = syncViewModel.battleship
+    val nimOnline = syncViewModel.nim
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -289,6 +290,9 @@ fun ScoreApp(
                             // Le touché coulé a lui aussi son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             battleshipViewModel.open(rules, pendingPlayerNames)
                             navController.navigate("battleship")
+                        } else if (rules.id == NIM_ID) {
+                            // Le jeu des allumettes a aussi son écran : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            navController.navigate("nim")
                         } else if (rules.scoreMode == ScoreMode.POKER) {
                             // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
                             navController.navigate("pokerSetup")
@@ -396,6 +400,30 @@ fun ScoreApp(
                     onHostedTicTacToe = { navController.popBackStack() }
                 )
             }
+            composable("nim") {
+                NimScreen(
+                    players = pendingPlayerNames,
+                    online = nimOnline,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareNim") }
+                )
+            }
+            composable("shareNim") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.NIM,
+                    nim = nimOnline,
+                    // La table du jeu des allumettes est l'écran du jeu, juste derrière.
+                    onHostedNim = { navController.popBackStack() }
+                )
+            }
             composable("poker") {
                 PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
@@ -489,7 +517,9 @@ fun ScoreApp(
             onBattleshipJoined = {
                 gameRepository.builtInGames().firstOrNull { it.id == BATTLESHIP_ID }?.let { battleshipViewModel.prepareOnline(it) }
                 navController.navigate("battleship") { popUpTo("home") }
-            }
+            },
+            nim = nimOnline,
+            onNimJoined = { navController.navigate("nim") { popUpTo("home") } }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)

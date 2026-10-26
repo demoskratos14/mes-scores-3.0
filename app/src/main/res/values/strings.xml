@@ -1590,4 +1590,39 @@
     <string name="bs_online_waiting_answer">Tir envoyé, en attente de la réponse…</string>
     <string name="bs_shoot_again_on">Tir supplémentaire après un touché : oui</string>
     <string name="bs_shoot_again_off">Tir supplémentaire après un touché : non</string>
+
+    <!-- Jeu des allumettes (Nim) -->
+    <string name="game_nim">Jeu des allumettes</string>
+    <string name="rules_nim_1_title">But du jeu</string>
+    <string name="rules_nim_1_body">Ne pas prendre la dernière allumette : celui qui la prend perd la manche.</string>
+    <string name="rules_nim_2_title">Un tour de jeu</string>
+    <string name="rules_nim_2_body">Un tas de 21 allumettes est posé entre les joueurs. À tour de rôle, chacun retire 1, 2 ou 3 allumettes (jamais plus que celles qui restent). Celui qui prend la dernière allumette perd.</string>
+    <string name="rules_nim_3_title">Dans l’appli</string>
+    <string name="rules_nim_3_body">Le score de la séance reste affiché, et le joueur qui commence change à chaque manche. On joue à deux sur un seul téléphone en se le passant, ou chacun sur le sien avec « Jouer chacun sur son téléphone », proposé tant que rien n’a été joué.</string>
+    <string name="nim_turn">À %1$s de jouer</string>
+    <string name="nim_over">%1$s prend la dernière allumette et perd : %2$s gagne la manche !</string>
+    <string name="nim_score">%1$s : %2$d · %3$s : %4$d</string>
+    <string name="nim_new_round">Nouvelle manche</string>
+    <string name="nim_take_hint">Retire 1, 2 ou 3 allumettes. Celui qui prend la dernière perd !</string>
+    <string name="nim_online_button">Jouer chacun sur son téléphone</string>
+    <string name="nim_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
+    <string name="nim_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
+    <string name="nim_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
+    <string name="nim_online_vs">Tu joues contre %1$s</string>
+    <string name="nim_online_your_turn">À toi de jouer</string>
+    <string name="nim_online_you_win">Tu gagnes la manche ! %1$s a pris la dernière allumette.</string>
+    <string name="nim_online_you_lose">Tu perds la manche : tu as pris la dernière allumette.</string>
+    <string name="nim_online_leave">Quitter la partie</string>
+    <string name="nim_quit_title">Quitter la partie ?</string>
+    <string name="nim_quit_message">La connexion avec l’autre téléphone sera coupée et la séance sera terminée.</string>
+    <plurals name="nim_take_description">
+        <item quantity="one">Retirer %d allumette</item>
+        <item quantity="many">Retirer %d d’allumettes</item>
+        <item quantity="other">Retirer %d allumettes</item>
+    </plurals>
+    <plurals name="nim_remaining">
+        <item quantity="one">%d allumette restante</item>
+        <item quantity="many">%d d’allumettes restantes</item>
+        <item quantity="other">%d allumettes restantes</item>
+    </plurals>
 </resources>

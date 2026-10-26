@@ -1575,4 +1575,39 @@
     <string name="bs_online_waiting_answer">Disparo enviado, esperando la respuesta…</string>
     <string name="bs_shoot_again_on">Disparo extra tras un tocado: sí</string>
     <string name="bs_shoot_again_off">Disparo extra tras un tocado: no</string>
+
+    <!-- Jeu des allumettes (Nim) -->
+    <string name="game_nim">Juego de las cerillas (Nim)</string>
+    <string name="rules_nim_1_title">Objetivo del juego</string>
+    <string name="rules_nim_1_body">No coger la última cerilla: quien la coja pierde la ronda.</string>
+    <string name="rules_nim_2_title">Un turno</string>
+    <string name="rules_nim_2_body">Se coloca un montón de 21 cerillas entre los jugadores. Por turnos, cada uno retira 1, 2 o 3 cerillas (nunca más de las que quedan). El que coge la última cerilla pierde.</string>
+    <string name="rules_nim_3_title">En la app</string>
+    <string name="rules_nim_3_body">La puntuación de la sesión sigue a la vista, y el jugador que empieza cambia en cada ronda. Se juega entre dos en un solo teléfono pasándoselo, o cada uno en el suyo con «Jugar cada uno en su teléfono», disponible mientras no se haya jugado nada.</string>
+    <string name="nim_turn">Turno de %1$s</string>
+    <string name="nim_over">¡%1$s coge la última cerilla y pierde: %2$s gana la ronda!</string>
+    <string name="nim_score">%1$s: %2$d · %3$s: %4$d</string>
+    <string name="nim_new_round">Nueva ronda</string>
+    <string name="nim_take_hint">Retira 1, 2 o 3 cerillas. ¡El que coge la última pierde!</string>
+    <string name="nim_online_button">Jugar cada uno en su teléfono</string>
+    <string name="nim_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
+    <string name="nim_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
+    <string name="nim_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
+    <string name="nim_online_vs">Juegas contra %1$s</string>
+    <string name="nim_online_your_turn">Te toca</string>
+    <string name="nim_online_you_win">¡Ganas la ronda! %1$s ha cogido la última cerilla.</string>
+    <string name="nim_online_you_lose">Pierdes la ronda: has cogido la última cerilla.</string>
+    <string name="nim_online_leave">Salir de la partida</string>
+    <string name="nim_quit_title">¿Salir de la partida?</string>
+    <string name="nim_quit_message">Se cortará la conexión con el otro teléfono y la sesión terminará.</string>
+    <plurals name="nim_take_description">
+        <item quantity="one">Retirar %d cerilla</item>
+        <item quantity="many">Retirar %d de cerillas</item>
+        <item quantity="other">Retirar %d cerillas</item>
+    </plurals>
+    <plurals name="nim_remaining">
+        <item quantity="one">Queda %d cerilla</item>
+        <item quantity="many">Quedan %d de cerillas</item>
+        <item quantity="other">Quedan %d cerillas</item>
+    </plurals>
 </resources>

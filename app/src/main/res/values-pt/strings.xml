@@ -1575,4 +1575,39 @@
     <string name="bs_online_waiting_answer">Disparo enviado, a aguardar a resposta…</string>
     <string name="bs_shoot_again_on">Disparo extra após um acerto: sim</string>
     <string name="bs_shoot_again_off">Disparo extra após um acerto: não</string>
+
+    <!-- Jeu des allumettes (Nim) -->
+    <string name="game_nim">Jogo dos fósforos (Nim)</string>
+    <string name="rules_nim_1_title">Objetivo do jogo</string>
+    <string name="rules_nim_1_body">Não ficar com o último fósforo: quem o tirar perde a ronda.</string>
+    <string name="rules_nim_2_title">Uma vez</string>
+    <string name="rules_nim_2_body">Põe-se um monte de 21 fósforos entre os jogadores. À vez, cada um tira 1, 2 ou 3 fósforos (nunca mais do que os que restam). Quem tirar o último fósforo perde.</string>
+    <string name="rules_nim_3_title">Na app</string>
+    <string name="rules_nim_3_body">A pontuação da sessão fica visível, e o jogador que começa muda a cada ronda. Joga-se a dois num só telemóvel, passando-o de mão em mão, ou cada um no seu com «Jogar cada um no seu telemóvel», disponível enquanto nada tiver sido jogado.</string>
+    <string name="nim_turn">Vez de %1$s</string>
+    <string name="nim_over">%1$s tira o último fósforo e perde: %2$s ganha a ronda!</string>
+    <string name="nim_score">%1$s: %2$d · %3$s: %4$d</string>
+    <string name="nim_new_round">Nova ronda</string>
+    <string name="nim_take_hint">Tira 1, 2 ou 3 fósforos. Quem tirar o último perde!</string>
+    <string name="nim_online_button">Jogar cada um no seu telemóvel</string>
+    <string name="nim_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
+    <string name="nim_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a entrar na partida.</string>
+    <string name="nim_online_host_left">O organizador desligou-se: a partida terminou.</string>
+    <string name="nim_online_vs">Jogas contra %1$s</string>
+    <string name="nim_online_your_turn">É a tua vez</string>
+    <string name="nim_online_you_win">Ganhas a ronda! %1$s tirou o último fósforo.</string>
+    <string name="nim_online_you_lose">Perdes a ronda: tiraste o último fósforo.</string>
+    <string name="nim_online_leave">Sair da partida</string>
+    <string name="nim_quit_title">Sair da partida?</string>
+    <string name="nim_quit_message">A ligação com o outro telemóvel será cortada e a sessão terminará.</string>
+    <plurals name="nim_take_description">
+        <item quantity="one">Tirar %d fósforo</item>
+        <item quantity="many">Tirar %d de fósforos</item>
+        <item quantity="other">Tirar %d fósforos</item>
+    </plurals>
+    <plurals name="nim_remaining">
+        <item quantity="one">Resta %d fósforo</item>
+        <item quantity="many">Restam %d de fósforos</item>
+        <item quantity="other">Restam %d fósforos</item>
+    </plurals>
 </resources>

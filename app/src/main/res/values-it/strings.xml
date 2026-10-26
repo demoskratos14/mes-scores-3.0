@@ -1585,4 +1585,39 @@
     <string name="bs_online_waiting_answer">Colpo inviato, in attesa della risposta…</string>
     <string name="bs_shoot_again_on">Colpo extra dopo un colpo a segno: sì</string>
     <string name="bs_shoot_again_off">Colpo extra dopo un colpo a segno: no</string>
+
+    <!-- Jeu des allumettes (Nim) -->
+    <string name="game_nim">Gioco dei fiammiferi (Nim)</string>
+    <string name="rules_nim_1_title">Obiettivo del gioco</string>
+    <string name="rules_nim_1_body">Non prendere l’ultimo fiammifero: chi lo prende perde il round.</string>
+    <string name="rules_nim_2_title">Un turno</string>
+    <string name="rules_nim_2_body">Un mucchio di 21 fiammiferi viene messo tra i giocatori. A turno, ognuno toglie 1, 2 o 3 fiammiferi (mai più di quelli rimasti). Chi prende l’ultimo fiammifero perde.</string>
+    <string name="rules_nim_3_title">Nell’app</string>
+    <string name="rules_nim_3_body">Il punteggio della sessione resta visibile, e il giocatore che comincia cambia a ogni round. Si gioca in due su un solo telefono passandoselo, oppure ognuno sul proprio con «Giocare ognuno col proprio telefono», proposto finché non si è giocato nulla.</string>
+    <string name="nim_turn">Tocca a %1$s</string>
+    <string name="nim_over">%1$s prende l’ultimo fiammifero e perde: %2$s vince il round!</string>
+    <string name="nim_score">%1$s: %2$d · %3$s: %4$d</string>
+    <string name="nim_new_round">Nuovo round</string>
+    <string name="nim_take_hint">Togli 1, 2 o 3 fiammiferi. Chi prende l’ultimo perde!</string>
+    <string name="nim_online_button">Giocare ognuno col proprio telefono</string>
+    <string name="nim_online_waiting">In attesa dell’altro giocatore… Sull’altro telefono, tocca «Unisciti a una partita».</string>
+    <string name="nim_online_notice_left">L’altro giocatore si è disconnesso. Puoi aspettare che un telefono si riunisca alla partita.</string>
+    <string name="nim_online_host_left">L’organizzatore si è disconnesso: la partita è finita.</string>
+    <string name="nim_online_vs">Giochi contro %1$s</string>
+    <string name="nim_online_your_turn">Tocca a te</string>
+    <string name="nim_online_you_win">Vinci il round! %1$s ha preso l’ultimo fiammifero.</string>
+    <string name="nim_online_you_lose">Perdi il round: hai preso l’ultimo fiammifero.</string>
+    <string name="nim_online_leave">Esci dalla partita</string>
+    <string name="nim_quit_title">Uscire dalla partita?</string>
+    <string name="nim_quit_message">La connessione con l’altro telefono verrà interrotta e la sessione terminerà.</string>
+    <plurals name="nim_take_description">
+        <item quantity="one">Togli %d fiammifero</item>
+        <item quantity="many">Togli %d di fiammiferi</item>
+        <item quantity="other">Togli %d fiammiferi</item>
+    </plurals>
+    <plurals name="nim_remaining">
+        <item quantity="one">%d fiammifero rimasto</item>
+        <item quantity="many">%d di fiammiferi rimasti</item>
+        <item quantity="other">%d fiammiferi rimasti</item>
+    </plurals>
 </resources>

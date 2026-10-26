@@ -131,6 +131,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Touché coulé chacun sur son téléphone, sur la même connexion. */
     internal val battleship = BattleshipOnline(session)
 
+    /** Jeu des allumettes chacun sur son téléphone, sur la même connexion. */
+    internal val nim = NimOnline(session)
+
     override fun onCleared() {
         session.disconnect()
     }

@@ -117,6 +117,7 @@ MesScores/
             │   ├── DiceScreen.kt, DiceRules.kt            écran des dés d'un jeu, dés et lancers (`DiceTurn`), Yams, valeur et force des jeux du 421 (`Dice421`)
             │   ├── Round421.kt, Dice421Panel.kt           421 tour par tour : moteur de la manche (pur, testé) et son interface
             │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt   Morpion : règles, écran (un ou deux téléphones) et table en ligne
+│   ├── Nim.kt, NimScreen.kt, NimOnline.kt, NimProtocol.kt   Jeu des allumettes (Nim) : règles, écran (un ou deux téléphones), table en ligne et messages
             │   ├── BattleshipEngine.kt, BattleshipViewModel.kt, BattleshipOnline.kt, BattleshipProtocol.kt, BattleshipScreen.kt   Touché coulé : règles, partie sur un téléphone, table en ligne, messages et écran
             │   ├── ScoreScreen.kt, CounterScreen.kt       tableau par manches / compteurs
             │   │   ScoreTable.kt (en-tête + corps), ScoreTableFooter.kt (phase, bonus, total),
@@ -179,7 +180,7 @@ Le bouton « Dés » du 421 fait jouer la partie dans l'ordre (`Round421`, moteu
 - **Limite de lancers** : le premier joueur de la manche lance jusqu'à 3 fois et garde son jeu quand il veut ; son nombre de lancers devient la limite de tous les autres (`DiceTurn.rollLimit`). Un joueur ne peut pas « garder son jeu » avant d'avoir lancé.
 - **Perdant et jetons automatiques** : à la fin de la manche, le moins bon jeu (`Dice421.strength` : 421, 111, as doubles, brelans, suites, autres) perd. À jeu égal, celui qui a fait le moins de lancers est meilleur, puis celui qui a joué en premier. Pendant la charge (21 jetons au milieu, `Dice421.pot`), le perdant prend au milieu la valeur du meilleur jeu, sans dépasser ce qui reste ; ensuite, pendant la décharge, il la prend au gagnant. Seuls les joueurs qui ont encore des jetons jouent, et la partie s'arrête quand un joueur a tous les jetons (`Dice421.gameLoser`). « Rejouer la manche » rend les jetons et repart du même premier joueur.
 - **Plusieurs téléphones** : toute la manche (`Round421.snapshot`) passe dans `DiceTable.turn`, comme le tour de dés des autres jeux ; seul le joueur dont c'est le tour peut agir.
-- Le bouton « Règles » est sur la feuille de scores (compteurs), sur l'écran des dés et sur l'écran du Morpion (`RulesButton`).
+- Le bouton « Règles » est sur la feuille de scores (compteurs), sur l'écran des dés et sur l'écran du Morpion et du jeu des allumettes (`RulesButton`).
 
 ## Couleurs des joueurs et mode daltonien
 
@@ -195,6 +196,7 @@ Le minuteur (`TimerViewModel`, `TimerOverlay`) accepte `5` (minutes), `4:30` ou 
 - **Jeux personnalisés** et **joueurs d'une table de poker** : fichiers JSON (voir plus haut).
 - **Journal** : export/import JSON (`JournalBackup`).
 - **Morpion à deux téléphones** : depuis l'écran du Morpion, « Jouer chacun sur son téléphone » (proposé tant que rien n'a été joué) ouvre une table sur la connexion Nearby de `SyncSession`, comme le Mastermind. L'organisateur joue les croix et tient la partie (`TicTacToeOnline`, `TicTacToeMatch`) ; l'invité, les ronds, envoie ses coups (`TttMessage`) et reçoit l'état complet après chaque changement. L'organisateur vérifie le tour et la case ; chacun peut lancer la manche suivante. Testé sans téléphones avec `FakeTransport` (`TicTacToeOnlineTest`).
+- **Jeu des allumettes (Nim)** : 21 allumettes, on en retire 1, 2 ou 3 à tour de rôle et celui qui prend la dernière perd la manche (`Nim`, `NimMatch`). Même principe que le Morpion : un seul téléphone qu'on se passe (le premier joueur change à chaque manche, le score de la séance reste affiché) ou « Jouer chacun sur son téléphone » (proposé tant que rien n'a été joué). L'organisateur est le premier joueur et tient la partie (`NimOnline`) ; l'invité envoie le nombre d'allumettes retirées (`NimMessage.Take`) et reçoit l'état complet après chaque changement ; l'organisateur vérifie le tour et la quantité. Le tas se dessine sur un `Canvas` (les allumettes prises restent en pâle) et se lit comme « N allumettes restantes » avec TalkBack. Testé sans téléphones (`NimTest`, `NimOnlineTest` avec `FakeTransport`).
 - **Touché coulé** : écran propre (`BattleshipScreen`), à deux joueurs, sur un téléphone (il passe de main en main, l'écran se cache entre les joueurs : `BattleshipViewModel`) ou chacun sur le sien (`BattleshipOnline`, sur `SyncSession`). Aucune flotte ne circule pendant la partie : le tireur envoie la case (`BsMessage.Fire`) et le téléphone du défenseur répond (`Report`) ; à la fin chacun dévoile sa flotte (`Reveal`) et vérifie les réponses reçues (`Battleship.isConsistent`). Les cases se choisissent sur la grille ou par colonne et ligne (boutons), et se lisent par leur nom avec TalkBack. Testé sans téléphones (`BattleshipTest`, `BattleshipOnlineTest` avec `FakeTransport`).
 
 ## Statistiques, apparence, formats de championnat

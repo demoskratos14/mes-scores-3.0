@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION, BATTLESHIP }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, BATTLESHIP, NIM }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -102,7 +102,7 @@ internal fun ShareScreen(
     game: ScoreViewModel,
     session: SyncSession,
     onBack: () -> Unit,
-    // Ce qu'on organise : la partie de score en cours, un Mastermind ou un Morpion chacun sur son téléphone.
+    // Ce qu'on organise : la partie de score en cours, un Mastermind, un Morpion ou un jeu des allumettes chacun sur son téléphone.
     kind: ShareKind = ShareKind.SCORE,
     mastermind: MastermindOnline? = null,
     mastermindSettings: MastermindSettings = MastermindSettings(),
@@ -111,7 +111,9 @@ internal fun ShareScreen(
     onHostedTicTacToe: () -> Unit = {},
     battleship: BattleshipOnline? = null,
     battleshipSettings: BattleshipSettings = BattleshipSettings(),
-    onHostedBattleship: () -> Unit = {}
+    onHostedBattleship: () -> Unit = {},
+    nim: NimOnline? = null,
+    onHostedNim: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
@@ -140,6 +142,11 @@ internal fun ShareScreen(
                 session.startHostingBattleship(deviceName)
                 battleship.openLobby(deviceName, battleshipSettings)
                 onHostedBattleship()
+            }
+            kind == ShareKind.NIM && nim != null -> {
+                session.startHostingNim(deviceName)
+                nim.openLobby(deviceName)
+                onHostedNim()
             }
             else -> session.startHosting(deviceName)
         }
@@ -334,7 +341,9 @@ internal fun SyncEffects(
     ticTacToe: TicTacToeOnline,
     onTicTacToeJoined: () -> Unit,
     battleship: BattleshipOnline,
-    onBattleshipJoined: () -> Unit
+    onBattleshipJoined: () -> Unit,
+    nim: NimOnline,
+    onNimJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -357,6 +366,11 @@ internal fun SyncEffects(
         if (battleship.joined == 0 || battleship.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup") onBattleshipJoined()
+    }
+    LaunchedEffect(nim.joined) {
+        if (nim.joined == 0 || nim.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareNim") onNimJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect
