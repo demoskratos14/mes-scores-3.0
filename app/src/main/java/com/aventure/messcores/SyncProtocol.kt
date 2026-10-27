@@ -68,6 +68,12 @@ internal sealed interface SyncMessage {
     /** Un message d'un jeu à deux joueurs chacun sur son téléphone ([kind] : Gomoku ou Pipopipette, voir [DuoOnline]). */
     data class Duo(val kind: SyncKind, val duo: DuoMessage) : SyncMessage
 
+    /** Un message des dames chacun sur son téléphone (voir [DraughtsOnline]). */
+    data class Dr(val dr: DrMessage) : SyncMessage
+
+    /** Un message de l'Othello chacun sur son téléphone (voir [OthelloOnline]). */
+    data class Oth(val oth: OthMessage) : SyncMessage
+
     /** Le tour de dés en cours, envoyé par le téléphone du joueur qui joue (l'organisateur le relaie aux autres). */
     data class Dice(val table: DiceTable) : SyncMessage
 }
@@ -169,6 +175,8 @@ internal object SyncCodec {
             is SyncMessage.Nim -> json.put("t", "nim").put("nim", message.nim.toJson())
             is SyncMessage.Rps -> json.put("t", "rps").put("rps", message.rps.toJson())
             is SyncMessage.Duo -> json.put("t", "duo").put("g", message.kind.name).put("duo", message.duo.toJson())
+            is SyncMessage.Dr -> json.put("t", "dr").put("dr", message.dr.toJson())
+            is SyncMessage.Oth -> json.put("t", "oth").put("oth", message.oth.toJson())
             is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
                 .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
                 .put("pig", message.table.pigTotal).put("bust", message.table.pigBust)
@@ -202,6 +210,8 @@ internal object SyncCodec {
                     if (kind != SyncKind.GOMOKU && kind != SyncKind.DOTS) return null
                     duoMessageFromJson(json.getJSONObject("duo"))?.let { SyncMessage.Duo(kind, it) }
                 }
+                "dr" -> drMessageFromJson(json.getJSONObject("dr"))?.let { SyncMessage.Dr(it) }
+                "oth" -> othMessageFromJson(json.getJSONObject("oth"))?.let { SyncMessage.Oth(it) }
                 "dice" -> {
                     val turn = json.getJSONArray("turn")
                     SyncMessage.Dice(

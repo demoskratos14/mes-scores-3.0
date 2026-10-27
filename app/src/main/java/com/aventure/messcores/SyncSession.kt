@@ -14,8 +14,8 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 
 internal enum class SyncRole { NONE, HOST, GUEST }
 
-/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé ou un jeu des allumettes chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS }
+/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des dames ou un Othello chacun sur son téléphone. */
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -117,6 +117,12 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Pierre-feuille-ciseaux chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var rockPaperScissors: RockPaperScissorsOnline? = null
+
+    /** Les dames chacun sur son téléphone, qui reçoivent leurs messages et les événements de connexion. */
+    var draughts: DraughtsOnline? = null
+
+    /** L'Othello chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var othello: OthelloOnline? = null
 
     /** Les jeux à deux joueurs (Gomoku, Pipopipette) chacun sur son téléphone : ils reçoivent leurs messages et les événements de connexion. */
     private val duoGames = mutableListOf<DuoOnline<*>>()
@@ -262,6 +268,24 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         transport.startHosting(deviceName)
     }
 
+    /** Annonce des dames chacun sur son téléphone : l'autre joueur les rejoint comme une partie de score. */
+    fun startHostingDraughts(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.DRAUGHTS
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
+    /** Annonce un Othello chacun sur son téléphone : l'autre joueur le rejoint comme une partie de score. */
+    fun startHostingOthello(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.OTHELLO
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
     fun startJoining() {
         reset()
         role = SyncRole.GUEST
@@ -395,6 +419,8 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         battleship?.onPeerConnected(id)
         nim?.onPeerConnected(id)
         rockPaperScissors?.onPeerConnected(id)
+        draughts?.onPeerConnected(id)
+        othello?.onPeerConnected(id)
         duoGames.forEach { it.onPeerConnected(id) }
     }
 
@@ -411,6 +437,8 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         battleship?.onPeerDisconnected(id)
         nim?.onPeerDisconnected(id)
         rockPaperScissors?.onPeerDisconnected(id)
+        draughts?.onPeerDisconnected(id)
+        othello?.onPeerDisconnected(id)
         duoGames.forEach { it.onPeerDisconnected(id) }
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
@@ -445,6 +473,14 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Rps -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.PFC
                 rockPaperScissors?.onMessage(id, message.rps)
+            }
+            is SyncMessage.Dr -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.DRAUGHTS
+                draughts?.onMessage(id, message.dr)
+            }
+            is SyncMessage.Oth -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.OTHELLO
+                othello?.onMessage(id, message.oth)
             }
             is SyncMessage.Duo -> {
                 if (role == SyncRole.GUEST) kind = message.kind

@@ -46,7 +46,7 @@ class GameCategoryTest {
                 "builtin_dixit", "builtin_ttr", "builtin_azul", "builtin_carcassonne", "builtin_catane",
                 "builtin_sevenwonders", "builtin_wingspan", "builtin_hanabi", "builtin_scrabble", "builtin_trivial",
                 "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc",
-                "builtin_gomoku", "builtin_dots"
+                "builtin_gomoku", "builtin_dots", "builtin_draughts", "builtin_othello"
             ),
             idsIn(GameCategory.SPECIAL)
         )

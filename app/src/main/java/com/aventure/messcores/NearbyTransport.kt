@@ -146,6 +146,12 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Pierre-feuille-ciseaux chacun sur son téléphone, sur la même connexion. */
     internal val rockPaperScissors = RockPaperScissorsOnline(session)
 
+    /** Dames chacun sur son téléphone, sur la même connexion. */
+    internal val draughts = DraughtsOnline(session)
+
+    /** Othello chacun sur son téléphone, sur la même connexion. */
+    internal val othello = OthelloOnline(session)
+
     override fun onCleared() {
         session.disconnect()
     }

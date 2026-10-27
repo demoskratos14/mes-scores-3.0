@@ -129,6 +129,8 @@ fun ScoreApp(
     val rockPaperScissorsOnline = syncViewModel.rockPaperScissors
     val gomokuOnline = syncViewModel.gomoku
     val dotsOnline = syncViewModel.dots
+    val draughtsOnline = syncViewModel.draughts
+    val othelloOnline = syncViewModel.othello
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -309,6 +311,12 @@ fun ScoreApp(
                         } else if (rules.id == NIM_ID) {
                             // Le jeu des allumettes a aussi son écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             navController.navigate("nim")
+                        } else if (rules.id == DRAUGHTS_ID) {
+                            // Les dames ont leur propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            navController.navigate("draughts")
+                        } else if (rules.id == OTHELLO_ID) {
+                            // L'Othello aussi : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            navController.navigate("othello")
                         } else if (rules.scoreMode == ScoreMode.POKER) {
                             // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
                             navController.navigate("pokerSetup")
@@ -537,6 +545,54 @@ fun ScoreApp(
                     onHostedDuo = { navController.popBackStack() }
                 )
             }
+            composable("draughts") {
+                DraughtsScreen(
+                    players = pendingPlayerNames,
+                    online = draughtsOnline,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareDraughts") }
+                )
+            }
+            composable("shareDraughts") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.DRAUGHTS,
+                    draughts = draughtsOnline,
+                    // La table des dames est l'écran du jeu, juste derrière.
+                    onHostedDraughts = { navController.popBackStack() }
+                )
+            }
+            composable("othello") {
+                OthelloScreen(
+                    players = pendingPlayerNames,
+                    online = othelloOnline,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareOthello") }
+                )
+            }
+            composable("shareOthello") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.OTHELLO,
+                    othello = othelloOnline,
+                    // La table de l'Othello est l'écran du jeu, juste derrière.
+                    onHostedOthello = { navController.popBackStack() }
+                )
+            }
             composable("poker") {
                 PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
@@ -640,7 +696,11 @@ fun ScoreApp(
             gomoku = gomokuOnline,
             onGomokuJoined = { navController.navigate("gomoku") { popUpTo("home") } },
             dots = dotsOnline,
-            onDotsJoined = { navController.navigate("dots") { popUpTo("home") } }
+            onDotsJoined = { navController.navigate("dots") { popUpTo("home") } },
+            draughts = draughtsOnline,
+            onDraughtsJoined = { navController.navigate("draughts") { popUpTo("home") } },
+            othello = othelloOnline,
+            onOthelloJoined = { navController.navigate("othello") { popUpTo("home") } }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)

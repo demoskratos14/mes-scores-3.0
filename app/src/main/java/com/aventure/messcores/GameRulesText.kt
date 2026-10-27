@@ -330,6 +330,18 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_nim_2_title, R.string.rules_nim_2_body),
         RulesSection(R.string.rules_nim_3_title, R.string.rules_nim_3_body)
     ),
+    "builtin_draughts" to listOf(
+        RulesSection(R.string.rules_draughts_1_title, R.string.rules_draughts_1_body),
+        RulesSection(R.string.rules_draughts_2_title, R.string.rules_draughts_2_body),
+        RulesSection(R.string.rules_draughts_3_title, R.string.rules_draughts_3_body),
+        RulesSection(R.string.rules_draughts_4_title, R.string.rules_draughts_4_body)
+    ),
+    "builtin_othello" to listOf(
+        RulesSection(R.string.rules_othello_1_title, R.string.rules_othello_1_body),
+        RulesSection(R.string.rules_othello_2_title, R.string.rules_othello_2_body),
+        RulesSection(R.string.rules_othello_3_title, R.string.rules_othello_3_body),
+        RulesSection(R.string.rules_othello_4_title, R.string.rules_othello_4_body)
+    ),
     "builtin_pfc" to listOf(
         RulesSection(R.string.rules_pfc_1_title, R.string.rules_pfc_1_body),
         RulesSection(R.string.rules_pfc_2_title, R.string.rules_pfc_2_body),

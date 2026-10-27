@@ -327,5 +327,25 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         lowestWins = false,
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
+    ),
+    // Dames : écran à part (voir DraughtsScreen), à deux joueurs sur un téléphone ou chacun sur le sien ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = DRAUGHTS_ID,
+        name = context.getString(R.string.game_draughts),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
+    // Othello : écran à part (voir OthelloScreen), à deux joueurs sur un ou deux téléphones ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = OTHELLO_ID,
+        name = context.getString(R.string.game_othello),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
     )
 )

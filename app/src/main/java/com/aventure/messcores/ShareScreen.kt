@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -102,7 +102,7 @@ internal fun ShareScreen(
     game: ScoreViewModel,
     session: SyncSession,
     onBack: () -> Unit,
-    // Ce qu'on organise : la partie de score en cours, un Mastermind, un Morpion ou un jeu des allumettes chacun sur son téléphone.
+    // Ce qu'on organise : la partie de score en cours, un Mastermind, un Morpion, des dames, un Othello ou un autre jeu à deux chacun sur son téléphone.
     kind: ShareKind = ShareKind.SCORE,
     mastermind: MastermindOnline? = null,
     mastermindSettings: MastermindSettings = MastermindSettings(),
@@ -120,7 +120,11 @@ internal fun ShareScreen(
     onHostedRockPaperScissors: () -> Unit = {},
     // Le Gomoku et la Pipopipette (ShareKind.GOMOKU ou DOTS) : la table du jeu à organiser.
     duo: DuoOnline<*>? = null,
-    onHostedDuo: () -> Unit = {}
+    onHostedDuo: () -> Unit = {},
+    draughts: DraughtsOnline? = null,
+    onHostedDraughts: () -> Unit = {},
+    othello: OthelloOnline? = null,
+    onHostedOthello: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
@@ -169,6 +173,16 @@ internal fun ShareScreen(
                 session.startHostingRockPaperScissors(deviceName)
                 rockPaperScissors.openLobby(deviceName)
                 onHostedRockPaperScissors()
+            }
+            kind == ShareKind.DRAUGHTS && draughts != null -> {
+                session.startHostingDraughts(deviceName)
+                draughts.openLobby(deviceName)
+                onHostedDraughts()
+            }
+            kind == ShareKind.OTHELLO && othello != null -> {
+                session.startHostingOthello(deviceName)
+                othello.openLobby(deviceName)
+                onHostedOthello()
             }
             else -> session.startHosting(deviceName)
         }
@@ -373,7 +387,11 @@ internal fun SyncEffects(
     gomoku: DuoOnline<GomokuMatch>,
     onGomokuJoined: () -> Unit,
     dots: DuoOnline<DotsMatch>,
-    onDotsJoined: () -> Unit
+    onDotsJoined: () -> Unit,
+    draughts: DraughtsOnline,
+    onDraughtsJoined: () -> Unit,
+    othello: OthelloOnline,
+    onOthelloJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -421,6 +439,16 @@ internal fun SyncEffects(
         if (dots.joined == 0 || dots.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup" || current == "shareDots") onDotsJoined()
+    }
+    LaunchedEffect(draughts.joined) {
+        if (draughts.joined == 0 || draughts.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareDraughts") onDraughtsJoined()
+    }
+    LaunchedEffect(othello.joined) {
+        if (othello.joined == 0 || othello.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareOthello") onOthelloJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect
