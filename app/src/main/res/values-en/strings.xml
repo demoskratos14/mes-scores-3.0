@@ -1658,6 +1658,10 @@
     <string name="dots_edge_free">free</string>
     <string name="dots_edge_taken">drawn</string>
     <string name="dots_boxes_count">Boxes this round: %1$d – %2$d</string>
+    <string name="dots_hint_rule">Each line passes the turn to the other player, unless you close a square: then you play again.</string>
+    <string name="dots_hint_replay">Square closed: the same player goes again!</string>
+    <string name="dots_hint_choose">Tap a line to pick it, then confirm.</string>
+    <string name="dots_confirm">Confirm line</string>
     <string name="duo_player_default">Player %1$d</string>
     <string name="duo_player_score">%1$s: %2$d</string>
     <string name="duo_you_tag">%1$s (you)</string>
