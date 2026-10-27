@@ -465,9 +465,9 @@
     <string name="rules_bunco_1_title">Goal</string>
     <string name="rules_bunco_1_body">Score the most points over 6 rounds. In round 1, you look for 1s; in round 2, for 2s; and so on up to round 6.</string>
     <string name="rules_bunco_2_title">Taking a turn</string>
-    <string name="rules_bunco_2_body">Roll 3 dice. Each die showing the round’s number scores 1 point. Three dice of the round’s number are a “Bunco” and score 21 points. Three identical dice of another number score 5 points. As long as you score, you may keep rolling.</string>
+    <string name="rules_bunco_2_body">Roll 3 dice. Each die showing the round’s number scores 1 point. Three dice of the round’s number are a “Bunco” and score 21 points. Three identical dice of another number score 5 points. As long as you score, you roll again; as soon as a roll scores nothing, play passes to the next player. The round ends as soon as a player reaches 21 points.</string>
     <string name="rules_bunco_3_title">In the app</string>
-    <string name="rules_bunco_3_body">Each round, enter in the player’s column the points scored during their turn. The app does not end the game: after the 6 rounds, the highest total wins.</string>
+    <string name="rules_bunco_3_body">The app runs the game for you: it counts the points of each roll, passes the turn, ends the round when a player reaches 21 points and enters everyone’s points in the table. The first player changes every round. After the 6 rounds, the highest total wins.</string>
     <string name="rules_kot_1_title">Goal</string>
     <string name="rules_kot_1_body">Be the first monster to reach 20 victory points, or the last monster still alive. The app counts everyone’s victory points and stops the game at 20.</string>
     <string name="rules_kot_2_title">Taking a turn</string>
@@ -1330,6 +1330,25 @@
     <string name="dice_421_next_round">Next round</string>
     <string name="dice_421_replay_round">Replay the round</string>
     <string name="dice_421_game_over">%1$s ends up with all the tokens and loses the game!</string>
+    <string name="dice_bunco_round">Round %1$d of %2$d: look for the number %1$d</string>
+    <string name="dice_bunco_scores_title">Round points (goal: %1$d)</string>
+    <string name="dice_bunco_score_line">%1$s: %2$d</string>
+    <string name="dice_bunco_turn">%1$s’s turn</string>
+    <string name="dice_bunco_hint">Roll the 3 dice: each die showing a %1$d scores 1 point. As long as you score, you roll again.</string>
+    <string name="dice_bunco_roll_again">You scored: roll again!</string>
+    <plurals name="dice_bunco_result_match">
+        <item quantity="one">%1$d die shows a %2$d: %1$d point.</item>
+        <item quantity="other">%1$d dice show a %2$d: %1$d points.</item>
+    </plurals>
+    <string name="dice_bunco_result_bunco">BUNCO! All three dice show %1$d: 21 points.</string>
+    <string name="dice_bunco_result_triple">Three of a kind (%1$d): %2$d points.</string>
+    <string name="dice_bunco_result_none">No %1$d: no points, your turn is over.</string>
+    <string name="dice_bunco_next_player">Next player</string>
+    <string name="dice_bunco_round_over">Round over</string>
+    <string name="dice_bunco_winner">%1$s reaches %2$d points and wins the round!</string>
+    <string name="dice_bunco_winner_bunco">%1$s rolls a Bunco and wins the round!</string>
+    <string name="dice_bunco_next_round">Go to round %1$d</string>
+    <string name="dice_bunco_game_over">That was the last round: the game is over.</string>
     <string name="dice_qwixx_white">White dice: %1$d</string>
     <string name="dice_qwixx_option">%1$s: %2$d or %3$d</string>
     <string name="dice_new_turn">New turn</string>

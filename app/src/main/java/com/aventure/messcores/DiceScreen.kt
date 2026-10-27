@@ -92,12 +92,18 @@ private fun rememberDiceTurn(setup: DiceSetup): DiceTurn = rememberSaveable(
 private fun rememberRound421(viewModel: ScoreViewModel, setup: DiceSetup): Round421 =
     remember(viewModel, viewModel.players.size) { viewModel.round421(setup.maxRolls ?: 3) }
 
+/** La partie de Bunco : gardée par la partie, donc aussi quand on passe par l'écran des scores et qu'on revient. */
+@Composable
+private fun rememberBuncoRound(viewModel: ScoreViewModel): BuncoRound =
+    remember(viewModel, viewModel.players.size) { viewModel.buncoRound() }
+
 /**
  * Écran des dés d'un jeu : les dés du jeu à lancer, ceux que l'on garde pour relancer les autres, et
  * l'inscription du résultat là où le jeu le permet :
  * - Yams : le score de chaque ligne est calculé d'après les dés ; on l'inscrit (ou on barre la ligne) ;
  * - Cochon : total du tour, à garder ou perdu au premier 1 ;
  * - 421 : la manche se joue tour par tour (voir [Round421] et [Round421Section]), les jetons du perdant sont comptés seuls ;
+ * - Bunco : la partie se joue tour par tour (voir [BuncoRound] et [BuncoSection]), les points de chaque manche sont inscrits seuls ;
  * - autres jeux : les dés et leur total (Qwixx : les combinaisons possibles avec les dés blancs).
  */
 @Composable
@@ -115,7 +121,10 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     val is421 = rules.id == "builtin_421"
     // Au 421, la manche (tirage, ordre des joueurs, limite de lancers) garde elle-même les dés du joueur qui joue.
     val round: Round421? = if (is421) rememberRound421(viewModel, setup) else null
-    val turn = round?.turn ?: rememberDiceTurn(setup)
+    // Au Bunco, la partie (manche, joueur qui joue, points) garde de la même façon les dés du joueur qui joue.
+    val isBunco = rules.id == "builtin_bunco"
+    val bunco: BuncoRound? = if (isBunco) rememberBuncoRound(viewModel) else null
+    val turn = round?.turn ?: bunco?.turn ?: rememberDiceTurn(setup)
     // Les dés tournent puis s'arrêtent un à un ; ce qui dévoile le résultat attend la fin (voir DiceRollAnimation).
     val rollAnimation = rememberDiceRollAnimation(turn)
     var player by rememberSaveable { mutableIntStateOf(0) }
@@ -126,11 +135,12 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     val isYams = rules.sheet == ScoreSheets.YAMS
     val isPig = rules.id == "builtin_cochon"
     val isQwixx = rules.id == "builtin_qwixx"
-    val gameOver = viewModel.isGameOver()
-    val currentPlayer = (round?.currentPlayer ?: player).coerceIn(0, (players.size - 1).coerceAtLeast(0))
+    // Au Bunco, la fin de partie n'est annoncée qu'une fois les dés du dernier lancer arrêtés.
+    val gameOver = viewModel.isGameOver() && !(bunco != null && rollAnimation.rolling)
+    val currentPlayer = (round?.currentPlayer ?: bunco?.current ?: player).coerceIn(0, (players.size - 1).coerceAtLeast(0))
 
-    // Ce qui est partagé des dés : le tour de dés, ou toute la manche au 421.
-    fun tableTurn(): List<Int> = round?.snapshot() ?: turn.snapshot()
+    // Ce qui est partagé des dés : le tour de dés, ou toute la manche au 421 (toute la partie au Bunco).
+    fun tableTurn(): List<Int> = round?.snapshot() ?: bunco?.snapshot() ?: turn.snapshot()
 
     // Plusieurs téléphones : le tour de dés est partagé, et seul le joueur dont c'est le tour peut lancer.
     val shared = session != null && session.isConnected && session.kind == SyncKind.SCORE
@@ -145,7 +155,7 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     val sharedTable = session?.diceTable
     LaunchedEffect(sharedTable, shared) {
         if (shared && sharedTable != null && sharedTable != DiceTable(currentPlayer, tableTurn(), pigTotal, pigBust)) {
-            if (round != null) round.restoreFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
+            if (round != null) round.restoreFrom(sharedTable.turn) else if (bunco != null) bunco.restoreFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
             player = sharedTable.player
             pigTotal = sharedTable.pigTotal
             pigBust = sharedTable.pigBust
@@ -252,6 +262,13 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
                     onChanged = { publish() },
                     onBack = onBack
                 )
+            } else if (bunco != null) {
+                BuncoSection(
+                    viewModel = viewModel,
+                    round = bunco,
+                    canAct = canAct,
+                    onChanged = { publish() }
+                )
             } else {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = cardSurface()),
@@ -289,8 +306,8 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
                     onWritten = { nextPlayer() }
                 )
                 isQwixx -> QwixxPanel(turn = turn)
-                // 421 : tout est dans la section de la manche, plus haut.
-                round != null -> Unit
+                // 421 et Bunco : tout est dans la section de la partie, plus haut.
+                round != null || bunco != null -> Unit
                 turn.hasRolled -> Card(
                     colors = CardDefaults.cardColors(containerColor = cardSurface()),
                     modifier = Modifier.fillMaxWidth()
@@ -305,7 +322,8 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
         }
 
         // Au 421, les jetons suivent la manche : on la rejoue plutôt que d'annuler un seul compteur.
-        if (viewModel.canUndo && !is421) {
+        // Au Bunco, les points d'une manche sont inscrits d'un coup avec la fin de la manche : on ne les annule pas un à un.
+        if (viewModel.canUndo && !is421 && !isBunco) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { viewModel.undo() },

@@ -61,6 +61,17 @@ class ScoreViewModel : ViewModel() {
         return Round421(players.size, maxRolls).also { round421 = it }
     }
 
+    // La partie de Bunco en cours (manche, joueur qui joue, points de la manche). Elle vit ici pour la même raison que
+    // la manche de 421 ; une partie reprise (ou rouverte) repart de la manche qui suit celles déjà inscrites au tableau.
+    private var buncoRound: BuncoRound? = null
+
+    /** La partie de Bunco ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun buncoRound(): BuncoRound {
+        val current = buncoRound
+        if (current != null && current.playerCount == players.size) return current
+        return BuncoRound(players.size, startRound = roundsPlayed() + 1).also { buncoRound = it }
+    }
+
     /**
      * Partage de la partie avec un autre téléphone (voir [SyncSession]). Sur un téléphone invité, les actions
      * ne s'appliquent pas ici : elles sont envoyées à l'organisateur, qui renvoie l'état de la partie.
@@ -158,6 +169,7 @@ class ScoreViewModel : ViewModel() {
         lastSavedContent = null
         gameActive = true
         round421 = null
+        buncoRound = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
         phases.clear()
@@ -183,7 +195,10 @@ class ScoreViewModel : ViewModel() {
      * [keepRound] : on garde la manche de 421 en cours (état reçu de l'organisateur, qui est la même partie).
      */
     fun loadFromSaved(saved: SavedGame, keepRound: Boolean = false) {
-        if (!keepRound) round421 = null
+        if (!keepRound) {
+            round421 = null
+            buncoRound = null
+        }
         currentSaveId = saved.id
         savedBaseline = saved
         lastSavedContent = saved.contentKey()
@@ -212,6 +227,7 @@ class ScoreViewModel : ViewModel() {
     fun closeGame() {
         gameActive = false
         round421 = null
+        buncoRound = null
         currentSaveId = null
         savedBaseline = null
         lastSavedContent = null

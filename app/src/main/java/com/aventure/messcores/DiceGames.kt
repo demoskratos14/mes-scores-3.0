@@ -83,7 +83,8 @@ internal fun diceGames(context: Context): List<GameRules> = listOf(
         maxPlayers = 12,
         lowestWins = false,
         allowNegativeScores = false,
-        scoreMode = ScoreMode.TABLE
+        scoreMode = ScoreMode.TABLE,
+        endCondition = EndCondition(type = EndConditionType.ROUND_COUNT, roundCount = BuncoScoring.ROUNDS)
     ),
     GameRules(
         id = "builtin_kot",
