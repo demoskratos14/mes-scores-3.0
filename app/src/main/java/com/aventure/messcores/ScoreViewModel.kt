@@ -50,6 +50,17 @@ class ScoreViewModel : ViewModel() {
     /** Vrai tant qu'une partie est ouverte (faux avant la première partie et après [closeGame]). */
     val isGameActive: Boolean get() = gameActive
 
+    // La manche de 421 en cours (qui joue, jeux gardés, limite de lancers). Elle vit ici, et non dans l'écran des dés,
+    // pour ne pas repartir de zéro quand on revient aux scores puis aux dés ; une nouvelle partie l'efface.
+    private var round421: Round421? = null
+
+    /** La manche de 421 de la partie ouverte : la même d'un écran à l'autre, créée au tirage de départ au premier appel. */
+    internal fun round421(maxRolls: Int): Round421 {
+        val current = round421
+        if (current != null && current.playerCount == players.size && current.maxRolls == maxRolls) return current
+        return Round421(players.size, maxRolls).also { round421 = it }
+    }
+
     /**
      * Partage de la partie avec un autre téléphone (voir [SyncSession]). Sur un téléphone invité, les actions
      * ne s'appliquent pas ici : elles sont envoyées à l'organisateur, qui renvoie l'état de la partie.
@@ -146,6 +157,7 @@ class ScoreViewModel : ViewModel() {
         savedBaseline = null
         lastSavedContent = null
         gameActive = true
+        round421 = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
         phases.clear()
@@ -166,8 +178,12 @@ class ScoreViewModel : ViewModel() {
         return true
     }
 
-    /** Restaure une partie précédemment enregistrée dans le journal, telle quelle. */
-    fun loadFromSaved(saved: SavedGame) {
+    /**
+     * Restaure une partie précédemment enregistrée dans le journal, telle quelle.
+     * [keepRound] : on garde la manche de 421 en cours (état reçu de l'organisateur, qui est la même partie).
+     */
+    fun loadFromSaved(saved: SavedGame, keepRound: Boolean = false) {
+        if (!keepRound) round421 = null
         currentSaveId = saved.id
         savedBaseline = saved
         lastSavedContent = saved.contentKey()
@@ -195,6 +211,7 @@ class ScoreViewModel : ViewModel() {
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
     fun closeGame() {
         gameActive = false
+        round421 = null
         currentSaveId = null
         savedBaseline = null
         lastSavedContent = null

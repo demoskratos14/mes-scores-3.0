@@ -525,7 +525,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.State -> {
                 val game = game ?: return
                 if (role == SyncRole.GUEST) {
-                    game.loadFromSaved(message.game)
+                    game.loadFromSaved(message.game, keepRound = true)
                     hostCanUndo = message.canUndo
                     hostCanRedo = message.canRedo
                     receivedStates++

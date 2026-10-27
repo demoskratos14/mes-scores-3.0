@@ -87,15 +87,10 @@ private fun rememberDiceTurn(setup: DiceSetup): DiceTurn = rememberSaveable(
     )
 ) { DiceTurn(setup) }
 
-/** Garde la manche de 421 quand l'écran tourne. */
+/** La manche de 421 de la partie : gardée par la partie, donc aussi quand on passe par l'écran des scores et qu'on revient. */
 @Composable
-private fun rememberRound421(playerCount: Int, setup: DiceSetup): Round421 = rememberSaveable(
-    playerCount,
-    saver = Saver<Round421, List<Int>>(
-        save = { it.snapshot() },
-        restore = { data -> Round421(playerCount, setup.maxRolls ?: 3).also { it.restoreFrom(data) } }
-    )
-) { Round421(playerCount, setup.maxRolls ?: 3) }
+private fun rememberRound421(viewModel: ScoreViewModel, setup: DiceSetup): Round421 =
+    remember(viewModel, viewModel.players.size) { viewModel.round421(setup.maxRolls ?: 3) }
 
 /**
  * Écran des dés d'un jeu : les dés du jeu à lancer, ceux que l'on garde pour relancer les autres, et
@@ -119,7 +114,7 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     val players = viewModel.players
     val is421 = rules.id == "builtin_421"
     // Au 421, la manche (tirage, ordre des joueurs, limite de lancers) garde elle-même les dés du joueur qui joue.
-    val round: Round421? = if (is421) rememberRound421(players.size, setup) else null
+    val round: Round421? = if (is421) rememberRound421(viewModel, setup) else null
     val turn = round?.turn ?: rememberDiceTurn(setup)
     // Les dés tournent puis s'arrêtent un à un ; ce qui dévoile le résultat attend la fin (voir DiceRollAnimation).
     val rollAnimation = rememberDiceRollAnimation(turn)

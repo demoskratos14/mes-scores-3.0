@@ -76,6 +76,7 @@ internal fun Round421Section(
                     fontWeight = FontWeight.Bold
                 )
             }
+            Holdings(players = players, holdings = holdings, current = if (round.phase == Phase421.PLAY) round.currentPlayer else -1)
             when (round.phase) {
                 Phase421.DRAW -> DrawPart(viewModel, round, canAct, onChanged)
                 Phase421.PLAY -> PlayPart(round, players, canAct, onChanged) {
@@ -104,6 +105,27 @@ internal fun Round421Section(
                     onBack = onBack
                 )
             }
+        }
+    }
+}
+
+/** Les jetons de chacun, toujours visibles pendant les dés ; le joueur dont c'est le tour ([current]) est en gras. */
+@Composable
+private fun Holdings(players: List<String>, holdings: List<Int>, current: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            text = stringResource(R.string.dice_421_holdings_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        players.forEachIndexed { index, name ->
+            val mine = index == current
+            Text(
+                text = stringResource(R.string.dice_421_holding, name, holdings.getOrElse(index) { 0 }),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (mine) FontWeight.Bold else FontWeight.Normal,
+                color = if (mine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }

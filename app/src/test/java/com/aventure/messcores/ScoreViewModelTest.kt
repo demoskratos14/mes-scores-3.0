@@ -2,6 +2,8 @@ package com.aventure.messcores
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -324,5 +326,59 @@ class ScoreViewModelTest {
         vm.appendTeamRound(TeamRound("B", setOf(1), value = 10))   // règle simple : +10 à Ben, −10 aux autres
         // Anna : +50 puis −10 ; Ben : −25 puis +10 ; Chloé : −25 puis −10.
         assertEquals(listOf(40, -15, -35), vm.totals)
+    }
+
+    // ---------- Manche de 421 ----------
+
+    @Test
+    fun laMancheDe421EstGardeeQuandOnPasseParLesScoresPuisRevientAuxDes() {
+        val vm = tableGame(GameRules(id = "builtin_421", name = "421"))
+        val round = vm.round421(3)
+        round.chooseStarter(1)
+
+        // L'écran des dés se recompose (retour des scores) : c'est la même manche, avec son premier joueur.
+        assertSame(round, vm.round421(3))
+        assertEquals(1, vm.round421(3).starter)
+    }
+
+    @Test
+    fun uneNouvellePartieOuLaFermetureEffacentLaMancheDe421() {
+        val rules = GameRules(id = "builtin_421", name = "421")
+        val vm = tableGame(rules)
+        val round = vm.round421(3)
+        round.chooseStarter(2)
+
+        vm.initGame(names, rules)
+        val fresh = vm.round421(3)
+        assertNotSame(round, fresh)
+        assertEquals(-1, fresh.starter)
+
+        fresh.chooseStarter(0)
+        vm.closeGame()
+        assertEquals(-1, vm.round421(3).starter)
+    }
+
+    @Test
+    fun laPartieRecueDeLOrganisateurGardeLaMancheDe421MaisUneReprisePartDeZero() {
+        val vm = tableGame(GameRules(id = "builtin_421", name = "421"))
+        val round = vm.round421(3)
+        round.chooseStarter(1)
+
+        // Un invité reçoit l'état de l'organisateur à chaque changement : sa manche en cours reste la même.
+        vm.loadFromSaved(vm.snapshot(), keepRound = true)
+        assertSame(round, vm.round421(3))
+
+        // Rouvrir une partie du journal repart d'un tirage neuf.
+        vm.loadFromSaved(vm.snapshot())
+        assertEquals(-1, vm.round421(3).starter)
+    }
+
+    @Test
+    fun uneMancheDe421NeSertPasAUnAutreNombreDeJoueurs() {
+        val vm = tableGame(GameRules(id = "builtin_421", name = "421"))
+        val round = vm.round421(3)
+        vm.initGame(listOf("Anna", "Ben"), GameRules(id = "builtin_421", name = "421"))
+        assertNotSame(round, vm.round421(3))
+        assertEquals(2, vm.round421(3).playerCount)
     }
 }
