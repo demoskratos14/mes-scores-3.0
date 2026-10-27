@@ -59,7 +59,8 @@ class HangmanTest {
         assertTrue(Hangman.isValidShape("_____ __ _____"))
         assertFalse(Hangman.isValidShape("ABC"))
         assertFalse(Hangman.isValidShape("_"))
-        assertFalse(Hangman.isValidShape("_ _"))
+        assertTrue(Hangman.isValidShape("_ _")) // deux lettres : le minimum (MIN_LETTERS)
+        assertFalse(Hangman.isValidShape("_ -_")) // deux séparateurs de suite
         assertFalse(Hangman.isValidShape("-__"))
     }
 
