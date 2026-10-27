@@ -1695,6 +1695,10 @@
     <string name="dots_edge_free">libero</string>
     <string name="dots_edge_taken">tracciato</string>
     <string name="dots_boxes_count">Caselle di questo round: %1$d – %2$d</string>
+    <string name="dots_hint_rule">Ogni tratto passa il turno all’altro giocatore, tranne se chiudi un quadrato: allora giochi di nuovo.</string>
+    <string name="dots_hint_replay">Quadrato chiuso: lo stesso giocatore gioca di nuovo!</string>
+    <string name="dots_hint_choose">Tocca un tratto per sceglierlo, poi conferma.</string>
+    <string name="dots_confirm">Conferma il tratto</string>
     <string name="duo_player_default">Giocatore %1$d</string>
     <string name="duo_player_score">%1$s: %2$d</string>
     <string name="duo_you_tag">%1$s (tu)</string>
