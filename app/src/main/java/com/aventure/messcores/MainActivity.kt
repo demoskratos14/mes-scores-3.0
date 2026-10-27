@@ -133,6 +133,7 @@ fun ScoreApp(
     val draughtsOnline = syncViewModel.draughts
     val othelloOnline = syncViewModel.othello
     val hangmanOnline = syncViewModel.hangman
+    val chessOnline = syncViewModel.chess
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -323,6 +324,9 @@ fun ScoreApp(
                             // Le Pendu aussi : deux joueurs, sur un téléphone ou chacun sur le sien.
                             hangmanViewModel.open(rules, pendingPlayerNames)
                             navController.navigate("hangman")
+                        } else if (rules.id == CHESS_ID) {
+                            // Les échecs ont leur propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            navController.navigate("chess")
                         } else if (rules.scoreMode == ScoreMode.POKER) {
                             // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
                             navController.navigate("pokerSetup")
@@ -576,6 +580,30 @@ fun ScoreApp(
                     onHostedHangman = { navController.popBackStack() }
                 )
             }
+            composable("chess") {
+                ChessScreen(
+                    players = pendingPlayerNames,
+                    online = chessOnline,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareChess") }
+                )
+            }
+            composable("shareChess") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.CHESS,
+                    chess = chessOnline,
+                    // La table d'échecs est l'écran du jeu, juste derrière.
+                    onHostedChess = { navController.popBackStack() }
+                )
+            }
             composable("draughts") {
                 DraughtsScreen(
                     players = pendingPlayerNames,
@@ -736,7 +764,9 @@ fun ScoreApp(
             onHangmanJoined = {
                 gameRepository.builtInGames().firstOrNull { it.id == HANGMAN_ID }?.let { hangmanViewModel.prepareOnline(it) }
                 navController.navigate("hangman") { popUpTo("home") }
-            }
+            },
+            chess = chessOnline,
+            onChessJoined = { navController.navigate("chess") { popUpTo("home") } }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)

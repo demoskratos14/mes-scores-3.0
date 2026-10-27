@@ -14,8 +14,8 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 
 internal enum class SyncRole { NONE, HOST, GUEST }
 
-/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des dames, un Othello ou un Pendu chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN }
+/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des dames, un Othello, un Pendu ou des échecs chacun sur son téléphone. */
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -126,6 +126,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Le Pendu chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var hangman: HangmanOnline? = null
+
+    /** Les échecs chacun sur son téléphone, qui reçoivent leurs messages et les événements de connexion. */
+    var chess: ChessOnline? = null
 
     /** Les jeux à deux joueurs (Gomoku, Pipopipette) chacun sur son téléphone : ils reçoivent leurs messages et les événements de connexion. */
     private val duoGames = mutableListOf<DuoOnline<*>>()
@@ -298,6 +301,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         transport.startHosting(deviceName)
     }
 
+    /** Annonce des échecs chacun sur son téléphone : l'autre joueur les rejoint comme une partie de score. */
+    fun startHostingChess(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.CHESS
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
     fun startJoining() {
         reset()
         role = SyncRole.GUEST
@@ -434,6 +446,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         draughts?.onPeerConnected(id)
         othello?.onPeerConnected(id)
         hangman?.onPeerConnected(id)
+        chess?.onPeerConnected(id)
         duoGames.forEach { it.onPeerConnected(id) }
     }
 
@@ -453,6 +466,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         draughts?.onPeerDisconnected(id)
         othello?.onPeerDisconnected(id)
         hangman?.onPeerDisconnected(id)
+        chess?.onPeerDisconnected(id)
         duoGames.forEach { it.onPeerDisconnected(id) }
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
@@ -499,6 +513,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Hg -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.HANGMAN
                 hangman?.onMessage(id, message.hg)
+            }
+            is SyncMessage.Chess -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.CHESS
+                chess?.onMessage(id, message.chess)
             }
             is SyncMessage.Duo -> {
                 if (role == SyncRole.GUEST) kind = message.kind

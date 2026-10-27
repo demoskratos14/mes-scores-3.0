@@ -33,25 +33,25 @@ private val SPECIAL_GAMES = setOf(
     "builtin_dixit", "builtin_ttr", "builtin_azul", "builtin_carcassonne", "builtin_catane",
     "builtin_sevenwonders", "builtin_wingspan", "builtin_hanabi", "builtin_scrabble", "builtin_trivial",
     "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc",
-    "builtin_gomoku", "builtin_dots", "builtin_draughts", "builtin_othello", "builtin_hangman"
+    "builtin_gomoku", "builtin_dots", "builtin_draughts", "builtin_othello", "builtin_hangman", "builtin_chess"
 )
 
 /**
  * Vrai si le jeu se joue dans l'appli (accueil « Jeux jouables ») : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, Pierre-feuille-ciseaux, le Gomoku, la
- * Pipopipette, les dames, l'Othello et le Pendu, qui ont leur propre écran, et les jeux de dés qui ont des dés à lancer (voir [DiceSetups]). Le poker reste une feuille de score :
+ * Pipopipette, les dames, l'Othello, le Pendu et les échecs, qui ont leur propre écran, et les jeux de dés qui ont des dés à lancer (voir [DiceSetups]). Le poker reste une feuille de score :
  * les cartes n'y sont pas distribuées.
  */
 fun GameRules.isPlayableGame(): Boolean =
     id == MASTERMIND_ID || id == MORPION_ID || id == CONNECT4_ID || id == BATTLESHIP_ID || id == NIM_ID || id == PFC_ID ||
-        id == GOMOKU_ID || id == DOTS_ID || id == DRAUGHTS_ID || id == OTHELLO_ID || id == HANGMAN_ID || DiceSetups.forGame(id) != null
+        id == GOMOKU_ID || id == DOTS_ID || id == DRAUGHTS_ID || id == OTHELLO_ID || id == HANGMAN_ID || id == CHESS_ID || DiceSetups.forGame(id) != null
 
-/** Vrai si le jeu a une feuille de scores : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, les dames, l'Othello et le Pendu ont chacun leur écran, sans feuille. */
+/** Vrai si le jeu a une feuille de scores : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont chacun leur écran, sans feuille. */
 fun GameRules.hasScoreSheet(): Boolean =
     id != MASTERMIND_ID && id != MORPION_ID && id != CONNECT4_ID && id != BATTLESHIP_ID && id != NIM_ID && id != PFC_ID &&
-        id != GOMOKU_ID && id != DOTS_ID && id != DRAUGHTS_ID && id != OTHELLO_ID && id != HANGMAN_ID
+        id != GOMOKU_ID && id != DOTS_ID && id != DRAUGHTS_ID && id != OTHELLO_ID && id != HANGMAN_ID && id != CHESS_ID
 
 // Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : aucun pour l'instant.
-// Le Mastermind, le Morpion, le Gomoku, la Pipopipette, le jeu des allumettes, les dames, l'Othello et le Pendu ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
+// Le Mastermind, le Morpion, le Gomoku, la Pipopipette, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
 private val SINGLE_PHONE_GAMES = emptySet<String>()
 
 /** Vrai si le jeu jouable peut se jouer en connectant plusieurs téléphones (deux téléphones dessinés dans la liste). */

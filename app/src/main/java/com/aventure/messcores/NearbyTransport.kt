@@ -155,6 +155,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Pendu chacun sur son téléphone, sur la même connexion. */
     internal val hangman = HangmanOnline(session)
 
+    /** Échecs chacun sur son téléphone, sur la même connexion. */
+    internal val chess = ChessOnline(session)
+
     override fun onCleared() {
         session.disconnect()
     }

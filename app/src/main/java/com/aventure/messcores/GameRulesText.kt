@@ -342,6 +342,12 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_hangman_3_title, R.string.rules_hangman_3_body),
         RulesSection(R.string.rules_hangman_4_title, R.string.rules_hangman_4_body)
     ),
+    "builtin_chess" to listOf(
+        RulesSection(R.string.rules_chess_1_title, R.string.rules_chess_1_body),
+        RulesSection(R.string.rules_chess_2_title, R.string.rules_chess_2_body),
+        RulesSection(R.string.rules_chess_3_title, R.string.rules_chess_3_body),
+        RulesSection(R.string.rules_chess_4_title, R.string.rules_chess_4_body)
+    ),
     "builtin_othello" to listOf(
         RulesSection(R.string.rules_othello_1_title, R.string.rules_othello_1_body),
         RulesSection(R.string.rules_othello_2_title, R.string.rules_othello_2_body),

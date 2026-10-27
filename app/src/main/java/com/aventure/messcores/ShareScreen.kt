@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -102,7 +102,7 @@ internal fun ShareScreen(
     game: ScoreViewModel,
     session: SyncSession,
     onBack: () -> Unit,
-    // Ce qu'on organise : la partie de score en cours, un Mastermind, un Morpion, des dames, un Othello ou un autre jeu à deux chacun sur son téléphone.
+    // Ce qu'on organise : la partie de score en cours, un Mastermind, un Morpion, des dames, un Othello, des échecs ou un autre jeu à deux chacun sur son téléphone.
     kind: ShareKind = ShareKind.SCORE,
     mastermind: MastermindOnline? = null,
     mastermindSettings: MastermindSettings = MastermindSettings(),
@@ -127,7 +127,9 @@ internal fun ShareScreen(
     onHostedOthello: () -> Unit = {},
     hangman: HangmanOnline? = null,
     hangmanSettings: HangmanSettings = HangmanSettings(),
-    onHostedHangman: () -> Unit = {}
+    onHostedHangman: () -> Unit = {},
+    chess: ChessOnline? = null,
+    onHostedChess: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
@@ -191,6 +193,11 @@ internal fun ShareScreen(
                 session.startHostingHangman(deviceName)
                 hangman.openLobby(deviceName, hangmanSettings)
                 onHostedHangman()
+            }
+            kind == ShareKind.CHESS && chess != null -> {
+                session.startHostingChess(deviceName)
+                chess.openLobby(deviceName)
+                onHostedChess()
             }
             else -> session.startHosting(deviceName)
         }
@@ -401,7 +408,9 @@ internal fun SyncEffects(
     othello: OthelloOnline,
     onOthelloJoined: () -> Unit,
     hangman: HangmanOnline,
-    onHangmanJoined: () -> Unit
+    onHangmanJoined: () -> Unit,
+    chess: ChessOnline,
+    onChessJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -464,6 +473,11 @@ internal fun SyncEffects(
         if (hangman.joined == 0 || hangman.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup") onHangmanJoined()
+    }
+    LaunchedEffect(chess.joined) {
+        if (chess.joined == 0 || chess.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareChess") onChessJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect
