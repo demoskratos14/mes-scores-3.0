@@ -26,7 +26,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -62,7 +62,7 @@ private fun GomokuBoard(match: GomokuMatch, enabled: Boolean, onPlay: (Int) -> U
 
     val cells = remember(match.board) { match.cells }
     val line = remember(match.board) { Gomoku.winningLine(cells) }
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     val preview = if (match.current == 1) BlackStone else WhiteStone
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

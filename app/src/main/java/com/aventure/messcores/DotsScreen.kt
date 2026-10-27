@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -54,7 +54,7 @@ private fun DotsBoard(match: DotsMatch, enabled: Boolean, onPlay: (Int) -> Unit)
     val colorA = scheme.primary
     val colorB = scheme.tertiary
     val ink = scheme.onSurface
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
