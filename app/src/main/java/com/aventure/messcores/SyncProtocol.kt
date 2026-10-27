@@ -74,6 +74,9 @@ internal sealed interface SyncMessage {
     /** Un message de l'Othello chacun sur son téléphone (voir [OthelloOnline]). */
     data class Oth(val oth: OthMessage) : SyncMessage
 
+    /** Un message du Pendu chacun sur son téléphone (voir [HangmanOnline]). */
+    data class Hg(val hg: HgMessage) : SyncMessage
+
     /** Le tour de dés en cours, envoyé par le téléphone du joueur qui joue (l'organisateur le relaie aux autres). */
     data class Dice(val table: DiceTable) : SyncMessage
 }
@@ -177,6 +180,7 @@ internal object SyncCodec {
             is SyncMessage.Duo -> json.put("t", "duo").put("g", message.kind.name).put("duo", message.duo.toJson())
             is SyncMessage.Dr -> json.put("t", "dr").put("dr", message.dr.toJson())
             is SyncMessage.Oth -> json.put("t", "oth").put("oth", message.oth.toJson())
+            is SyncMessage.Hg -> json.put("t", "hg").put("hg", message.hg.toJson())
             is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
                 .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
                 .put("pig", message.table.pigTotal).put("bust", message.table.pigBust)
@@ -212,6 +216,7 @@ internal object SyncCodec {
                 }
                 "dr" -> drMessageFromJson(json.getJSONObject("dr"))?.let { SyncMessage.Dr(it) }
                 "oth" -> othMessageFromJson(json.getJSONObject("oth"))?.let { SyncMessage.Oth(it) }
+                "hg" -> hgMessageFromJson(json.getJSONObject("hg"))?.let { SyncMessage.Hg(it) }
                 "dice" -> {
                     val turn = json.getJSONArray("turn")
                     SyncMessage.Dice(

@@ -347,5 +347,15 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         lowestWins = false,
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
+    ),
+    // Pendu : écran à part (voir HangmanScreen), à deux joueurs ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = HANGMAN_ID,
+        name = context.getString(R.string.game_hangman),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
     )
 )

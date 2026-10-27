@@ -118,6 +118,7 @@ fun ScoreApp(
     val tournamentViewModel: TournamentViewModel = viewModel()
     val mastermindViewModel: MastermindViewModel = viewModel()
     val battleshipViewModel: BattleshipViewModel = viewModel()
+    val hangmanViewModel: HangmanViewModel = viewModel()
     // Partage de la partie avec un autre téléphone : vit au même niveau pour garder la connexion sur tous les écrans.
     val syncViewModel: SyncViewModel = viewModel()
     val sync = syncViewModel.session
@@ -131,6 +132,7 @@ fun ScoreApp(
     val dotsOnline = syncViewModel.dots
     val draughtsOnline = syncViewModel.draughts
     val othelloOnline = syncViewModel.othello
+    val hangmanOnline = syncViewModel.hangman
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -317,6 +319,10 @@ fun ScoreApp(
                         } else if (rules.id == OTHELLO_ID) {
                             // L'Othello aussi : deux joueurs, sur un téléphone ou chacun sur le sien.
                             navController.navigate("othello")
+                        } else if (rules.id == HANGMAN_ID) {
+                            // Le Pendu aussi : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            hangmanViewModel.open(rules, pendingPlayerNames)
+                            navController.navigate("hangman")
                         } else if (rules.scoreMode == ScoreMode.POKER) {
                             // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
                             navController.navigate("pokerSetup")
@@ -545,6 +551,31 @@ fun ScoreApp(
                     onHostedDuo = { navController.popBackStack() }
                 )
             }
+            composable("hangman") {
+                HangmanScreen(
+                    viewModel = hangmanViewModel,
+                    online = hangmanOnline,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareHangman") }
+                )
+            }
+            composable("shareHangman") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.HANGMAN,
+                    hangman = hangmanOnline,
+                    hangmanSettings = hangmanViewModel.settings,
+                    // La salle d'attente du Pendu est l'écran du jeu, juste derrière.
+                    onHostedHangman = { navController.popBackStack() }
+                )
+            }
             composable("draughts") {
                 DraughtsScreen(
                     players = pendingPlayerNames,
@@ -700,7 +731,12 @@ fun ScoreApp(
             draughts = draughtsOnline,
             onDraughtsJoined = { navController.navigate("draughts") { popUpTo("home") } },
             othello = othelloOnline,
-            onOthelloJoined = { navController.navigate("othello") { popUpTo("home") } }
+            onOthelloJoined = { navController.navigate("othello") { popUpTo("home") } },
+            hangman = hangmanOnline,
+            onHangmanJoined = {
+                gameRepository.builtInGames().firstOrNull { it.id == HANGMAN_ID }?.let { hangmanViewModel.prepareOnline(it) }
+                navController.navigate("hangman") { popUpTo("home") }
+            }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)

@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -124,7 +124,10 @@ internal fun ShareScreen(
     draughts: DraughtsOnline? = null,
     onHostedDraughts: () -> Unit = {},
     othello: OthelloOnline? = null,
-    onHostedOthello: () -> Unit = {}
+    onHostedOthello: () -> Unit = {},
+    hangman: HangmanOnline? = null,
+    hangmanSettings: HangmanSettings = HangmanSettings(),
+    onHostedHangman: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
@@ -183,6 +186,11 @@ internal fun ShareScreen(
                 session.startHostingOthello(deviceName)
                 othello.openLobby(deviceName)
                 onHostedOthello()
+            }
+            kind == ShareKind.HANGMAN && hangman != null -> {
+                session.startHostingHangman(deviceName)
+                hangman.openLobby(deviceName, hangmanSettings)
+                onHostedHangman()
             }
             else -> session.startHosting(deviceName)
         }
@@ -391,7 +399,9 @@ internal fun SyncEffects(
     draughts: DraughtsOnline,
     onDraughtsJoined: () -> Unit,
     othello: OthelloOnline,
-    onOthelloJoined: () -> Unit
+    onOthelloJoined: () -> Unit,
+    hangman: HangmanOnline,
+    onHangmanJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -449,6 +459,11 @@ internal fun SyncEffects(
         if (othello.joined == 0 || othello.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup" || current == "shareOthello") onOthelloJoined()
+    }
+    LaunchedEffect(hangman.joined) {
+        if (hangman.joined == 0 || hangman.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup") onHangmanJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect
