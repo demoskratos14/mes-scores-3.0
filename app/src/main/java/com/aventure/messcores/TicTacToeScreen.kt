@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,14 +35,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 /**
  * Morpion à deux joueurs : sur un seul téléphone (on se passe l'appareil) ou chacun sur le sien (voir
@@ -307,12 +311,7 @@ private fun MorpionBoard(cells: List<Int>, line: List<Int>?, enabled: Boolean, o
                             .clickable(enabled = enabled && value == 0, role = Role.Button) { onPlay(index) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = symbolOf(value),
-                            fontSize = 48.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (value == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
-                        )
+                        if (value != 0) MorpionSymbol(value)
                     }
                 }
             }
@@ -325,4 +324,32 @@ private fun symbolOf(value: Int): String = when (value) {
     1 -> "X"
     2 -> "O"
     else -> ""
+}
+
+/** Bleu des croix (joueur 1) et rouge des ronds (joueur 2), les mêmes dans la grille et dans l'icône du jeu. */
+internal val MORPION_BLUE = Color(0xFF1976D2)
+internal val MORPION_RED = Color(0xFFD32F2F)
+
+/** Une croix bleue (joueur 1) ou un vrai rond rouge (joueur 2) dessiné dans la case. Décoratif : la case se décrit elle-même. */
+@Composable
+private fun MorpionSymbol(value: Int) {
+    Canvas(modifier = Modifier.fillMaxSize().padding(22.dp)) {
+        val width = size.minDimension * 0.14f
+        if (value == 1) {
+            drawMorpionCross(center, size.minDimension * 0.5f - width / 2f, MORPION_BLUE, width)
+        } else {
+            drawCircle(
+                color = MORPION_RED,
+                radius = size.minDimension * 0.5f - width / 2f,
+                center = center,
+                style = Stroke(width = width)
+            )
+        }
+    }
+}
+
+/** Une croix de rayon [radius] centrée en [center], aux bouts arrondis. */
+internal fun DrawScope.drawMorpionCross(center: Offset, radius: Float, color: Color, width: Float) {
+    drawLine(color, Offset(center.x - radius, center.y - radius), Offset(center.x + radius, center.y + radius), width, StrokeCap.Round)
+    drawLine(color, Offset(center.x - radius, center.y + radius), Offset(center.x + radius, center.y - radius), width, StrokeCap.Round)
 }

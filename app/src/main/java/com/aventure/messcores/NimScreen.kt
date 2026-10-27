@@ -1,6 +1,9 @@
 package com.aventure.messcores
 
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,9 +27,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,13 +41,17 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Jeu des allumettes (Nim) à deux joueurs : sur un seul téléphone (on se passe l'appareil) ou chacun sur le sien
@@ -139,7 +149,14 @@ private fun LocalNim(players: List<String>, onPlayOnline: () -> Unit) {
             },
             style = MaterialTheme.typography.titleMedium
         )
-        Matches(remaining = match.remaining)
+        NimTable(
+            remaining = match.remaining,
+            turn = match.turn,
+            isOver = match.isOver,
+            bottomPlayer = 1,
+            bottomName = name1,
+            topName = name2
+        )
         if (match.isOver) {
             Button(onClick = { match.newRound()?.let(::applyMatch) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.nim_new_round))
@@ -209,7 +226,15 @@ private fun OnlineNim(online: NimOnline, onQuit: () -> Unit, onClose: () -> Unit
             },
             style = MaterialTheme.typography.titleMedium
         )
-        Matches(remaining = match.remaining)
+        // Moi en bas, face à moi : mes allumettes viennent se poser de mon côté.
+        NimTable(
+            remaining = match.remaining,
+            turn = match.turn,
+            isOver = match.isOver,
+            bottomPlayer = me,
+            bottomName = if (me == 1) name1 else name2,
+            topName = opponent
+        )
         if (match.isOver) {
             Button(onClick = { online.newRound() }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.nim_new_round))
@@ -288,50 +313,127 @@ private fun TakeButtons(remaining: Int, enabled: Boolean, onTake: (Int) -> Unit)
 }
 
 /**
- * Le tas d'allumettes, rangées de [PER_ROW] : les allumettes restantes sont dessinées pleines, celles déjà prises
- * en pâle à leur place (le tas ne se redessine pas à chaque coup). Lu par TalkBack comme le nombre d'allumettes restantes.
+ * La table de jeu : les allumettes restantes sont alignées sur une seule ligne, au milieu. Quand un joueur en
+ * prend, elles glissent tout droit vers son côté (le joueur du bas, ou celui du haut) et y restent posées juste en
+ * face de l'endroit d'où elles ont été prises. Au début d'une nouvelle manche, elles reviennent toutes sur la ligne.
+ * Lu par TalkBack comme le nombre d'allumettes restantes.
+ *
+ * Qui a pris quoi se déduit des changements de [remaining] : le joueur dont c'était le tour juste avant ([turn]
+ * avant le coup) a pris les allumettes qui viennent de disparaître, toujours en bout de ligne.
  */
 @Composable
-private fun Matches(remaining: Int) {
-    val rows = (Nim.START + PER_ROW - 1) / PER_ROW
+private fun NimTable(
+    remaining: Int,
+    turn: Int,
+    isOver: Boolean,
+    bottomPlayer: Int,
+    bottomName: String,
+    topName: String
+) {
+    val context = LocalContext.current
+    // Si l'utilisateur a supprimé les animations du système, les allumettes se posent sans glisser.
+    val animate = remember {
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
+    }
+    val scope = rememberCoroutineScope()
+
+    // Pour chaque allumette : '0' tant qu'elle est sur la ligne, sinon le numéro du joueur qui l'a prise.
+    var owners by rememberSaveable { mutableStateOf("0".repeat(Nim.START)) }
+    var seenRemaining by rememberSaveable { mutableIntStateOf(remaining) }
+    var seenTurn by rememberSaveable { mutableIntStateOf(turn) }
+    // Avancement du glissement de chaque allumette : 0 sur la ligne, 1 posée du côté de son joueur.
+    val slide = remember { List(Nim.START) { index -> Animatable(if (owners[index] != '0') 1f else 0f) } }
+
+    LaunchedEffect(remaining, turn) {
+        val previous = seenRemaining
+        val mover = seenTurn
+        seenRemaining = remaining
+        seenTurn = turn
+        if (remaining == previous) return@LaunchedEffect
+        val updated = if (remaining > previous) {
+            CharArray(Nim.START) { '0' } // nouvelle manche : tout revient sur la ligne
+        } else {
+            owners.toCharArray().also { for (index in remaining until previous) it[index] = '0' + mover }
+        }
+        owners = String(updated)
+        for (index in 0 until Nim.START) {
+            val target = if (updated[index] == '0') 0f else 1f
+            if (!animate) {
+                scope.launch { slide[index].snapTo(target) }
+            } else {
+                scope.launch {
+                    // Les allumettes d'un même coup partent l'une après l'autre.
+                    delay(if (index in remaining until previous) (previous - 1 - index) * 70L else 0L)
+                    slide[index].animateTo(target, tween(durationMillis = 450))
+                }
+            }
+        }
+    }
+
     val description = pluralStringResource(R.plurals.nim_remaining, remaining, remaining)
     val wood = Color(0xFFD9B27C)
     val head = MaterialTheme.colorScheme.error
-    val taken = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.16f)
+    val faded = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.16f)
+    val tray = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.07f)
 
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(PER_ROW / (rows * CELL_RATIO))
-            .semantics { contentDescription = description }
-    ) {
-        val cellWidth = size.width / PER_ROW
-        val cellHeight = cellWidth * CELL_RATIO
-        val stickWidth = cellWidth * 0.2f
-        val headSize = stickWidth * 1.9f
-        for (index in 0 until Nim.START) {
-            val left = (index % PER_ROW) * cellWidth + (cellWidth - stickWidth) / 2f
-            val top = (index / PER_ROW) * cellHeight + cellHeight * 0.06f
-            val present = index < remaining
-            val radius = CornerRadius(stickWidth / 2f)
-            // Le bois, puis la tête colorée en haut.
-            drawRoundRect(
-                color = if (present) wood else taken,
-                topLeft = Offset(left, top + headSize / 2f),
-                size = Size(stickWidth, cellHeight * 0.82f - headSize / 2f),
-                cornerRadius = radius
-            )
-            drawRoundRect(
-                color = if (present) head else taken,
-                topLeft = Offset(left + stickWidth / 2f - headSize / 2f, top),
-                size = Size(headSize, headSize * 1.15f),
-                cornerRadius = CornerRadius(headSize / 2f)
-            )
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+        PlayerLabel(name = topName, active = !isOver && turn != bottomPlayer)
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(Nim.START / (3f * ZONE_RATIO))
+                .semantics { contentDescription = description }
+        ) {
+            val cellWidth = size.width / Nim.START
+            val zone = size.height / 3f
+            val stickWidth = cellWidth * 0.28f
+            val headSize = stickWidth * 1.9f
+            val matchHeight = zone * 0.84f
+            // Les deux zones où se posent les allumettes prises, en haut et en bas de la ligne.
+            val trayCorner = CornerRadius(cellWidth)
+            drawRoundRect(tray, topLeft = Offset(0f, 0f), size = Size(size.width, zone), cornerRadius = trayCorner)
+            drawRoundRect(tray, topLeft = Offset(0f, zone * 2f), size = Size(size.width, zone), cornerRadius = trayCorner)
+            val settled = seenRemaining == remaining
+            for (index in 0 until Nim.START) {
+                val owner = owners[index] - '0'
+                val progress = slide[index].value
+                // Prise mais de propriétaire inconnu (partie rejointe en cours de route) : on la grise sur place.
+                val forgotten = settled && index >= remaining && owner == 0 && progress == 0f
+                val direction = if (owner == bottomPlayer) 1f else -1f
+                val left = index * cellWidth + (cellWidth - stickWidth) / 2f
+                val top = zone + (zone - matchHeight) / 2f + direction * zone * progress
+                val radius = CornerRadius(stickWidth / 2f)
+                // Le bois, puis la tête colorée en haut.
+                drawRoundRect(
+                    color = if (forgotten) faded else wood,
+                    topLeft = Offset(left, top + headSize / 2f),
+                    size = Size(stickWidth, matchHeight - headSize / 2f),
+                    cornerRadius = radius
+                )
+                drawRoundRect(
+                    color = if (forgotten) faded else head,
+                    topLeft = Offset(left + stickWidth / 2f - headSize / 2f, top),
+                    size = Size(headSize, headSize * 1.15f),
+                    cornerRadius = CornerRadius(headSize / 2f)
+                )
+            }
         }
+        PlayerLabel(name = bottomName, active = !isOver && turn == bottomPlayer)
     }
 }
 
-private const val PER_ROW = 7
+/** Le nom d'un joueur au bord de la table, en couleur et en gras quand c'est à lui de jouer. */
+@Composable
+private fun PlayerLabel(name: String, active: Boolean) {
+    Text(
+        text = name,
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
+        color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
 
-/** Hauteur d'une case de la grille d'allumettes, en largeurs de case. */
-private const val CELL_RATIO = 1.7f
+/** Hauteur de chacune des trois zones (haut, ligne, bas) de la table, en largeurs d'allumette. */
+private const val ZONE_RATIO = 4.4f

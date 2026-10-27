@@ -160,9 +160,13 @@ private fun DrawScope.drawTicTacToe() {
         drawLine(ink, Offset(margin, margin + cell * i), Offset(s - margin, margin + cell * i), line, StrokeCap.Round)
     }
     fun center(col: Int, row: Int) = Offset(margin + cell * (col + 0.5f), margin + cell * (row + 0.5f))
-    listOf(0 to 0, 2 to 1, 1 to 2).forEach { (c, r) -> cross(center(c, r), cell * 0.28f, Color(0xFFD32F2F), line * 1.2f) }
+    val mark = cell * 0.13f
+    // Croix bleues et ronds rouges, comme dans le jeu.
+    listOf(0 to 0, 2 to 1, 1 to 2).forEach { (c, r) ->
+        drawMorpionCross(center(c, r), cell * 0.5f * 0.8f - mark / 2f, MORPION_BLUE, mark)
+    }
     listOf(1 to 1, 0 to 2, 2 to 0).forEach { (c, r) ->
-        drawCircle(Color(0xFF1976D2), radius = cell * 0.28f, center = center(c, r), style = Stroke(line * 1.2f))
+        drawCircle(MORPION_RED, radius = cell * 0.5f * 0.8f - mark / 2f, center = center(c, r), style = Stroke(mark))
     }
 }
 
@@ -210,17 +214,17 @@ private fun DrawScope.drawNim() {
     paper(Color(0xFFFFF8E1))
     val s = size.minDimension
     val stickWidth = s * 0.05f
-    val spacing = s * 0.2f
-    val height = s * 0.24f
-    for (row in 0..2) {
-        val count = row + 1
-        val top = s * 0.14f + row * s * 0.26f
-        val firstX = s / 2 - (count - 1) / 2f * spacing
-        repeat(count) { i ->
-            val x = firstX + i * spacing
-            drawLine(Color(0xFFD7A86E), Offset(x, top), Offset(x, top + height), stickWidth, StrokeCap.Round)
-            drawCircle(Color(0xFFD32F2F), radius = stickWidth * 0.95f, center = Offset(x, top))
-        }
+    val height = s * 0.3f
+    val count = 7
+    val spacing = s * 0.11f
+    val firstX = s / 2 - (count - 1) / 2f * spacing
+    // Une seule ligne d'allumettes ; deux ont glissé en haut, deux en bas, face à leur place.
+    val shift = mapOf(0 to -1, 1 to -1, 5 to 1, 6 to 1)
+    repeat(count) { i ->
+        val x = firstX + i * spacing
+        val top = s * 0.35f + (shift[i] ?: 0) * s * 0.3f
+        drawLine(Color(0xFFD7A86E), Offset(x, top), Offset(x, top + height), stickWidth, StrokeCap.Round)
+        drawCircle(Color(0xFFD32F2F), radius = stickWidth * 0.95f, center = Offset(x, top))
     }
 }
 
