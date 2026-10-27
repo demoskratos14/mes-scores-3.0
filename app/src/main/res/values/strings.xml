@@ -1824,7 +1824,7 @@
     <string name="hg_roles">%1$s a choisi le mot, %2$s le devine.</string>
     <string name="hg_next_round">Manche suivante</string>
     <string name="hg_end">Terminer</string>
-    <string name="hg_drawing_description">Dessin du pendu : %1$d erreurs sur %2$d permises</string>
+    <string name="hg_drawing_description" tools:ignore="PluralsCandidate">Dessin du pendu : %1$d erreurs sur %2$d permises</string>
     <string name="hg_mistakes_count">Erreurs : %1$d / %2$d</string>
     <string name="hg_blank">vide</string>
     <string name="hg_word_description">Mot : %1$s</string>

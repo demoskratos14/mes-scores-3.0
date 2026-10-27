@@ -1809,7 +1809,7 @@
     <string name="hg_roles">%1$s ha elegido la palabra, %2$s la adivina.</string>
     <string name="hg_next_round">Ronda siguiente</string>
     <string name="hg_end">Terminar</string>
-    <string name="hg_drawing_description">Dibujo del ahorcado: %1$d errores de %2$d permitidos</string>
+    <string name="hg_drawing_description" tools:ignore="PluralsCandidate">Dibujo del ahorcado: %1$d errores de %2$d permitidos</string>
     <string name="hg_mistakes_count">Errores: %1$d / %2$d</string>
     <string name="hg_blank">vacío</string>
     <string name="hg_word_description">Palabra: %1$s</string>

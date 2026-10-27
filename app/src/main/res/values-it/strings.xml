@@ -1819,7 +1819,7 @@
     <string name="hg_roles">%1$s ha scelto la parola, %2$s la indovina.</string>
     <string name="hg_next_round">Turno successivo</string>
     <string name="hg_end">Termina</string>
-    <string name="hg_drawing_description">Disegno dell’impiccato: %1$d errori su %2$d consentiti</string>
+    <string name="hg_drawing_description" tools:ignore="PluralsCandidate">Disegno dell’impiccato: %1$d errori su %2$d consentiti</string>
     <string name="hg_mistakes_count">Errori: %1$d / %2$d</string>
     <string name="hg_blank">vuoto</string>
     <string name="hg_word_description">Parola: %1$s</string>

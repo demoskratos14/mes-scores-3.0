@@ -1782,7 +1782,7 @@
     <string name="hg_roles">%1$s chose the word, %2$s is guessing it.</string>
     <string name="hg_next_round">Next round</string>
     <string name="hg_end">Finish</string>
-    <string name="hg_drawing_description">Hangman drawing: %1$d mistakes out of %2$d allowed</string>
+    <string name="hg_drawing_description" tools:ignore="PluralsCandidate">Hangman drawing: %1$d mistakes out of %2$d allowed</string>
     <string name="hg_mistakes_count">Mistakes: %1$d / %2$d</string>
     <string name="hg_blank">blank</string>
     <string name="hg_word_description">Word: %1$s</string>
