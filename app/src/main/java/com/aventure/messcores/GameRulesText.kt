@@ -304,6 +304,16 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_morpion_2_title, R.string.rules_morpion_2_body),
         RulesSection(R.string.rules_morpion_3_title, R.string.rules_morpion_3_body)
     ),
+    "builtin_gomoku" to listOf(
+        RulesSection(R.string.rules_gomoku_1_title, R.string.rules_gomoku_1_body),
+        RulesSection(R.string.rules_gomoku_2_title, R.string.rules_gomoku_2_body),
+        RulesSection(R.string.rules_gomoku_3_title, R.string.rules_gomoku_3_body)
+    ),
+    "builtin_dots" to listOf(
+        RulesSection(R.string.rules_dots_1_title, R.string.rules_dots_1_body),
+        RulesSection(R.string.rules_dots_2_title, R.string.rules_dots_2_body),
+        RulesSection(R.string.rules_dots_3_title, R.string.rules_dots_3_body)
+    ),
     "builtin_battleship" to listOf(
         RulesSection(R.string.rules_battleship_1_title, R.string.rules_battleship_1_body),
         RulesSection(R.string.rules_battleship_2_title, R.string.rules_battleship_2_body),

@@ -127,6 +127,8 @@ fun ScoreApp(
     val battleshipOnline = syncViewModel.battleship
     val nimOnline = syncViewModel.nim
     val rockPaperScissorsOnline = syncViewModel.rockPaperScissors
+    val gomokuOnline = syncViewModel.gomoku
+    val dotsOnline = syncViewModel.dots
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -288,6 +290,12 @@ fun ScoreApp(
                         } else if (rules.id == MORPION_ID) {
                             // Le Morpion a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             navController.navigate("morpion")
+                        } else if (rules.id == GOMOKU_ID) {
+                            // Le Gomoku a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            navController.navigate("gomoku")
+                        } else if (rules.id == DOTS_ID) {
+                            // La Pipopipette aussi.
+                            navController.navigate("dots")
                         } else if (rules.id == BATTLESHIP_ID) {
                             // Le touché coulé a lui aussi son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             battleshipViewModel.open(rules, pendingPlayerNames)
@@ -480,6 +488,55 @@ fun ScoreApp(
                     onHostedRockPaperScissors = { navController.popBackStack() }
                 )
             }
+            composable("gomoku") {
+                DuoGameScreen(
+                    spec = GomokuSpec,
+                    players = pendingPlayerNames,
+                    online = gomokuOnline,
+                    onExit = {
+                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareGomoku") }
+                )
+            }
+            composable("shareGomoku") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.GOMOKU,
+                    duo = gomokuOnline,
+                    // La table du Gomoku est l'écran du jeu, juste derrière.
+                    onHostedDuo = { navController.popBackStack() }
+                )
+            }
+            composable("dots") {
+                DuoGameScreen(
+                    spec = DotsSpec,
+                    players = pendingPlayerNames,
+                    online = dotsOnline,
+                    onExit = {
+                        if (!navController.popBackStack("setup", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
+                    onHostOnline = { navController.navigate("shareDots") }
+                )
+            }
+            composable("shareDots") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.DOTS,
+                    duo = dotsOnline,
+                    // La table de la Pipopipette est l'écran du jeu, juste derrière.
+                    onHostedDuo = { navController.popBackStack() }
+                )
+            }
             composable("poker") {
                 PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
@@ -579,7 +636,11 @@ fun ScoreApp(
             nim = nimOnline,
             onNimJoined = { navController.navigate("nim") { popUpTo("home") } },
             rockPaperScissors = rockPaperScissorsOnline,
-            onRockPaperScissorsJoined = { navController.navigate("pfc") { popUpTo("home") } }
+            onRockPaperScissorsJoined = { navController.navigate("pfc") { popUpTo("home") } },
+            gomoku = gomokuOnline,
+            onGomokuJoined = { navController.navigate("gomoku") { popUpTo("home") } },
+            dots = dotsOnline,
+            onDotsJoined = { navController.navigate("dots") { popUpTo("home") } }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)

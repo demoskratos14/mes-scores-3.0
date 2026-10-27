@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -117,7 +117,10 @@ internal fun ShareScreen(
     nim: NimOnline? = null,
     onHostedNim: () -> Unit = {},
     rockPaperScissors: RockPaperScissorsOnline? = null,
-    onHostedRockPaperScissors: () -> Unit = {}
+    onHostedRockPaperScissors: () -> Unit = {},
+    // Le Gomoku et la Pipopipette (ShareKind.GOMOKU ou DOTS) : la table du jeu à organiser.
+    duo: DuoOnline<*>? = null,
+    onHostedDuo: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
@@ -146,6 +149,11 @@ internal fun ShareScreen(
                 session.startHostingConnect4(deviceName)
                 connect4.openLobby(deviceName)
                 onHostedConnect4()
+            }
+            (kind == ShareKind.GOMOKU || kind == ShareKind.DOTS) && duo != null -> {
+                session.startHostingDuo(duo.kind, deviceName)
+                duo.openLobby(deviceName)
+                onHostedDuo()
             }
             kind == ShareKind.BATTLESHIP && battleship != null -> {
                 session.startHostingBattleship(deviceName)
@@ -361,7 +369,11 @@ internal fun SyncEffects(
     nim: NimOnline,
     onNimJoined: () -> Unit,
     rockPaperScissors: RockPaperScissorsOnline,
-    onRockPaperScissorsJoined: () -> Unit
+    onRockPaperScissorsJoined: () -> Unit,
+    gomoku: DuoOnline<GomokuMatch>,
+    onGomokuJoined: () -> Unit,
+    dots: DuoOnline<DotsMatch>,
+    onDotsJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -399,6 +411,16 @@ internal fun SyncEffects(
         if (rockPaperScissors.joined == 0 || rockPaperScissors.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup" || current == "sharePfc") onRockPaperScissorsJoined()
+    }
+    LaunchedEffect(gomoku.joined) {
+        if (gomoku.joined == 0 || gomoku.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareGomoku") onGomokuJoined()
+    }
+    LaunchedEffect(dots.joined) {
+        if (dots.joined == 0 || dots.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareDots") onDotsJoined()
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect

@@ -15,7 +15,7 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 internal enum class SyncRole { NONE, HOST, GUEST }
 
 /** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé ou un jeu des allumettes chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC }
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -118,6 +118,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Pierre-feuille-ciseaux chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var rockPaperScissors: RockPaperScissorsOnline? = null
 
+    /** Les jeux à deux joueurs (Gomoku, Pipopipette) chacun sur son téléphone : ils reçoivent leurs messages et les événements de connexion. */
+    private val duoGames = mutableListOf<DuoOnline<*>>()
+
     /** Le tour de dés partagé (jeux de dés) ; null tant que personne n'a lancé ni changé de joueur. */
     var diceTable by mutableStateOf<DiceTable?>(null)
         private set
@@ -214,6 +217,20 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         reset()
         role = SyncRole.HOST
         kind = SyncKind.CONNECT4
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
+    /** Un jeu à deux joueurs s'abonne à la session (voir [DuoOnline]). */
+    fun registerDuo(game: DuoOnline<*>) {
+        duoGames.add(game)
+    }
+
+    /** Annonce un Gomoku ou une Pipopipette ([kind]) chacun sur son téléphone : l'autre joueur le rejoint comme une partie de score. */
+    fun startHostingDuo(kind: SyncKind, deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        this.kind = kind
         advertising = true
         transport.startHosting(deviceName)
     }
@@ -378,6 +395,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         battleship?.onPeerConnected(id)
         nim?.onPeerConnected(id)
         rockPaperScissors?.onPeerConnected(id)
+        duoGames.forEach { it.onPeerConnected(id) }
     }
 
     override fun onConnectionFailed(id: String, rejected: Boolean) {
@@ -393,6 +411,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         battleship?.onPeerDisconnected(id)
         nim?.onPeerDisconnected(id)
         rockPaperScissors?.onPeerDisconnected(id)
+        duoGames.forEach { it.onPeerDisconnected(id) }
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
             reset()
@@ -426,6 +445,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Rps -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.PFC
                 rockPaperScissors?.onMessage(id, message.rps)
+            }
+            is SyncMessage.Duo -> {
+                if (role == SyncRole.GUEST) kind = message.kind
+                duoGames.firstOrNull { it.kind == message.kind }?.onMessage(id, message.duo)
             }
             is SyncMessage.State -> {
                 val game = game ?: return

@@ -131,6 +131,12 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Puissance 4 chacun sur son téléphone, sur la même connexion. */
     internal val connect4 = Connect4Online(session)
 
+    /** Gomoku chacun sur son téléphone, sur la même connexion. */
+    internal val gomoku = DuoOnline(session, SyncKind.GOMOKU, { GomokuMatch() }, { GomokuMatch.decode(it) })
+
+    /** Pipopipette chacun sur son téléphone, sur la même connexion. */
+    internal val dots = DuoOnline(session, SyncKind.DOTS, { DotsMatch() }, { DotsMatch.decode(it) })
+
     /** Touché coulé chacun sur son téléphone, sur la même connexion. */
     internal val battleship = BattleshipOnline(session)
 
