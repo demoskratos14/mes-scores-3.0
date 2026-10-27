@@ -1332,6 +1332,8 @@
     <string name="dice_421_name_straight">Scala</string>
     <string name="dice_421_name_other">Altro lancio</string>
     <string name="dice_421_pot">Gettoni al centro: %1$d</string>
+    <string name="dice_421_holdings_title">Gettoni di ciascuno</string>
+    <string name="dice_421_holding">%1$s: %2$d</string>
     <string name="dice_421_discharge">Scarica: chi perde il round prende i gettoni dal vincitore.</string>
     <string name="dice_421_draw_title">Chi comincia?</string>
     <string name="dice_421_draw_intro">Si gioca prima un round di apertura, senza gettoni: chi ha la combinazione migliore comincia la partita.</string>

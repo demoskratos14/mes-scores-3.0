@@ -1298,6 +1298,8 @@
     <string name="dice_421_name_straight">Straight</string>
     <string name="dice_421_name_other">Other roll</string>
     <string name="dice_421_pot">Tokens in the middle: %1$d</string>
+    <string name="dice_421_holdings_title">Everyone’s tokens</string>
+    <string name="dice_421_holding">%1$s: %2$d</string>
     <string name="dice_421_discharge">Discharge: the loser of the round takes tokens from the winner.</string>
     <string name="dice_421_draw_title">Who starts?</string>
     <string name="dice_421_draw_intro">First comes an opening round, with no tokens: the player with the best hand starts the game.</string>
