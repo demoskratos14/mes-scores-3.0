@@ -549,6 +549,16 @@ private fun HangmanDrawing(parts: Int, lost: Boolean, description: String) {
         }
         if (parts >= 4) line(at(66f, 6f), at(66f, 20f), gallows)
         if (parts >= 5) drawCircle(color = figure, radius = side * 0.08f, center = at(66f, 28f), style = Stroke(width = width))
+        if (parts >= 5 && lost) {
+            // Pendu : les yeux en croix, la bouche fermée et la langue sortie sur le côté.
+            val eyeWidth = width * 0.7f
+            for (eyeX in listOf(62.5f, 69.5f)) {
+                drawLine(color = figure, start = at(eyeX - 2f, 24.5f), end = at(eyeX + 2f, 28.5f), strokeWidth = eyeWidth, cap = StrokeCap.Round)
+                drawLine(color = figure, start = at(eyeX - 2f, 28.5f), end = at(eyeX + 2f, 24.5f), strokeWidth = eyeWidth, cap = StrokeCap.Round)
+            }
+            drawLine(color = figure, start = at(62.5f, 32.5f), end = at(69f, 32.5f), strokeWidth = eyeWidth, cap = StrokeCap.Round)
+            drawLine(color = Color(0xFFE57373), start = at(68f, 32.5f), end = at(76f, 35.5f), strokeWidth = width * 1.8f, cap = StrokeCap.Round)
+        }
         if (parts >= 6) line(at(66f, 36f), at(66f, 64f), figure)
         if (parts >= 7) line(at(66f, 42f), at(52f, 54f), figure)
         if (parts >= 8) line(at(66f, 42f), at(80f, 54f), figure)
