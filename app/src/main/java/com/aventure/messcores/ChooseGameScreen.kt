@@ -145,12 +145,25 @@ fun ChooseGameScreen(
                     }
                 }
 
-                // Un menu déroulant par rubrique : chaque liste reste courte. Le jeu choisi s'affiche
+                // Un menu déroulant par rubrique (sauf les jeux jouables spéciaux, en grille d'icônes) : chaque liste reste courte. Le jeu choisi s'affiche
                 // dans le menu de sa rubrique, les autres menus restent vides.
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     GameCategory.entries.forEach { category ->
                         val inCategory = sortedGames.filter { it.category() == category }
                         if (inCategory.isNotEmpty()) {
+                            if (playableOnly && category == GameCategory.SPECIAL) {
+                                // Jeux jouables « Spéciaux » : une grille d'icônes plutôt qu'un menu déroulant.
+                                GameIconGrid(
+                                    title = stringResource(category.label),
+                                    games = inCategory,
+                                    selectedId = selected.id,
+                                    onSelect = { game ->
+                                        selectedId = game.id
+                                        errorMessage = null
+                                        expandedCategory = null
+                                    }
+                                )
+                            } else {
                             val isOpen = expandedCategory == category
                             ExposedDropdownMenuBox(
                                 expanded = isOpen,
@@ -195,6 +208,7 @@ fun ChooseGameScreen(
                                         )
                                     }
                                 }
+                            }
                             }
                         }
                     }
