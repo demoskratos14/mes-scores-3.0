@@ -1771,7 +1771,7 @@
     <string name="hg_word_title">%1$s, choose your word</string>
     <string name="hg_word_hide_hint">%1$s is not looking! The word is hidden by default.</string>
     <string name="hg_word_label">Secret word</string>
-    <string name="hg_word_help">%1$d to %2$d letters; spaces, hyphens and apostrophes allowed.</string>
+    <string name="hg_word_help" tools:ignore="PluralsCandidate">%1$d to %2$d letters; spaces, hyphens and apostrophes allowed.</string>
     <string name="hg_word_show">Show the word</string>
     <string name="hg_word_confirm">Confirm the word</string>
     <string name="hg_round">Round %1$d</string>

@@ -1813,7 +1813,7 @@
     <string name="hg_word_title">%1$s, choisis ton mot</string>
     <string name="hg_word_hide_hint">%1$s ne regarde pas ! Le mot est masqué par défaut.</string>
     <string name="hg_word_label">Mot secret</string>
-    <string name="hg_word_help">De %1$d à %2$d lettres ; espaces, tirets et apostrophes permis.</string>
+    <string name="hg_word_help" tools:ignore="PluralsCandidate">De %1$d à %2$d lettres ; espaces, tirets et apostrophes permis.</string>
     <string name="hg_word_show">Afficher le mot</string>
     <string name="hg_word_confirm">Valider le mot</string>
     <string name="hg_round">Manche %1$d</string>

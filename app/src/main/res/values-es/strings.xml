@@ -1798,7 +1798,7 @@
     <string name="hg_word_title">%1$s, elige tu palabra</string>
     <string name="hg_word_hide_hint">¡%1$s no mira! La palabra está oculta por defecto.</string>
     <string name="hg_word_label">Palabra secreta</string>
-    <string name="hg_word_help">De %1$d a %2$d letras; se permiten espacios, guiones y apóstrofos.</string>
+    <string name="hg_word_help" tools:ignore="PluralsCandidate">De %1$d a %2$d letras; se permiten espacios, guiones y apóstrofos.</string>
     <string name="hg_word_show">Mostrar la palabra</string>
     <string name="hg_word_confirm">Confirmar la palabra</string>
     <string name="hg_round">Ronda %1$d</string>
