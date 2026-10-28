@@ -1621,6 +1621,26 @@
     <string name="bs_online_notice_left">L’altro giocatore si è disconnesso: la partita è interrotta. Potete avviarne una nuova.</string>
     <string name="bs_online_host_left">L’organizzatore si è disconnesso: la partita è terminata.</string>
     <string name="bs_online_place_title">Posiziona le tue navi: la tua flotta non viene mai mostrata sull’altro telefono.</string>
+    <!-- Touché coulé, fond étoilé : vaisseaux au lieu de bateaux -->
+    <string name="bs_space_place_title">%1$s, posiziona le tue astronavi. L’avversario non deve guardare!</string>
+    <string name="bs_space_online_place_title">Posiziona le tue astronavi: la tua flotta non viene mai mostrata sull’altro telefono.</string>
+    <string name="bs_space_place_hint">Trascina ogni astronave dall’hangar sulla griglia e tocca un’astronave per ruotarla. Oppure scegli con i pulsanti un’astronave, un orientamento e una casella di partenza: l’astronave si estende verso destra o verso il basso a partire da quella casella.</string>
+    <string name="bs_space_place_here">Posiziona l’astronave in %1$s</string>
+    <string name="bs_space_place_impossible">Impossibile posizionare questa astronave qui.</string>
+    <string name="bs_space_cell_ship">%1$s, la tua astronave</string>
+    <string name="bs_space_cell_sunk">%1$s, distrutta</string>
+    <string name="bs_space_result_sunk">%1$s: distrutta! Astronave da %2$d caselle.</string>
+    <string name="bs_space_incoming_sunk">L’avversario ha sparato in %1$s: una tua astronave da %2$d caselle è distrutta!</string>
+    <string name="bs_space_legend">Legenda: • nel vuoto, ✕ colpito, ✖ distrutta.</string>
+    <string name="bs_space_cell_miss">%1$s, nel vuoto</string>
+    <string name="bs_space_result_miss">%1$s: nel vuoto!</string>
+    <string name="bs_space_incoming_miss">L’avversario ha sparato in %1$s: nel vuoto.</string>
+    <string name="bs_space_cell_water">%1$s, libera</string>
+    <string name="bs_space_ship_carrier">Nave madre</string>
+    <string name="bs_space_ship_cruiser">Incrociatore</string>
+    <string name="bs_space_ship_destroyer">Fregata</string>
+    <string name="bs_space_ship_submarine">Esploratore</string>
+    <string name="bs_space_ship_torpedo">Caccia</string>
     <string name="bs_online_waiting_fleet">La tua flotta è pronta. In attesa dell’altro giocatore…</string>
     <string name="bs_online_opponent_turn">Tocca a %1$s sparare…</string>
     <string name="bs_online_waiting_answer">Colpo inviato, in attesa della risposta…</string>

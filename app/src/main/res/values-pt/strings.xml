@@ -1611,6 +1611,26 @@
     <string name="bs_online_notice_left">O outro jogador desligou-se: o jogo foi interrompido. Podem iniciar outro.</string>
     <string name="bs_online_host_left">O organizador desligou-se: o jogo terminou.</string>
     <string name="bs_online_place_title">Coloca os teus navios: a tua frota nunca é mostrada no outro telemóvel.</string>
+    <!-- Touché coulé, fond étoilé : vaisseaux au lieu de bateaux -->
+    <string name="bs_space_place_title">%1$s, coloca as tuas naves. O adversário não pode ver!</string>
+    <string name="bs_space_online_place_title">Coloca as tuas naves: a tua frota nunca é mostrada no outro telemóvel.</string>
+    <string name="bs_space_place_hint">Arrasta cada nave do hangar para a grelha e toca numa nave para a rodar. Ou escolhe com os botões uma nave, uma orientação e uma casa de partida: a nave estende-se para a direita ou para baixo a partir dessa casa.</string>
+    <string name="bs_space_place_here">Colocar a nave em %1$s</string>
+    <string name="bs_space_place_impossible">Não é possível colocar esta nave aqui.</string>
+    <string name="bs_space_cell_ship">%1$s, a tua nave</string>
+    <string name="bs_space_cell_sunk">%1$s, destruída</string>
+    <string name="bs_space_result_sunk">%1$s: destruída! Nave de %2$d casas.</string>
+    <string name="bs_space_incoming_sunk">O adversário disparou em %1$s: uma das tuas naves de %2$d casas foi destruída!</string>
+    <string name="bs_space_legend">Legenda: • no vazio, ✕ atingido, ✖ destruída.</string>
+    <string name="bs_space_cell_miss">%1$s, no vazio</string>
+    <string name="bs_space_result_miss">%1$s: no vazio!</string>
+    <string name="bs_space_incoming_miss">O adversário disparou em %1$s: no vazio.</string>
+    <string name="bs_space_cell_water">%1$s, livre</string>
+    <string name="bs_space_ship_carrier">Nave-mãe</string>
+    <string name="bs_space_ship_cruiser">Cruzador</string>
+    <string name="bs_space_ship_destroyer">Fragata</string>
+    <string name="bs_space_ship_submarine">Explorador</string>
+    <string name="bs_space_ship_torpedo">Caça</string>
     <string name="bs_online_waiting_fleet">A tua frota está pronta. A aguardar o outro jogador…</string>
     <string name="bs_online_opponent_turn">É a vez de %1$s disparar…</string>
     <string name="bs_online_waiting_answer">Disparo enviado, a aguardar a resposta…</string>

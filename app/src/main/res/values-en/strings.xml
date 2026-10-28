@@ -1585,6 +1585,26 @@
     <string name="bs_online_notice_left">The other player disconnected: the game is interrupted. You can start a new one.</string>
     <string name="bs_online_host_left">The host disconnected: the game is over.</string>
     <string name="bs_online_place_title">Place your ships: your fleet is never shown on the other phone.</string>
+    <!-- Touché coulé, fond étoilé : vaisseaux au lieu de bateaux -->
+    <string name="bs_space_place_title">%1$s, place your spaceships. Your opponent must not look!</string>
+    <string name="bs_space_online_place_title">Place your spaceships: your fleet is never shown on the other phone.</string>
+    <string name="bs_space_place_hint">Drag each spaceship from the hangar onto the grid, and tap a spaceship to rotate it. Or choose a spaceship, an orientation and a starting square with the buttons: the spaceship extends to the right or downward from that square.</string>
+    <string name="bs_space_place_here">Place the spaceship at %1$s</string>
+    <string name="bs_space_place_impossible">This spaceship can’t be placed here.</string>
+    <string name="bs_space_cell_ship">%1$s, your spaceship</string>
+    <string name="bs_space_cell_sunk">%1$s, destroyed</string>
+    <string name="bs_space_result_sunk">%1$s: destroyed! A %2$d-square spaceship.</string>
+    <string name="bs_space_incoming_sunk">Your opponent fired at %1$s: one of your %2$d-square spaceships is destroyed!</string>
+    <string name="bs_space_legend">Key: • lost in space, ✕ hit, ✖ destroyed.</string>
+    <string name="bs_space_cell_miss">%1$s, lost in space</string>
+    <string name="bs_space_result_miss">%1$s: lost in space!</string>
+    <string name="bs_space_incoming_miss">Your opponent fired at %1$s: lost in space.</string>
+    <string name="bs_space_cell_water">%1$s, empty</string>
+    <string name="bs_space_ship_carrier">Mothership</string>
+    <string name="bs_space_ship_cruiser">Cruiser</string>
+    <string name="bs_space_ship_destroyer">Frigate</string>
+    <string name="bs_space_ship_submarine">Scout</string>
+    <string name="bs_space_ship_torpedo">Fighter</string>
     <string name="bs_online_waiting_fleet">Your fleet is ready. Waiting for the other player…</string>
     <string name="bs_online_opponent_turn">It’s %1$s’s turn to fire…</string>
     <string name="bs_online_waiting_answer">Shot sent, waiting for the answer…</string>

@@ -1611,6 +1611,26 @@
     <string name="bs_online_notice_left">El otro jugador se desconectó: la partida se ha interrumpido. Podéis empezar otra.</string>
     <string name="bs_online_host_left">El organizador se desconectó: la partida ha terminado.</string>
     <string name="bs_online_place_title">Coloca tus barcos: tu flota nunca se muestra en el otro teléfono.</string>
+    <!-- Touché coulé, fond étoilé : vaisseaux au lieu de bateaux -->
+    <string name="bs_space_place_title">%1$s, coloca tus naves. ¡El rival no debe mirar!</string>
+    <string name="bs_space_online_place_title">Coloca tus naves: tu flota nunca se muestra en el otro teléfono.</string>
+    <string name="bs_space_place_hint">Arrastra cada nave desde el hangar hasta la cuadrícula y toca una nave para girarla. También puedes elegir con los botones una nave, una orientación y una casilla de inicio: la nave se extiende hacia la derecha o hacia abajo a partir de esa casilla.</string>
+    <string name="bs_space_place_here">Colocar la nave en %1$s</string>
+    <string name="bs_space_place_impossible">No se puede colocar esta nave aquí.</string>
+    <string name="bs_space_cell_ship">%1$s, tu nave</string>
+    <string name="bs_space_cell_sunk">%1$s, destruida</string>
+    <string name="bs_space_result_sunk">%1$s: ¡destruida! Nave de %2$d casillas.</string>
+    <string name="bs_space_incoming_sunk">El rival ha disparado a %1$s: ¡una de tus naves de %2$d casillas está destruida!</string>
+    <string name="bs_space_legend">Leyenda: • en el vacío, ✕ tocado, ✖ destruida.</string>
+    <string name="bs_space_cell_miss">%1$s, en el vacío</string>
+    <string name="bs_space_result_miss">%1$s: ¡en el vacío!</string>
+    <string name="bs_space_incoming_miss">El rival ha disparado a %1$s: en el vacío.</string>
+    <string name="bs_space_cell_water">%1$s, libre</string>
+    <string name="bs_space_ship_carrier">Nave nodriza</string>
+    <string name="bs_space_ship_cruiser">Crucero</string>
+    <string name="bs_space_ship_destroyer">Fragata</string>
+    <string name="bs_space_ship_submarine">Explorador</string>
+    <string name="bs_space_ship_torpedo">Caza</string>
     <string name="bs_online_waiting_fleet">Tu flota está lista. Esperando al otro jugador…</string>
     <string name="bs_online_opponent_turn">Le toca disparar a %1$s…</string>
     <string name="bs_online_waiting_answer">Disparo enviado, esperando la respuesta…</string>

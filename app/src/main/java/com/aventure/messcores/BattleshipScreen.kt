@@ -104,7 +104,17 @@ private val DECK_COLOR = Color(0xFFCFD8DC)
 private val DOCK_COLOR = Color(0xFF90CAF9)
 private val DOCK_COLOR_SPACE = Color(0xFF283593)
 
-// Un nom par bateau de Battleship.FLEET, dans le même ordre.
+// Un nom par bateau de Battleship.FLEET, dans le même ordre (et la version « vaisseau » sur le fond étoilé).
+private val SPACE_SHIP_NAMES = listOf(
+    R.string.bs_space_ship_carrier, R.string.bs_space_ship_cruiser, R.string.bs_space_ship_destroyer,
+    R.string.bs_space_ship_submarine, R.string.bs_space_ship_torpedo
+)
+
+/** Sur le fond étoilé, les textes parlent de vaisseaux et non de bateaux : [sea] ou [space] selon le fond choisi. */
+@Composable
+private fun backdropString(sea: Int, space: Int, vararg args: Any): String =
+    stringResource(if (LocalBattleshipBackdrop.current == BattleshipBackdrop.STARS) space else sea, *args)
+
 private val SHIP_NAMES = listOf(
     R.string.bs_ship_carrier, R.string.bs_ship_cruiser, R.string.bs_ship_destroyer,
     R.string.bs_ship_submarine, R.string.bs_ship_torpedo
@@ -340,7 +350,7 @@ private fun LocalContent(viewModel: BattleshipViewModel, game: BattleshipGame, o
             Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = stringResource(R.string.bs_place_title, game.players[player]),
+                        text = backdropString(R.string.bs_place_title, R.string.bs_space_place_title, game.players[player]),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.semantics { heading() }
                     )
@@ -425,7 +435,7 @@ private fun OnlineContent(online: BattleshipOnline, onExit: () -> Unit) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (online.myFleet == null) {
                         Text(
-                            text = stringResource(R.string.bs_online_place_title),
+                            text = backdropString(R.string.bs_online_place_title, R.string.bs_space_online_place_title),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.semantics { heading() }
                         )
@@ -588,7 +598,7 @@ private fun PlayView(
                     )
                 }
             }
-            Text(text = stringResource(R.string.bs_legend), style = MaterialTheme.typography.bodySmall)
+            Text(text = backdropString(R.string.bs_legend, R.string.bs_space_legend), style = MaterialTheme.typography.bodySmall)
         }
     }
 
@@ -608,9 +618,9 @@ private fun PlayView(
 private fun resultText(shot: BattleshipShot): String {
     val name = Battleship.cellName(shot.cell)
     return when (shot.outcome) {
-        ShotOutcome.MISS -> stringResource(R.string.bs_result_miss, name)
+        ShotOutcome.MISS -> backdropString(R.string.bs_result_miss, R.string.bs_space_result_miss, name)
         ShotOutcome.HIT -> stringResource(R.string.bs_result_hit, name)
-        ShotOutcome.SUNK -> stringResource(R.string.bs_result_sunk, name, shot.sunk.size)
+        ShotOutcome.SUNK -> backdropString(R.string.bs_result_sunk, R.string.bs_space_result_sunk, name, shot.sunk.size)
     }
 }
 
@@ -618,9 +628,9 @@ private fun resultText(shot: BattleshipShot): String {
 private fun incomingText(shot: BattleshipShot): String {
     val name = Battleship.cellName(shot.cell)
     return when (shot.outcome) {
-        ShotOutcome.MISS -> stringResource(R.string.bs_incoming_miss, name)
+        ShotOutcome.MISS -> backdropString(R.string.bs_incoming_miss, R.string.bs_space_incoming_miss, name)
         ShotOutcome.HIT -> stringResource(R.string.bs_incoming_hit, name)
-        ShotOutcome.SUNK -> stringResource(R.string.bs_incoming_sunk, name, shot.sunk.size)
+        ShotOutcome.SUNK -> backdropString(R.string.bs_incoming_sunk, R.string.bs_space_incoming_sunk, name, shot.sunk.size)
     }
 }
 
@@ -724,10 +734,15 @@ private fun FleetPlacement(entryKey: Any, onConfirm: (List<List<Int>>) -> Unit) 
     }
 
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(text = stringResource(R.string.bs_place_hint), style = MaterialTheme.typography.bodyMedium)
+        Text(text = backdropString(R.string.bs_place_hint, R.string.bs_space_place_hint), style = MaterialTheme.typography.bodyMedium)
         Battleship.FLEET.forEachIndexed { index, length ->
             val status = stringResource(if (placement[index] >= 0) R.string.bs_ship_placed else R.string.bs_ship_todo)
-            val label = stringResource(R.string.bs_ship_label, stringResource(SHIP_NAMES[index]), length, status)
+            val label = stringResource(
+                R.string.bs_ship_label,
+                stringResource(if (LocalBattleshipBackdrop.current == BattleshipBackdrop.STARS) SPACE_SHIP_NAMES[index] else SHIP_NAMES[index]),
+                length,
+                status
+            )
             if (index == current) {
                 Button(onClick = { current = index }, modifier = Modifier.fillMaxWidth()) { Text(label) }
             } else {
@@ -747,11 +762,11 @@ private fun FleetPlacement(entryKey: Any, onConfirm: (List<List<Int>>) -> Unit) 
             onFailed = { failed = it }
         )
         Button(onClick = { place() }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.bs_place_here, Battleship.cellName(selected)))
+            Text(backdropString(R.string.bs_place_here, R.string.bs_space_place_here, Battleship.cellName(selected)))
         }
         if (failed) {
             Text(
-                text = stringResource(R.string.bs_place_impossible),
+                text = backdropString(R.string.bs_place_impossible, R.string.bs_space_place_impossible),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
@@ -1254,9 +1269,11 @@ private fun DrawScope.drawSpaceship(length: Int, cs: Float, sunk: Boolean, alpha
         lineTo(far, edge.last().y)
         close()
     }
+    // Le trait orange de la cassure ne sort pas de la case du vaisseau (la découpe, elle, déborde pour ne rien couper).
+    val burn = edge.filter { it.y in 0.15f * cs..0.85f * cs }
     val scorch = Path().apply {
-        moveTo(edge[0].x, edge[0].y)
-        for (point in edge.drop(1)) lineTo(point.x, point.y)
+        moveTo(burn[0].x, burn[0].y)
+        for (point in burn.drop(1)) lineTo(point.x, point.y)
     }
     for (rear in listOf(true, false)) {
         withTransform({
@@ -1303,18 +1320,23 @@ private fun CellBox(cell: Int, size: Dp, display: CellDisplay, selected: Boolean
     val marker: Color?
     val textColor: Color
     val descriptionRes: Int
+    val markerScale: Float
+    val space = LocalBattleshipBackdrop.current == BattleshipBackdrop.STARS
     when {
         display.sunk -> {
+            // Pas de voile rouge sur toute la case : il cacherait l'épave. Seul le ✖ est marqué, dans une pastille.
             symbol = "✖"
-            overlay = SUNK_COLOR.copy(alpha = 0.55f)
-            marker = null
+            overlay = Color.Transparent
+            marker = SUNK_COLOR.copy(alpha = 0.9f)
+            markerScale = 0.42f
             textColor = Color.White
-            descriptionRes = R.string.bs_cell_sunk
+            descriptionRes = if (space) R.string.bs_space_cell_sunk else R.string.bs_cell_sunk
         }
         display.outcome == ShotOutcome.HIT || display.outcome == ShotOutcome.SUNK -> {
             symbol = "✕"
             overlay = Color.Transparent
             marker = HIT_COLOR
+            markerScale = 0.66f
             textColor = Color.Black
             descriptionRes = R.string.bs_cell_hit
         }
@@ -1322,22 +1344,25 @@ private fun CellBox(cell: Int, size: Dp, display: CellDisplay, selected: Boolean
             symbol = "•"
             overlay = Color.Transparent
             marker = MISS_COLOR
+            markerScale = 0.66f
             textColor = Color.Black
-            descriptionRes = R.string.bs_cell_miss
+            descriptionRes = if (space) R.string.bs_space_cell_miss else R.string.bs_cell_miss
         }
         display.ship -> {
             symbol = ""
             overlay = Color.Transparent
             marker = null
+            markerScale = 0.66f
             textColor = Color.Black
-            descriptionRes = R.string.bs_cell_ship
+            descriptionRes = if (space) R.string.bs_space_cell_ship else R.string.bs_cell_ship
         }
         else -> {
             symbol = ""
             overlay = Color.Transparent
             marker = null
+            markerScale = 0.66f
             textColor = Color.Black
-            descriptionRes = R.string.bs_cell_water
+            descriptionRes = if (space) R.string.bs_space_cell_water else R.string.bs_cell_water
         }
     }
     val name = Battleship.cellName(cell)
@@ -1359,7 +1384,7 @@ private fun CellBox(cell: Int, size: Dp, display: CellDisplay, selected: Boolean
         // Un rond de couleur derrière le symbole d'un tir : on le voit même par-dessus la coque d'un bateau.
         val symbolModifier = if (marker != null) {
             Modifier
-                .size(size * 0.66f)
+                .size(size * markerScale)
                 .background(marker, CircleShape)
         } else {
             Modifier

@@ -1626,6 +1626,26 @@
     <string name="bs_online_notice_left">L’autre joueur s’est déconnecté : la partie est interrompue. Vous pouvez en relancer une.</string>
     <string name="bs_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
     <string name="bs_online_place_title">Place tes bateaux : ta flotte n’est jamais affichée sur l’autre téléphone.</string>
+    <!-- Touché coulé, fond étoilé : vaisseaux au lieu de bateaux -->
+    <string name="bs_space_place_title">%1$s, place tes vaisseaux. L’adversaire ne regarde pas !</string>
+    <string name="bs_space_online_place_title">Place tes vaisseaux : ta flotte n’est jamais affichée sur l’autre téléphone.</string>
+    <string name="bs_space_place_hint">Fais glisser chaque vaisseau du hangar vers la grille, et touche un vaisseau pour le tourner. Sinon, choisis un vaisseau, une orientation et une case de départ avec les boutons : le vaisseau s’étend vers la droite ou vers le bas à partir de cette case.</string>
+    <string name="bs_space_place_here">Placer le vaisseau en %1$s</string>
+    <string name="bs_space_place_impossible">Impossible de placer ce vaisseau ici.</string>
+    <string name="bs_space_cell_ship">%1$s, ton vaisseau</string>
+    <string name="bs_space_cell_sunk">%1$s, détruit</string>
+    <string name="bs_space_result_sunk">%1$s : détruit ! Vaisseau de %2$d cases.</string>
+    <string name="bs_space_incoming_sunk">L’adversaire a tiré en %1$s : un de tes vaisseaux de %2$d cases est détruit !</string>
+    <string name="bs_space_legend">Légende : • dans le vide, ✕ touché, ✖ détruit.</string>
+    <string name="bs_space_cell_miss">%1$s, dans le vide</string>
+    <string name="bs_space_result_miss">%1$s : dans le vide !</string>
+    <string name="bs_space_incoming_miss">L’adversaire a tiré en %1$s : dans le vide.</string>
+    <string name="bs_space_cell_water">%1$s, libre</string>
+    <string name="bs_space_ship_carrier">Vaisseau-mère</string>
+    <string name="bs_space_ship_cruiser">Croiseur</string>
+    <string name="bs_space_ship_destroyer">Frégate</string>
+    <string name="bs_space_ship_submarine">Éclaireur</string>
+    <string name="bs_space_ship_torpedo">Chasseur</string>
     <string name="bs_online_waiting_fleet">Ta flotte est prête. En attente de l’autre joueur…</string>
     <string name="bs_online_opponent_turn">C’est à %1$s de tirer…</string>
     <string name="bs_online_waiting_answer">Tir envoyé, en attente de la réponse…</string>
