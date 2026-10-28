@@ -17,7 +17,7 @@ internal sealed interface RpsMessage {
      */
     data class Table(val names: List<String>, val seat: Int, val match: RpsMatch, val notice: RpsNotice) : RpsMessage
 
-    /** Invité → organisateur : mon choix (1 pierre, 2 feuille, 3 ciseaux). */
+    /** Invité → organisateur : mon choix (1 pierre, 2 feuille, 3 ciseaux, 4 lézard, 5 Spock ; les deux derniers seulement en version « lézard Spock »). */
     data class Pick(val choice: Int) : RpsMessage
 
     /** Invité → organisateur : manche suivante, ou nouvelle partie si celle-ci est finie. */

@@ -187,4 +187,66 @@ class RockPaperScissorsTest {
         assertEquals(symbols.size, symbols.toSet().size)
         assertEquals("", RockPaperScissors.symbol(0))
     }
+
+    // ---------- Version lézard Spock ----------
+
+    private val lizard = RockPaperScissors.LIZARD
+    private val spock = RockPaperScissors.SPOCK
+
+    @Test
+    fun lesDixReglesDeLaVersionLezardSpock() {
+        val wins = listOf(
+            scissors to paper, paper to rock, rock to lizard, lizard to spock, spock to scissors,
+            scissors to lizard, lizard to paper, paper to spock, spock to rock, rock to scissors
+        )
+        for ((winner, loser) in wins) {
+            assertEquals(1, RockPaperScissors.outcome(winner, loser))
+            assertEquals(2, RockPaperScissors.outcome(loser, winner))
+        }
+    }
+
+    @Test
+    fun chaqueChoixEnBatDeuxEtPerdContreDeux() {
+        for (choice in RockPaperScissors.EXTENDED_CHOICES) {
+            val others = RockPaperScissors.EXTENDED_CHOICES - choice
+            assertEquals(2, others.count { RockPaperScissors.outcome(choice, it) == 1 })
+            assertEquals(2, others.count { RockPaperScissors.outcome(choice, it) == 2 })
+        }
+    }
+
+    @Test
+    fun leLezardEtSpockSontRefusesEnVersionClassique() {
+        assertNull(RpsMatch().pick(1, lizard))
+        assertNull(RpsMatch().pick(1, spock))
+        assertNotNull(RpsMatch(extended = true).pick(1, lizard))
+        assertNotNull(RpsMatch(extended = true).pick(1, spock))
+    }
+
+    @Test
+    fun laVersionSeChoisitTantQueRienNEstJoue() {
+        assertTrue(RpsMatch().withExtended(true)!!.extended)
+        assertTrue(RpsMatch().withExtended(true)!!.isFresh)
+        assertNull(RpsMatch(extended = true).pick(1, rock)!!.withExtended(false))
+    }
+
+    @Test
+    fun laVersionResteLaMemeAuFilDesPartiesEtDesManches() {
+        var match = RpsMatch(target = 1, extended = true).pick(1, lizard)!!.pick(2, spock)!!
+        assertEquals(1, match.winner)
+        assertTrue(match.extended)
+        match = match.newMatch()!!
+        assertEquals(RpsMatch(target = 1, extended = true), match)
+        assertTrue(match.extended)
+    }
+
+    @Test
+    fun laVersionSeRelitAvecLaPartie() {
+        val match = RpsMatch(target = 2, winsA = 1, pickA = lizard, pickB = RockPaperScissors.HIDDEN, extended = true)
+        assertEquals(match, RpsMatch.decode(match.encode()))
+        // Texte écrit avant la version « lézard Spock » : six nombres, version classique.
+        assertFalse(RpsMatch.decode("3,0,0,0,1,0").extended)
+        // Un lézard ne peut pas exister dans une partie classique.
+        assertEquals(0, RpsMatch.decode("3,0,0,0,4,0,0").pickA)
+        assertEquals(lizard, RpsMatch.decode("3,0,0,0,4,0,1").pickA)
+    }
 }

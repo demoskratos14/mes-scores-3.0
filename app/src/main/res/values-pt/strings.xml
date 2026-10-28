@@ -1651,6 +1651,11 @@
     <string name="pfc_rock">Pedra</string>
     <string name="pfc_paper">Papel</string>
     <string name="pfc_scissors">Tesoura</string>
+    <string name="pfc_lizard">Lagarto</string>
+    <string name="pfc_spock">Spock</string>
+    <string name="pfc_variant_label">Versão do jogo</string>
+    <string name="pfc_variant_classic">Clássica</string>
+    <string name="pfc_variant_extended">Lagarto Spock</string>
     <string name="pfc_score">%1$s: %2$d · %3$s: %4$d · empates: %5$d</string>
     <string name="pfc_goal">Rondas a ganhar: %1$d</string>
     <string name="pfc_target_label">Rondas a ganhar para vencer o jogo</string>
@@ -1680,6 +1685,8 @@
     <string name="rules_pfc_2_body">Os dois jogadores escolhem em segredo pedra, papel ou tesoura e depois as escolhas são reveladas ao mesmo tempo. A pedra parte a tesoura, a tesoura corta o papel, o papel embrulha a pedra. Duas escolhas iguais são um empate: joga-se outra vez, sem ponto.</string>
     <string name="rules_pfc_3_title">Na app</string>
     <string name="rules_pfc_3_body">Antes de começar, escolhe-se o número de rondas a ganhar (1, 2, 3 ou 5). Num só telemóvel, passa-se de mão em mão: a escolha do primeiro fica escondida até o segundo escolher. Cada um no seu, com «Jogar cada um no seu telemóvel» (disponível enquanto nada tiver sido jogado), cada escolha só sai do telemóvel na revelação.</string>
+    <string name="rules_pfc_4_title">Versão lagarto Spock</string>
+    <string name="rules_pfc_4_body">Antes de começar, pode escolher-se a versão «Lagarto Spock» (disponível enquanto nada tiver sido jogado): cinco escolhas em vez de três. A tesoura corta o papel, o papel embrulha a pedra, a pedra esmaga o lagarto, o lagarto envenena o Spock, o Spock parte a tesoura, a tesoura decapita o lagarto, o lagarto come o papel, o papel desautoriza o Spock, o Spock vaporiza a pedra e a pedra parte a tesoura.</string>
     <!-- Gomoku et Pipopipette -->
     <string name="game_gomoku">Gomoku</string>
     <string name="game_dots">Pontos e caixas</string>

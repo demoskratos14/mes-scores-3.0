@@ -357,7 +357,8 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
     "builtin_pfc" to listOf(
         RulesSection(R.string.rules_pfc_1_title, R.string.rules_pfc_1_body),
         RulesSection(R.string.rules_pfc_2_title, R.string.rules_pfc_2_body),
-        RulesSection(R.string.rules_pfc_3_title, R.string.rules_pfc_3_body)
+        RulesSection(R.string.rules_pfc_3_title, R.string.rules_pfc_3_body),
+        RulesSection(R.string.rules_pfc_4_title, R.string.rules_pfc_4_body)
     ),
     "builtin_mastermind" to listOf(
         RulesSection(R.string.rules_mastermind_1_title, R.string.rules_mastermind_1_body),

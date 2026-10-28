@@ -53,6 +53,10 @@ internal class RockPaperScissorsOnline(private val session: SyncSession) {
     var target by mutableIntStateOf(RockPaperScissors.DEFAULT_TARGET)
         private set
 
+    /** Version « lézard Spock » pour la prochaine partie que j'organise (voir [chooseExtended]). */
+    var extended by mutableStateOf(false)
+        private set
+
     /** Mon numéro de joueur dans la partie : 1 pour l'organisateur, 2 pour l'invité. */
     val me: Int get() = seat + 1
 
@@ -77,6 +81,11 @@ internal class RockPaperScissorsOnline(private val session: SyncSession) {
         if (value in RockPaperScissors.TARGETS) target = value
     }
 
+    /** Version de la prochaine partie organisée : classique, ou « lézard Spock » si [value]. */
+    fun chooseExtended(value: Boolean) {
+        extended = value
+    }
+
     // ---------- Organisateur ----------
 
     /** Ouvre la table : la connexion doit déjà être annoncée (voir [SyncSession.startHostingRockPaperScissors]). */
@@ -86,7 +95,7 @@ internal class RockPaperScissorsOnline(private val session: SyncSession) {
         isHost = true
         seat = 0
         lobby = listOf(hostName)
-        match = RpsMatch(target = target)
+        match = RpsMatch(target = target, extended = extended)
     }
 
     // ---------- Les deux joueurs ----------
@@ -140,7 +149,7 @@ internal class RockPaperScissorsOnline(private val session: SyncSession) {
         }
         guestId = id
         lobby = PlayerNames.makeUnique(lobby + session.nameOf(id))
-        match = RpsMatch(target = target)
+        match = RpsMatch(target = target, extended = extended)
         notice = RpsNotice.NONE
         broadcast()
     }
@@ -152,7 +161,7 @@ internal class RockPaperScissorsOnline(private val session: SyncSession) {
             // L'invité parti, la table repart de zéro : un autre téléphone peut la rejoindre.
             guestId = null
             lobby = lobby.take(1)
-            match = RpsMatch(target = target)
+            match = RpsMatch(target = target, extended = extended)
             notice = RpsNotice.PLAYER_LEFT
         } else {
             notice = RpsNotice.HOST_LEFT

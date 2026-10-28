@@ -1661,6 +1661,11 @@
     <string name="pfc_rock">Sasso</string>
     <string name="pfc_paper">Carta</string>
     <string name="pfc_scissors">Forbici</string>
+    <string name="pfc_lizard">Lucertola</string>
+    <string name="pfc_spock">Spock</string>
+    <string name="pfc_variant_label">Versione del gioco</string>
+    <string name="pfc_variant_classic">Classica</string>
+    <string name="pfc_variant_extended">Lucertola Spock</string>
     <string name="pfc_score">%1$s: %2$d · %3$s: %4$d · pareggi: %5$d</string>
     <string name="pfc_goal">Round da vincere: %1$d</string>
     <string name="pfc_target_label">Round da vincere per aggiudicarsi la partita</string>
@@ -1690,6 +1695,8 @@
     <string name="rules_pfc_2_body">I due giocatori scelgono in segreto sasso, carta o forbici, poi le scelte vengono rivelate insieme. Il sasso spezza le forbici, le forbici tagliano la carta, la carta avvolge il sasso. Due scelte uguali sono un pareggio: si rigioca senza punto.</string>
     <string name="rules_pfc_3_title">Nell’app</string>
     <string name="rules_pfc_3_body">Prima di cominciare si sceglie il numero di round da vincere (1, 2, 3 o 5). Su un solo telefono ci si passa il telefono: la scelta del primo resta nascosta finché non sceglie il secondo. Ognuno sul proprio, con «Giocare ognuno sul proprio telefono» (proposto finché non si è giocato nulla), ogni scelta lascia il telefono solo alla rivelazione.</string>
+    <string name="rules_pfc_4_title">Versione lucertola Spock</string>
+    <string name="rules_pfc_4_body">Prima di cominciare si può scegliere la versione «Lucertola Spock» (proposta finché non si è giocato nulla): cinque scelte invece di tre. Le forbici tagliano la carta, la carta avvolge il sasso, il sasso schiaccia la lucertola, la lucertola avvelena Spock, Spock rompe le forbici, le forbici decapitano la lucertola, la lucertola mangia la carta, la carta smentisce Spock, Spock vaporizza il sasso e il sasso rompe le forbici.</string>
     <!-- Gomoku et Pipopipette -->
     <string name="game_gomoku">Gomoku</string>
     <string name="game_dots">Unisci i puntini</string>

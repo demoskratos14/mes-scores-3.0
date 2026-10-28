@@ -1651,6 +1651,11 @@
     <string name="pfc_rock">Piedra</string>
     <string name="pfc_paper">Papel</string>
     <string name="pfc_scissors">Tijera</string>
+    <string name="pfc_lizard">Lagarto</string>
+    <string name="pfc_spock">Spock</string>
+    <string name="pfc_variant_label">Versión del juego</string>
+    <string name="pfc_variant_classic">Clásica</string>
+    <string name="pfc_variant_extended">Lagarto Spock</string>
     <string name="pfc_score">%1$s: %2$d · %3$s: %4$d · empates: %5$d</string>
     <string name="pfc_goal">Rondas por ganar: %1$d</string>
     <string name="pfc_target_label">Rondas que hay que ganar para llevarse la partida</string>
@@ -1680,6 +1685,8 @@
     <string name="rules_pfc_2_body">Los dos jugadores eligen en secreto piedra, papel o tijera y luego se revelan las elecciones a la vez. La piedra rompe la tijera, la tijera corta el papel, el papel envuelve la piedra. Dos elecciones iguales son empate: se repite sin punto.</string>
     <string name="rules_pfc_3_title">En la app</string>
     <string name="rules_pfc_3_body">Antes de empezar se elige el número de rondas por ganar (1, 2, 3 o 5). En un solo teléfono, se pasa de mano en mano: la elección del primero queda oculta hasta que elige el segundo. Cada uno en el suyo, con «Jugar cada uno en su teléfono» (disponible mientras no se haya jugado nada), cada elección solo sale del teléfono en la revelación.</string>
+    <string name="rules_pfc_4_title">Versión lagarto Spock</string>
+    <string name="rules_pfc_4_body">Antes de empezar se puede elegir la versión «Lagarto Spock» (disponible mientras no se haya jugado nada): cinco opciones en lugar de tres. La tijera corta el papel, el papel envuelve la piedra, la piedra aplasta al lagarto, el lagarto envenena a Spock, Spock rompe la tijera, la tijera decapita al lagarto, el lagarto devora el papel, el papel desautoriza a Spock, Spock vaporiza la piedra y la piedra aplasta la tijera.</string>
     <!-- Gomoku et Pipopipette -->
     <string name="game_gomoku">Gomoku</string>
     <string name="game_dots">Puntos y cajas</string>

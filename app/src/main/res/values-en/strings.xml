@@ -1623,6 +1623,11 @@
     <string name="pfc_rock">Rock</string>
     <string name="pfc_paper">Paper</string>
     <string name="pfc_scissors">Scissors</string>
+    <string name="pfc_lizard">Lizard</string>
+    <string name="pfc_spock">Spock</string>
+    <string name="pfc_variant_label">Game version</string>
+    <string name="pfc_variant_classic">Classic</string>
+    <string name="pfc_variant_extended">Lizard Spock</string>
     <string name="pfc_score">%1$s: %2$d · %3$s: %4$d · draws: %5$d</string>
     <string name="pfc_goal">Rounds to win: %1$d</string>
     <string name="pfc_target_label">Rounds to win the game</string>
@@ -1652,6 +1657,8 @@
     <string name="rules_pfc_2_body">Both players secretly choose rock, paper or scissors, then the choices are revealed together. Rock breaks scissors, scissors cut paper, paper covers rock. Two identical choices are a draw: play again, no point scored.</string>
     <string name="rules_pfc_3_title">In the app</string>
     <string name="rules_pfc_3_body">Before starting, pick the number of rounds to win (1, 2, 3 or 5). On a single phone, pass it around: the first player’s choice stays hidden until the second has chosen. On separate phones, with “Play on separate phones” (offered until something has been played), each choice only leaves its phone at the reveal.</string>
+    <string name="rules_pfc_4_title">Lizard Spock version</string>
+    <string name="rules_pfc_4_body">Before starting, you can pick the “Lizard Spock” version (offered until something has been played): five choices instead of three. Scissors cut paper, paper covers rock, rock crushes lizard, lizard poisons Spock, Spock smashes scissors, scissors decapitate lizard, lizard eats paper, paper disproves Spock, Spock vaporizes rock, and rock crushes scissors.</string>
     <!-- Gomoku et Pipopipette -->
     <string name="game_gomoku">Gomoku</string>
     <string name="game_dots">Dots and Boxes</string>

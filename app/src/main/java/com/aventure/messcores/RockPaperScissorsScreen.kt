@@ -156,7 +156,7 @@ private fun LocalRps(players: List<String>, online: RockPaperScissorsOnline, onP
                     text = stringResource(R.string.pfc_pick_turn, pickerName),
                     style = MaterialTheme.typography.titleMedium
                 )
-                ChoiceButtons(enabled = true) { choice ->
+                ChoiceButtons(extended = match.extended, enabled = true) { choice ->
                     update(match.pick(picker, choice))
                     // Le choix est fait : le téléphone doit être passé avant que l'autre joueur ne regarde l'écran.
                     handedOver = false
@@ -170,9 +170,15 @@ private fun LocalRps(players: List<String>, online: RockPaperScissorsOnline, onP
                 style = MaterialTheme.typography.labelLarge
             )
             TargetPicker(selected = match.target, onSelect = { update(match.withTarget(it)) })
+            Text(
+                text = stringResource(R.string.pfc_variant_label),
+                style = MaterialTheme.typography.labelLarge
+            )
+            VariantPicker(selected = match.extended, onSelect = { update(match.withExtended(it)) })
             OutlinedButton(
                 onClick = {
                     online.chooseTarget(match.target)
+                    online.chooseExtended(match.extended)
                     onPlayOnline()
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -267,7 +273,7 @@ private fun OnlineRps(online: RockPaperScissorsOnline, onQuit: () -> Unit, onClo
             }
             else -> {
                 Text(text = stringResource(R.string.pfc_online_pick), style = MaterialTheme.typography.titleMedium)
-                ChoiceButtons(enabled = online.canPick, onPick = online::pick)
+                ChoiceButtons(extended = match.extended, enabled = online.canPick, onPick = online::pick)
             }
         }
         OutlinedButton(onClick = onQuit, modifier = Modifier.fillMaxWidth()) {
@@ -316,39 +322,54 @@ private fun RpsTitle() {
     }
 }
 
-/** Le nom d'un choix : pierre, feuille ou ciseaux. */
+/** Le nom d'un choix : pierre, feuille, ciseaux, lézard ou Spock. */
 @Composable
 private fun choiceLabel(choice: Int): String = stringResource(
     when (choice) {
         RockPaperScissors.ROCK -> R.string.pfc_rock
         RockPaperScissors.PAPER -> R.string.pfc_paper
+        RockPaperScissors.LIZARD -> R.string.pfc_lizard
+        RockPaperScissors.SPOCK -> R.string.pfc_spock
         else -> R.string.pfc_scissors
     }
 )
 
-/** Les trois boutons de choix ; [enabled] faux : ils sont grisés (le choix est déjà parti). */
+/**
+ * Les boutons de choix (trois, ou cinq en version [extended], sur deux rangées) ; [enabled] faux : ils sont grisés
+ * (le choix est déjà parti).
+ */
 @Composable
-private fun ChoiceButtons(enabled: Boolean, onPick: (Int) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        RockPaperScissors.CHOICES.forEach { choice ->
-            Button(
-                onClick = { onPick(choice) },
-                enabled = enabled,
-                modifier = Modifier.weight(1f).height(104.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = RockPaperScissors.symbol(choice), fontSize = 36.sp)
-                    Text(
-                        text = choiceLabel(choice),
-                        style = MaterialTheme.typography.labelLarge,
-                        maxLines = 1
-                    )
+private fun ChoiceButtons(extended: Boolean, enabled: Boolean, onPick: (Int) -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        RockPaperScissors.choices(extended).chunked(CHOICES_PER_ROW).forEach { rowChoices ->
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Une rangée incomplète est centrée : les boutons gardent la même largeur que ceux de la première.
+                val missing = CHOICES_PER_ROW - rowChoices.size
+                if (missing > 0) Spacer(modifier = Modifier.weight(missing / 2f))
+                rowChoices.forEach { choice ->
+                    Button(
+                        onClick = { onPick(choice) },
+                        enabled = enabled,
+                        modifier = Modifier.weight(1f).height(104.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = RockPaperScissors.symbol(choice), fontSize = 36.sp)
+                            Text(
+                                text = choiceLabel(choice),
+                                style = MaterialTheme.typography.labelLarge,
+                                maxLines = 1
+                            )
+                        }
+                    }
                 }
+                if (missing > 0) Spacer(modifier = Modifier.weight(missing / 2f))
             }
         }
     }
 }
+
+private const val CHOICES_PER_ROW = 3
 
 /** La révélation d'une manche : le choix de chaque joueur, côte à côte. */
 @Composable
@@ -377,6 +398,24 @@ private fun TargetPicker(selected: Int, onSelect: (Int) -> Unit) {
                 Button(onClick = { onSelect(value) }, modifier = Modifier.weight(1f)) { Text(value.toString()) }
             } else {
                 OutlinedButton(onClick = { onSelect(value) }, modifier = Modifier.weight(1f)) { Text(value.toString()) }
+            }
+        }
+    }
+}
+
+/** Le choix de la version : classique ou « lézard Spock » ; la version retenue est pleine, l'autre est cerclée. */
+@Composable
+private fun VariantPicker(selected: Boolean, onSelect: (Boolean) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(false to R.string.pfc_variant_classic, true to R.string.pfc_variant_extended).forEach { (value, label) ->
+            if (value == selected) {
+                Button(onClick = { onSelect(value) }, modifier = Modifier.weight(1f)) {
+                    Text(stringResource(label), textAlign = TextAlign.Center)
+                }
+            } else {
+                OutlinedButton(onClick = { onSelect(value) }, modifier = Modifier.weight(1f)) {
+                    Text(stringResource(label), textAlign = TextAlign.Center)
+                }
             }
         }
     }

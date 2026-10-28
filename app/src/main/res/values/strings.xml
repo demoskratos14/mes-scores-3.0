@@ -1666,6 +1666,11 @@
     <string name="pfc_rock">Pierre</string>
     <string name="pfc_paper">Feuille</string>
     <string name="pfc_scissors">Ciseaux</string>
+    <string name="pfc_lizard">Lézard</string>
+    <string name="pfc_spock">Spock</string>
+    <string name="pfc_variant_label">Version du jeu</string>
+    <string name="pfc_variant_classic">Classique</string>
+    <string name="pfc_variant_extended">Lézard Spock</string>
     <string name="pfc_score">%1$s : %2$d · %3$s : %4$d · égalités : %5$d</string>
     <string name="pfc_goal">Manches à gagner : %1$d</string>
     <string name="pfc_target_label">Manches à gagner pour remporter la partie</string>
@@ -1695,6 +1700,8 @@
     <string name="rules_pfc_2_body">Les deux joueurs choisissent en secret pierre, feuille ou ciseaux, puis les choix sont révélés ensemble. La pierre casse les ciseaux, les ciseaux coupent la feuille, la feuille enveloppe la pierre. Deux choix identiques : égalité, on recommence sans point.</string>
     <string name="rules_pfc_3_title">Dans l’appli</string>
     <string name="rules_pfc_3_body">Avant de commencer, on choisit le nombre de manches à gagner (1, 2, 3 ou 5). Sur un seul téléphone, on se le passe : le choix du premier reste caché jusqu’à ce que le second ait choisi. Chacun sur le sien, avec « Jouer chacun sur son téléphone » (proposé tant que rien n’a été joué), le choix de chacun ne part qu’à la révélation.</string>
+    <string name="rules_pfc_4_title">Version lézard Spock</string>
+    <string name="rules_pfc_4_body">Avant de commencer, on peut choisir la version « Lézard Spock » (proposée tant que rien n’a été joué) : cinq choix au lieu de trois. Les ciseaux coupent la feuille, la feuille recouvre la pierre, la pierre écrase le lézard, le lézard empoisonne Spock, Spock casse les ciseaux, les ciseaux décapitent le lézard, le lézard mange la feuille, la feuille désavoue Spock, Spock vaporise la pierre et la pierre casse les ciseaux.</string>
     <!-- Gomoku et Pipopipette -->
     <string name="game_gomoku">Gomoku</string>
     <string name="game_dots">Pipopipette</string>
