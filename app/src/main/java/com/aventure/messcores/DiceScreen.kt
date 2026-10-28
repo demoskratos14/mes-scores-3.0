@@ -539,9 +539,9 @@ private fun DieFace(
     spinning: Boolean,
     tint: Color,
     description: String,
-    locked: Boolean = false,
     onClick: (() -> Unit)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    locked: Boolean = false
 ) {
     val shape = RoundedCornerShape(14.dp)
     val borderColor = if (held) MaterialTheme.colorScheme.primary else Color.Gray
