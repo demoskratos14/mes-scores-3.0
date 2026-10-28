@@ -1363,15 +1363,15 @@
     <string name="dice_bunco_winner_bunco">%1$s rolls a Bunco and wins the round!</string>
     <string name="dice_bunco_next_round">Go to round %1$d</string>
     <string name="dice_bunco_game_over">That was the last round: the game is over.</string>
-    <string name="dice_dm_hint">Roll the 6 dice, then tap the ones that score (1s, 5s, three of a kind, straight…). Roll the rest again or keep your points. To open your score, you need %1$d points in a single turn.</string>
+    <string name="dice_dm_hint" tools:ignore="PluralsCandidate">Roll the 6 dice, then tap the ones that score (1s, 5s, three of a kind, straight…). Roll the rest again or keep your points. To open your score, you need %1$d points in a single turn.</string>
     <string name="dice_dm_select_prompt">Pick at least one die that scores.</string>
     <string name="dice_dm_invalid">One of the chosen dice doesn’t score: remove it.</string>
     <string name="dice_dm_selection">Chosen dice: +%1$d (if you keep: %2$d)</string>
     <string name="dice_dm_turn_points">Already set aside this turn: %1$d</string>
     <string name="dice_dm_farkle">Farkle! No die scores: the turn’s points are lost.</string>
     <string name="dice_dm_hot">All 6 dice scored: all the dice are rolled again!</string>
-    <string name="dice_dm_open_needed">You haven’t scored yet: you need %1$d points in a single turn before you can keep. Roll again!</string>
-    <string name="dice_dm_last_turn">%1$s has reached %2$d points: players who haven’t played yet this round get one last turn.</string>
+    <string name="dice_dm_open_needed" tools:ignore="PluralsCandidate">You haven’t scored yet: you need %1$d points in a single turn before you can keep. Roll again!</string>
+    <string name="dice_dm_last_turn" tools:ignore="PluralsCandidate">%1$s has reached %2$d points: players who haven’t played yet this round get one last turn.</string>
     <string name="dice_qwixx_white">White dice: %1$d</string>
     <string name="dice_qwixx_option">%1$s: %2$d or %3$d</string>
     <string name="dice_new_turn">New turn</string>
