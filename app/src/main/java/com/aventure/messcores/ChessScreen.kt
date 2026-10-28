@@ -1,6 +1,10 @@
 package com.aventure.messcores
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,10 +19,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -29,17 +35,22 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -65,6 +76,14 @@ internal fun ChessScreen(
     onHostOnline: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
+    // Le style de l'échiquier (classique ou sorcier) est un choix de chacun, retenu d'une fois sur l'autre : il ne change
+    // rien à la partie, et ne voyage pas entre les deux téléphones.
+    val context = LocalContext.current
+    var wizard by remember { mutableStateOf(ChessStylePreference.load(context)) }
+    val toggleStyle = {
+        wizard = !wizard
+        ChessStylePreference.save(context, wizard)
+    }
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
     BackHandler(enabled = online.active) {
         if (online.notice == ChessNotice.HOST_LEFT) {
@@ -76,12 +95,12 @@ internal fun ChessScreen(
     }
 
     if (online.active) {
-        OnlineChess(online = online, onQuit = { showQuit = true }, onClose = {
+        OnlineChess(online = online, wizard = wizard, onToggleStyle = toggleStyle, onQuit = { showQuit = true }, onClose = {
             online.leave()
             onExit()
         })
     } else {
-        LocalChess(players = players, onPlayOnline = onHostOnline)
+        LocalChess(players = players, wizard = wizard, onToggleStyle = toggleStyle, onPlayOnline = onHostOnline)
     }
 
     if (showQuit && online.active) {
@@ -108,7 +127,7 @@ internal fun ChessScreen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun LocalChess(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: () -> Unit, onPlayOnline: () -> Unit) {
     val names = listOf(players.getOrElse(0) { "1" }, players.getOrElse(1) { "2" })
 
     // Tout est gardé quand l'écran tourne (la séance, voir ChessMatchSaver).
@@ -153,6 +172,7 @@ private fun LocalChess(players: List<String>, onPlayOnline: () -> Unit) {
             game = game,
             enabled = !match.isOver,
             flipped = flipped,
+            wizard = wizard,
             onMove = { move -> match = match.play(move, match.currentSeat) ?: match }
         )
         if (result != null) {
@@ -172,6 +192,7 @@ private fun LocalChess(players: List<String>, onPlayOnline: () -> Unit) {
         OutlinedButton(onClick = { flipped = !flipped }, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.chess_flip))
         }
+        StyleButton(wizard = wizard, onToggle = onToggleStyle)
         if (fresh) {
             OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.chess_online_button))
@@ -229,7 +250,7 @@ private fun LocalChess(players: List<String>, onPlayOnline: () -> Unit) {
 
 /** La partie à deux téléphones : attente de l'autre joueur, puis l'échiquier et le score de la séance. */
 @Composable
-private fun OnlineChess(online: ChessOnline, onQuit: () -> Unit, onClose: () -> Unit) {
+private fun OnlineChess(online: ChessOnline, wizard: Boolean, onToggleStyle: () -> Unit, onQuit: () -> Unit, onClose: () -> Unit) {
     if (online.notice == ChessNotice.HOST_LEFT) {
         ChessCard {
             ChessTitle()
@@ -304,6 +325,7 @@ private fun OnlineChess(online: ChessOnline, onQuit: () -> Unit, onClose: () -> 
             game = game,
             enabled = online.myTurn,
             flipped = !online.playsWhite,
+            wizard = wizard,
             onMove = online::play
         )
         if (result != null) {
@@ -346,6 +368,7 @@ private fun OnlineChess(online: ChessOnline, onQuit: () -> Unit, onClose: () -> 
                 }
             }
         }
+        StyleButton(wizard = wizard, onToggle = onToggleStyle)
         OutlinedButton(onClick = onQuit, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.chess_online_leave))
         }
@@ -442,7 +465,7 @@ private val PROMOTION_CHOICES = listOf(
  * [flipped] : les noirs sont en bas.
  */
 @Composable
-private fun ChessPlayArea(game: ChessGame, enabled: Boolean, flipped: Boolean, onMove: (ChessMove) -> Unit) {
+private fun ChessPlayArea(game: ChessGame, enabled: Boolean, flipped: Boolean, wizard: Boolean, onMove: (ChessMove) -> Unit) {
     // Une sélection ne survit pas à un coup joué.
     var selected by rememberSaveable(game.moves.size) { mutableIntStateOf(-1) }
     var promotionFrom by rememberSaveable(game.moves.size) { mutableIntStateOf(-1) }
@@ -474,7 +497,14 @@ private fun ChessPlayArea(game: ChessGame, enabled: Boolean, flipped: Boolean, o
         }
     }
 
-    ChessBoard(game = game, flipped = flipped, selected = if (enabled) selected else -1, enabled = enabled, onTap = ::tap)
+    ChessBoard(
+        game = game,
+        flipped = flipped,
+        selected = if (enabled) selected else -1,
+        enabled = enabled,
+        wizard = wizard,
+        onTap = ::tap
+    )
 
     if (promotionFrom >= 0 && promotionTo >= 0) {
         val white = game.position.whiteToMove
@@ -491,10 +521,19 @@ private fun ChessPlayArea(game: ChessGame, enabled: Boolean, flipped: Boolean, o
                             onClick = { play(ChessMove(promotionFrom, promotionTo, letter)) },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = glyphOf(if (white) letter.uppercaseChar() else letter) + "  " + stringResource(nameRes),
-                                style = MaterialTheme.typography.titleLarge
-                            )
+                            val piece = if (white) letter.uppercaseChar() else letter
+                            if (wizard) {
+                                Canvas(modifier = Modifier.size(40.dp).clearAndSetSemantics {}) {
+                                    drawWizardPiece(piece, Offset.Zero, size.minDimension, shadow = false)
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = stringResource(nameRes), style = MaterialTheme.typography.titleLarge)
+                            } else {
+                                Text(
+                                    text = glyphOf(piece) + "  " + stringResource(nameRes),
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                            }
                         }
                     }
                 }
@@ -522,76 +561,150 @@ private val CHECK_SQUARE = Color(0xFFE57373)
 private val WHITE_PIECE = Color.White
 private val BLACK_PIECE = Color(0xFF1A1A1A)
 
-/** L'échiquier de 8 × 8 cases ; [selected] : la case de la pièce choisie (-1 si aucune), dont les coups sont marqués. */
+// Le style sorcier : dalles de grès et de pierre sombre, dans un cadre de bois.
+private val WIZARD_LIGHT_SQUARE = Color(0xFFCDB892)
+private val WIZARD_DARK_SQUARE = Color(0xFF7D6A55)
+private val WIZARD_FRAME = Color(0xFF2E2118)
+private val WIZARD_FRAME_EDGE = Color(0xFF8C6B2F)
+
+/** Le bouton qui passe l'échiquier du style classique au style sorcier, et inversement. */
 @Composable
-private fun ChessBoard(game: ChessGame, flipped: Boolean, selected: Int, enabled: Boolean, onTap: (Int) -> Unit) {
+private fun StyleButton(wizard: Boolean, onToggle: () -> Unit) {
+    OutlinedButton(onClick = onToggle, modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(if (wizard) R.string.chess_style_to_classic else R.string.chess_style_to_wizard))
+    }
+}
+
+/**
+ * L'échiquier de 8 × 8 cases ; [selected] : la case de la pièce choisie (-1 si aucune), dont les coups sont marqués.
+ * [wizard] : le style sorcier (statues de pierre, et animation de chaque coup, avec des éclats quand une pièce est prise).
+ */
+@Composable
+private fun ChessBoard(
+    game: ChessGame,
+    flipped: Boolean,
+    selected: Int,
+    enabled: Boolean,
+    wizard: Boolean,
+    onTap: (Int) -> Unit
+) {
     val targets = if (selected >= 0) game.legalMoves.filter { it.from == selected }.map { it.to }.toSet() else emptySet()
     val checked = if (game.inCheck) game.position.board.indexOf(if (game.position.whiteToMove) 'K' else 'k') else -1
     val last = game.lastMove
     val selectedText = stringResource(R.string.chess_square_selected)
     val targetText = stringResource(R.string.chess_square_target)
 
+    // L'animation du dernier coup (style sorcier) : la position d'avant le coup sert à savoir ce qui a été pris.
+    // Rien ne s'anime à l'ouverture de l'écran, au changement de style ni au début d'une nouvelle manche.
+    var fx by remember { mutableStateOf<MoveFx?>(null) }
+    val progress = remember { Animatable(1f) }
+    var previousBoard by remember { mutableStateOf(game.position.board) }
+    var previousCount by remember { mutableIntStateOf(game.moves.size) }
+    LaunchedEffect(game.moves.size, wizard) {
+        fx = null
+        val before = previousBoard
+        val countBefore = previousCount
+        previousBoard = game.position.board
+        previousCount = game.moves.size
+        val move = game.lastMove
+        if (wizard && move != null && game.moves.size == countBefore + 1) {
+            val found = WizardFx.detect(before, move)
+            if (found != null) {
+                fx = found
+                progress.snapTo(0f)
+                progress.animateTo(1f, tween(durationMillis = wizardMoveDuration(found), easing = LinearEasing))
+                fx = null
+            }
+        }
+    }
+    // Pendant l'animation, la case d'arrivée est laissée vide : la pièce y est dessinée par l'animation.
+    val animatedSquare = fx?.to ?: -1
+
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        BoxWithConstraints(modifier = Modifier.widthIn(max = 440.dp).fillMaxWidth()) {
-            val cell = maxWidth / 8
-            val fontSize = with(LocalDensity.current) { (cell * 0.8f).toSp() }
-            Column {
-                for (displayRow in 0 until 8) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        for (displayCol in 0 until 8) {
-                            val row = if (flipped) 7 - displayRow else displayRow
-                            val col = if (flipped) 7 - displayCol else displayCol
-                            val square = row * 8 + col
-                            val piece = game.position.board[square]
-                            val squareColor = when {
-                                square == selected -> SELECTED_SQUARE
-                                square == checked -> CHECK_SQUARE
-                                last != null && (square == last.from || square == last.to) -> LAST_MOVE_SQUARE
-                                (row + col) % 2 == 0 -> LIGHT_SQUARE
-                                else -> DARK_SQUARE
-                            }
-                            val name = Chess.squareName(square)
-                            val description = if (piece == '.') {
-                                stringResource(R.string.chess_square_empty, name)
-                            } else {
-                                stringResource(R.string.chess_square_piece, name, stringResource(pieceNameRes(piece)))
-                            }
-                            val state = when {
-                                square == selected -> selectedText
-                                square in targets -> targetText
-                                else -> null
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(1f)
-                                    .background(squareColor)
-                                    .semantics {
-                                        contentDescription = description
-                                        if (state != null) stateDescription = state
-                                    }
-                                    .clickable(enabled = enabled, role = Role.Button) { onTap(square) },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (piece != '.') ChessPiece(piece, fontSize)
-                                if (square in targets) {
-                                    if (piece == '.') {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize(0.3f)
-                                                .clip(CircleShape)
-                                                .background(Color(0x66000000))
-                                        )
-                                    } else {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .border(3.dp, Color(0x88000000), CircleShape)
-                                        )
+        Box(
+            modifier = Modifier
+                .widthIn(max = 440.dp)
+                .fillMaxWidth()
+                .then(
+                    if (wizard) {
+                        Modifier
+                            .background(WIZARD_FRAME, RoundedCornerShape(10.dp))
+                            .border(2.dp, WIZARD_FRAME_EDGE, RoundedCornerShape(10.dp))
+                            .padding(8.dp)
+                    } else {
+                        Modifier
+                    }
+                )
+        ) {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val cell = maxWidth / 8
+                val fontSize = with(LocalDensity.current) { (cell * 0.8f).toSp() }
+                Column {
+                    for (displayRow in 0 until 8) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            for (displayCol in 0 until 8) {
+                                val row = if (flipped) 7 - displayRow else displayRow
+                                val col = if (flipped) 7 - displayCol else displayCol
+                                val square = row * 8 + col
+                                val piece = game.position.board[square]
+                                val squareColor = when {
+                                    square == selected -> SELECTED_SQUARE
+                                    square == checked -> CHECK_SQUARE
+                                    last != null && (square == last.from || square == last.to) -> LAST_MOVE_SQUARE
+                                    (row + col) % 2 == 0 -> if (wizard) WIZARD_LIGHT_SQUARE else LIGHT_SQUARE
+                                    else -> if (wizard) WIZARD_DARK_SQUARE else DARK_SQUARE
+                                }
+                                val name = Chess.squareName(square)
+                                val description = if (piece == '.') {
+                                    stringResource(R.string.chess_square_empty, name)
+                                } else {
+                                    stringResource(R.string.chess_square_piece, name, stringResource(pieceNameRes(piece)))
+                                }
+                                val state = when {
+                                    square == selected -> selectedText
+                                    square in targets -> targetText
+                                    else -> null
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .background(squareColor)
+                                        .drawBehind { if (wizard) drawWizardTile(square) }
+                                        .semantics {
+                                            contentDescription = description
+                                            if (state != null) stateDescription = state
+                                        }
+                                        .clickable(enabled = enabled, role = Role.Button) { onTap(square) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (piece != '.' && square != animatedSquare) ChessPiece(piece, fontSize, wizard)
+                                    if (square in targets) {
+                                        if (piece == '.') {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize(0.3f)
+                                                    .clip(CircleShape)
+                                                    .background(Color(0x66000000))
+                                            )
+                                        } else {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .border(3.dp, Color(0x88000000), CircleShape)
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
+                    }
+                }
+                // Le coup en cours d'animation, dessiné par-dessus les cases (sans gêner les touches).
+                val playing = fx
+                if (playing != null) {
+                    Canvas(modifier = Modifier.matchParentSize()) {
+                        drawMoveFx(playing, progress.value, flipped)
                     }
                 }
             }
@@ -599,9 +712,19 @@ private fun ChessBoard(game: ChessGame, flipped: Boolean, selected: Int, enabled
     }
 }
 
-/** Une pièce : le même dessin pour les deux camps, rempli en blanc ou en noir, cerné de noir pour les blancs. */
+/**
+ * Une pièce : en style sorcier, une statue dessinée (voir [drawWizardPiece]) ; sinon le même dessin pour les deux camps,
+ * rempli en blanc ou en noir, cerné de noir pour les blancs.
+ */
 @Composable
-private fun ChessPiece(piece: Char, fontSize: TextUnit) {
+private fun ChessPiece(piece: Char, fontSize: TextUnit, wizard: Boolean) {
+    if (wizard) {
+        // La case décrit déjà la pièce : le dessin n'est pas lu une deuxième fois par TalkBack.
+        Canvas(modifier = Modifier.fillMaxSize().clearAndSetSemantics {}) {
+            drawWizardPiece(piece, Offset.Zero, size.minDimension)
+        }
+        return
+    }
     val glyph = glyphOf(piece)
     val white = Chess.isWhite(piece)
     // La case décrit déjà la pièce : le dessin n'est pas lu une deuxième fois par TalkBack.

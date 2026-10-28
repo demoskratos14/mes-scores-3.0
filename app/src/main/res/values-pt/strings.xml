@@ -1896,6 +1896,8 @@
     <string name="chess_resign">Desistir</string>
     <string name="chess_offer_draw">Propor empate</string>
     <string name="chess_flip">Virar o tabuleiro</string>
+    <string name="chess_style_to_wizard">Mudar para o estilo feiticeiro</string>
+    <string name="chess_style_to_classic">Mudar para o estilo clássico</string>
     <string name="chess_online_button">Jogar cada um no seu telemóvel</string>
     <string name="chess_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
     <string name="chess_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a entrar na partida.</string>

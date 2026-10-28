@@ -1896,6 +1896,8 @@
     <string name="chess_resign">Abandonar</string>
     <string name="chess_offer_draw">Proponer tablas</string>
     <string name="chess_flip">Girar el tablero</string>
+    <string name="chess_style_to_wizard">Cambiar al estilo mago</string>
+    <string name="chess_style_to_classic">Cambiar al estilo clásico</string>
     <string name="chess_online_button">Jugar cada uno en su teléfono</string>
     <string name="chess_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="chess_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>

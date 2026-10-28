@@ -1906,6 +1906,8 @@
     <string name="chess_resign">Abbandonare</string>
     <string name="chess_offer_draw">Proporre la patta</string>
     <string name="chess_flip">Ruota la scacchiera</string>
+    <string name="chess_style_to_wizard">Passa allo stile stregone</string>
+    <string name="chess_style_to_classic">Passa allo stile classico</string>
     <string name="chess_online_button">Giocare ognuno col proprio telefono</string>
     <string name="chess_online_waiting">In attesa dell’altro giocatore… Sull’altro telefono, tocca «Unisciti a una partita».</string>
     <string name="chess_online_notice_left">L’altro giocatore si è disconnesso. Puoi aspettare che un telefono si riunisca alla partita.</string>

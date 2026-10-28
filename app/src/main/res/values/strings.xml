@@ -1911,6 +1911,8 @@
     <string name="chess_resign">Abandonner</string>
     <string name="chess_offer_draw">Proposer la nulle</string>
     <string name="chess_flip">Retourner l’échiquier</string>
+    <string name="chess_style_to_wizard">Passer au style sorcier</string>
+    <string name="chess_style_to_classic">Passer au style classique</string>
     <string name="chess_online_button">Jouer chacun sur son téléphone</string>
     <string name="chess_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="chess_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
