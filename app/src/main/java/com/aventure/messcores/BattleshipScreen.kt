@@ -135,6 +135,7 @@ internal fun BattleshipScreen(
     val game = viewModel.game
     KeepScreenOn()
     val context = LocalContext.current
+    SpaceFleetSprites.load(context)
     // Premier écran, juste après le choix du jeu : la mer ou le ciel étoilé.
     var choosingBackdrop by rememberSaveable { mutableStateOf(true) }
     var backdrop by remember { mutableStateOf(BattleshipBackdropPreference.load(context)) }
@@ -958,11 +959,14 @@ private fun BoardGrid(
             val cs = cellSize.toPx()
             val p = progress()
             drawBoardBackdrop(backdrop, topLeft = Offset(cs, cs), side = cs * Battleship.SIZE, cs = cs, time = twinkle?.value ?: 0f)
-            for (ship in ships) {
+            for ((shipIndex, ship) in ships.withIndex()) {
                 val sunk = ship.isNotEmpty() && ship.all { it in sunkCells }
                 // Le bateau qui vient d'être coulé apparaît en fondu.
                 val fade = if (effect != null && effect.kind == ShotOutcome.SUNK && ship.sorted() == effect.ship) p else 1f
-                drawShip(ship, cs, sunk = sunk, alpha = fade, spaceship = backdrop == BattleshipBackdrop.STARS)
+                drawShip(
+                    ship, cs, sunk = sunk, alpha = fade, spaceship = backdrop == BattleshipBackdrop.STARS,
+                    variant = spriteVariant(ships.map { it.size }, shipIndex)
+                )
             }
         }
         Column {
@@ -1083,7 +1087,7 @@ private fun flamePath(centerX: Float, baseY: Float, width: Float, height: Float,
 /**
  * Dessine un bateau de la grille (la grille commence à une case du bord : lettres et numéros) : voir [drawShipAt].
  */
-private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean, alpha: Float = 1f, spaceship: Boolean = false) {
+private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean, alpha: Float = 1f, spaceship: Boolean = false, variant: Int = 0) {
     val cells = ship.sorted()
     if (cells.isEmpty()) return
     val first = cells.first()
@@ -1096,7 +1100,8 @@ private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean, alpha:
         cs = cs,
         sunk = sunk,
         alpha = alpha,
-        spaceship = spaceship
+        spaceship = spaceship,
+        variant = variant
     )
 }
 
@@ -1113,7 +1118,8 @@ private fun DrawScope.drawShipAt(
     cs: Float,
     sunk: Boolean,
     alpha: Float = 1f,
-    spaceship: Boolean = false
+    spaceship: Boolean = false,
+    variant: Int = 0
 ) {
     val size = length * cs
     val margin = cs * 0.14f
@@ -1137,7 +1143,7 @@ private fun DrawScope.drawShipAt(
         }
     }) {
         if (spaceship) {
-            drawSpaceship(length, cs, sunk, alpha)
+            drawSpaceship(length, cs, sunk, alpha, variant)
             return@withTransform
         }
         drawPath(hull, color = (if (sunk) SUNK_HULL_COLOR else HULL_COLOR).copy(alpha = alpha))
@@ -1165,7 +1171,8 @@ private val SHIP_CANOPY_SPACE = Color(0xFF80DEEA)
  * Le vaisseau qui remplace le bateau sur le fond étoilé, dans le même repère : couché vers la droite, [length] cases
  * de long sur une de large (le nez à droite, le réacteur à gauche).
  */
-private fun DrawScope.drawSpaceshipIntact(length: Int, cs: Float, sunk: Boolean, alpha: Float) {
+private fun DrawScope.drawSpaceshipIntact(length: Int, cs: Float, sunk: Boolean, alpha: Float, variant: Int) {
+    SpaceFleetSprites.bitmap(length, variant)?.let { drawSpaceSprite(it, length, cs, sunk, alpha); return }
     val size = length * cs
     val tail = cs * 0.3f
     val hullColor = (if (sunk) SUNK_HULL_COLOR else SHIP_HULL_SPACE).copy(alpha = alpha)
@@ -1254,9 +1261,9 @@ private val SPACESHIP_DEBRIS = listOf(
  * Un vaisseau détruit : coupé en deux à mi-longueur, les deux moitiés légèrement écartées et de travers, avec des
  * débris autour de la cassure.
  */
-private fun DrawScope.drawSpaceship(length: Int, cs: Float, sunk: Boolean, alpha: Float) {
+private fun DrawScope.drawSpaceship(length: Int, cs: Float, sunk: Boolean, alpha: Float, variant: Int) {
     if (!sunk) {
-        drawSpaceshipIntact(length, cs, sunk = false, alpha = alpha)
+        drawSpaceshipIntact(length, cs, sunk = false, alpha = alpha, variant = variant)
         return
     }
     val size = length * cs
@@ -1282,7 +1289,7 @@ private fun DrawScope.drawSpaceship(length: Int, cs: Float, sunk: Boolean, alpha
             rotate(if (rear) 5f else -6f, Offset(mid, cs / 2))
             clipPath(half(rear))
         }) {
-            drawSpaceshipIntact(length, cs, sunk = true, alpha = alpha)
+            drawSpaceshipIntact(length, cs, sunk = true, alpha = alpha, variant = variant)
             drawPath(scorch, Color(0xFFFF6D00).copy(alpha = alpha), style = Stroke(width = cs * 0.07f))
         }
     }
@@ -1585,10 +1592,13 @@ private fun PlacementArea(
                 for (i in lengths.indices) {
                     if (placement[i] >= 0 || i == dragShip) continue
                     val (x, y) = DOCK_SLOTS[i]
-                    drawShipAt(lengths[i], x * cs, y * cs, horizontal = true, cs = cs, sunk = false, spaceship = stars)
+                    drawShipAt(lengths[i], x * cs, y * cs, horizontal = true, cs = cs, sunk = false, spaceship = stars, variant = spriteVariant(lengths, i))
                 }
                 if (dragShip >= 0) {
-                    drawShipAt(lengths[dragShip], dragTopLeft.x, dragTopLeft.y, dragHorizontal, cs, sunk = false, alpha = 0.85f, spaceship = stars)
+                    drawShipAt(
+                        lengths[dragShip], dragTopLeft.x, dragTopLeft.y, dragHorizontal, cs, sunk = false, alpha = 0.85f,
+                        spaceship = stars, variant = spriteVariant(lengths, dragShip)
+                    )
                 }
             }
         }
