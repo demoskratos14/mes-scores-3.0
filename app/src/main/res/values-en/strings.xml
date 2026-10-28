@@ -1297,10 +1297,10 @@
     <string name="dice_leave_game">Leave the game</string>
     <string name="dice_cdc_hint">Roll the three dice: the two chouettes, then the cul.</string>
     <string name="dice_cdc_result_cul">Cul de chouette of %1$d: +%2$d!</string>
-    <string name="dice_cdc_result_chouette_velute">Chouette-velute: +%1$d for the first to shout “Pas mou le caillou!”</string>
+    <string name="dice_cdc_result_chouette_velute">Chouette-velute: the first to shout “Pas mou le caillou!” scores +%1$d</string>
     <string name="dice_cdc_result_velute">Velute of %1$d: +%2$d</string>
     <string name="dice_cdc_result_chouette">Chouette of %1$d: +%2$d</string>
-    <string name="dice_cdc_result_suite">Straight: the last player to react loses %1$d points</string>
+    <string name="dice_cdc_result_suite">Straight: for the last to react, −%1$d</string>
     <string name="dice_cdc_result_neant">Nothing: no combination</string>
     <string name="dice_cdc_claim_velute">Who shouted first?</string>
     <string name="dice_cdc_claim_suite">Who reacted last?</string>

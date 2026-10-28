@@ -1336,10 +1336,10 @@
     <string name="dice_leave_game">Quitter la partie</string>
     <string name="dice_cdc_hint">Lance les trois dés : les deux chouettes, puis le cul.</string>
     <string name="dice_cdc_result_cul">Cul de chouette de %1$d : +%2$d !</string>
-    <string name="dice_cdc_result_chouette_velute">Chouette-velute : +%1$d pour le premier qui crie « Pas mou le caillou ! »</string>
+    <string name="dice_cdc_result_chouette_velute">Chouette-velute : le premier qui crie « Pas mou le caillou ! » marque +%1$d</string>
     <string name="dice_cdc_result_velute">Velute de %1$d : +%2$d</string>
     <string name="dice_cdc_result_chouette">Chouette de %1$d : +%2$d</string>
-    <string name="dice_cdc_result_suite">Suite : le dernier à réagir perd %1$d points</string>
+    <string name="dice_cdc_result_suite">Suite : pour le dernier à réagir, −%1$d</string>
     <string name="dice_cdc_result_neant">Néant : rien ne se passe</string>
     <string name="dice_cdc_claim_velute">Qui a crié le premier ?</string>
     <string name="dice_cdc_claim_suite">Qui a réagi en dernier ?</string>

@@ -1321,10 +1321,10 @@
     <string name="dice_leave_game">Sair da partida</string>
     <string name="dice_cdc_hint">Lança os três dados: as duas chouettes e depois o cul.</string>
     <string name="dice_cdc_result_cul">Cul de chouette de %1$d: +%2$d!</string>
-    <string name="dice_cdc_result_chouette_velute">Chouette-velute: +%1$d para o primeiro a gritar “Pas mou le caillou!”</string>
+    <string name="dice_cdc_result_chouette_velute">Chouette-velute: o primeiro a gritar “Pas mou le caillou!” marca +%1$d</string>
     <string name="dice_cdc_result_velute">Velute de %1$d: +%2$d</string>
     <string name="dice_cdc_result_chouette">Chouette de %1$d: +%2$d</string>
-    <string name="dice_cdc_result_suite">Sequência: o último a reagir perde %1$d pontos</string>
+    <string name="dice_cdc_result_suite">Sequência: para o último a reagir, −%1$d</string>
     <string name="dice_cdc_result_neant">Nada: nenhuma combinação</string>
     <string name="dice_cdc_claim_velute">Quem gritou primeiro?</string>
     <string name="dice_cdc_claim_suite">Quem reagiu por último?</string>

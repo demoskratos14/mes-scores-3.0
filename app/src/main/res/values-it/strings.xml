@@ -1331,10 +1331,10 @@
     <string name="dice_leave_game">Esci dalla partita</string>
     <string name="dice_cdc_hint">Lancia i tre dadi: le due chouette, poi il cul.</string>
     <string name="dice_cdc_result_cul">Cul de chouette di %1$d: +%2$d!</string>
-    <string name="dice_cdc_result_chouette_velute">Chouette-velute: +%1$d per il primo che grida « Pas mou le caillou ! »</string>
+    <string name="dice_cdc_result_chouette_velute">Chouette-velute: il primo che grida « Pas mou le caillou ! » segna +%1$d</string>
     <string name="dice_cdc_result_velute">Velute di %1$d: +%2$d</string>
     <string name="dice_cdc_result_chouette">Chouette di %1$d: +%2$d</string>
-    <string name="dice_cdc_result_suite">Scala: chi reagisce per ultimo perde %1$d punti</string>
+    <string name="dice_cdc_result_suite">Scala: per chi reagisce per ultimo, −%1$d</string>
     <string name="dice_cdc_result_neant">Niente: nessuna combinazione</string>
     <string name="dice_cdc_claim_velute">Chi ha gridato per primo?</string>
     <string name="dice_cdc_claim_suite">Chi ha reagito per ultimo?</string>
