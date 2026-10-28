@@ -42,7 +42,8 @@ internal val DotsSpec = DuoGameSpec<DotsMatch>(
     initial = { DotsMatch() },
     decode = { DotsMatch.decode(it) },
     colorOf = { scheme, player -> if (player == 1) scheme.primary else scheme.tertiary },
-    board = { match, enabled, onPlay -> DotsBoard(match, enabled, onPlay) }
+    board = { match, enabled, onPlay -> DotsBoard(match, enabled, onPlay) },
+    chooseColors = true
 )
 
 private val Margin = 20.dp
@@ -60,8 +61,9 @@ private val TouchTrim = 22.dp
 @Composable
 private fun DotsBoard(match: DotsMatch, enabled: Boolean, onPlay: (Int) -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    val colorA = scheme.primary
-    val colorB = scheme.tertiary
+    val chosen = LocalDuoColors.current
+    val colorA = chosen?.first ?: scheme.primary
+    val colorB = chosen?.second ?: scheme.tertiary
     val ink = scheme.onSurface
     val resources = LocalResources.current
     // Le trait choisi, pas encore validé (-1 : aucun). Chaque coup, le mien ou celui de l'autre, efface le choix en cours.
@@ -98,11 +100,13 @@ private fun DotsBoard(match: DotsMatch, enabled: Boolean, onPlay: (Int) -> Unit)
                     if (owner == '0') continue
                     val top = dot(box / Dots.SIZE, box % Dots.SIZE)
                     val color = if (owner == '1') colorA else colorB
-                    drawRect(color.copy(alpha = 0.25f), top, Size(stepPx, stepPx))
+                    // Couleur pleine, sans transparence : toute la case est de la couleur du trait.
+                    drawRect(color, top, Size(stepPx, stepPx))
+                    val mark = contentColorFor(color)
                     val center = Offset(top.x + stepPx / 2, top.y + stepPx / 2)
                     val half = stepPx * 0.16f
-                    if (owner == '1') drawCircle(color, half, center)
-                    else drawRect(color, Offset(center.x - half, center.y - half), Size(half * 2, half * 2))
+                    if (owner == '1') drawCircle(mark, half, center)
+                    else drawRect(mark, Offset(center.x - half, center.y - half), Size(half * 2, half * 2))
                 }
 
                 // Les traits : libres en gris clair, tracés dans la couleur du joueur ; le dernier est souligné.

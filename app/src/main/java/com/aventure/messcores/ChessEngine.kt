@@ -43,7 +43,7 @@ internal data class ChessPosition(
 
 /** Comment une manche se termine. */
 internal enum class ChessReason {
-    CHECKMATE, STALEMATE, INSUFFICIENT_MATERIAL, FIFTY_MOVES, REPETITION, RESIGNATION, AGREEMENT
+    CHECKMATE, STALEMATE, INSUFFICIENT_MATERIAL, FIFTY_MOVES, REPETITION, RESIGNATION, AGREEMENT, TIMEOUT
 }
 
 /** Fin d'une manche : le camp gagnant (true : les blancs, false : les noirs, null : manche nulle) et la raison. */

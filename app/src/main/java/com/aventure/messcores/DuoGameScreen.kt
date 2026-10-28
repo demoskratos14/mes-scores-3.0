@@ -28,6 +28,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -58,8 +62,16 @@ internal class DuoGameSpec<M : DuoMatch<M>>(
     /** Couleur du joueur 1 ou 2, dans le thème courant. */
     val colorOf: (ColorScheme, Int) -> Color,
     /** Le plateau : [enabled] dit si on peut jouer ; [onPlay] reçoit le coup choisi (voir [DuoMatch.play]). */
-    val board: @Composable (match: M, enabled: Boolean, onPlay: (Int) -> Unit) -> Unit
+    val board: @Composable (match: M, enabled: Boolean, onPlay: (Int) -> Unit) -> Unit,
+    /** Vrai : chacun peut choisir sa couleur avant de jouer (le plateau lit alors [LocalDuoColors]). */
+    val chooseColors: Boolean = false
 )
+
+/** Les couleurs des joueurs 1 et 2 quand elles se choisissent (null : celles du jeu). */
+internal val LocalDuoColors = compositionLocalOf<Pair<Color, Color>?> { null }
+
+/** Les couleurs courantes des deux joueurs et la façon d'en changer une. */
+private class DuoColors(val a: Color, val b: Color, val pick: (player: Int, color: Color) -> Unit)
 
 /**
  * Jeu à deux joueurs : sur un seul téléphone (on se passe l'appareil) ou chacun sur le sien (voir [DuoOnline]). Les
@@ -75,6 +87,15 @@ internal fun <M : DuoMatch<M>> DuoGameScreen(
     onHostOnline: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
+    // Les couleurs choisies (0 : celle du jeu), gardées quand l'écran tourne.
+    var pickA by rememberSaveable { mutableIntStateOf(0) }
+    var pickB by rememberSaveable { mutableIntStateOf(0) }
+    val scheme = MaterialTheme.colorScheme
+    val colors = DuoColors(
+        a = if (spec.chooseColors && pickA != 0) Color(pickA) else spec.colorOf(scheme, 1),
+        b = if (spec.chooseColors && pickB != 0) Color(pickB) else spec.colorOf(scheme, 2),
+        pick = { player, color -> if (player == 1) pickA = color.toArgb() else pickB = color.toArgb() }
+    )
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
     BackHandler(enabled = online.active) {
         if (online.notice == DuoNotice.HOST_LEFT) {
@@ -85,13 +106,15 @@ internal fun <M : DuoMatch<M>> DuoGameScreen(
         }
     }
 
-    if (online.active) {
-        OnlineDuo(spec = spec, online = online, onQuit = { showQuit = true }, onClose = {
-            online.leave()
-            onExit()
-        })
-    } else {
-        LocalDuo(spec = spec, players = players, onPlayOnline = onHostOnline)
+    CompositionLocalProvider(LocalDuoColors provides if (spec.chooseColors) colors.a to colors.b else null) {
+        if (online.active) {
+            OnlineDuo(spec = spec, online = online, colors = colors, onQuit = { showQuit = true }, onClose = {
+                online.leave()
+                onExit()
+            })
+        } else {
+            LocalDuo(spec = spec, players = players, colors = colors, onPlayOnline = onHostOnline)
+        }
     }
 
     if (showQuit && online.active) {
@@ -118,7 +141,7 @@ internal fun <M : DuoMatch<M>> DuoGameScreen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun <M : DuoMatch<M>> LocalDuo(spec: DuoGameSpec<M>, players: List<String>, onPlayOnline: () -> Unit) {
+private fun <M : DuoMatch<M>> LocalDuo(spec: DuoGameSpec<M>, players: List<String>, colors: DuoColors, onPlayOnline: () -> Unit) {
     val defaultA = stringResource(R.string.duo_player_default, 1)
     val defaultB = stringResource(R.string.duo_player_default, 2)
     val nameA = players.getOrElse(0) { defaultA }
@@ -138,7 +161,8 @@ private fun <M : DuoMatch<M>> LocalDuo(spec: DuoGameSpec<M>, players: List<Strin
 
     DuoCard {
         DuoTitle(spec)
-        DuoScoreRow(spec, nameA, nameB, match, mine = 0)
+        DuoScoreRow(colors, nameA, nameB, match, mine = 0)
+        if (spec.chooseColors && fresh) DuoColorChooser(nameA, nameB, colors, canA = true, canB = true)
         Text(
             text = when {
                 match.winner != 0 -> stringResource(R.string.duo_win, if (match.winner == 1) nameA else nameB)
@@ -168,7 +192,7 @@ private fun <M : DuoMatch<M>> LocalDuo(spec: DuoGameSpec<M>, players: List<Strin
 
 /** La partie à deux téléphones : attente de l'autre joueur, puis le plateau et le score de la séance. */
 @Composable
-private fun <M : DuoMatch<M>> OnlineDuo(spec: DuoGameSpec<M>, online: DuoOnline<M>, onQuit: () -> Unit, onClose: () -> Unit) {
+private fun <M : DuoMatch<M>> OnlineDuo(spec: DuoGameSpec<M>, online: DuoOnline<M>, colors: DuoColors, onQuit: () -> Unit, onClose: () -> Unit) {
     if (online.notice == DuoNotice.HOST_LEFT) {
         DuoCard {
             DuoTitle(spec)
@@ -209,7 +233,11 @@ private fun <M : DuoMatch<M>> OnlineDuo(spec: DuoGameSpec<M>, online: DuoOnline<
             text = stringResource(R.string.duo_online_opponent, opponent),
             style = MaterialTheme.typography.bodyLarge
         )
-        DuoScoreRow(spec, nameA, nameB, match, mine = me)
+        DuoScoreRow(colors, nameA, nameB, match, mine = me)
+        val startText = remember(spec) { spec.initial().encode() }
+        if (spec.chooseColors && match.encode() == startText) {
+            DuoColorChooser(nameA, nameB, colors, canA = me == 1, canB = me == 2)
+        }
         Text(
             text = when {
                 match.winner == me -> stringResource(R.string.duo_online_you_win)
@@ -277,21 +305,21 @@ private fun <M : DuoMatch<M>> DuoTitle(spec: DuoGameSpec<M>) {
  * valeur), puis les égalités. [mine] : ma place (1 ou 2) quand on joue chacun sur son téléphone, 0 sinon.
  */
 @Composable
-private fun <M : DuoMatch<M>> DuoScoreRow(spec: DuoGameSpec<M>, nameA: String, nameB: String, match: M, mine: Int) {
+private fun <M : DuoMatch<M>> DuoScoreRow(colors: DuoColors, nameA: String, nameB: String, match: M, mine: Int) {
     val scheme = MaterialTheme.colorScheme
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             DuoPlayerTag(
                 name = if (mine == 1) stringResource(R.string.duo_you_tag, nameA) else nameA,
                 wins = match.winsA,
-                color = spec.colorOf(scheme, 1),
+                color = colors.a,
                 active = !match.isOver && match.current == 1,
                 modifier = Modifier.weight(1f)
             )
             DuoPlayerTag(
                 name = if (mine == 2) stringResource(R.string.duo_you_tag, nameB) else nameB,
                 wins = match.winsB,
-                color = spec.colorOf(scheme, 2),
+                color = colors.b,
                 active = !match.isOver && match.current == 2,
                 modifier = Modifier.weight(1f)
             )
@@ -329,6 +357,44 @@ private fun DuoPlayerTag(name: String, wins: Int, color: Color, active: Boolean,
             fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+/**
+ * Le choix des couleurs, proposé tant que rien n'a été joué : un bouton par joueur ([canA], [canB] : ceux que ce
+ * téléphone peut changer). Une couleur déjà prise par l'autre joueur n'est pas proposée.
+ */
+@Composable
+private fun DuoColorChooser(nameA: String, nameB: String, colors: DuoColors, canA: Boolean, canB: Boolean) {
+    var dialogFor by rememberSaveable { mutableIntStateOf(0) }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        listOf(Triple(1, nameA, colors.a), Triple(2, nameB, colors.b)).forEach { (player, name, color) ->
+            OutlinedButton(
+                onClick = { dialogFor = player },
+                enabled = if (player == 1) canA else canB,
+                modifier = Modifier.weight(1f)
+            ) {
+                PlayerColorDot(color, size = 20.dp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.duo_color_button, name),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+    if (dialogFor != 0) {
+        val player = dialogFor
+        PlayerColorDialog(
+            title = if (player == 1) nameA else nameB,
+            name = null,
+            currentColor = if (player == 1) colors.a else colors.b,
+            takenColors = setOf(if (player == 1) colors.b else colors.a),
+            onPick = { colors.pick(player, it) },
+            onRandom = null,
+            onDismiss = { dialogFor = 0 }
         )
     }
 }

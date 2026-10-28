@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -37,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,8 +64,11 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 /**
  * Échecs à deux joueurs : sur un seul téléphone (on se passe l'appareil) ou chacun sur le sien (voir [ChessOnline]).
@@ -134,6 +142,14 @@ private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: ()
     var flipped by rememberSaveable { mutableStateOf(false) }
     var showResign by rememberSaveable { mutableStateOf(false) }
     var showDraw by rememberSaveable { mutableStateOf(false) }
+    // La pendule : l'instant où le joueur actuel a commencé à réfléchir (l'horloge continue quand l'écran tourne).
+    var turnStart by rememberSaveable { mutableLongStateOf(0L) }
+    val now = rememberClockNow(match.clockRunning)
+    LaunchedEffect(now, match) {
+        if (match.clockRunning && match.remainingMs(match.currentSeat, now - turnStart) <= 0L) {
+            match = match.flag(match.currentSeat) ?: match
+        }
+    }
 
     val game = match.game
     val result = match.result
@@ -167,15 +183,38 @@ private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: ()
         if (result != null) {
             Text(text = reasonText(result.reason), style = MaterialTheme.typography.bodyMedium)
         }
+        if (match.moves.isEmpty() && !match.isOver) {
+            ChessClockPicker(match) { base, inc ->
+                match.withClock(base, inc)?.let {
+                    match = it
+                    turnStart = SystemClock.elapsedRealtime()
+                }
+            }
+        }
+        if (match.clockOn) ChessClocks(match, names, now, turnStart)
         ChessPlayArea(
             game = game,
             enabled = !match.isOver,
             flipped = flipped,
             wizard = wizard,
-            onMove = { move -> match = match.play(move, match.currentSeat) ?: match }
+            onMove = { move ->
+                val t = SystemClock.elapsedRealtime()
+                match.play(move, match.currentSeat, t - turnStart)?.let {
+                    match = it
+                    turnStart = t
+                }
+            }
         )
         if (result != null) {
-            Button(onClick = { match = match.newRound() ?: match }, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = {
+                    match.newRound()?.let {
+                        match = it
+                        turnStart = SystemClock.elapsedRealtime()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(stringResource(R.string.chess_new_round))
             }
         } else {
@@ -279,6 +318,9 @@ private fun OnlineChess(online: ChessOnline, wizard: Boolean, onToggleStyle: () 
     var showResign by rememberSaveable { mutableStateOf(false) }
 
     val match = online.match
+    val now = rememberClockNow(match.clockRunning)
+    // L'organisateur tient la pendule : c'est lui qui constate que le temps d'un joueur est écoulé.
+    LaunchedEffect(now) { online.checkClock() }
     val game = match.game
     val result = match.result
     val me = online.seat
@@ -319,6 +361,10 @@ private fun OnlineChess(online: ChessOnline, wizard: Boolean, onToggleStyle: () 
         if (result != null) {
             Text(text = reasonText(result.reason), style = MaterialTheme.typography.bodyMedium)
         }
+        if (online.isHost && match.moves.isEmpty() && !match.isOver) {
+            ChessClockPicker(match) { base, inc -> online.setClock(base, inc) }
+        }
+        if (match.clockOn) ChessClocks(match, names, now, online.turnStart)
         // Mes pièces sont toujours en bas de l'échiquier.
         ChessPlayArea(
             game = game,
@@ -447,6 +493,7 @@ private fun reasonText(reason: ChessReason): String = stringResource(
         ChessReason.REPETITION -> R.string.chess_reason_repetition
         ChessReason.RESIGNATION -> R.string.chess_reason_resign
         ChessReason.AGREEMENT -> R.string.chess_reason_agreement
+        ChessReason.TIMEOUT -> R.string.chess_reason_timeout
     }
 )
 
@@ -766,4 +813,86 @@ private fun pieceNameRes(piece: Char): Int = when (piece) {
     'b' -> R.string.chess_piece_bb
     'n' -> R.string.chess_piece_bn
     else -> R.string.chess_piece_bp
+}
+
+// ---------- La pendule ----------
+
+// Les cadences proposées : (temps de chacun en secondes, incrément en secondes). 0 : sans pendule.
+private val CLOCK_PRESETS = listOf(0 to 0, 60 to 0, 180 to 2, 300 to 0, 300 to 3, 600 to 0, 900 to 10)
+
+/** L'heure du téléphone, rafraîchie plusieurs fois par seconde tant que la pendule [running] tourne. */
+@Composable
+private fun rememberClockNow(running: Boolean): Long {
+    var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
+    LaunchedEffect(running) {
+        while (running) {
+            now = SystemClock.elapsedRealtime()
+            delay(100)
+        }
+        now = SystemClock.elapsedRealtime()
+    }
+    return now
+}
+
+/** « 4:07 » ; sous dix secondes, les dixièmes (« 8.3 »). */
+private fun formatClock(ms: Long): String {
+    if (ms < 10_000L) return "${ms / 1000}.${(ms % 1000) / 100}"
+    val seconds = (ms + 999) / 1000
+    return "${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}"
+}
+
+/** Le choix de la pendule, avant le premier coup : « minutes + incrément en secondes », comme en tournoi. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChessClockPicker(match: ChessMatch, onPick: (baseSec: Int, incSec: Int) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = stringResource(R.string.chess_clock_title),
+            style = MaterialTheme.typography.labelLarge
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            for ((base, inc) in CLOCK_PRESETS) {
+                val selected = match.baseSec == base && match.incSec == inc
+                val label = if (base == 0) stringResource(R.string.chess_clock_off) else "${base / 60} + $inc"
+                if (selected) {
+                    Button(onClick = { onPick(base, inc) }) { Text(label) }
+                } else {
+                    OutlinedButton(onClick = { onPick(base, inc) }) { Text(label) }
+                }
+            }
+        }
+    }
+}
+
+/** Les deux pendules côte à côte ; celle du joueur qui réfléchit est mise en valeur, et rouge sous dix secondes. */
+@Composable
+private fun ChessClocks(match: ChessMatch, names: List<String>, now: Long, turnStart: Long) {
+    val scheme = MaterialTheme.colorScheme
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        for (seat in 0..1) {
+            val active = match.clockRunning && match.currentSeat == seat
+            val left = match.remainingMs(seat, now - turnStart)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (active) scheme.primaryContainer else scheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(8.dp)
+            ) {
+                Text(
+                    text = "${names[seat]} · ${colorName(match.playsWhite(seat))}",
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = formatClock(left),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (left < 10_000L) scheme.error else scheme.onSurface
+                )
+            }
+        }
+    }
 }
