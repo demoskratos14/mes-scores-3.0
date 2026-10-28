@@ -10,6 +10,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -43,6 +47,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
+import androidx.compose.ui.semantics.role
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -86,7 +94,6 @@ import kotlin.math.sin
 
 // Chaque état d'une case a sa couleur, mais aussi son symbole et sa description pour TalkBack : on ne doit
 // jamais avoir besoin de voir la couleur pour jouer. Les bateaux sont dessinés sous les marques de tir.
-private val WATER_COLOR = Color(0xFFBBDEFB)
 private val MISS_COLOR = Color(0xFFEEEEEE)
 private val HIT_COLOR = Color(0xFFFFA726)
 private val SUNK_COLOR = Color(0xFFB71C1C)
@@ -95,6 +102,7 @@ private val SUNK_HULL_COLOR = Color(0xFF5D4037)
 private val HULL_EDGE_COLOR = Color(0xFF263238)
 private val DECK_COLOR = Color(0xFFCFD8DC)
 private val DOCK_COLOR = Color(0xFF90CAF9)
+private val DOCK_COLOR_SPACE = Color(0xFF283593)
 
 // Un nom par bateau de Battleship.FLEET, dans le même ordre.
 private val SHIP_NAMES = listOf(
@@ -116,6 +124,10 @@ internal fun BattleshipScreen(
     val rules = viewModel.rules
     val game = viewModel.game
     KeepScreenOn()
+    val context = LocalContext.current
+    // Premier écran, juste après le choix du jeu : la mer ou le ciel étoilé.
+    var choosingBackdrop by rememberSaveable { mutableStateOf(true) }
+    var backdrop by remember { mutableStateOf(BattleshipBackdropPreference.load(context)) }
 
     var showQuit by rememberSaveable { mutableStateOf(false) }
     BackHandler {
@@ -129,6 +141,7 @@ internal fun BattleshipScreen(
         }
     }
 
+    CompositionLocalProvider(LocalBattleshipBackdrop provides backdrop) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -162,6 +175,14 @@ internal fun BattleshipScreen(
                     online.leave()
                     onExit()
                 })
+                game == null && choosingBackdrop -> BackdropChoiceCard(
+                    selected = backdrop,
+                    onSelect = {
+                        backdrop = it
+                        BattleshipBackdropPreference.save(context, it)
+                    },
+                    onContinue = { choosingBackdrop = false }
+                )
                 game == null -> SettingsCard(
                     settings = viewModel.settings,
                     onChange = { viewModel.updateSettings(it) },
@@ -174,6 +195,7 @@ internal fun BattleshipScreen(
                 })
             }
         }
+    }
     }
 
     if (showQuit) {
@@ -194,6 +216,75 @@ internal fun BattleshipScreen(
                 TextButton(onClick = { showQuit = false }) { Text(stringResource(R.string.quit_continue)) }
             }
         )
+    }
+}
+
+// ---------- Choix du fond (juste après la sélection du jeu) ----------
+
+@Composable
+private fun BackdropChoiceCard(
+    selected: BattleshipBackdrop,
+    onSelect: (BattleshipBackdrop) -> Unit,
+    onContinue: () -> Unit
+) {
+    Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                text = stringResource(R.string.bs_setting_backdrop),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.semantics { heading() }
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .selectableGroup(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                for ((option, label) in listOf(
+                    BattleshipBackdrop.SEA to R.string.bs_backdrop_sea,
+                    BattleshipBackdrop.STARS to R.string.bs_backdrop_stars
+                )) {
+                    val isSelected = selected == option
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(
+                                width = if (isSelected) 3.dp else 1.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(option) })
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Un petit aperçu : le fond, avec un bateau ou un vaisseau.
+                        Canvas(modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clearAndSetSemantics { }) {
+                            val cs = this.size.width / 5f
+                            drawBoardBackdrop(option, topLeft = Offset.Zero, side = this.size.width, cs = cs)
+                            drawShipAt(
+                                length = 3,
+                                left = cs,
+                                top = cs * 2f,
+                                horizontal = true,
+                                cs = cs,
+                                sunk = false,
+                                spaceship = option == BattleshipBackdrop.STARS
+                            )
+                        }
+                        Text(text = stringResource(label), style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+            Button(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.bs_backdrop_continue))
+            }
+        }
     }
 }
 
@@ -833,6 +924,17 @@ private fun BoardGrid(
     } else {
         null
     }
+    val backdrop = LocalBattleshipBackdrop.current
+    val twinkle: State<Float>? = if (backdrop == BattleshipBackdrop.STARS) {
+        rememberInfiniteTransition(label = "stars").animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(6000, easing = LinearEasing)),
+            label = "twinkle"
+        )
+    } else {
+        null
+    }
     Box(modifier = Modifier.size(cellSize * (Battleship.SIZE + 1))) {
         // Sous les cases : la mer et les bateaux. Les cases, transparentes, ne portent que les marques de tir.
         Canvas(modifier = Modifier
@@ -840,12 +942,12 @@ private fun BoardGrid(
             .clearAndSetSemantics { }) {
             val cs = cellSize.toPx()
             val p = progress()
-            drawRect(WATER_COLOR, topLeft = Offset(cs, cs), size = Size(cs * Battleship.SIZE, cs * Battleship.SIZE))
+            drawBoardBackdrop(backdrop, topLeft = Offset(cs, cs), side = cs * Battleship.SIZE, cs = cs, time = twinkle?.value ?: 0f)
             for (ship in ships) {
                 val sunk = ship.isNotEmpty() && ship.all { it in sunkCells }
                 // Le bateau qui vient d'être coulé apparaît en fondu.
                 val fade = if (effect != null && effect.kind == ShotOutcome.SUNK && ship.sorted() == effect.ship) p else 1f
-                drawShip(ship, cs, sunk = sunk, alpha = fade)
+                drawShip(ship, cs, sunk = sunk, alpha = fade, spaceship = backdrop == BattleshipBackdrop.STARS)
             }
         }
         Column {
@@ -966,7 +1068,7 @@ private fun flamePath(centerX: Float, baseY: Float, width: Float, height: Float,
 /**
  * Dessine un bateau de la grille (la grille commence à une case du bord : lettres et numéros) : voir [drawShipAt].
  */
-private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean, alpha: Float = 1f) {
+private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean, alpha: Float = 1f, spaceship: Boolean = false) {
     val cells = ship.sorted()
     if (cells.isEmpty()) return
     val first = cells.first()
@@ -978,7 +1080,8 @@ private fun DrawScope.drawShip(ship: List<Int>, cs: Float, sunk: Boolean, alpha:
         horizontal = horizontal,
         cs = cs,
         sunk = sunk,
-        alpha = alpha
+        alpha = alpha,
+        spaceship = spaceship
     )
 }
 
@@ -994,7 +1097,8 @@ private fun DrawScope.drawShipAt(
     horizontal: Boolean,
     cs: Float,
     sunk: Boolean,
-    alpha: Float = 1f
+    alpha: Float = 1f,
+    spaceship: Boolean = false
 ) {
     val size = length * cs
     val margin = cs * 0.14f
@@ -1017,6 +1121,10 @@ private fun DrawScope.drawShipAt(
             rotate(90f, Offset.Zero)
         }
     }) {
+        if (spaceship) {
+            drawSpaceship(length, cs, sunk, alpha)
+            return@withTransform
+        }
         drawPath(hull, color = (if (sunk) SUNK_HULL_COLOR else HULL_COLOR).copy(alpha = alpha))
         drawPath(hull, color = HULL_EDGE_COLOR.copy(alpha = alpha), style = Stroke(width = cs * 0.06f))
         val bridge = length / 2
@@ -1031,6 +1139,150 @@ private fun DrawScope.drawShipAt(
             size = Size(cs * 0.56f, cs * 0.4f),
             cornerRadius = CornerRadius(cs * 0.08f)
         )
+    }
+}
+
+private val SHIP_HULL_SPACE = Color(0xFFB0BEC5)
+private val SHIP_WING_SPACE = Color(0xFF7986CB)
+private val SHIP_CANOPY_SPACE = Color(0xFF80DEEA)
+
+/**
+ * Le vaisseau qui remplace le bateau sur le fond étoilé, dans le même repère : couché vers la droite, [length] cases
+ * de long sur une de large (le nez à droite, le réacteur à gauche).
+ */
+private fun DrawScope.drawSpaceshipIntact(length: Int, cs: Float, sunk: Boolean, alpha: Float) {
+    val size = length * cs
+    val tail = cs * 0.3f
+    val hullColor = (if (sunk) SUNK_HULL_COLOR else SHIP_HULL_SPACE).copy(alpha = alpha)
+    val wingColor = (if (sunk) SUNK_HULL_COLOR else SHIP_WING_SPACE).copy(alpha = alpha)
+    val edge = HULL_EDGE_COLOR.copy(alpha = alpha)
+    val wingFront = size * 0.5f
+    val wingBack = size * 0.2f
+    // Les ailes, en flèche, de part et d'autre du fuselage.
+    for (mirror in listOf(false, true)) {
+        fun y(v: Float) = if (mirror) cs - v * cs else v * cs
+        val wing = Path().apply {
+            moveTo(wingFront, y(0.34f))
+            lineTo(wingBack, y(0.07f))
+            lineTo(wingBack + cs * 0.3f, y(0.07f))
+            lineTo(wingFront + cs * 0.25f, y(0.34f))
+            close()
+        }
+        drawPath(wing, wingColor)
+        drawPath(wing, edge, style = Stroke(width = cs * 0.04f))
+    }
+    // Le réacteur : une flamme à l'arrière (éteinte s'il est détruit).
+    if (!sunk) {
+        val flame = Path().apply {
+            moveTo(tail, cs * 0.4f)
+            lineTo(cs * 0.04f, cs * 0.5f)
+            lineTo(tail, cs * 0.6f)
+            close()
+        }
+        drawPath(flame, Color(0xFFFF6D00).copy(alpha = alpha))
+        val core = Path().apply {
+            moveTo(tail, cs * 0.45f)
+            lineTo(cs * 0.17f, cs * 0.5f)
+            lineTo(tail, cs * 0.55f)
+            close()
+        }
+        drawPath(core, Color(0xFFFFEB3B).copy(alpha = alpha))
+    }
+    // Le fuselage, au nez pointu.
+    val body = Path().apply {
+        moveTo(tail, cs * 0.34f)
+        lineTo(size - cs * 0.5f, cs * 0.34f)
+        quadraticBezierTo(size - cs * 0.08f, cs * 0.34f, size - cs * 0.08f, cs * 0.5f)
+        quadraticBezierTo(size - cs * 0.08f, cs * 0.66f, size - cs * 0.5f, cs * 0.66f)
+        lineTo(tail, cs * 0.66f)
+        close()
+    }
+    drawPath(body, hullColor)
+    drawPath(body, edge, style = Stroke(width = cs * 0.05f))
+    // La verrière près du nez, et des feux de position le long du fuselage.
+    val canopyCenter = size - cs * 0.85f
+    drawOval(
+        color = SHIP_CANOPY_SPACE.copy(alpha = alpha),
+        topLeft = Offset(canopyCenter - cs * 0.2f, cs * 0.4f),
+        size = Size(cs * 0.4f, cs * 0.2f)
+    )
+    for (index in 0 until length) {
+        val x = index * cs + cs / 2
+        if (x > tail + cs * 0.15f && kotlin.math.abs(x - canopyCenter) > cs * 0.4f && x < size - cs * 0.3f) {
+            drawCircle(Color(0xFFFF5252).copy(alpha = alpha), radius = cs * 0.045f, center = Offset(x, cs / 2))
+        }
+    }
+}
+
+/** La cassure : une ligne en dents de scie en travers du vaisseau, à mi-longueur ([x] : le milieu, [y] en cases). */
+private fun spaceshipBreak(x: Float, cs: Float): List<Offset> {
+    val ys = listOf(-0.6f, 0.05f, 0.2f, 0.35f, 0.5f, 0.65f, 0.8f, 0.95f, 1.6f)
+    val offsets = listOf(0f, 0.08f, -0.1f, 0.1f, -0.08f, 0.12f, -0.1f, 0.06f, 0f)
+    return ys.indices.map { Offset(x + offsets[it] * cs, ys[it] * cs) }
+}
+
+/** Un morceau de débris : position (en cases, depuis le milieu du vaisseau), taille, rotation, couleur. */
+private class Debris(val dx: Float, val y: Float, val size: Float, val angle: Float, val color: Color)
+
+private val SPACESHIP_DEBRIS = listOf(
+    Debris(-0.45f, 0.02f, 0.12f, 20f, Color(0xFF8D6E63)),
+    Debris(-0.2f, 0.98f, 0.1f, 75f, Color(0xFFB0BEC5)),
+    Debris(0.05f, -0.08f, 0.09f, 140f, Color(0xFFB0BEC5)),
+    Debris(0.3f, 1.05f, 0.13f, 200f, Color(0xFF8D6E63)),
+    Debris(0.5f, 0.08f, 0.08f, 300f, Color(0xFFFF9800)),
+    Debris(-0.05f, 0.9f, 0.07f, 40f, Color(0xFFFF9800)),
+    Debris(0.15f, 0.18f, 0.06f, 110f, Color(0xFFFFEB3B)),
+    Debris(-0.3f, 0.78f, 0.06f, 250f, Color(0xFFFFEB3B))
+)
+
+/**
+ * Un vaisseau détruit : coupé en deux à mi-longueur, les deux moitiés légèrement écartées et de travers, avec des
+ * débris autour de la cassure.
+ */
+private fun DrawScope.drawSpaceship(length: Int, cs: Float, sunk: Boolean, alpha: Float) {
+    if (!sunk) {
+        drawSpaceshipIntact(length, cs, sunk = false, alpha = alpha)
+        return
+    }
+    val size = length * cs
+    val mid = size / 2
+    val edge = spaceshipBreak(mid, cs)
+    fun half(rear: Boolean): Path = Path().apply {
+        val far = if (rear) -cs else size + cs
+        moveTo(far, edge.first().y)
+        for (point in edge) lineTo(point.x, point.y)
+        lineTo(far, edge.last().y)
+        close()
+    }
+    val scorch = Path().apply {
+        moveTo(edge[0].x, edge[0].y)
+        for (point in edge.drop(1)) lineTo(point.x, point.y)
+    }
+    for (rear in listOf(true, false)) {
+        withTransform({
+            // Chaque moitié s'écarte, bascule un peu autour de la cassure.
+            translate(if (rear) -cs * 0.12f else cs * 0.12f, if (rear) cs * 0.05f else -cs * 0.05f)
+            rotate(if (rear) 5f else -6f, Offset(mid, cs / 2))
+            clipPath(half(rear))
+        }) {
+            drawSpaceshipIntact(length, cs, sunk = true, alpha = alpha)
+            drawPath(scorch, Color(0xFFFF6D00).copy(alpha = alpha), style = Stroke(width = cs * 0.07f))
+        }
+    }
+    for (piece in SPACESHIP_DEBRIS) {
+        withTransform({
+            translate(mid + piece.dx * cs, piece.y * cs)
+            rotate(piece.angle, Offset.Zero)
+        }) {
+            val r = piece.size * cs
+            val shard = Path().apply {
+                moveTo(-r, -r * 0.6f)
+                lineTo(r, 0f)
+                lineTo(-r * 0.3f, r)
+                close()
+            }
+            drawPath(shard, piece.color.copy(alpha = alpha))
+        }
     }
 }
 
@@ -1162,6 +1414,7 @@ private fun PlacementArea(
     BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
         val cellSize = boardCellSize(maxWidth)
         val cs = with(LocalDensity.current) { cellSize.toPx() }
+        val stars = LocalBattleshipBackdrop.current == BattleshipBackdrop.STARS
         val dock = cs * DOCK_HEIGHT
         val lengths = Battleship.FLEET
 
@@ -1300,17 +1553,17 @@ private fun PlacementArea(
                 .fillMaxSize()
                 .clearAndSetSemantics { }) {
                 drawRoundRect(
-                    color = DOCK_COLOR,
+                    color = if (stars) DOCK_COLOR_SPACE else DOCK_COLOR,
                     size = Size(size.width, dock),
                     cornerRadius = CornerRadius(cs * 0.3f)
                 )
                 for (i in lengths.indices) {
                     if (placement[i] >= 0 || i == dragShip) continue
                     val (x, y) = DOCK_SLOTS[i]
-                    drawShipAt(lengths[i], x * cs, y * cs, horizontal = true, cs = cs, sunk = false)
+                    drawShipAt(lengths[i], x * cs, y * cs, horizontal = true, cs = cs, sunk = false, spaceship = stars)
                 }
                 if (dragShip >= 0) {
-                    drawShipAt(lengths[dragShip], dragTopLeft.x, dragTopLeft.y, dragHorizontal, cs, sunk = false, alpha = 0.85f)
+                    drawShipAt(lengths[dragShip], dragTopLeft.x, dragTopLeft.y, dragHorizontal, cs, sunk = false, alpha = 0.85f, spaceship = stars)
                 }
             }
         }

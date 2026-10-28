@@ -1551,6 +1551,10 @@
     <string name="rules_battleship_4_title">Nell’app</string>
     <string name="rules_battleship_4_body">In due sullo stesso telefono, questo passa di mano in mano e lo schermo si nasconde tra un giocatore e l’altro. Ognuno sul proprio telefono, le due flotte restano segrete; alla fine vengono rivelate e l’app verifica che le risposte fossero oneste. TalkBack legge ogni casella con il suo nome (colonna e riga), e i risultati hanno un simbolo oltre al colore.</string>
     <string name="bs_setting_shoot_again">Colpo extra dopo un colpo a segno</string>
+    <string name="bs_setting_backdrop">Sfondo della griglia</string>
+    <string name="bs_backdrop_sea">Mare</string>
+    <string name="bs_backdrop_stars">Cielo stellato</string>
+    <string name="bs_backdrop_continue">Continua</string>
     <string name="bs_start">Inizia</string>
     <string name="bs_online_button">Gioca ognuno sul proprio telefono</string>
     <string name="bs_quit_title">Uscire dalla partita?</string>

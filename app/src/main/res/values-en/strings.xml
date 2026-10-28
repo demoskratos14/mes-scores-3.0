@@ -1515,6 +1515,10 @@
     <string name="rules_battleship_4_title">In the app</string>
     <string name="rules_battleship_4_body">Two players on one phone pass it from hand to hand, and the screen hides between players. Each on their own phone, both fleets stay secret; at the end they are revealed and the app checks that the answers were honest. TalkBack reads each square by its name (column and row), and results have a symbol as well as a color.</string>
     <string name="bs_setting_shoot_again">Extra shot after a hit</string>
+    <string name="bs_setting_backdrop">Grid background</string>
+    <string name="bs_backdrop_sea">Sea</string>
+    <string name="bs_backdrop_stars">Starry sky</string>
+    <string name="bs_backdrop_continue">Continue</string>
     <string name="bs_start">Start</string>
     <string name="bs_online_button">Play on separate phones</string>
     <string name="bs_quit_title">Quit the game?</string>
