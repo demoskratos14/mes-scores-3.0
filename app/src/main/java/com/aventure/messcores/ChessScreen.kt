@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -561,11 +560,9 @@ private val CHECK_SQUARE = Color(0xFFE57373)
 private val WHITE_PIECE = Color.White
 private val BLACK_PIECE = Color(0xFF1A1A1A)
 
-// Le style sorcier : dalles de grès et de pierre sombre, dans un cadre de bois.
-private val WIZARD_LIGHT_SQUARE = Color(0xFFCDB892)
-private val WIZARD_DARK_SQUARE = Color(0xFF7D6A55)
-private val WIZARD_FRAME = Color(0xFF2E2118)
-private val WIZARD_FRAME_EDGE = Color(0xFF8C6B2F)
+// Le style sorcier : dalles de marbre blanc givré et noir veiné, dans un cadre sombre à bordure d'argent
+// (voir drawWizardTile et drawWizardFrame).
+private val WIZARD_FRAME_WIDTH = 18.dp
 
 /** Le bouton qui passe l'échiquier du style classique au style sorcier, et inversement. */
 @Composable
@@ -628,9 +625,8 @@ private fun ChessBoard(
                 .then(
                     if (wizard) {
                         Modifier
-                            .background(WIZARD_FRAME, RoundedCornerShape(10.dp))
-                            .border(2.dp, WIZARD_FRAME_EDGE, RoundedCornerShape(10.dp))
-                            .padding(8.dp)
+                            .drawBehind { drawWizardFrame(WIZARD_FRAME_WIDTH.toPx()) }
+                            .padding(WIZARD_FRAME_WIDTH)
                     } else {
                         Modifier
                     }
@@ -647,12 +643,18 @@ private fun ChessBoard(
                                 val col = if (flipped) 7 - displayCol else displayCol
                                 val square = row * 8 + col
                                 val piece = game.position.board[square]
-                                val squareColor = when {
+                                val dark = (row + col) % 2 != 0
+                                val highlight = when {
                                     square == selected -> SELECTED_SQUARE
                                     square == checked -> CHECK_SQUARE
                                     last != null && (square == last.from || square == last.to) -> LAST_MOVE_SQUARE
-                                    (row + col) % 2 == 0 -> if (wizard) WIZARD_LIGHT_SQUARE else LIGHT_SQUARE
-                                    else -> if (wizard) WIZARD_DARK_SQUARE else DARK_SQUARE
+                                    else -> null
+                                }
+                                val squareColor = when {
+                                    wizard -> if (dark) WIZARD_DARK_TILE else WIZARD_LIGHT_TILE
+                                    highlight != null -> highlight
+                                    dark -> DARK_SQUARE
+                                    else -> LIGHT_SQUARE
                                 }
                                 val name = Chess.squareName(square)
                                 val description = if (piece == '.') {
@@ -670,7 +672,7 @@ private fun ChessBoard(
                                         .weight(1f)
                                         .aspectRatio(1f)
                                         .background(squareColor)
-                                        .drawBehind { if (wizard) drawWizardTile(square) }
+                                        .drawBehind { if (wizard) drawWizardTile(square, dark, highlight) }
                                         .semantics {
                                             contentDescription = description
                                             if (state != null) stateDescription = state
