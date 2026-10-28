@@ -83,6 +83,19 @@ class ScoreViewModel : ViewModel() {
         return CdcRound(players.size, startPlayer = roundsPlayed() % players.size.coerceAtLeast(1)).also { cdcRound = it }
     }
 
+    // La partie de Dix mille en cours (qui joue, dés mis de côté, points du tour). Elle vit ici pour la même raison ; une partie
+    // reprise continue avec le premier joueur qui n'a pas encore joué dans la dernière manche inscrite au tableau.
+    private var dixMilleRound: DixMilleRound? = null
+
+    /** La partie de Dix mille ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun dixMilleRound(): DixMilleRound {
+        val current = dixMilleRound
+        if (current != null && current.playerCount == players.size) return current
+        val last = scores.indexOfLast { row -> row.any { it.baseValue != null } }
+        val next = if (last < 0) 0 else scores[last].indexOfFirst { it.baseValue == null }.coerceAtLeast(0)
+        return DixMilleRound(players.size, startPlayer = next).also { dixMilleRound = it }
+    }
+
     /**
      * Partage de la partie avec un autre téléphone (voir [SyncSession]). Sur un téléphone invité, les actions
      * ne s'appliquent pas ici : elles sont envoyées à l'organisateur, qui renvoie l'état de la partie.
@@ -182,6 +195,7 @@ class ScoreViewModel : ViewModel() {
         round421 = null
         buncoRound = null
         cdcRound = null
+        dixMilleRound = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
         phases.clear()
@@ -211,6 +225,7 @@ class ScoreViewModel : ViewModel() {
             round421 = null
             buncoRound = null
             cdcRound = null
+            dixMilleRound = null
         }
         currentSaveId = saved.id
         savedBaseline = saved
@@ -242,6 +257,7 @@ class ScoreViewModel : ViewModel() {
         round421 = null
         buncoRound = null
         cdcRound = null
+        dixMilleRound = null
         currentSaveId = null
         savedBaseline = null
         lastSavedContent = null

@@ -146,7 +146,7 @@ fun ScoreApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var playMode by rememberSaveable { mutableStateOf(false) }
-    // Yams, Cochon, 421, Bunco jouables : la page des dés est l'écran de la partie (pas de feuille de score derrière).
+    // Yams, Cochon, 421, Bunco, Cul de chouette, Dix mille jouables : la page des dés est l'écran de la partie (pas de feuille de score derrière).
     // Un invité qui rejoint une de ces parties arrive lui aussi directement sur la page des dés.
     // Seulement si l'organisateur joue en version jouable : la feuille de scores seule reste indépendante.
     val playable = playMode || (sync.role == SyncRole.GUEST && sync.hostPlayable)
@@ -203,7 +203,7 @@ fun ScoreApp(
         ScoreMode.RACKET -> "racket"
     }
 
-    // Yams, Cochon, 421 et Bunco jouables : tout (scores compris) s'affiche sur la page des dés, sans feuille de score.
+    // Yams, Cochon, 421, Bunco, Cul de chouette et Dix mille jouables : tout (scores compris) s'affiche sur la page des dés, sans feuille de score.
     // Un invité y est amené comme l'organisateur, mais seulement si celui-ci joue en version jouable.
     fun gameRouteFor(rules: GameRules): String =
         if (playable && rules.isDiceOnly()) "dice" else scoreRouteFor(rules)

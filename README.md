@@ -117,6 +117,7 @@ MesScores/
             │   ├── DiceScreen.kt, DiceRules.kt            écran des dés d'un jeu, dés et lancers (`DiceTurn`), Yams, valeur et force des jeux du 421 (`Dice421`)
 │   ├── DiceRollAnimation.kt                   animation d'un lancer : les dés tournent puis s'arrêtent un à un (`DiceRollTimingTest`) ; le score, la combinaison ou le total du Cochon attendent la fin
             │   ├── Round421.kt, Dice421Panel.kt           421 tour par tour : moteur de la manche (pur, testé) et son interface
+            │   ├── DixMilleRound.kt, DixMillePanel.kt     Dix mille tour par tour : points des dés, Farkle, ouverture, moteur de la partie (pur, testé par `DixMilleRoundTest`) et son interface
             │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt   Morpion : règles, écran (un ou deux téléphones) et table en ligne
 │   ├── Connect4.kt, Connect4Screen.kt, Connect4Online.kt      Puissance 4 : règles, écran (un ou deux téléphones) et table en ligne
 │   ├── Nim.kt, NimScreen.kt, NimOnline.kt, NimProtocol.kt   Jeu des allumettes (Nim) : règles, écran (un ou deux téléphones), table en ligne et messages
@@ -191,7 +192,7 @@ En version jouable, le 421 se joue sur la page des dés (le bouton « Dés » n'
 - **Limite de lancers** : le premier joueur de la manche lance jusqu'à 3 fois et garde son jeu quand il veut ; son nombre de lancers devient la limite de tous les autres (`DiceTurn.rollLimit`). Un joueur ne peut pas « garder son jeu » avant d'avoir lancé.
 - **Perdant et jetons automatiques** : à la fin de la manche, le moins bon jeu (`Dice421.strength` : 421, 111, as doubles, brelans, suites, autres) perd. À jeu égal, celui qui a fait le moins de lancers est meilleur, puis celui qui a joué en premier. Pendant la charge (21 jetons au milieu, `Dice421.pot`), le perdant prend au milieu la valeur du meilleur jeu, sans dépasser ce qui reste ; ensuite, pendant la décharge, il la prend au gagnant. Seuls les joueurs qui ont encore des jetons jouent, et la partie s'arrête quand un joueur a tous les jetons (`Dice421.gameLoser`). « Rejouer la manche » rend les jetons et repart du même premier joueur.
 - **Plusieurs téléphones** : toute la manche (`Round421.snapshot`) passe dans `DiceTable.turn`, comme le tour de dés des autres jeux ; seul le joueur dont c'est le tour peut agir.
-- **Sans feuille de score** : en version jouable, le Yams, le Cochon, le 421, le Bunco et le Cul de chouette s'ouvrent directement sur la page des dés (`GameRules.isDiceOnly`, route `dice`) ; les scores s'y affichent (Cochon : score de chaque joueur et objectif ; 421 : jetons de chacun ; Bunco : points de la manche et total de la partie ; Yams : total de chaque joueur, bonus compris ; Cul de chouette : score de chacun et objectif de 343). L'invité d'une partie partagée y arrive aussi directement. « Retour » quitte la partie, avec la confirmation habituelle quand il y a des scores, et le bouton « Partager » de la page remplace celui de la feuille. Hors version jouable (feuilles de scores seules), rien ne change.
+- **Sans feuille de score** : en version jouable, le Yams, le Cochon, le 421, le Bunco, le Cul de chouette et le Dix mille s'ouvrent directement sur la page des dés (`GameRules.isDiceOnly`, route `dice`) ; les scores s'y affichent (Cochon : score de chaque joueur et objectif ; 421 : jetons de chacun ; Bunco : points de la manche et total de la partie ; Yams : total de chaque joueur, bonus compris ; Cul de chouette : score de chacun et objectif de 343 ; Dix mille : score de chacun et objectif de 10 000). L'invité d'une partie partagée y arrive aussi directement. « Retour » quitte la partie, avec la confirmation habituelle quand il y a des scores, et le bouton « Partager » de la page remplace celui de la feuille. Hors version jouable (feuilles de scores seules), rien ne change.
 - Le bouton « Règles » est sur la feuille de scores (compteurs), sur l'écran des dés et sur l'écran du Morpion, du jeu des allumettes, des dames, de l'Othello, du Pendu et des échecs (`RulesButton`).
 
 ## Cul de chouette jouable
@@ -203,6 +204,18 @@ En version jouable, le Cul de chouette se joue tour par tour sur la page des dé
 - **Chouette-velute et suite** dépendent de la rapidité des joueurs : l'appli demande qui a crié le premier (il marque les points) ou qui a réagi en dernier (il perd 10 points, `CdcScoring.SUITE_PENALTY`) ; « Personne » est possible.
 - **Scores seuls** : chaque lancer est inscrit dans une ligne du tableau (0 quand rien n'est marqué), d'où viennent les totaux, la fin de partie à 343 points et le journal. Une partie reprise continue avec le joueur qui suit le dernier lancer. Il n'y a pas d'annulation d'un seul lancer.
 - **Plusieurs téléphones** : l'état de la partie (`CdcRound.snapshot`) passe dans `DiceTable.turn`, comme pour le 421 et le Bunco.
+
+## Dix mille jouable
+
+En version jouable, le Dix mille se joue tour par tour sur la page des dés (`DixMilleRound` et `DixMilleScoring`, `DixMillePanel.kt` pour l'affichage ; testés par `DixMilleRoundTest`) :
+
+- **Le tour** : le joueur lance les 6 dés, touche ceux qui rapportent des points (tous les dés choisis doivent rapporter, sinon « Relancer » et « Garder » restent grisés), puis relance les autres ou garde les points du tour. Les dés mis de côté aux lancers précédents sont estompés et ne se touchent plus.
+- **Points** (`DixMilleScoring.score`) : un 1 vaut 100, un 5 vaut 50 ; un brelan vaut 100 fois le dé (1 000 pour les 1) et chaque dé identique en plus double le total (quatre 4 : 800) ; la suite de 1 à 6 et les trois paires valent 1 500 et exigent les six dés.
+- **Farkle** : si aucun dé encore en jeu ne rapporte (`DixMilleScoring.canScore`), le tour est perdu : l'appli propose « Passer (0) » et inscrit 0.
+- **Six dés qui ont rapporté** : les six dés sont tous relancés, avec les points du tour conservés (`DixMilleRound.hotDice`).
+- **Ouverture** : tant qu'un joueur n'a rien marqué (total à 0), il lui faut 500 points dans un même tour pour pouvoir garder (`DixMilleScoring.OPENING`) ; il peut toujours relancer.
+- **Scores seuls** : les points gardés sont inscrits dans la prochaine case libre du joueur, d'où viennent les totaux, la fin de partie et le journal. À 10 000 points, la manche en cours est terminée par les joueurs qui n'y ont pas encore joué (« dernier tour »), puis le total le plus haut gagne. Une partie reprise continue avec le premier joueur qui n'a pas encore joué dans la dernière manche inscrite ; les points du tour en cours ne sont pas repris. Il n'y a pas d'annulation d'une seule case.
+- **Plusieurs téléphones** : l'état de la partie (`DixMilleRound.snapshot`, y compris les dés choisis) passe dans `DiceTable.turn`, comme pour le 421, le Bunco et le Cul de chouette.
 
 ## Couleurs des joueurs et mode daltonien
 
