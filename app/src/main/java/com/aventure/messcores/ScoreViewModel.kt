@@ -72,6 +72,17 @@ class ScoreViewModel : ViewModel() {
         return BuncoRound(players.size, startRound = roundsPlayed() + 1).also { buncoRound = it }
     }
 
+    // La partie de Cul de chouette en cours (qui joue, dés du joueur). Elle vit ici pour la même raison ; une partie
+    // reprise continue avec le joueur qui suit le dernier lancer inscrit au tableau.
+    private var cdcRound: CdcRound? = null
+
+    /** La partie de Cul de chouette ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun cdcRound(): CdcRound {
+        val current = cdcRound
+        if (current != null && current.playerCount == players.size) return current
+        return CdcRound(players.size, startPlayer = roundsPlayed() % players.size.coerceAtLeast(1)).also { cdcRound = it }
+    }
+
     /**
      * Partage de la partie avec un autre téléphone (voir [SyncSession]). Sur un téléphone invité, les actions
      * ne s'appliquent pas ici : elles sont envoyées à l'organisateur, qui renvoie l'état de la partie.
@@ -170,6 +181,7 @@ class ScoreViewModel : ViewModel() {
         gameActive = true
         round421 = null
         buncoRound = null
+        cdcRound = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
         phases.clear()
@@ -198,6 +210,7 @@ class ScoreViewModel : ViewModel() {
         if (!keepRound) {
             round421 = null
             buncoRound = null
+            cdcRound = null
         }
         currentSaveId = saved.id
         savedBaseline = saved
@@ -228,6 +241,7 @@ class ScoreViewModel : ViewModel() {
         gameActive = false
         round421 = null
         buncoRound = null
+        cdcRound = null
         currentSaveId = null
         savedBaseline = null
         lastSavedContent = null

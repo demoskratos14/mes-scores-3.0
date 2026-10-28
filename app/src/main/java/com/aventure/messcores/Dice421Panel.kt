@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,7 +39,8 @@ internal fun Round421Section(
     round: Round421,
     canAct: Boolean,
     onChanged: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    @StringRes backLabel: Int = R.string.dice_see_scores
 ) {
     val players = viewModel.players
     val holdings = viewModel.totals
@@ -102,7 +104,8 @@ internal fun Round421Section(
                         if (round.opening) round.finishOpening(active) else round.nextRound(active)
                         onChanged()
                     },
-                    onBack = onBack
+                    onBack = onBack,
+                    backLabel = backLabel
                 )
             }
         }
@@ -252,7 +255,8 @@ private fun DonePart(
     canAct: Boolean,
     onReplay: () -> Unit,
     onNext: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    @StringRes backLabel: Int
 ) {
     val players = viewModel.players
     val result = round.result()
@@ -304,7 +308,7 @@ private fun DonePart(
             color = MaterialTheme.colorScheme.error
         )
         Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.dice_see_scores))
+            Text(stringResource(backLabel))
         }
     } else {
         Button(onClick = onNext, enabled = canAct, modifier = Modifier.fillMaxWidth()) {

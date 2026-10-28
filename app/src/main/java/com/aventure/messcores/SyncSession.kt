@@ -166,6 +166,13 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     var receivedStates by mutableIntStateOf(0)
         private set
 
+    /** Organisateur : joue en version jouable (page des dés), à annoncer aux invités avec l'état de la partie. */
+    var playable: Boolean = false
+
+    /** Invité : l'organisateur joue en version jouable ; sinon il utilise la feuille de scores seule. */
+    var hostPlayable by mutableStateOf(false)
+        private set
+
     override var hostCanUndo by mutableStateOf(false)
         private set
 
@@ -378,7 +385,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     private fun sendState(ids: Collection<String>) {
         val game = game ?: return
-        send(ids, SyncMessage.State(game.snapshot(), game.canUndo, game.canRedo))
+        send(ids, SyncMessage.State(game.snapshot(), game.canUndo, game.canRedo, playable))
     }
 
     override fun sendOp(op: SyncOp) {
@@ -528,6 +535,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
                     game.loadFromSaved(message.game, keepRound = true)
                     hostCanUndo = message.canUndo
                     hostCanRedo = message.canRedo
+                    hostPlayable = message.playable
                     receivedStates++
                 }
             }

@@ -50,9 +50,21 @@ internal fun BuncoSection(
             )
             // Le dernier lancer n'est pas compté tant que les dés tournent.
             val hidden = if (animation.rolling) round.lastRoll?.points ?: 0 else 0
+            val shown = round.points.mapIndexed { index, value -> if (index == round.current) value - hidden else value }
+            // Total de la partie : les manches déjà inscrites au tableau, plus la manche en cours tant qu'elle n'y est pas.
+            val written = viewModel.totals
+            // Un lancer qui finit la manche est déjà inscrit : il reste caché tant que les dés tournent.
+            val totals = players.indices.map { index ->
+                if (round.phase == BuncoPhase.PLAY) {
+                    written.getOrElse(index) { 0 } + shown.getOrElse(index) { 0 }
+                } else {
+                    written.getOrElse(index) { 0 } - if (index == round.current) hidden else 0
+                }
+            }
             RoundPoints(
                 players = players,
-                points = round.points.mapIndexed { index, value -> if (index == round.current) value - hidden else value },
+                points = shown,
+                totals = totals,
                 current = if (round.phase == BuncoPhase.PLAY) round.current else -1
             )
             if (round.phase == BuncoPhase.DONE && !animation.rolling) {
@@ -83,7 +95,7 @@ internal fun BuncoSection(
 
 /** Les points de chacun dans la manche, avec l'objectif ; le joueur dont c'est le tour ([current]) est en gras. */
 @Composable
-private fun RoundPoints(players: List<String>, points: List<Int>, current: Int) {
+private fun RoundPoints(players: List<String>, points: List<Int>, totals: List<Int>, current: Int) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = stringResource(R.string.dice_bunco_scores_title, BuncoScoring.TARGET),
@@ -93,7 +105,7 @@ private fun RoundPoints(players: List<String>, points: List<Int>, current: Int) 
         players.forEachIndexed { index, name ->
             val mine = index == current
             Text(
-                text = stringResource(R.string.dice_bunco_score_line, name, points.getOrElse(index) { 0 }),
+                text = stringResource(R.string.dice_bunco_score_line_total, name, points.getOrElse(index) { 0 }, totals.getOrElse(index) { 0 }),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (mine) FontWeight.Bold else FontWeight.Normal,
                 color = if (mine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface

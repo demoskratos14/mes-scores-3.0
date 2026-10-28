@@ -74,6 +74,12 @@ fun DiceButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
+/** Jeux dont la version jouable se joue entièrement sur la page des dés : pas de feuille de score derrière. */
+private val DICE_ONLY_GAME_IDS = setOf("builtin_yams", "builtin_cochon", "builtin_421", "builtin_bunco", "builtin_cdc")
+
+/** Vrai si, en version jouable, le jeu se joue sur la seule page des dés (scores compris). */
+internal fun GameRules.isDiceOnly(): Boolean = id in DICE_ONLY_GAME_IDS
+
 /** Vrai si le jeu a des dés à lancer dans l'appli. */
 internal fun GameRules.hasDice(): Boolean = DiceSetups.forGame(id) != null
 
@@ -97,17 +103,33 @@ private fun rememberRound421(viewModel: ScoreViewModel, setup: DiceSetup): Round
 private fun rememberBuncoRound(viewModel: ScoreViewModel): BuncoRound =
     remember(viewModel, viewModel.players.size) { viewModel.buncoRound() }
 
+/** La partie de Cul de chouette : gardée par la partie, donc aussi quand on passe par l'écran des scores et qu'on revient. */
+@Composable
+private fun rememberCdcRound(viewModel: ScoreViewModel): CdcRound =
+    remember(viewModel, viewModel.players.size) { viewModel.cdcRound() }
+
 /**
  * Écran des dés d'un jeu : les dés du jeu à lancer, ceux que l'on garde pour relancer les autres, et
  * l'inscription du résultat là où le jeu le permet :
- * - Yams : le score de chaque ligne est calculé d'après les dés ; on l'inscrit (ou on barre la ligne) ;
- * - Cochon : total du tour, à garder ou perdu au premier 1 ;
+ * - Yams : le score de chaque ligne est calculé d'après les dés ; on l'inscrit (ou on barre la ligne), avec le total de chaque joueur affiché ;
+ * - Cochon : total du tour, à garder ou perdu au premier 1, avec le score de chaque joueur affiché sur la page ;
  * - 421 : la manche se joue tour par tour (voir [Round421] et [Round421Section]), les jetons du perdant sont comptés seuls ;
  * - Bunco : la partie se joue tour par tour (voir [BuncoRound] et [BuncoSection]), les points de chaque manche sont inscrits seuls ;
+ * - Cul de chouette : la partie se joue tour par tour (voir [CdcRound] et [CdcSection]), chaque lancer est inscrit seul ;
  * - autres jeux : les dés et leur total (Qwixx : les combinaisons possibles avec les dés blancs).
+ *
+ * [diceOnly] : Yams, Cochon, 421, Bunco et Cul de chouette jouables n'ont pas de feuille de score derrière cet écran (tout s'y affiche) ;
+ * « Retour » et la fin de partie quittent alors la partie ([onBack]), et [onOpenShare] ouvre le partage.
  */
 @Composable
-internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null, onBack: () -> Unit) {
+internal fun DiceScreen(
+    viewModel: ScoreViewModel,
+    session: SyncSession? = null,
+    diceOnly: Boolean = false,
+    onOpenShare: (() -> Unit)? = null,
+    shareActive: Boolean = false,
+    onBack: () -> Unit
+) {
     val rules = viewModel.gameRules
     val setup = DiceSetups.forGame(rules.id)
     if (setup == null) {
@@ -124,7 +146,10 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     // Au Bunco, la partie (manche, joueur qui joue, points) garde de la même façon les dés du joueur qui joue.
     val isBunco = rules.id == "builtin_bunco"
     val bunco: BuncoRound? = if (isBunco) rememberBuncoRound(viewModel) else null
-    val turn = round?.turn ?: bunco?.turn ?: rememberDiceTurn(setup)
+    // Au Cul de chouette, la partie (joueur qui joue, dés) garde de la même façon les dés du joueur qui joue.
+    val isCdc = rules.id == "builtin_cdc"
+    val cdc: CdcRound? = if (isCdc) rememberCdcRound(viewModel) else null
+    val turn = round?.turn ?: bunco?.turn ?: cdc?.turn ?: rememberDiceTurn(setup)
     // Les dés tournent puis s'arrêtent un à un ; ce qui dévoile le résultat attend la fin (voir DiceRollAnimation).
     val rollAnimation = rememberDiceRollAnimation(turn)
     var player by rememberSaveable { mutableIntStateOf(0) }
@@ -135,12 +160,12 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     val isYams = rules.sheet == ScoreSheets.YAMS
     val isPig = rules.id == "builtin_cochon"
     val isQwixx = rules.id == "builtin_qwixx"
-    // Au Bunco, la fin de partie n'est annoncée qu'une fois les dés du dernier lancer arrêtés.
-    val gameOver = viewModel.isGameOver() && !(bunco != null && rollAnimation.rolling)
-    val currentPlayer = (round?.currentPlayer ?: bunco?.current ?: player).coerceIn(0, (players.size - 1).coerceAtLeast(0))
+    // Au Bunco et au Cul de chouette, la fin de partie n'est annoncée qu'une fois les dés du dernier lancer arrêtés.
+    val gameOver = viewModel.isGameOver() && !((bunco != null || cdc != null) && rollAnimation.rolling)
+    val currentPlayer = (round?.currentPlayer ?: bunco?.current ?: cdc?.current ?: player).coerceIn(0, (players.size - 1).coerceAtLeast(0))
 
     // Ce qui est partagé des dés : le tour de dés, ou toute la manche au 421 (toute la partie au Bunco).
-    fun tableTurn(): List<Int> = round?.snapshot() ?: bunco?.snapshot() ?: turn.snapshot()
+    fun tableTurn(): List<Int> = round?.snapshot() ?: bunco?.snapshot() ?: cdc?.snapshot() ?: turn.snapshot()
 
     // Plusieurs téléphones : le tour de dés est partagé, et seul le joueur dont c'est le tour peut lancer.
     val shared = session != null && session.isConnected && session.kind == SyncKind.SCORE
@@ -155,7 +180,7 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
     val sharedTable = session?.diceTable
     LaunchedEffect(sharedTable, shared) {
         if (shared && sharedTable != null && sharedTable != DiceTable(currentPlayer, tableTurn(), pigTotal, pigBust)) {
-            if (round != null) round.restoreFrom(sharedTable.turn) else if (bunco != null) bunco.restoreFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
+            if (round != null) round.restoreFrom(sharedTable.turn) else if (bunco != null) bunco.restoreFrom(sharedTable.turn) else if (cdc != null) cdc.restoreFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
             player = sharedTable.player
             pigTotal = sharedTable.pigTotal
             pigBust = sharedTable.pigBust
@@ -226,6 +251,10 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
             Spacer(modifier = Modifier.width(10.dp))
             RulesButton(rules = rules)
         }
+        if (diceOnly && onOpenShare != null) {
+            Spacer(modifier = Modifier.height(6.dp))
+            ShareButton(active = shareActive, onClick = onOpenShare)
+        }
         Spacer(modifier = Modifier.height(12.dp))
 
         Column(
@@ -238,7 +267,7 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
                 // Toutes les cases sont remplies : la partie est terminée, avec son vainqueur.
                 GameOverBanner(players = players, winners = viewModel.winners())
                 Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.dice_see_scores))
+                    Text(stringResource(if (diceOnly) R.string.dice_leave_game else R.string.dice_see_scores))
                 }
             }
             if (shared && session != null) {
@@ -260,12 +289,20 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
                     round = round,
                     canAct = canAct,
                     onChanged = { publish() },
-                    onBack = onBack
+                    onBack = onBack,
+                    backLabel = if (diceOnly) R.string.dice_leave_game else R.string.dice_see_scores
                 )
             } else if (bunco != null) {
                 BuncoSection(
                     viewModel = viewModel,
                     round = bunco,
+                    canAct = canAct,
+                    onChanged = { publish() }
+                )
+            } else if (cdc != null) {
+                CdcSection(
+                    viewModel = viewModel,
+                    round = cdc,
                     canAct = canAct,
                     onChanged = { publish() }
                 )
@@ -287,6 +324,17 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
             }
 
             when {
+                // Cochon : les scores restent affichés ; le total du tour attend la fin des dés.
+                isPig -> PigPanel(
+                    viewModel = viewModel,
+                    player = currentPlayer,
+                    total = pigTotal,
+                    bust = pigBust,
+                    hasRolled = turn.hasRolled,
+                    rolling = rollAnimation.rolling,
+                    enabled = !gameOver && canAct,
+                    onWritten = { nextPlayer() }
+                )
                 // Les dés tournent encore : rien ne dit déjà ce qu'ils valent.
                 rollAnimation.rolling && round == null -> Unit
                 isYams -> YamsPanel(
@@ -296,18 +344,9 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
                     enabled = !gameOver && canAct,
                     onWritten = { nextPlayer() }
                 )
-                isPig -> PigPanel(
-                    viewModel = viewModel,
-                    player = currentPlayer,
-                    total = pigTotal,
-                    bust = pigBust,
-                    hasRolled = turn.hasRolled,
-                    enabled = !gameOver && canAct,
-                    onWritten = { nextPlayer() }
-                )
                 isQwixx -> QwixxPanel(turn = turn)
-                // 421 et Bunco : tout est dans la section de la partie, plus haut.
-                round != null || bunco != null -> Unit
+                // 421, Bunco et Cul de chouette : tout est dans la section de la partie, plus haut.
+                round != null || bunco != null || cdc != null -> Unit
                 turn.hasRolled -> Card(
                     colors = CardDefaults.cardColors(containerColor = cardSurface()),
                     modifier = Modifier.fillMaxWidth()
@@ -323,7 +362,8 @@ internal fun DiceScreen(viewModel: ScoreViewModel, session: SyncSession? = null,
 
         // Au 421, les jetons suivent la manche : on la rejoue plutôt que d'annuler un seul compteur.
         // Au Bunco, les points d'une manche sont inscrits d'un coup avec la fin de la manche : on ne les annule pas un à un.
-        if (viewModel.canUndo && !is421 && !isBunco) {
+        // Au Cul de chouette, chaque lancer est inscrit avec le tour du joueur : on ne défait pas un seul compteur.
+        if (viewModel.canUndo && !is421 && !isBunco && !isCdc) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { viewModel.undo() },
@@ -547,11 +587,30 @@ private fun YamsPanel(
     onWritten: () -> Unit
 ) {
     val rows = viewModel.sheetRows ?: return
+    val players = viewModel.players
+    val totals = viewModel.totals
     Card(
         colors = CardDefaults.cardColors(containerColor = cardSurface()),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Total de chaque joueur (bonus compris), puisqu'il n'y a plus de feuille de score à consulter.
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = stringResource(R.string.dice_pig_scores_title_open),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                players.forEachIndexed { index, name ->
+                    val mine = index == player
+                    Text(
+                        text = stringResource(R.string.dice_pig_score_line, name, totals.getOrElse(index) { 0 }),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (mine) FontWeight.Bold else FontWeight.Normal,
+                        color = if (mine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
             if (!turn.hasRolled) {
                 Text(text = stringResource(R.string.dice_yams_prompt), style = MaterialTheme.typography.bodyMedium)
             }
@@ -592,7 +651,10 @@ private fun YamsPanel(
     }
 }
 
-/** Cochon : total du tour (perdu au premier 1) ; on le garde dans la prochaine case libre du joueur, ou on passe à 0. */
+/**
+ * Cochon : le score de chaque joueur (objectif compris), puis le total du tour (perdu au premier 1) ; on le garde
+ * dans la prochaine case libre du joueur, ou on passe à 0. Le total du tour attend que le dé soit arrêté ([rolling]).
+ */
 @Composable
 private fun PigPanel(
     viewModel: ScoreViewModel,
@@ -600,6 +662,7 @@ private fun PigPanel(
     total: Int,
     bust: Boolean,
     hasRolled: Boolean,
+    rolling: Boolean,
     enabled: Boolean,
     onWritten: () -> Unit
 ) {
@@ -609,30 +672,56 @@ private fun PigPanel(
         onWritten()
     }
 
+    val players = viewModel.players
+    val totals = viewModel.totals
+    val target = viewModel.gameRules.endCondition.scoreThreshold
+
     Card(
         colors = CardDefaults.cardColors(containerColor = cardSurface()),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = stringResource(R.string.dice_pig_total, total),
-                style = MaterialTheme.typography.titleMedium
-            )
-            if (bust) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = stringResource(R.string.dice_pig_bust),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error
+                    text = if (target != null) {
+                        stringResource(R.string.dice_pig_scores_title, target)
+                    } else {
+                        stringResource(R.string.dice_pig_scores_title_open)
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                players.forEachIndexed { index, name ->
+                    val mine = index == player
+                    Text(
+                        text = stringResource(R.string.dice_pig_score_line, name, totals.getOrElse(index) { 0 }),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (mine) FontWeight.Bold else FontWeight.Normal,
+                        color = if (mine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
-            if (enabled && hasRolled) {
+            if (!rolling) {
+                Text(
+                    text = stringResource(R.string.dice_pig_total, total),
+                    style = MaterialTheme.typography.titleMedium
+                )
                 if (bust) {
-                    Button(onClick = { write(0) }, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.dice_pig_pass))
-                    }
-                } else {
-                    Button(onClick = { write(total) }, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.dice_pig_keep, total))
+                    Text(
+                        text = stringResource(R.string.dice_pig_bust),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                if (enabled && hasRolled) {
+                    if (bust) {
+                        Button(onClick = { write(0) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.dice_pig_pass))
+                        }
+                    } else {
+                        Button(onClick = { write(total) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.dice_pig_keep, total))
+                        }
                     }
                 }
             }

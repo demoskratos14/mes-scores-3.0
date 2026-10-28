@@ -42,6 +42,18 @@ class SyncCodecTest {
     }
 
     @Test
+    fun leModeJouableDeLOrganisateurSurvitALEnvoi() {
+        val game = ScoreViewModel()
+        game.initGame(listOf("Anna", "Ben"), GameRules(id = "t", name = "T"))
+
+        val playable = SyncCodec.decode(SyncCodec.encode(SyncMessage.State(game.snapshot(), canUndo = false, canRedo = false, playable = true)))
+        val scoresOnly = SyncCodec.decode(SyncCodec.encode(SyncMessage.State(game.snapshot(), canUndo = false, canRedo = false)))
+
+        assertTrue((playable as SyncMessage.State).playable)
+        assertFalse((scoresOnly as SyncMessage.State).playable)
+    }
+
+    @Test
     fun chaqueActionSurvitALEnvoi() {
         val teamRound = TeamRound("Équipe A", setOf(0, 2), 40, deltas = listOf(40, -20, 40, -60))
         val ops = listOf(

@@ -185,13 +185,24 @@ Trois jeux de cartes avec calcul automatique de la marque, chacun dans une fonct
 
 ## 421 jouable tour par tour
 
-Le bouton « Dés » du 421 fait jouer la partie dans l'ordre (`Round421`, moteur pur testé par `Round421Test`) :
+En version jouable, le 421 se joue sur la page des dés (le bouton « Dés » n'existe que dans les jeux jouables, jamais sur la feuille de scores seule) et la partie se déroule dans l'ordre (`Round421`, moteur pur testé par `Round421Test`) :
 
 - **Tirage du premier joueur** : chacun lance un dé à son tour, le plus fort commence, les ex æquo relancent entre eux. On peut aussi désigner le premier joueur directement. Ensuite, c'est le perdant de la manche précédente qui commence.
 - **Limite de lancers** : le premier joueur de la manche lance jusqu'à 3 fois et garde son jeu quand il veut ; son nombre de lancers devient la limite de tous les autres (`DiceTurn.rollLimit`). Un joueur ne peut pas « garder son jeu » avant d'avoir lancé.
 - **Perdant et jetons automatiques** : à la fin de la manche, le moins bon jeu (`Dice421.strength` : 421, 111, as doubles, brelans, suites, autres) perd. À jeu égal, celui qui a fait le moins de lancers est meilleur, puis celui qui a joué en premier. Pendant la charge (21 jetons au milieu, `Dice421.pot`), le perdant prend au milieu la valeur du meilleur jeu, sans dépasser ce qui reste ; ensuite, pendant la décharge, il la prend au gagnant. Seuls les joueurs qui ont encore des jetons jouent, et la partie s'arrête quand un joueur a tous les jetons (`Dice421.gameLoser`). « Rejouer la manche » rend les jetons et repart du même premier joueur.
 - **Plusieurs téléphones** : toute la manche (`Round421.snapshot`) passe dans `DiceTable.turn`, comme le tour de dés des autres jeux ; seul le joueur dont c'est le tour peut agir.
+- **Sans feuille de score** : en version jouable, le Yams, le Cochon, le 421, le Bunco et le Cul de chouette s'ouvrent directement sur la page des dés (`GameRules.isDiceOnly`, route `dice`) ; les scores s'y affichent (Cochon : score de chaque joueur et objectif ; 421 : jetons de chacun ; Bunco : points de la manche et total de la partie ; Yams : total de chaque joueur, bonus compris ; Cul de chouette : score de chacun et objectif de 343). L'invité d'une partie partagée y arrive aussi directement. « Retour » quitte la partie, avec la confirmation habituelle quand il y a des scores, et le bouton « Partager » de la page remplace celui de la feuille. Hors version jouable (feuilles de scores seules), rien ne change.
 - Le bouton « Règles » est sur la feuille de scores (compteurs), sur l'écran des dés et sur l'écran du Morpion, du jeu des allumettes, des dames, de l'Othello, du Pendu et des échecs (`RulesButton`).
+
+## Cul de chouette jouable
+
+En version jouable, le Cul de chouette se joue tour par tour sur la page des dés (`CdcRound` et `CdcScoring`, `CdcPanel.kt` pour l'affichage ; testés par `CdcRoundTest`) :
+
+- **Le tour** : le joueur lance une fois les trois dés (deux chouettes et un cul), la combinaison rapporte ou fait perdre des points, puis la main passe au joueur suivant.
+- **Combinaisons** : cul de chouette (40 points plus 10 fois le dé), velute (2 fois le carré du plus grand dé), chouette (le carré du dé), chouette-velute et suite. 1-2-3 est à la fois une velute et une suite : la velute l'emporte. Le néant ne rapporte rien. La Grelottine (variante) n'est pas gérée.
+- **Chouette-velute et suite** dépendent de la rapidité des joueurs : l'appli demande qui a crié le premier (il marque les points) ou qui a réagi en dernier (il perd 10 points, `CdcScoring.SUITE_PENALTY`) ; « Personne » est possible.
+- **Scores seuls** : chaque lancer est inscrit dans une ligne du tableau (0 quand rien n'est marqué), d'où viennent les totaux, la fin de partie à 343 points et le journal. Une partie reprise continue avec le joueur qui suit le dernier lancer. Il n'y a pas d'annulation d'un seul lancer.
+- **Plusieurs téléphones** : l'état de la partie (`CdcRound.snapshot`) passe dans `DiceTable.turn`, comme pour le 421 et le Bunco.
 
 ## Couleurs des joueurs et mode daltonien
 

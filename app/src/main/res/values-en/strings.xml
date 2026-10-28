@@ -1291,6 +1291,20 @@
     <string name="dice_pig_keep">Keep %1$d</string>
     <string name="dice_pig_bust">A 1: the turn is lost!</string>
     <string name="dice_pig_pass">Pass (0)</string>
+    <string name="dice_pig_scores_title">Scores (goal: %1$d)</string>
+    <string name="dice_pig_scores_title_open">Scores</string>
+    <string name="dice_pig_score_line">%1$s: %2$d</string>
+    <string name="dice_leave_game">Leave the game</string>
+    <string name="dice_cdc_hint">Roll the three dice: the two chouettes, then the cul.</string>
+    <string name="dice_cdc_result_cul">Cul de chouette of %1$d: +%2$d!</string>
+    <string name="dice_cdc_result_chouette_velute">Chouette-velute: +%1$d for the first to shout “Pas mou le caillou!”</string>
+    <string name="dice_cdc_result_velute">Velute of %1$d: +%2$d</string>
+    <string name="dice_cdc_result_chouette">Chouette of %1$d: +%2$d</string>
+    <string name="dice_cdc_result_suite">Straight: the last player to react loses %1$d points</string>
+    <string name="dice_cdc_result_neant">Nothing: no combination</string>
+    <string name="dice_cdc_claim_velute">Who shouted first?</string>
+    <string name="dice_cdc_claim_suite">Who reacted last?</string>
+    <string name="dice_cdc_nobody">Nobody</string>
     <string name="dice_421_name_421">421</string>
     <string name="dice_421_name_111">Three aces (111)</string>
     <string name="dice_421_name_aces">Two aces</string>
@@ -1332,7 +1346,7 @@
     <string name="dice_421_game_over">%1$s ends up with all the tokens and loses the game!</string>
     <string name="dice_bunco_round">Round %1$d of %2$d: look for the number %1$d</string>
     <string name="dice_bunco_scores_title">Round points (goal: %1$d)</string>
-    <string name="dice_bunco_score_line">%1$s: %2$d</string>
+    <string name="dice_bunco_score_line_total">%1$s: %2$d (total: %3$d)</string>
     <string name="dice_bunco_turn">%1$s’s turn</string>
     <string name="dice_bunco_hint" tools:ignore="PluralsCandidate">Roll the 3 dice: each die showing a %1$d scores 1 point. As long as you score, you roll again.</string>
     <string name="dice_bunco_roll_again">You scored: roll again!</string>

@@ -145,8 +145,16 @@ fun ScoreApp(
     // Quitter une partie qui contient des scores demande confirmation.
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    var playMode by rememberSaveable { mutableStateOf(false) }
+    // Yams, Cochon, 421, Bunco jouables : la page des dés est l'écran de la partie (pas de feuille de score derrière).
+    // Un invité qui rejoint une de ces parties arrive lui aussi directement sur la page des dés.
+    // Seulement si l'organisateur joue en version jouable : la feuille de scores seule reste indépendante.
+    val playable = playMode || (sync.role == SyncRole.GUEST && sync.hostPlayable)
+    SideEffect { sync.playable = playMode }
+    val diceOnlyGame = playable && viewModel.gameRules.isDiceOnly()
+    val onDiceOnlyRoute = currentRoute == "dice" && diceOnlyGame
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
-        currentRoute == "poker" || currentRoute == "racket"
+        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute
     var showQuitDialog by remember { mutableStateOf(false) }
 
     // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
@@ -180,10 +188,11 @@ fun ScoreApp(
     fun pendingColors(): List<Color?> = pendingPlayerColors.map { if (it == 0) null else Color(it) }
 
     // Accueil : false = feuilles de scores seules, true = jeux jouables dans l'appli (dés, Mastermind).
-    var playMode by rememberSaveable { mutableStateOf(false) }
-    // Le bouton « Dés » n'existe que côté jeux jouables ; un invité qui rejoint une partie le garde (les dés se partagent).
+    // (playMode est déclaré plus haut : le dialogue de sortie en a besoin.)
+    // Le bouton « Dés » n'existe que côté jeux jouables (jamais sur la feuille de scores seule) ; un invité le garde
+    // quand l'organisateur joue en version jouable (les dés se partagent).
     val openDice: (() -> Unit)? =
-        if (playMode || sync.role == SyncRole.GUEST) { { navController.navigate("dice") } } else null
+        if (playable) { { navController.navigate("dice") } } else null
 
     // Route vers l'écran de score adapté au mode du jeu choisi.
     fun scoreRouteFor(rules: GameRules): String = when (rules.scoreMode) {
@@ -193,6 +202,11 @@ fun ScoreApp(
         ScoreMode.POKER -> "poker"
         ScoreMode.RACKET -> "racket"
     }
+
+    // Yams, Cochon, 421 et Bunco jouables : tout (scores compris) s'affiche sur la page des dés, sans feuille de score.
+    // Un invité y est amené comme l'organisateur, mais seulement si celui-ci joue en version jouable.
+    fun gameRouteFor(rules: GameRules): String =
+        if (playable && rules.isDiceOnly()) "dice" else scoreRouteFor(rules)
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Fond commun à tous les écrans, décodé une seule fois.
@@ -236,7 +250,7 @@ fun ScoreApp(
                     onResumeGame = {
                         unfinishedGame?.let { saved ->
                             viewModel.loadFromSaved(saved)
-                            navController.navigate(scoreRouteFor(saved.gameRules)) { popUpTo("setup") }
+                            navController.navigate(gameRouteFor(saved.gameRules)) { popUpTo("setup") }
                         }
                     },
                     onOpenShare = { navController.navigate("share") },
@@ -276,7 +290,7 @@ fun ScoreApp(
                     repository = gameHistoryRepository,
                     onResumeGame = { saved ->
                         viewModel.loadFromSaved(saved)
-                        navController.navigate(scoreRouteFor(saved.gameRules)) {
+                        navController.navigate(gameRouteFor(saved.gameRules)) {
                             popUpTo("setup")
                         }
                     },
@@ -332,7 +346,7 @@ fun ScoreApp(
                             navController.navigate("pokerSetup")
                         } else {
                             viewModel.initGame(pendingPlayerNames, rules, pendingColors())
-                            navController.navigate(scoreRouteFor(rules))
+                            navController.navigate(gameRouteFor(rules))
                         }
                     },
                     onCreateNewGame = {
@@ -693,7 +707,23 @@ fun ScoreApp(
                 )
             }
             composable("dice") {
-                DiceScreen(viewModel = viewModel, session = sync, onBack = { navController.popBackStack() })
+                DiceScreen(
+                    viewModel = viewModel,
+                    session = sync,
+                    diceOnly = onDiceOnlyRoute,
+                    onOpenShare = { navController.navigate("share") },
+                    shareActive = sync.isConnected,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (!onDiceOnlyRoute) {
+                            navController.popBackStack()
+                        } else if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
             }
             composable("racket") {
                 RacketScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
@@ -733,7 +763,7 @@ fun ScoreApp(
             game = viewModel,
             session = sync,
             navController = navController,
-            routeFor = ::scoreRouteFor,
+            routeFor = ::gameRouteFor,
             mastermind = mastermindOnline,
             onMastermindJoined = {
                 gameRepository.builtInGames().firstOrNull { it.id == MASTERMIND_ID }?.let { mastermindViewModel.prepareOnline(it) }

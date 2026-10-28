@@ -41,8 +41,16 @@ internal data class DiceTable(val player: Int, val turn: List<Int>, val pigTotal
 
 /** Un message échangé entre les téléphones. */
 internal sealed interface SyncMessage {
-    /** L'état complet de la partie, de l'organisateur vers les invités. [canUndo] et [canRedo] : boutons Annuler et Rétablir. */
-    data class State(val game: SavedGame, val canUndo: Boolean, val canRedo: Boolean) : SyncMessage
+    /**
+     * L'état complet de la partie, de l'organisateur vers les invités. [canUndo] et [canRedo] : boutons Annuler et Rétablir.
+     * [playable] : l'organisateur joue en version jouable (page des dés) plutôt qu'avec la feuille de scores seule.
+     */
+    data class State(
+        val game: SavedGame,
+        val canUndo: Boolean,
+        val canRedo: Boolean,
+        val playable: Boolean = false
+    ) : SyncMessage
 
     /** Une action de l'invité, à faire exécuter par l'organisateur. */
     data class Operation(val op: SyncOp) : SyncMessage
@@ -172,7 +180,7 @@ internal object SyncCodec {
         val json = JSONObject().put("v", VERSION)
         when (message) {
             is SyncMessage.State -> json.put("t", "state").put("game", message.game.toJson())
-                .put("undo", message.canUndo).put("redo", message.canRedo)
+                .put("undo", message.canUndo).put("redo", message.canRedo).put("playable", message.playable)
             is SyncMessage.Operation -> json.put("t", "op").put("op", message.op.toJson())
             is SyncMessage.Mm -> json.put("t", "mm").put("mm", message.mm.toJson())
             is SyncMessage.Bs -> json.put("t", "bs").put("bs", message.bs.toJson())
@@ -204,7 +212,8 @@ internal object SyncCodec {
                 "state" -> SyncMessage.State(
                     game = SavedGame.fromJson(json.getJSONObject("game")),
                     canUndo = json.optBoolean("undo"),
-                    canRedo = json.optBoolean("redo")
+                    canRedo = json.optBoolean("redo"),
+                    playable = json.optBoolean("playable")
                 )
                 "op" -> syncOpFromJson(json.getJSONObject("op"))?.let { SyncMessage.Operation(it) }
                 "mm" -> mmMessageFromJson(json.getJSONObject("mm"))?.let { SyncMessage.Mm(it) }
