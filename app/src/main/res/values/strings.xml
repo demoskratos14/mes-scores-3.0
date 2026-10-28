@@ -1757,6 +1757,7 @@
     <string name="dots_confirm">Valider le trait</string>
     <string name="duo_player_default">Joueur %1$d</string>
     <string name="duo_player_score">%1$s : %2$d</string>
+    <string name="duo_color_button">Couleur de %1$s</string>
     <string name="duo_you_tag">%1$s (toi)</string>
     <string name="duo_draws">Égalités : %1$d</string>
     <string name="duo_turn">À %1$s de jouer</string>
@@ -1931,6 +1932,9 @@
     <string name="chess_reason_repetition">Triple répétition de la position</string>
     <string name="chess_reason_resign">Abandon</string>
     <string name="chess_reason_agreement">Nulle d’un commun accord</string>
+    <string name="chess_reason_timeout">Temps écoulé</string>
+    <string name="chess_clock_title">Temps de jeu (minutes + incrément en secondes)</string>
+    <string name="chess_clock_off">Sans pendule</string>
     <string name="chess_new_round">Nouvelle manche</string>
     <string name="chess_resign">Abandonner</string>
     <string name="chess_offer_draw">Proposer la nulle</string>
