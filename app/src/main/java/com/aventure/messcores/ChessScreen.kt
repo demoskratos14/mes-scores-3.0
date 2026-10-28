@@ -835,7 +835,7 @@ private fun rememberClockNow(running: Boolean): Long {
 }
 
 /** « 4:07 » ; sous dix secondes, les dixièmes (« 8.3 »). */
-private fun formatClock(ms: Long): String {
+private fun formatChessClock(ms: Long): String {
     if (ms < 10_000L) return "${ms / 1000}.${(ms % 1000) / 100}"
     val seconds = (ms + 999) / 1000
     return "${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}"
@@ -887,7 +887,7 @@ private fun ChessClocks(match: ChessMatch, names: List<String>, now: Long, turnS
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = formatClock(left),
+                    text = formatChessClock(left),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = if (left < 10_000L) scheme.error else scheme.onSurface
