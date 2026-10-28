@@ -1334,18 +1334,18 @@
     <string name="dice_bunco_scores_title">Round points (goal: %1$d)</string>
     <string name="dice_bunco_score_line">%1$s: %2$d</string>
     <string name="dice_bunco_turn">%1$s’s turn</string>
-    <string name="dice_bunco_hint">Roll the 3 dice: each die showing a %1$d scores 1 point. As long as you score, you roll again.</string>
+    <string name="dice_bunco_hint" tools:ignore="PluralsCandidate">Roll the 3 dice: each die showing a %1$d scores 1 point. As long as you score, you roll again.</string>
     <string name="dice_bunco_roll_again">You scored: roll again!</string>
     <plurals name="dice_bunco_result_match">
         <item quantity="one">%1$d die shows a %2$d: %1$d point.</item>
         <item quantity="other">%1$d dice show a %2$d: %1$d points.</item>
     </plurals>
     <string name="dice_bunco_result_bunco">BUNCO! All three dice show %1$d: 21 points.</string>
-    <string name="dice_bunco_result_triple">Three of a kind (%1$d): %2$d points.</string>
+    <string name="dice_bunco_result_triple" tools:ignore="PluralsCandidate">Three of a kind (%1$d): %2$d points.</string>
     <string name="dice_bunco_result_none">No %1$d: no points, your turn is over.</string>
     <string name="dice_bunco_next_player">Next player</string>
     <string name="dice_bunco_round_over">Round over</string>
-    <string name="dice_bunco_winner">%1$s reaches %2$d points and wins the round!</string>
+    <string name="dice_bunco_winner" tools:ignore="PluralsCandidate">%1$s reaches %2$d points and wins the round!</string>
     <string name="dice_bunco_winner_bunco">%1$s rolls a Bunco and wins the round!</string>
     <string name="dice_bunco_next_round">Go to round %1$d</string>
     <string name="dice_bunco_game_over">That was the last round: the game is over.</string>
