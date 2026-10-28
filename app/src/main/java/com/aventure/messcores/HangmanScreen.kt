@@ -45,7 +45,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -550,14 +552,23 @@ private fun HangmanDrawing(parts: Int, lost: Boolean, description: String) {
         if (parts >= 4) line(at(66f, 6f), at(66f, 20f), gallows)
         if (parts >= 5) drawCircle(color = figure, radius = side * 0.08f, center = at(66f, 28f), style = Stroke(width = width))
         if (parts >= 5 && lost) {
-            // Pendu : les yeux en croix, la bouche fermée et la langue sortie sur le côté.
+            // Pendu : les yeux en croix, la bouche fermée (sans sourire) et une petite langue qui pend dessous.
             val eyeWidth = width * 0.7f
             for (eyeX in listOf(62.5f, 69.5f)) {
                 drawLine(color = figure, start = at(eyeX - 2f, 24.5f), end = at(eyeX + 2f, 28.5f), strokeWidth = eyeWidth, cap = StrokeCap.Round)
                 drawLine(color = figure, start = at(eyeX - 2f, 28.5f), end = at(eyeX + 2f, 24.5f), strokeWidth = eyeWidth, cap = StrokeCap.Round)
             }
-            drawLine(color = figure, start = at(62.5f, 32.5f), end = at(69f, 32.5f), strokeWidth = eyeWidth, cap = StrokeCap.Round)
-            drawLine(color = Color(0xFFE57373), start = at(68f, 32.5f), end = at(76f, 35.5f), strokeWidth = width * 1.8f, cap = StrokeCap.Round)
+            // La langue, comme sur le dessin : courte, bout arrondi, contour foncé et petit sillon au milieu.
+            // Elle est tracée avant la bouche, qui passe par-dessus son départ.
+            val unit = side / 100f
+            val tongueTopLeft = at(67.9f, 32.5f)
+            val tongueSize = Size(3.4f * unit, 5f * unit)
+            val tongueCorner = CornerRadius(1.7f * unit)
+            val tongueLine = 0.7f * unit
+            drawRoundRect(color = Color(0xFFE57373), topLeft = tongueTopLeft, size = tongueSize, cornerRadius = tongueCorner)
+            drawRoundRect(color = figure, topLeft = tongueTopLeft, size = tongueSize, cornerRadius = tongueCorner, style = Stroke(width = tongueLine))
+            drawLine(color = figure, start = at(69.6f, 34.7f), end = at(69.6f, 36.3f), strokeWidth = tongueLine, cap = StrokeCap.Round)
+            drawLine(color = figure, start = at(62.5f, 32.5f), end = at(69.5f, 32.5f), strokeWidth = eyeWidth, cap = StrokeCap.Round)
         }
         if (parts >= 6) line(at(66f, 36f), at(66f, 64f), figure)
         if (parts >= 7) line(at(66f, 42f), at(52f, 54f), figure)
