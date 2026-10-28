@@ -65,4 +65,23 @@ class WizardChessTest {
         val capture = detect("e2e4 d7d5", "e4d5")!!
         assertTrue(wizardMoveDuration(capture) > wizardMoveDuration(quiet))
     }
+
+    @Test
+    fun lesPiecesDeProfilSeTournentVersLeurVictime() {
+        // Par défaut les blanches regardent à gauche et les noires à droite (retournées).
+        assertFalse(wizardFlip('P'))
+        assertTrue(wizardFlip('p'))
+        // Pour frapper, une pièce de profil se tourne du côté voulu, quelle que soit sa couleur.
+        assertTrue(wizardFlip('N', faceRight = true))
+        assertFalse(wizardFlip('n', faceRight = false))
+        // Le fou, la dame et le roi ne se retournent jamais.
+        assertFalse(wizardFlip('K', faceRight = true))
+        assertFalse(wizardFlip('q', faceRight = true))
+    }
+
+    @Test
+    fun seulesLesPiecesArmeesOntUneAttache() {
+        for (piece in "RBNK") assertNotNull(wizardRig(piece))
+        for (piece in "PQ") assertNull(wizardRig(piece))
+    }
 }
