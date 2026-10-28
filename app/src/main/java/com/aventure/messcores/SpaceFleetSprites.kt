@@ -64,14 +64,15 @@ private val SUNK_FILTER = ColorFilter.colorMatrix(
 
 /**
  * Peint [sprite] dans le repère du vaisseau (couché vers la droite, [length] cases sur une) : à la hauteur d'une case
- * (un peu plus, les vaisseaux sont larges), allongé d'au plus un tiers pour mieux remplir la longueur, et centré.
+ * (un peu plus, les vaisseaux sont larges), allongé (d'au plus un tiers, mais sur toute la longueur pour le porte-vaisseaux), et centré.
  */
 internal fun DrawScope.drawSpaceSprite(sprite: ImageBitmap, length: Int, cs: Float, sunk: Boolean, alpha: Float) {
     val box = length * cs * 0.97f
     val ratio = sprite.width.toFloat() / sprite.height
     val height = min(cs * 1.2f, box / ratio)
     val natural = height * ratio
-    val width = min(box, natural * 1.35f)
+    // Le porte-vaisseaux (5 cases) est étiré sur toute sa longueur, quitte à déformer ; les autres d'au plus un tiers.
+    val width = if (length >= 5) box else min(box, natural * 1.35f)
     val x = (length * cs - width) / 2f
     val y = (cs - height) / 2f
     drawImage(
