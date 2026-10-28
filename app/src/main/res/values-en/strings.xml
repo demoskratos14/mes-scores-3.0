@@ -1714,6 +1714,7 @@
     <string name="dots_confirm">Confirm line</string>
     <string name="duo_player_default">Player %1$d</string>
     <string name="duo_player_score">%1$s: %2$d</string>
+    <string name="duo_color_button">%1$s’s colour</string>
     <string name="duo_you_tag">%1$s (you)</string>
     <string name="duo_draws">Draws: %1$d</string>
     <string name="duo_turn">%1$s’s turn</string>
@@ -1888,6 +1889,9 @@
     <string name="chess_reason_repetition">Threefold repetition</string>
     <string name="chess_reason_resign">Resignation</string>
     <string name="chess_reason_agreement">Draw by agreement</string>
+    <string name="chess_reason_timeout">Out of time</string>
+    <string name="chess_clock_title">Time control (minutes + increment in seconds)</string>
+    <string name="chess_clock_off">No clock</string>
     <string name="chess_new_round">New round</string>
     <string name="chess_resign">Resign</string>
     <string name="chess_offer_draw">Offer a draw</string>
