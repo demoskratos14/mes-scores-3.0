@@ -37,7 +37,7 @@ internal object DiceSetups {
         "builtin_cdc" -> DiceSetup(diceCount = 3)
         "builtin_dixmille" -> DiceSetup(diceCount = 6)
         "builtin_cochon" -> DiceSetup(diceCount = 1)
-        "builtin_shutbox" -> DiceSetup(diceCount = 2)
+        "builtin_shutbox" -> DiceSetup(diceCount = 2, allowHold = false)
         "builtin_bunco" -> DiceSetup(diceCount = 3, allowHold = false)
         "builtin_qwixx" -> DiceSetup(diceCount = 6, allowHold = false, tints = qwixxTints)
         else -> null

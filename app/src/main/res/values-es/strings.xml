@@ -461,7 +461,7 @@
     <string name="rules_shutbox_3_title">Puntuación</string>
     <string name="rules_shutbox_3_body">La puntuación del turno es la suma de las tapas que quedan abiertas. Cerrarlo todo da 0: eso es “cerrar la caja”.</string>
     <string name="rules_shutbox_4_title">En la aplicación</string>
-    <string name="rules_shutbox_4_body">En cada ronda, introduce en la columna del jugador la suma de las tapas que han quedado abiertas (0 si la caja está cerrada). La aplicación no termina la partida: acordad el número de rondas que se juegan (5, por ejemplo) y mirad la clasificación.</string>
+    <string name="rules_shutbox_4_body">La aplicación juega la partida: en tu turno, lanza los dados, toca las tapas que quieres bajar (su suma debe ser igual al total de los dados) y pulsa «Bajar las tapas». Cuando las tapas 7, 8 y 9 están bajadas, puedes lanzar un solo dado. La aplicación detecta sola que no hay ninguna combinación posible, anota la suma de las tapas que han quedado abiertas (0 si la caja está cerrada) y pasa el turno. La partida dura 5 rondas; gana el total más bajo.</string>
     <string name="rules_bunco_1_title">Objetivo</string>
     <string name="rules_bunco_1_body">Conseguir el mayor número de puntos en 6 rondas. En la ronda 1 se buscan los 1; en la ronda 2, los 2; y así hasta la ronda 6.</string>
     <string name="rules_bunco_2_title">Cómo se juega un turno</string>
@@ -1410,6 +1410,20 @@
     <string name="dice_dm_hot">Los 6 dados han puntuado: ¡se vuelven a lanzar todos!</string>
     <string name="dice_dm_open_needed">Aún no has puntuado: necesitas %1$d puntos en un mismo turno para poder guardar. ¡Vuelve a lanzar!</string>
     <string name="dice_dm_last_turn">%1$s ha llegado a %2$d puntos: los jugadores que aún no han jugado en la ronda tienen un último turno.</string>
+    <string name="dice_sb_scores_title">Puntuaciones (gana el total más bajo)</string>
+    <string name="dice_sb_round">Ronda %1$d de %2$d</string>
+    <string name="dice_sb_hint">Lanza los dados y baja tapas cuya suma sea igual al total. Sigue hasta que ya no puedas bajar ninguna: puntúas la suma de las tapas que han quedado abiertas.</string>
+    <string name="dice_sb_one_die">Lanzar un solo dado</string>
+    <string name="dice_sb_total">Total de los dados: %1$d</string>
+    <string name="dice_sb_pick">Toca tapas abiertas que sumen %1$d.</string>
+    <string name="dice_sb_selection">Tapas elegidas: %1$s = %2$d</string>
+    <string name="dice_sb_close">Bajar las tapas</string>
+    <string name="dice_sb_stuck">No hay ninguna combinación posible: tu turno ha terminado. Tapas abiertas: %1$d.</string>
+    <string name="dice_sb_shut">¡Caja cerrada! Puntúas 0.</string>
+    <string name="dice_sb_end_turn">Terminar el turno (%1$d)</string>
+    <string name="dice_sb_flap_open">Tapa %1$d, abierta</string>
+    <string name="dice_sb_flap_selected">Tapa %1$d, elegida</string>
+    <string name="dice_sb_flap_shut">Tapa %1$d, bajada</string>
     <string name="dice_qwixx_roll_hint">Lanza los 6 dados: dos blancos y uno de cada color.</string>
     <string name="dice_qwixx_white_prompt">Dados blancos: %1$d. Cada jugador puede tachar este número en el color que quiera, o pasar.</string>
     <string name="dice_qwixx_white_pick">Tachar %1$d:</string>

@@ -74,7 +74,9 @@ internal fun diceGames(context: Context): List<GameRules> = listOf(
         maxPlayers = 8,
         lowestWins = true,
         allowNegativeScores = false,
-        scoreMode = ScoreMode.TABLE
+        scoreMode = ScoreMode.TABLE,
+        // Chaque joueur inscrit sa manche à son tour : la partie s'arrête quand le dernier a joué la dernière manche.
+        endCondition = EndCondition(type = EndConditionType.ROUND_COUNT, roundCount = ShutBoxScoring.ROUNDS, stopImmediately = false)
     ),
     GameRules(
         id = "builtin_bunco",

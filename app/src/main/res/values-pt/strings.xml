@@ -461,7 +461,7 @@
     <string name="rules_shutbox_3_title">Pontuação</string>
     <string name="rules_shutbox_3_body">A pontuação da vez é a soma das abas que ficaram abertas. Fechar tudo dá 0: é “fechar a caixa”.</string>
     <string name="rules_shutbox_4_title">Na aplicação</string>
-    <string name="rules_shutbox_4_body">Em cada ronda, introduz na coluna do jogador a soma das abas que ficaram abertas (0 se a caixa ficou fechada). A aplicação não termina a partida: combinem o número de rondas a jogar (5, por exemplo) e vejam a classificação.</string>
+    <string name="rules_shutbox_4_body">A aplicação joga a partida: na tua vez, lança os dados, toca nas abas a baixar (a soma deve ser igual ao total dos dados) e carrega em «Baixar as abas». Quando as abas 7, 8 e 9 estão baixadas, podes lançar um só dado. A aplicação deteta sozinha que não há nenhuma combinação possível, regista a soma das abas que ficaram abertas (0 se a caixa ficou fechada) e passa a vez. A partida tem 5 rondas; ganha o total mais baixo.</string>
     <string name="rules_bunco_1_title">Objetivo</string>
     <string name="rules_bunco_1_body">Fazer o maior número de pontos em 6 rondas. Na ronda 1, procuram-se os 1; na ronda 2, os 2; e assim sucessivamente até à ronda 6.</string>
     <string name="rules_bunco_2_title">A tua vez</string>
@@ -1410,6 +1410,20 @@
     <string name="dice_dm_hot">Os 6 dados pontuaram: lançam-se todos de novo!</string>
     <string name="dice_dm_open_needed">Ainda não pontuaste: precisas de %1$d pontos no mesmo turno para poderes guardar. Lança de novo!</string>
     <string name="dice_dm_last_turn">%1$s chegou aos %2$d pontos: os jogadores que ainda não jogaram na ronda têm uma última vez.</string>
+    <string name="dice_sb_scores_title">Pontuações (ganha o total mais baixo)</string>
+    <string name="dice_sb_round">Ronda %1$d de %2$d</string>
+    <string name="dice_sb_hint">Lança os dados e baixa abas cuja soma seja igual ao total. Continua até já não poderes baixar nenhuma: marcas a soma das abas que ficaram abertas.</string>
+    <string name="dice_sb_one_die">Lançar um só dado</string>
+    <string name="dice_sb_total">Total dos dados: %1$d</string>
+    <string name="dice_sb_pick">Toca em abas abertas que somem %1$d.</string>
+    <string name="dice_sb_selection">Abas escolhidas: %1$s = %2$d</string>
+    <string name="dice_sb_close">Baixar as abas</string>
+    <string name="dice_sb_stuck">Nenhuma combinação possível: a tua vez acabou. Abas abertas: %1$d.</string>
+    <string name="dice_sb_shut">Caixa fechada! Marcas 0.</string>
+    <string name="dice_sb_end_turn">Terminar a vez (%1$d)</string>
+    <string name="dice_sb_flap_open">Aba %1$d, aberta</string>
+    <string name="dice_sb_flap_selected">Aba %1$d, escolhida</string>
+    <string name="dice_sb_flap_shut">Aba %1$d, baixada</string>
     <string name="dice_qwixx_roll_hint">Lança os 6 dados: dois brancos e um de cada cor.</string>
     <string name="dice_qwixx_white_prompt">Dados brancos: %1$d. Cada jogador pode riscar este número na cor que quiser, ou passar.</string>
     <string name="dice_qwixx_white_pick">Riscar %1$d:</string>

@@ -555,7 +555,7 @@
     <string name="rules_shutbox_3_title">Le score</string>
     <string name="rules_shutbox_3_body">Le score du tour est la somme des clapets restés ouverts. Tout rabattre donne 0 : c\'est « fermer la boîte ».</string>
     <string name="rules_shutbox_4_title">Dans l\'appli</string>
-    <string name="rules_shutbox_4_body">À chaque manche, saisis dans la colonne du joueur la somme des clapets restés ouverts (0 si la boîte est fermée). L\'appli ne termine pas la partie : convenez du nombre de manches à jouer (5 par exemple) et regardez le classement.</string>
+    <string name="rules_shutbox_4_body">L’appli joue la partie : à ton tour, lance les dés, touche les clapets à rabattre (leur somme doit égaler le total des dés), puis « Rabattre les clapets ». Quand les clapets 7, 8 et 9 sont rabattus, tu peux ne lancer qu’un seul dé. L’appli repère toute seule qu’aucune combinaison n’est possible, inscrit la somme des clapets restés ouverts (0 si la boîte est fermée) et passe la main. La partie compte 5 manches ; le plus petit total gagne.</string>
     <string name="rules_bunco_1_title">But du jeu</string>
     <string name="rules_bunco_1_body">Marquer le plus de points sur 6 manches. À la manche 1, on cherche des 1 ; à la manche 2, des 2 ; et ainsi de suite jusqu\'à la manche 6.</string>
     <string name="rules_bunco_2_title">Le tour de jeu</string>
@@ -1425,6 +1425,20 @@
     <string name="dice_dm_hot">Les 6 dés ont rapporté : tous les dés sont relancés !</string>
     <string name="dice_dm_open_needed">Tu n’as encore rien marqué : il faut %1$d points dans un même tour pour pouvoir garder. Relance les dés !</string>
     <string name="dice_dm_last_turn">%1$s a atteint %2$d points : les joueurs qui n’ont pas encore joué dans la manche ont un dernier tour.</string>
+    <string name="dice_sb_scores_title">Scores (le plus petit total gagne)</string>
+    <string name="dice_sb_round">Manche %1$d sur %2$d</string>
+    <string name="dice_sb_hint">Lance les dés, puis rabats des clapets dont la somme est égale au total. Recommence jusqu’à ne plus pouvoir rabattre de clapet : tu marques la somme des clapets restés ouverts.</string>
+    <string name="dice_sb_one_die">Lancer un seul dé</string>
+    <string name="dice_sb_total">Total des dés : %1$d</string>
+    <string name="dice_sb_pick">Touche des clapets ouverts dont la somme fait %1$d.</string>
+    <string name="dice_sb_selection">Clapets choisis : %1$s = %2$d</string>
+    <string name="dice_sb_close">Rabattre les clapets</string>
+    <string name="dice_sb_stuck">Aucune combinaison possible : ton tour est fini. Clapets restés ouverts : %1$d.</string>
+    <string name="dice_sb_shut">Boîte fermée ! Tu marques 0.</string>
+    <string name="dice_sb_end_turn">Terminer le tour (%1$d)</string>
+    <string name="dice_sb_flap_open">Clapet %1$d, ouvert</string>
+    <string name="dice_sb_flap_selected">Clapet %1$d, choisi</string>
+    <string name="dice_sb_flap_shut">Clapet %1$d, rabattu</string>
     <string name="dice_qwixx_roll_hint">Lance les 6 dés : deux blancs et un de chaque couleur.</string>
     <string name="dice_qwixx_white_prompt">Dés blancs : %1$d. Chaque joueur peut cocher ce nombre dans la couleur de son choix, ou passer.</string>
     <string name="dice_qwixx_white_pick">Cocher %1$d :</string>

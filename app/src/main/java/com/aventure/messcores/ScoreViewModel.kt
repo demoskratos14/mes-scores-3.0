@@ -96,6 +96,19 @@ class ScoreViewModel : ViewModel() {
         return DixMilleRound(players.size, startPlayer = next).also { dixMilleRound = it }
     }
 
+    // La partie de Shut the Box en cours (qui joue, clapets ouverts, dés du joueur). Elle vit ici pour la même raison ; une partie
+    // reprise continue avec le premier joueur qui n'a pas encore joué dans la dernière manche inscrite au tableau.
+    private var shutBoxRound: ShutBoxRound? = null
+
+    /** La partie de Shut the Box ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun shutBoxRound(): ShutBoxRound {
+        val current = shutBoxRound
+        if (current != null && current.playerCount == players.size) return current
+        val last = scores.indexOfLast { row -> row.any { it.baseValue != null } }
+        val next = if (last < 0) 0 else scores[last].indexOfFirst { it.baseValue == null }.coerceAtLeast(0)
+        return ShutBoxRound(players.size, startPlayer = next).also { shutBoxRound = it }
+    }
+
     // La partie de Qwixx en cours (plateau de chaque joueur, tour en cours). Elle vit ici pour la même raison ; une partie
     // reprise ou rouverte repart d'une partie neuve.
     private var qwixxRound: QwixxRound? = null
@@ -207,6 +220,7 @@ class ScoreViewModel : ViewModel() {
         buncoRound = null
         cdcRound = null
         dixMilleRound = null
+        shutBoxRound = null
         qwixxRound = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
@@ -238,6 +252,7 @@ class ScoreViewModel : ViewModel() {
             buncoRound = null
             cdcRound = null
             dixMilleRound = null
+            shutBoxRound = null
             qwixxRound = null
         }
         currentSaveId = saved.id
@@ -271,6 +286,7 @@ class ScoreViewModel : ViewModel() {
         buncoRound = null
         cdcRound = null
         dixMilleRound = null
+        shutBoxRound = null
         qwixxRound = null
         currentSaveId = null
         savedBaseline = null
@@ -626,7 +642,14 @@ class ScoreViewModel : ViewModel() {
             EndConditionType.NONE -> false
             EndConditionType.ROUND_COUNT -> {
                 val limit = condition.roundCount ?: return false
-                roundsPlayed() >= limit
+                if (roundsPlayed() < limit) {
+                    false
+                } else if (condition.stopImmediately || gameRules.scoreMode != ScoreMode.TABLE) {
+                    true
+                } else {
+                    // Les joueurs inscrivent leur manche chacun à leur tour (Shut the Box) : on attend que le dernier ait joué.
+                    table.activeRoundComplete()
+                }
             }
             EndConditionType.SCORE_THRESHOLD -> {
                 if (!thresholdReached(condition, totals)) {

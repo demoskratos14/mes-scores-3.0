@@ -550,7 +550,7 @@
     <string name="rules_shutbox_3_title">Il punteggio</string>
     <string name="rules_shutbox_3_body">Il punteggio del turno è la somma delle levette rimaste aperte. Abbassarle tutte dà 0: è « chiudere la scatola ».</string>
     <string name="rules_shutbox_4_title">Nell\'app</string>
-    <string name="rules_shutbox_4_body">A ogni round, inserisci nella colonna del giocatore la somma delle levette rimaste aperte (0 se la scatola è chiusa). L\'app non termina la partita: concordate il numero di round da giocare (5, per esempio) e guardate la classifica.</string>
+    <string name="rules_shutbox_4_body">L\'app gioca la partita: al tuo turno, lancia i dadi, tocca le levette da abbassare (la somma deve essere uguale al totale dei dadi) e poi «Abbassa le levette». Quando le levette 7, 8 e 9 sono abbassate, puoi lanciare un solo dado. L\'app si accorge da sola che nessuna combinazione è possibile, scrive la somma delle levette rimaste aperte (0 se la scatola è chiusa) e passa il turno. La partita dura 5 round; vince il totale più basso.</string>
     <string name="rules_bunco_1_title">Obiettivo del gioco</string>
     <string name="rules_bunco_1_body">Fare più punti possibile in 6 round. Al round 1 si cercano gli 1; al round 2, i 2; e così via fino al round 6.</string>
     <string name="rules_bunco_2_title">Svolgimento del turno</string>
@@ -1420,6 +1420,20 @@
     <string name="dice_dm_hot">Tutti e 6 i dadi hanno fatto punti: si rilanciano tutti!</string>
     <string name="dice_dm_open_needed">Non hai ancora segnato: servono %1$d punti in un solo turno per poter tenere. Rilancia!</string>
     <string name="dice_dm_last_turn">%1$s ha raggiunto %2$d punti: i giocatori che non hanno ancora giocato nel round hanno un ultimo turno.</string>
+    <string name="dice_sb_scores_title">Punteggi (vince il totale più basso)</string>
+    <string name="dice_sb_round">Round %1$d di %2$d</string>
+    <string name="dice_sb_hint">Lancia i dadi e abbassa levette la cui somma è uguale al totale. Continua finché non puoi più abbassarne: fai la somma delle levette rimaste aperte.</string>
+    <string name="dice_sb_one_die">Lancia un solo dado</string>
+    <string name="dice_sb_total">Totale dei dadi: %1$d</string>
+    <string name="dice_sb_pick">Tocca le levette aperte che sommano %1$d.</string>
+    <string name="dice_sb_selection">Levette scelte: %1$s = %2$d</string>
+    <string name="dice_sb_close">Abbassa le levette</string>
+    <string name="dice_sb_stuck">Nessuna combinazione possibile: il tuo turno è finito. Levette rimaste aperte: %1$d.</string>
+    <string name="dice_sb_shut">Scatola chiusa! Fai 0.</string>
+    <string name="dice_sb_end_turn">Termina il turno (%1$d)</string>
+    <string name="dice_sb_flap_open">Levetta %1$d, aperta</string>
+    <string name="dice_sb_flap_selected">Levetta %1$d, scelta</string>
+    <string name="dice_sb_flap_shut">Levetta %1$d, abbassata</string>
     <string name="dice_qwixx_roll_hint">Lancia i 6 dadi: due bianchi e uno per ogni colore.</string>
     <string name="dice_qwixx_white_prompt">Dadi bianchi: %1$d. Ogni giocatore può barrare questo numero nel colore che vuole, oppure passare.</string>
     <string name="dice_qwixx_white_pick">Barrare %1$d:</string>
