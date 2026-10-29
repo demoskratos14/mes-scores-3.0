@@ -59,7 +59,8 @@ jobs:
           if-no-files-found: ignore
 
       # Lint Android : API dépréciées, problèmes d'accessibilité, ressources inutilisées, etc.
-      # Les erreurs bloquent le workflow ; les avertissements restent consultables dans le rapport.
+      # Les erreurs et les avertissements bloquent le workflow (lint { warningsAsErrors = true } dans app/build.gradle.kts) ;
+      # le rapport HTML reste consultable.
       - name: Lancer le lint
         run: ./gradlew lintDebug --stacktrace
 
