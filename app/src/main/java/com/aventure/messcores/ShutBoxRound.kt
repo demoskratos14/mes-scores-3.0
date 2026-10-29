@@ -120,6 +120,7 @@ internal class ShutBoxRound(
     val canChooseOneDie: Boolean get() = !turn.hasRolled && ShutBoxScoring.canRollOneDie(openMask)
 
     /** Choisit de lancer un ou deux dés ; un seul dé n'est permis que si les clapets 7, 8 et 9 sont rabattus. */
+    @JvmName("chooseOneDie")
     fun setOneDie(value: Boolean) {
         if (turn.hasRolled || (value && !ShutBoxScoring.canRollOneDie(openMask))) return
         oneDie = value
