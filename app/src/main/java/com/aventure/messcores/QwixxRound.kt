@@ -158,12 +158,27 @@ internal class QwixxRound(
     var colorNumber by mutableIntStateOf(0)
         private set
 
+    /** Nombre de tours terminés : un tour plus avancé l'emporte en entier quand deux états se rencontrent (voir [mergeFrom]). */
+    var turnCount by mutableIntStateOf(0)
+        private set
+
+    /**
+     * Pour chaque joueur, combien de fois ce qui lui appartient a changé (ses croix, son choix sur les dés blancs, et
+     * pour le joueur actif son choix avec un dé de couleur) : à tour égal, c'est la version la plus haute qui l'emporte.
+     */
+    private var versions by mutableStateOf(List(playerCount) { 0 })
+
     /** Somme des deux dés blancs ; 0 avant le lancer. */
     val whiteSum: Int get() = QwixxDice.whiteSum(turn.values)
 
     private fun has(mask: Int, row: Int): Boolean = (mask and (1 shl row)) != 0
 
     private fun <T> List<T>.with(index: Int, value: T): List<T> = toMutableList().also { it[index] = value }
+
+    /** Ce qui appartient à [player] vient de changer : sa version monte. */
+    private fun touch(player: Int) {
+        versions = versions.with(player, versions[player] + 1)
+    }
 
     /** Rangées dont un joueur a posé le cadenas (y compris pendant ce tour). */
     private fun lockedRows(): Int {
@@ -236,6 +251,7 @@ internal class QwixxRound(
         if (whiteChoices[player] != QwixxScoring.NO_CHOICE || row !in whiteOptions(player)) return
         boards = boards.with(player, boards[player].with(row, QwixxScoring.mark(boards[player][row], row, whiteSum)))
         whiteChoices = whiteChoices.with(player, row)
+        touch(player)
     }
 
     /** [player] ne coche rien avec les dés blancs. */
@@ -243,6 +259,7 @@ internal class QwixxRound(
         if (step != QwixxStep.WHITE || player !in 0 until playerCount) return
         if (whiteChoices[player] != QwixxScoring.NO_CHOICE) return
         whiteChoices = whiteChoices.with(player, QwixxScoring.PASS)
+        touch(player)
     }
 
     /** Défait le choix de [player] sur les dés blancs, tant que le joueur actif n'a pas fait le sien avec un dé de couleur. */
@@ -254,6 +271,7 @@ internal class QwixxRound(
             boards = boards.with(player, boards[player].with(choice, QwixxScoring.unmark(boards[player][choice], choice, whiteSum)))
         }
         whiteChoices = whiteChoices.with(player, QwixxScoring.NO_CHOICE)
+        touch(player)
     }
 
     /** Le joueur actif coche [number] dans la rangée [row] avec un dé blanc et le dé de cette couleur. */
@@ -262,12 +280,14 @@ internal class QwixxRound(
         boards = boards.with(current, boards[current].with(row, QwixxScoring.mark(boards[current][row], row, number)))
         colorChoice = row
         colorNumber = number
+        touch(current)
     }
 
     /** Le joueur actif ne coche rien avec un dé de couleur. */
     fun passColor() {
         if (step != QwixxStep.COLOR) return
         colorChoice = QwixxScoring.PASS
+        touch(current)
     }
 
     /** Défait le choix du joueur actif avec un dé de couleur. */
@@ -278,6 +298,7 @@ internal class QwixxRound(
         }
         colorChoice = QwixxScoring.NO_CHOICE
         colorNumber = 0
+        touch(current)
     }
 
     /**
@@ -287,6 +308,8 @@ internal class QwixxRound(
     fun endTurn(): Boolean {
         if (step != QwixxStep.END) return false
         if (penaltyPending) penalties = penalties.with(current, penalties[current] + 1)
+        touch(current)
+        turnCount += 1
         closedMask = closedMask or lockedRows()
         val ended = Integer.bitCount(closedMask) >= QwixxScoring.LOCKS_TO_END || penalties.any { it >= QwixxScoring.MAX_PENALTIES }
         if (ended) {
@@ -335,6 +358,8 @@ internal class QwixxRound(
         closedMask = 0
         boards = List(playerCount) { List(QwixxScoring.ROWS) { 0 } }
         penalties = List(playerCount) { 0 }
+        turnCount = 0
+        versions = List(playerCount) { 0 }
         newTurn()
     }
 
@@ -351,54 +376,171 @@ internal class QwixxRound(
             addAll(boards[player])
             add(whiteChoices[player])
         }
+        add(turnCount)
+        addAll(versions)
         addAll(turn.snapshot())
+    }
+
+    /** Un état lu depuis une liste produite par [snapshot], sans encore l'appliquer. */
+    private class Parsed(
+        val over: Boolean,
+        val current: Int,
+        val closedMask: Int,
+        val colorChoice: Int,
+        val colorNumber: Int,
+        val penalties: List<Int>,
+        val boards: List<List<Int>>,
+        val whiteChoices: List<Int>,
+        val turnCount: Int,
+        val versions: List<Int>,
+        val dice: List<Int>
+    ) {
+        /** Vrai si les dés ont été lancés (la liste des dés commence par le nombre de lancers puis le nombre de dés). */
+        val diceRolled: Boolean get() = (dice.getOrNull(1) ?: 0) > 0
+
+        /** Ce qui appartient à [player] : ses rangées, ses pénalités, son choix, et pour le joueur actif son choix de couleur. */
+        fun registerOf(player: Int): List<Int> =
+            boards[player] + penalties[player] + whiteChoices[player] +
+                if (player == current) listOf(colorChoice, colorNumber) else emptyList()
+    }
+
+    /** Lit [data] ; null si la liste n'est pas un état valide pour cette partie. */
+    private fun parse(data: List<Int>): Parsed? = try {
+        var cursor = 0
+        fun next(): Int = data[cursor++]
+
+        val newOver = next() == 1
+        require(next() == playerCount)
+        val newCurrent = next()
+        val newClosed = next()
+        val newColorChoice = next()
+        val newColorNumber = next()
+        require(newCurrent in 0 until playerCount.coerceAtLeast(1))
+        require(newClosed in 0 until (1 shl QwixxScoring.ROWS))
+        require(newColorChoice in QwixxScoring.NO_CHOICE..QwixxScoring.PASS)
+        require(newColorNumber in 0..QwixxScoring.MAX_NUMBER)
+        val newPenalties = mutableListOf<Int>()
+        val newBoards = mutableListOf<List<Int>>()
+        val newWhite = mutableListOf<Int>()
+        repeat(playerCount) {
+            val penalty = next()
+            require(penalty in 0..QwixxScoring.MAX_PENALTIES)
+            newPenalties += penalty
+            newBoards += List(QwixxScoring.ROWS) {
+                val mask = next()
+                require(mask in 0 until (1 shl 12))
+                mask
+            }
+            val choice = next()
+            require(choice in QwixxScoring.NO_CHOICE..QwixxScoring.PASS)
+            newWhite += choice
+        }
+        val newTurnCount = next()
+        require(newTurnCount >= 0)
+        val newVersions = List(playerCount) { next().also { v -> require(v >= 0) } }
+        Parsed(
+            over = newOver,
+            current = newCurrent,
+            closedMask = newClosed,
+            colorChoice = newColorChoice,
+            colorNumber = newColorNumber,
+            penalties = newPenalties,
+            boards = newBoards,
+            whiteChoices = newWhite,
+            turnCount = newTurnCount,
+            versions = newVersions,
+            dice = data.drop(cursor)
+        )
+    } catch (e: Exception) {
+        null
+    }
+
+    private fun applyState(state: Parsed) {
+        over = state.over
+        current = state.current
+        closedMask = state.closedMask
+        colorChoice = state.colorChoice
+        colorNumber = state.colorNumber
+        penalties = state.penalties
+        boards = state.boards
+        whiteChoices = state.whiteChoices
+        turnCount = state.turnCount
+        versions = state.versions
+        turn.restoreFrom(state.dice)
     }
 
     /** Rétablit l'état produit par [snapshot] ; une liste invalide remet la partie au départ. */
     fun restoreFrom(data: List<Int>) {
         resetAll()
-        try {
-            var cursor = 0
-            fun next(): Int = data[cursor++]
-
-            val newOver = next() == 1
-            require(next() == playerCount)
-            val newCurrent = next()
-            val newClosed = next()
-            val newColorChoice = next()
-            val newColorNumber = next()
-            require(newCurrent in 0 until playerCount.coerceAtLeast(1))
-            require(newClosed in 0 until (1 shl QwixxScoring.ROWS))
-            require(newColorChoice in QwixxScoring.NO_CHOICE..QwixxScoring.PASS)
-            require(newColorNumber in 0..QwixxScoring.MAX_NUMBER)
-            val newPenalties = mutableListOf<Int>()
-            val newBoards = mutableListOf<List<Int>>()
-            val newWhite = mutableListOf<Int>()
-            repeat(playerCount) {
-                val penalty = next()
-                require(penalty in 0..QwixxScoring.MAX_PENALTIES)
-                newPenalties += penalty
-                newBoards += List(QwixxScoring.ROWS) {
-                    val mask = next()
-                    require(mask in 0 until (1 shl 12))
-                    mask
-                }
-                val choice = next()
-                require(choice in QwixxScoring.NO_CHOICE..QwixxScoring.PASS)
-                newWhite += choice
-            }
-
-            over = newOver
-            current = newCurrent
-            closedMask = newClosed
-            colorChoice = newColorChoice
-            colorNumber = newColorNumber
-            penalties = newPenalties
-            boards = newBoards
-            whiteChoices = newWhite
-            turn.restoreFrom(data.drop(cursor))
-        } catch (e: Exception) {
-            resetAll()
-        }
+        parse(data)?.let { applyState(it) }
     }
+
+    /**
+     * Fusionne l'état [data] reçu d'un autre téléphone avec celui-ci, au lieu de le remplacer : deux téléphones qui
+     * valident au même instant gardent chacun leur part.
+     *
+     * - Un tour plus avancé l'emporte en entier (tout ce qu'il contient a été vu par le téléphone qui l'a terminé).
+     * - À tour égal, des dés lancés l'emportent sur des dés pas encore lancés ; deux lancers différents au même instant
+     *   se départagent de la même façon sur tous les téléphones.
+     * - Sinon, joueur par joueur : la version la plus haute de ce qui appartient au joueur l'emporte, donc les croix de
+     *   l'un et les croix de l'autre sont toutes les deux gardées.
+     *
+     * La fusion donne le même résultat quel que soit l'ordre des messages : tous les téléphones finissent avec le même état.
+     */
+    fun mergeFrom(data: List<Int>) {
+        val remote = parse(data) ?: return
+        val local = parse(snapshot()) ?: return
+        applyState(join(local, remote))
+    }
+
+    private fun join(a: Parsed, b: Parsed): Parsed {
+        if (a.turnCount != b.turnCount) return if (a.turnCount > b.turnCount) a else b
+        if (a.diceRolled != b.diceRolled) return if (a.diceRolled) a else b
+        val byDice = compareIntLists(a.dice, b.dice)
+        if (byDice != 0) return if (byDice > 0) a else b
+
+        val mergedPenalties = a.penalties.toMutableList()
+        val mergedBoards = a.boards.toMutableList()
+        val mergedWhite = a.whiteChoices.toMutableList()
+        val mergedVersions = a.versions.toMutableList()
+        val mergedCurrent = maxOf(a.current, b.current)
+        var mergedColorChoice = if (a.current == mergedCurrent) a.colorChoice else b.colorChoice
+        var mergedColorNumber = if (a.current == mergedCurrent) a.colorNumber else b.colorNumber
+        for (player in 0 until playerCount) {
+            val byVersion = b.versions[player].compareTo(a.versions[player])
+            val bWins = if (byVersion != 0) byVersion > 0 else compareIntLists(b.registerOf(player), a.registerOf(player)) > 0
+            if (bWins) {
+                mergedPenalties[player] = b.penalties[player]
+                mergedBoards[player] = b.boards[player]
+                mergedWhite[player] = b.whiteChoices[player]
+                if (player == mergedCurrent) {
+                    mergedColorChoice = b.colorChoice
+                    mergedColorNumber = b.colorNumber
+                }
+            }
+            mergedVersions[player] = maxOf(a.versions[player], b.versions[player])
+        }
+        return Parsed(
+            over = a.over || b.over,
+            current = mergedCurrent,
+            closedMask = a.closedMask or b.closedMask,
+            colorChoice = mergedColorChoice,
+            colorNumber = mergedColorNumber,
+            penalties = mergedPenalties,
+            boards = mergedBoards,
+            whiteChoices = mergedWhite,
+            turnCount = a.turnCount,
+            versions = mergedVersions,
+            dice = a.dice
+        )
+    }
+}
+
+/** Compare deux listes d'entiers terme à terme, puis par taille : le même ordre sur tous les téléphones sert à départager deux états. */
+internal fun compareIntLists(a: List<Int>, b: List<Int>): Int {
+    for (i in 0 until minOf(a.size, b.size)) {
+        val c = a[i].compareTo(b[i])
+        if (c != 0) return c
+    }
+    return a.size.compareTo(b.size)
 }

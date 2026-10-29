@@ -89,6 +89,10 @@ internal class BuncoRound(
     var winner by mutableIntStateOf(-1)
         private set
 
+    /** Nombre d'actions faites dans la partie (lancer, passer la main, manche suivante) : l'état le plus avancé l'emporte (voir [mergeFrom]). */
+    var version by mutableIntStateOf(0)
+        private set
+
     /** Le premier joueur de la manche [round] : il change à chaque manche. */
     fun starterOf(round: Int): Int = (round - 1) % playerCount.coerceAtLeast(1)
 
@@ -108,6 +112,7 @@ internal class BuncoRound(
     fun roll(): Boolean {
         if (!canRoll) return false
         turn.roll()
+        version += 1
         val gained = BuncoScoring.roll(turn.values, round).points
         points = points.toMutableList().also { it[current] += gained }
         if (points[current] >= BuncoScoring.TARGET) {
@@ -120,6 +125,7 @@ internal class BuncoRound(
     /** Le lancer n'a rien rapporté : la main passe au joueur suivant. */
     fun endTurn() {
         if (!turnOver) return
+        version += 1
         current = (current + 1) % playerCount.coerceAtLeast(1)
         turn.reset()
     }
@@ -127,6 +133,7 @@ internal class BuncoRound(
     /** Manche suivante (sans effet après la dernière) : points remis à zéro, nouveau premier joueur. */
     fun nextRound() {
         if (phase != BuncoPhase.DONE || isLastRound) return
+        version += 1
         round += 1
         current = starterOf(round)
         points = List(playerCount) { 0 }
@@ -148,6 +155,7 @@ internal class BuncoRound(
         current = starterOf(firstRound)
         points = List(playerCount) { 0 }
         winner = -1
+        version = 0
         turn.reset()
     }
 
@@ -159,35 +167,68 @@ internal class BuncoRound(
         add(current)
         add(winner)
         addAll(points)
+        add(version)
         addAll(turn.snapshot())
+    }
+
+    /** Un état lu depuis une liste produite par [snapshot], sans encore l'appliquer. */
+    private class Parsed(
+        val phase: BuncoPhase,
+        val round: Int,
+        val current: Int,
+        val winner: Int,
+        val points: List<Int>,
+        val version: Int,
+        val dice: List<Int>
+    )
+
+    /** Lit [data] ; null si la liste n'est pas un état valide pour cette partie. */
+    private fun parse(data: List<Int>): Parsed? = try {
+        var cursor = 0
+        fun next(): Int = data[cursor++]
+
+        val newPhase = BuncoPhase.values()[next()]
+        require(next() == playerCount)
+        val newRound = next()
+        val newCurrent = next()
+        val newWinner = next()
+        val newPoints = List(playerCount) { next() }
+        val newVersion = next()
+        require(newRound in 1..BuncoScoring.ROUNDS)
+        require(newCurrent in 0 until playerCount && newWinner in -1 until playerCount)
+        // Un joueur a moins de 21 points avant son dernier lancer, qui en rapporte au plus 21.
+        require(newPoints.all { it in 0 until 2 * BuncoScoring.TARGET })
+        require(newVersion >= 0)
+        Parsed(newPhase, newRound, newCurrent, newWinner, newPoints, newVersion, data.drop(cursor))
+    } catch (e: Exception) {
+        null
+    }
+
+    private fun applyState(state: Parsed) {
+        phase = state.phase
+        round = state.round
+        current = state.current
+        winner = state.winner
+        points = state.points
+        version = state.version
+        turn.restoreFrom(state.dice)
     }
 
     /** Rétablit l'état produit par [snapshot] ; une liste invalide remet la partie au départ. */
     fun restoreFrom(data: List<Int>) {
         resetAll()
-        try {
-            var cursor = 0
-            fun next(): Int = data[cursor++]
+        parse(data)?.let { applyState(it) }
+    }
 
-            val newPhase = BuncoPhase.values()[next()]
-            require(next() == playerCount)
-            val newRound = next()
-            val newCurrent = next()
-            val newWinner = next()
-            val newPoints = List(playerCount) { next() }
-            require(newRound in 1..BuncoScoring.ROUNDS)
-            require(newCurrent in 0 until playerCount && newWinner in -1 until playerCount)
-            // Un joueur a moins de 21 points avant son dernier lancer, qui en rapporte au plus 21.
-            require(newPoints.all { it in 0 until 2 * BuncoScoring.TARGET })
-
-            phase = newPhase
-            round = newRound
-            current = newCurrent
-            winner = newWinner
-            points = newPoints
-            turn.restoreFrom(data.drop(cursor))
-        } catch (e: Exception) {
-            resetAll()
-        }
+    /**
+     * Fusionne l'état [data] reçu d'un autre téléphone avec celui-ci, au lieu de le remplacer : la partie se joue un
+     * joueur à la fois, donc l'état le plus avancé (celui qui a vu le plus d'actions) l'emporte, et un message en retard
+     * ne défait plus un lancer ou un tour déjà joué. Deux actions faites au même instant sur le même état se départagent
+     * de la même façon sur tous les téléphones, qui finissent donc avec le même état.
+     */
+    fun mergeFrom(data: List<Int>) {
+        val remote = parse(data) ?: return
+        val remoteWins = if (remote.version != version) remote.version > version else compareIntLists(data, snapshot()) > 0
+        if (remoteWins) applyState(remote)
     }
 }

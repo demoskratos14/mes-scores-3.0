@@ -208,14 +208,18 @@ internal fun DiceScreen(
         if (shared) session?.publishDice(DiceTable(forPlayer, tableTurn(), pigTotal, pigBust))
     }
 
-    // Ce que les autres téléphones ont fait : on reprend leur tour de dés tel quel.
+    // Ce que les autres téléphones ont fait : on reprend leur tour de dés tel quel. Au Bunco et au Qwixx, on le fusionne avec le nôtre
+    // (deux téléphones qui valident au même instant gardent chacun leur part) et on repartage le résultat s'il diffère de ce qu'on a reçu.
     val sharedTable = session?.diceTable
     LaunchedEffect(sharedTable, shared) {
         if (shared && sharedTable != null && sharedTable != DiceTable(currentPlayer, tableTurn(), pigTotal, pigBust)) {
-            if (round != null) round.restoreFrom(sharedTable.turn) else if (bunco != null) bunco.restoreFrom(sharedTable.turn) else if (cdc != null) cdc.restoreFrom(sharedTable.turn) else if (dixMille != null) dixMille.restoreFrom(sharedTable.turn) else if (qwixx != null) qwixx.restoreFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
+            if (round != null) round.restoreFrom(sharedTable.turn) else if (bunco != null) bunco.mergeFrom(sharedTable.turn) else if (cdc != null) cdc.restoreFrom(sharedTable.turn) else if (dixMille != null) dixMille.restoreFrom(sharedTable.turn) else if (qwixx != null) qwixx.mergeFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
             player = sharedTable.player
             pigTotal = sharedTable.pigTotal
             pigBust = sharedTable.pigBust
+            if ((bunco != null || qwixx != null) && tableTurn() != sharedTable.turn) {
+                publish(bunco?.current ?: qwixx?.current ?: currentPlayer)
+            }
         }
     }
 
