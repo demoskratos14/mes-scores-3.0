@@ -83,6 +83,9 @@ internal fun GameRules.isDiceOnly(): Boolean = id in DICE_ONLY_GAME_IDS
 /** Vrai si le jeu a des dés à lancer dans l'appli. */
 internal fun GameRules.hasDice(): Boolean = DiceSetups.forGame(id) != null
 
+/** Identifiant du jeu King of Tokyo (feuille de scores seule, sans version jouable). */
+private const val KOT_ID = "builtin_kot"
+
 /** Vrai si le bouton « Dés » est aussi sur la feuille de scores seule (King of Tokyo, qui n'est pas un jeu jouable). */
 internal fun GameRules.hasDiceOnSheet(): Boolean = id == KOT_ID
 
