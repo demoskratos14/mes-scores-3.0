@@ -35,9 +35,7 @@ data class PouleRow(
     val rank: Int,
     val played: Int,
     val wins: Int
-) {
-    val losses: Int get() = played - wins
-}
+)
 
 /**
  * État complet d'un championnat. Immuable : chaque action de [TournamentEngine] en renvoie un nouveau,

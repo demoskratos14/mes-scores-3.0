@@ -101,6 +101,23 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+/**
+ * Jeux jouables qui ont leur propre écran, sans feuille de scores, et qu'on ouvre directement par leur route : deux
+ * joueurs, sur un téléphone ou chacun sur le sien. Le Mastermind, le touché coulé et le Pendu s'ouvrent aussi sur
+ * leur écran, mais leur ViewModel est d'abord préparé (voir « chooseGame »). Un nouveau jeu de ce genre s'ajoute ici.
+ */
+internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
+    MORPION_ID to "morpion",
+    GOMOKU_ID to "gomoku",
+    DOTS_ID to "dots",
+    CONNECT4_ID to "connect4",
+    PFC_ID to "pfc",
+    NIM_ID to "nim",
+    DRAUGHTS_ID to "draughts",
+    OTHELLO_ID to "othello",
+    CHESS_ID to "chess"
+)
+
 @Composable
 fun ScoreApp(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -146,7 +163,7 @@ fun ScoreApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var playMode by rememberSaveable { mutableStateOf(false) }
-    // Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille jouables : la page des dés est l'écran de la partie (pas de feuille de score derrière).
+    // Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille, Qwixx, Shut the Box jouables : la page des dés est l'écran de la partie (pas de feuille de score derrière).
     // Un invité qui rejoint une de ces parties arrive lui aussi directement sur la page des dés.
     // Seulement si l'organisateur joue en version jouable : la feuille de scores seule reste indépendante.
     val playable = playMode || (sync.role == SyncRole.GUEST && sync.hostPlayable)
@@ -177,6 +194,13 @@ fun ScoreApp(
         }
     }
 
+    // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+    fun leaveToSetup() {
+        if (!navController.popBackStack("setup", inclusive = false)) {
+            navController.popBackStack("home", inclusive = false)
+        }
+    }
+
     // Noms saisis à l'étape 1, en attente d'être associés à un jeu à l'étape 2.
     // rememberSaveable : sinon une rotation de l'écran vide la liste alors que la navigation reste
     // sur « choisir le jeu » (message « Tu as saisi 0 joueur »).
@@ -189,10 +213,10 @@ fun ScoreApp(
 
     // Accueil : false = feuilles de scores seules, true = jeux jouables dans l'appli (dés, Mastermind).
     // (playMode est déclaré plus haut : le dialogue de sortie en a besoin.)
-    // Le bouton « Dés » n'existe que côté jeux jouables (jamais sur la feuille de scores seule) ; un invité le garde
-    // quand l'organisateur joue en version jouable (les dés se partagent).
+    // Le bouton « Dés » n'existe que côté jeux jouables, sauf King of Tokyo (dés libres sur sa feuille de scores, voir
+    // [hasDiceOnSheet]) ; un invité le garde quand l'organisateur joue en version jouable (les dés se partagent).
     val openDice: (() -> Unit)? =
-        if (playable) { { navController.navigate("dice") } } else null
+        if (playable || viewModel.gameRules.hasDiceOnSheet()) { { navController.navigate("dice") } } else null
 
     // Route vers l'écran de score adapté au mode du jeu choisi.
     fun scoreRouteFor(rules: GameRules): String = when (rules.scoreMode) {
@@ -203,7 +227,7 @@ fun ScoreApp(
         ScoreMode.RACKET -> "racket"
     }
 
-    // Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette et Dix mille jouables : tout (scores compris) s'affiche sur la page des dés, sans feuille de score.
+    // Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille, Qwixx et Shut the Box jouables : tout (scores compris) s'affiche sur la page des dés, sans feuille de score.
     // Un invité y est amené comme l'organisateur, mais seulement si celui-ci joue en version jouable.
     fun gameRouteFor(rules: GameRules): String =
         if (playable && rules.isDiceOnly()) "dice" else scoreRouteFor(rules)
@@ -302,45 +326,22 @@ fun ScoreApp(
                     repository = gameRepository,
                     playerCount = pendingPlayerNames.size,
                     onGameChosen = { rules ->
+                        val ownScreenRoute = OWN_SCREEN_ROUTES[rules.id]
                         if (rules.id == MASTERMIND_ID) {
                             // Le Mastermind a son propre écran et n'utilise ni le tableau ni les compteurs.
                             mastermindViewModel.open(rules, pendingPlayerNames)
                             navController.navigate("mastermind")
-                        } else if (rules.id == MORPION_ID) {
-                            // Le Morpion a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
-                            navController.navigate("morpion")
-                        } else if (rules.id == GOMOKU_ID) {
-                            // Le Gomoku a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
-                            navController.navigate("gomoku")
-                        } else if (rules.id == DOTS_ID) {
-                            // La Pipopipette aussi.
-                            navController.navigate("dots")
                         } else if (rules.id == BATTLESHIP_ID) {
                             // Le touché coulé a lui aussi son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
                             battleshipViewModel.open(rules, pendingPlayerNames)
                             navController.navigate("battleship")
-                        } else if (rules.id == CONNECT4_ID) {
-                            // Le Puissance 4 a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
-                            navController.navigate("connect4")
-                        } else if (rules.id == PFC_ID) {
-                            // Pierre-feuille-ciseaux a son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
-                            navController.navigate("pfc")
-                        } else if (rules.id == NIM_ID) {
-                            // Le jeu des allumettes a aussi son écran : deux joueurs, sur un téléphone ou chacun sur le sien.
-                            navController.navigate("nim")
-                        } else if (rules.id == DRAUGHTS_ID) {
-                            // Les dames ont leur propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
-                            navController.navigate("draughts")
-                        } else if (rules.id == OTHELLO_ID) {
-                            // L'Othello aussi : deux joueurs, sur un téléphone ou chacun sur le sien.
-                            navController.navigate("othello")
                         } else if (rules.id == HANGMAN_ID) {
                             // Le Pendu aussi : deux joueurs, sur un téléphone ou chacun sur le sien.
                             hangmanViewModel.open(rules, pendingPlayerNames)
                             navController.navigate("hangman")
-                        } else if (rules.id == CHESS_ID) {
-                            // Les échecs ont leur propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
-                            navController.navigate("chess")
+                        } else if (ownScreenRoute != null) {
+                            // Les autres jeux jouables ont leur propre écran, sans rien à préparer : voir OWN_SCREEN_ROUTES.
+                            navController.navigate(ownScreenRoute)
                         } else if (rules.scoreMode == ScoreMode.POKER) {
                             // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
                             navController.navigate("pokerSetup")
@@ -403,12 +404,7 @@ fun ScoreApp(
                 BattleshipScreen(
                     viewModel = battleshipViewModel,
                     online = battleshipOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareBattleship") }
                 )
             }
@@ -428,12 +424,7 @@ fun ScoreApp(
                 TicTacToeScreen(
                     players = pendingPlayerNames,
                     online = ticTacToeOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareMorpion") }
                 )
             }
@@ -452,12 +443,7 @@ fun ScoreApp(
                 Connect4Screen(
                     players = pendingPlayerNames,
                     online = connect4Online,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareConnect4") }
                 )
             }
@@ -476,12 +462,7 @@ fun ScoreApp(
                 NimScreen(
                     players = pendingPlayerNames,
                     online = nimOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareNim") }
                 )
             }
@@ -500,12 +481,7 @@ fun ScoreApp(
                 RockPaperScissorsScreen(
                     players = pendingPlayerNames,
                     online = rockPaperScissorsOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("sharePfc") }
                 )
             }
@@ -525,12 +501,7 @@ fun ScoreApp(
                     spec = GomokuSpec,
                     players = pendingPlayerNames,
                     online = gomokuOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareGomoku") }
                 )
             }
@@ -550,11 +521,7 @@ fun ScoreApp(
                     spec = DotsSpec,
                     players = pendingPlayerNames,
                     online = dotsOnline,
-                    onExit = {
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareDots") }
                 )
             }
@@ -573,12 +540,7 @@ fun ScoreApp(
                 HangmanScreen(
                     viewModel = hangmanViewModel,
                     online = hangmanOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareHangman") }
                 )
             }
@@ -598,12 +560,7 @@ fun ScoreApp(
                 ChessScreen(
                     players = pendingPlayerNames,
                     online = chessOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareChess") }
                 )
             }
@@ -622,12 +579,7 @@ fun ScoreApp(
                 DraughtsScreen(
                     players = pendingPlayerNames,
                     online = draughtsOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareDraughts") }
                 )
             }
@@ -646,12 +598,7 @@ fun ScoreApp(
                 OthelloScreen(
                     players = pendingPlayerNames,
                     online = othelloOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareOthello") }
                 )
             }
@@ -685,12 +632,7 @@ fun ScoreApp(
                 MastermindScreen(
                     viewModel = mastermindViewModel,
                     online = mastermindOnline,
-                    onExit = {
-                        // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-                        if (!navController.popBackStack("setup", inclusive = false)) {
-                            navController.popBackStack("home", inclusive = false)
-                        }
-                    },
+                    onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareMastermind") }
                 )
             }

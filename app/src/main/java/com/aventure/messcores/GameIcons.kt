@@ -137,11 +137,6 @@ private fun DrawScope.paper(color: Color) {
     drawRoundRect(color, cornerRadius = CornerRadius(size.minDimension * 0.18f))
 }
 
-private fun DrawScope.cross(center: Offset, radius: Float, color: Color, width: Float) {
-    drawLine(color, Offset(center.x - radius, center.y - radius), Offset(center.x + radius, center.y + radius), width, StrokeCap.Round)
-    drawLine(color, Offset(center.x - radius, center.y + radius), Offset(center.x + radius, center.y - radius), width, StrokeCap.Round)
-}
-
 private fun DrawScope.drawGeneric() {
     paper(Color(0xFFCFD8DC))
     val s = size.minDimension

@@ -82,6 +82,17 @@ class GameCategoryTest {
     }
 
     @Test
+    fun chaqueJeuSansFeuilleDeScoresAUneRouteDansLaListeDeChoix() {
+        // Un jeu à son propre écran oublié dans OWN_SCREEN_ROUTES (ou dans « chooseGame » pour ceux qui préparent leur ViewModel)
+        // s'ouvrirait sur une feuille de scores vide.
+        val prepares = setOf(MASTERMIND_ID, BATTLESHIP_ID, HANGMAN_ID)
+        val sansRoute = builtIns.filter { !it.hasScoreSheet() && it.id !in OWN_SCREEN_ROUTES && it.id !in prepares }.map { it.id }
+        assertEquals(emptyList<String>(), sansRoute)
+        // Et inversement, chaque route de la table est celle d'un jeu qui n'a pas de feuille de scores.
+        assertEquals(emptyList<String>(), OWN_SCREEN_ROUTES.keys.filter { id -> builtIns.single { it.id == id }.hasScoreSheet() })
+    }
+
+    @Test
     fun lesJeuxCreesParLUtilisateurVontDansAutres() {
         val custom = GameRules(id = "custom_123", name = "Mon jeu")
         assertEquals(GameCategory.OTHER, custom.category())

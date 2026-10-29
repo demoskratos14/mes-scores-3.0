@@ -4,7 +4,7 @@ Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux
 
 - Identifiant : `com.aventure.messcores`
 - minSdk 26, compileSdk/targetSdk 37
-- Kotlin 2.4.21 (plugin Compose), Android Gradle Plugin 9.2.1, Gradle 9.8.1 (via le wrapper) ; Kotlin intégré à AGP et nouveau DSL (plus de plugin `org.jetbrains.kotlin.android`, ni de `applicationVariants`) : le nom des APK vient de `base.archivesName`
+- Kotlin 2.4.21 (plugin Compose), Android Gradle Plugin 9.2.1, Gradle 9.8.2 (via le wrapper) ; Kotlin intégré à AGP et nouveau DSL (plus de plugin `org.jetbrains.kotlin.android`, ni de `applicationVariants`) : le nom des APK vient de `base.archivesName`
 
 ## Compiler
 
@@ -35,7 +35,7 @@ Les tests d'interface (`app/src/test/java/com/aventure/messcores/ui/`) utilisent
 Sous Linux/macOS, si `gradlew` n'est pas exécutable après un clonage : `chmod +x gradlew`
 (ou, une fois pour toutes : `git update-index --chmod=+x gradlew`).
 
-Pour régénérer le wrapper : `gradle wrapper --gradle-version 9.8.1`.
+Pour régénérer le wrapper : `gradle wrapper --gradle-version 9.8.2`.
 
 ## GitHub Actions
 
@@ -80,6 +80,8 @@ MesScores/
             │   ├── MainActivity.kt            navigation, sauvegarde automatique
             │   ├── ScoreViewModel.kt          état de la partie en cours
             │   ├── ScoreModels.kt             CellState, TeamRound, annulation (UndoAction / RedoAction)
+            │   ├── ModeState.kt, TableMode.kt, CounterMode.kt, TeamsMode.kt, RacketMode.kt, PokerMode.kt   un gestionnaire par mode de score (tableau, compteurs, équipes variables, tennis/padel, poker) : état et annulation, auxquels ScoreViewModel délègue
+            │   ├── PhasesState.kt             phase atteinte par chaque joueur (Phase 10), superposée au mode du jeu
             │   ├── ScoreStanding.kt           classement et fin de partie (fonctions pures, testées)
             │   ├── PlayerColors.kt            palette et tirage des couleurs des joueurs
             │   ├── PlayerColorPicker.kt, ColorBlind.kt   choix de la couleur d'un joueur et mode daltonien (code A, B, C… sur chaque couleur)
@@ -110,28 +112,37 @@ MesScores/
             │   ├── AppLanguage.kt, LanguageSelector.kt   langues proposées et bouton drapeau (AppCompatDelegate.setApplicationLocales)
             │   ├── PlayerNames.kt, ResultText.kt, Strings.kt   noms uniques, texte de partage (fonctions pures, testées), textes composés hors @Composable
             │   ├── ScoreActions.kt            barre Annuler / Partager / Enregistrer
+            │   ├── HomeScreen.kt              première page : feuilles de scores ou jeux jouables
+            │   ├── GameIcons.kt, PhoneIcons.kt   icônes dessinées des jeux jouables, et téléphones (un ou deux) de la liste
+            │   ├── ShareScreen.kt, SyncSession.kt, SyncProtocol.kt, NearbyTransport.kt   partage de la partie entre téléphones : écran et autorisations, session, messages, lien Nearby Connections
             │   ├── SetupScreen.kt, ChooseGameScreen.kt, CreateGameScreen.kt
             │   │   CreateGameForm.kt (état du formulaire + conversion en CustomGameDraft), CreateGameSections.kt,
             │   │   CreateGameRulesSections.kt (règles de multiplication, fin de partie), CreateGameWidgets.kt
             │   ├── CustomGameDraft.kt         formulaire de création -> GameRules (fonction pure, testée)
             │   ├── DiceScreen.kt, DiceRules.kt            écran des dés d'un jeu, dés et lancers (`DiceTurn`), Yams, valeur et force des jeux du 421 (`Dice421`)
-│   ├── DiceRollAnimation.kt                   animation d'un lancer : les dés tournent puis s'arrêtent un à un (`DiceRollTimingTest`) ; le score, la combinaison ou le total du Cochon attendent la fin
+            │   ├── DiceRollAnimation.kt                   animation d'un lancer : les dés tournent puis s'arrêtent un à un (`DiceRollTimingTest`) ; le score, la combinaison ou le total du Cochon attendent la fin
             │   ├── Round421.kt, Dice421Panel.kt           421 tour par tour : moteur de la manche (pur, testé) et son interface
+            │   ├── MexicainPanel.kt           Mexicain tour par tour : manche de `Round421` à deux dés, vies perdues et éliminations (testé par `MexicainTest`)
+            │   ├── BuncoRound.kt, BuncoPanel.kt   Bunco tour par tour : moteur de la partie (pur, testé) et son interface
+            │   ├── CdcRound.kt, CdcPanel.kt       Cul de chouette tour par tour : combinaisons, moteur de la partie (pur, testé) et son interface
+            │   ├── QwixxRound.kt, QwixxPanel.kt   Qwixx tour par tour : plateau de chaque joueur, moteur de la partie (pur, testé) et son interface
             │   ├── DixMilleRound.kt, DixMillePanel.kt     Dix mille tour par tour : points des dés, Farkle, ouverture, moteur de la partie (pur, testé par `DixMilleRoundTest`) et son interface
             │   ├── ShutBoxRound.kt, ShutBoxPanel.kt       Shut the Box tour par tour : clapets, combinaisons, un seul dé, boîte fermée, moteur de la partie (pur, testé par `ShutBoxRoundTest`) et son interface
-            │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt   Morpion : règles, écran (un ou deux téléphones) et table en ligne
-│   ├── Connect4.kt, Connect4Screen.kt, Connect4Online.kt      Puissance 4 : règles, écran (un ou deux téléphones) et table en ligne
-│   ├── Nim.kt, NimScreen.kt, NimOnline.kt, NimProtocol.kt   Jeu des allumettes (Nim) : règles, écran (un ou deux téléphones), table en ligne et messages
-│   ├── RockPaperScissors.kt, RockPaperScissorsScreen.kt, RockPaperScissorsOnline.kt, RockPaperScissorsProtocol.kt   Pierre-feuille-ciseaux : règles et séance, écran (un ou deux téléphones), table en ligne et messages
+            │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt, TicTacToeProtocol.kt   Morpion : règles, écran (un ou deux téléphones), table en ligne et messages
+            │   ├── Connect4.kt, Connect4Screen.kt, Connect4Online.kt, Connect4Protocol.kt   Puissance 4 : règles, écran (un ou deux téléphones), table en ligne et messages
+            │   ├── Nim.kt, NimScreen.kt, NimOnline.kt, NimProtocol.kt   Jeu des allumettes (Nim) : règles, écran (un ou deux téléphones), table en ligne et messages
+            │   ├── RockPaperScissors.kt, RockPaperScissorsScreen.kt, RockPaperScissorsOnline.kt, RockPaperScissorsProtocol.kt   Pierre-feuille-ciseaux : règles et séance, écran (un ou deux téléphones), table en ligne et messages
             │   ├── DuoMatch.kt, DuoGameScreen.kt, DuoOnline.kt, DuoProtocol.kt   Jeux à deux joueurs au tour par tour : séance de jeu, écran commun (un ou deux téléphones), table en ligne et messages
             │   ├── Gomoku.kt, GomokuScreen.kt   Gomoku : règles (15 × 15, cinq pierres) et plateau
             │   ├── Dots.kt, DotsScreen.kt   Pipopipette : règles (5 × 5 carrés, un carré fermé fait rejouer) et plateau
             │   ├── Draughts.kt, DraughtsProtocol.kt, DraughtsOnline.kt, DraughtsScreen.kt   Dames (10 × 10) : règles et séance (pures, testées), messages, table en ligne et écran (un ou deux téléphones)
             │   ├── Othello.kt, OthelloScreen.kt, OthelloOnline.kt, OthelloProtocol.kt   Othello (Reversi) : règles pures et séance, écran (un ou deux téléphones), table en ligne et messages
-│   ├── HangmanEngine.kt, HangmanViewModel.kt, HangmanOnline.kt, HangmanProtocol.kt, HangmanScreen.kt   Pendu : règles, partie sur un téléphone, table en ligne, messages et écran
+            │   ├── HangmanEngine.kt, HangmanViewModel.kt, HangmanOnline.kt, HangmanProtocol.kt, HangmanScreen.kt   Pendu : règles, partie sur un téléphone, table en ligne, messages et écran
             │   ├── ChessEngine.kt, ChessMatch.kt, ChessProtocol.kt, ChessOnline.kt, ChessScreen.kt   Échecs : règles (pures, testées), séance de deux joueurs, messages, table en ligne et écran
+            │   ├── MastermindEngine.kt, MastermindViewModel.kt, MastermindOnline.kt, MastermindProtocol.kt, MastermindScreen.kt   Mastermind : règles, partie sur un téléphone, table en ligne, messages et écran
             │   ├── WizardChess.kt   Échecs, style « sorcier » : statues dessinées en vectoriel, dalles de pierre, animation de chaque coup (éclats quand une pièce est prise)
             │   ├── BattleshipEngine.kt, BattleshipViewModel.kt, BattleshipOnline.kt, BattleshipProtocol.kt, BattleshipScreen.kt   Touché coulé : règles, partie sur un téléphone, table en ligne, messages et écran
+            │   ├── BattleshipBackdrop.kt, SeaFleetSprites.kt, SpaceFleetSprites.kt   Touché coulé : fond de la grille (mer ou ciel étoilé) et images des navires et des vaisseaux
             │   ├── ScoreScreen.kt, CounterScreen.kt       tableau par manches / compteurs
             │   │   ScoreTable.kt (en-tête + corps), ScoreTableFooter.kt (phase, bonus, total),
             │   │   ScoreCell.kt (une case), ScoreEntry.kt (fenêtre de saisie partagée : passage au joueur suivant, flèches), ScoreDialogs.kt (fenêtres de saisie : nombre, choix, annonce, bowling)
@@ -187,14 +198,23 @@ Trois jeux de cartes avec calcul automatique de la marque, chacun dans une fonct
 
 ## 421 jouable tour par tour
 
-En version jouable, le 421 se joue sur la page des dés (le bouton « Dés » n'existe que dans les jeux jouables, jamais sur la feuille de scores seule) et la partie se déroule dans l'ordre (`Round421`, moteur pur testé par `Round421Test`) :
+En version jouable, le 421 se joue sur la page des dés (le bouton « Dés » n'existe que dans les jeux jouables, jamais sur la feuille de scores seule, sauf King of Tokyo qui n'est pas un jeu jouable mais garde des dés libres sur sa feuille : `GameRules.hasDiceOnSheet`) et la partie se déroule dans l'ordre (`Round421`, moteur pur testé par `Round421Test`) :
 
 - **Tirage du premier joueur** : chacun lance un dé à son tour, le plus fort commence, les ex æquo relancent entre eux. On peut aussi désigner le premier joueur directement. Ensuite, c'est le perdant de la manche précédente qui commence.
 - **Limite de lancers** : le premier joueur de la manche lance jusqu'à 3 fois et garde son jeu quand il veut ; son nombre de lancers devient la limite de tous les autres (`DiceTurn.rollLimit`). Un joueur ne peut pas « garder son jeu » avant d'avoir lancé.
 - **Perdant et jetons automatiques** : à la fin de la manche, le moins bon jeu (`Dice421.strength` : 421, 111, as doubles, brelans, suites, autres) perd. À jeu égal, celui qui a fait le moins de lancers est meilleur, puis celui qui a joué en premier. Pendant la charge (21 jetons au milieu, `Dice421.pot`), le perdant prend au milieu la valeur du meilleur jeu, sans dépasser ce qui reste ; ensuite, pendant la décharge, il la prend au gagnant. Seuls les joueurs qui ont encore des jetons jouent, et la partie s'arrête quand un joueur a tous les jetons (`Dice421.gameLoser`). « Rejouer la manche » rend les jetons et repart du même premier joueur.
 - **Plusieurs téléphones** : toute la manche (`Round421.snapshot`) passe dans `DiceTable.turn`, comme le tour de dés des autres jeux ; seul le joueur dont c'est le tour peut agir.
-- **Sans feuille de score** : en version jouable, le Yams, le Cochon, le 421, le Bunco, le Cul de chouette, le Dix mille, le Qwixx et le Shut the Box s'ouvrent directement sur la page des dés (`GameRules.isDiceOnly`, route `dice`) ; les scores s'y affichent (Cochon : score de chaque joueur et objectif ; 421 : jetons de chacun ; Bunco : points de la manche et total de la partie ; Yams : total de chaque joueur, bonus compris ; Cul de chouette : score de chacun et objectif de 343 ; Dix mille : score de chacun et objectif de 10 000 ; Qwixx : plateau, score et pénalités de chacun ; Shut the Box : score de chacun et manche en cours). L'invité d'une partie partagée y arrive aussi directement. « Retour » quitte la partie, avec la confirmation habituelle quand il y a des scores, et le bouton « Partager » de la page remplace celui de la feuille. Hors version jouable (feuilles de scores seules), rien ne change.
+- **Sans feuille de score** : en version jouable, le Yams, le Cochon, le 421, le Mexicain, le Bunco, le Cul de chouette, le Dix mille, le Qwixx et le Shut the Box s'ouvrent directement sur la page des dés (`GameRules.isDiceOnly`, route `dice`) ; les scores s'y affichent (Cochon : score de chaque joueur et objectif ; 421 : jetons de chacun ; Bunco : points de la manche et total de la partie ; Yams : total de chaque joueur, bonus compris ; Cul de chouette : score de chacun et objectif de 343 ; Dix mille : score de chacun et objectif de 10 000 ; Qwixx : plateau, score et pénalités de chacun ; Shut the Box : score de chacun et manche en cours). L'invité d'une partie partagée y arrive aussi directement. « Retour » quitte la partie, avec la confirmation habituelle quand il y a des scores, et le bouton « Partager » de la page remplace celui de la feuille. Hors version jouable (feuilles de scores seules), rien ne change.
 - Le bouton « Règles » est sur la feuille de scores (compteurs), sur l'écran des dés et sur l'écran du Morpion, du jeu des allumettes, des dames, de l'Othello, du Pendu et des échecs (`RulesButton`).
+
+## Mexicain jouable
+
+En version jouable, le Mexicain se joue tour par tour sur la page des dés (`MexicainPanel.kt` ; il réutilise le moteur du 421, `Round421`, avec deux dés ; testé par `MexicainTest`) :
+
+- **Manche de départ** : sans vie perdue, elle désigne le premier joueur.
+- **Le tour** : chaque joueur lance ses deux dés à son tour, jusqu'à 3 fois ; le premier joueur de la manche fixe le nombre de lancers de tous les autres. Les jeux sont classés du meilleur au moins bon (le Mexicain, 2-1, bat tout le reste) ; à jeu égal, le moins de lancers est meilleur, et une égalité parfaite rend la manche nulle.
+- **Vies** : à la fin de la manche, le plus mauvais jeu perd une vie, comptée automatiquement (le compteur de chaque joueur compte ses vies perdues, `DiceMexicain.LIVES` au plus). Un joueur sans vie est éliminé et le dernier joueur en jeu gagne ; la manche suivante commence chez le suivant quand le perdant est éliminé.
+- **Plusieurs téléphones** : la manche (`Round421.snapshot`, avec ses deux dés) passe dans `DiceTable.turn`, comme pour le 421.
 
 ## Qwixx jouable
 

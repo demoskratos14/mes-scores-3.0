@@ -495,9 +495,6 @@ class ScoreViewModel : ViewModel() {
         return true
     }
 
-    /** Camp (0 ou 1) du joueur d'index [player] : voir [RacketScoring.sideOf]. */
-    fun racketSideOf(player: Int): Int = RacketScoring.sideOf(player, players.size)
-
     /** Joueurs d'un camp, dans l'ordre de la liste. */
     fun racketPlayers(side: Int): List<Int> = RacketScoring.playersOfSide(side, players.size)
 

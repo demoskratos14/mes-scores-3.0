@@ -95,13 +95,6 @@ internal object QwixxScoring {
         val cleared = mask and (1 shl (number - MIN_NUMBER)).inv()
         return if (number == lastNumber(row)) cleared and (1 shl LOCK_BIT).inv() else cleared
     }
-
-    /** Le plus grand nombre déjà coché (ou 0) : sert à repérer la dernière croix d'une rangée. */
-    fun lastMarked(mask: Int, row: Int): Int {
-        val numbers = mask and NUMBERS_MASK
-        if (numbers == 0) return 0
-        return if (isAscending(row)) MIN_NUMBER + (31 - Integer.numberOfLeadingZeros(numbers)) else MIN_NUMBER + Integer.numberOfTrailingZeros(numbers)
-    }
 }
 
 /**
