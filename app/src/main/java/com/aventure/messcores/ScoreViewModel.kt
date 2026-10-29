@@ -50,15 +50,15 @@ class ScoreViewModel : ViewModel() {
     /** Vrai tant qu'une partie est ouverte (faux avant la première partie et après [closeGame]). */
     val isGameActive: Boolean get() = gameActive
 
-    // La manche de 421 en cours (qui joue, jeux gardés, limite de lancers). Elle vit ici, et non dans l'écran des dés,
+    // La manche de 421 (ou de Mexicain) en cours (qui joue, jeux gardés, limite de lancers). Elle vit ici, et non dans l'écran des dés,
     // pour ne pas repartir de zéro quand on revient aux scores puis aux dés ; une nouvelle partie l'efface.
     private var round421: Round421? = null
 
     /** La manche de 421 de la partie ouverte : la même d'un écran à l'autre, créée au tirage de départ au premier appel. */
-    internal fun round421(maxRolls: Int): Round421 {
+    internal fun round421(maxRolls: Int, ranking: HandRanking = Dice421Ranking): Round421 {
         val current = round421
-        if (current != null && current.playerCount == players.size && current.maxRolls == maxRolls) return current
-        return Round421(players.size, maxRolls).also { round421 = it }
+        if (current != null && current.playerCount == players.size && current.maxRolls == maxRolls && current.ranking === ranking) return current
+        return Round421(players.size, maxRolls, ranking).also { round421 = it }
     }
 
     // La partie de Bunco en cours (manche, joueur qui joue, points de la manche). Elle vit ici pour la même raison que

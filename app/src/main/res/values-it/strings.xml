@@ -572,7 +572,7 @@
     <string name="rules_mexicain_3_title">Valore delle combinazioni</string>
     <string name="rules_mexicain_3_body">Dalla migliore alla peggiore: il Mexico (2 e 1), poi i doppi da 6-6 a 1-1, poi le altre combinazioni leggendo prima il dado più alto (6-5 batte 6-4, che batte 5-4, ecc.). Le regole esatte variano da casa a casa.</string>
     <string name="rules_mexicain_4_title">Nell\'app</string>
-    <string name="rules_mexicain_4_body">Aggiungi 1 al contatore del giocatore che perde il round. Concordate il numero di vite perse che elimina un giocatore (5, per esempio). L\'app non termina la partita; la classifica mette in testa il giocatore che ha perso meno vite.</string>
+    <string name="rules_mexicain_4_body">Ogni giocatore ha 5 vite. Nella versione giocabile, l’app conta da sola la vita persa a ogni round, elimina i giocatori senza vite e annuncia il vincitore. Sul solo foglio punteggi, aggiungi 1 al contatore del giocatore che perde il round; la classifica mette in testa il giocatore che ha perso meno vite.</string>
     <string name="rules_qwixx_1_title">Obiettivo del gioco</string>
     <string name="rules_qwixx_1_body">Spuntare più numeri possibile in ciascuno dei 4 colori, per fare più punti. La partita termina quando due righe sono chiuse da un lucchetto, oppure quando un giocatore ha 4 penalità.</string>
     <string name="rules_qwixx_2_title">Svolgimento del turno</string>
@@ -1375,6 +1375,18 @@
     <string name="dice_421_result_best">Gioco migliore: %1$s con %2$s (valore: %3$d).</string>
     <string name="dice_421_result_pot">%1$s perde il round. Gettoni presi dal centro: %2$d.</string>
     <string name="dice_421_result_draw">Pareggio perfetto: round nullo, nessun gettone si sposta. Il round viene rigiocato.</string>
+    <string name="dice_mex_lives_title">Vite rimaste</string>
+    <string name="dice_mex_draw_intro">Prima si gioca un round di partenza, senza perdere vite: il giocatore con la combinazione migliore inizia la partita.</string>
+    <string name="dice_mex_opening_title">Round di partenza (nessuna vita persa)</string>
+    <string name="dice_mex_starter_hint">Tocca a %1$s aprire il round: può tenere la combinazione quando vuole (tre lanci al massimo), e il numero di lanci fatti diventa il limite di tutti gli altri giocatori.</string>
+    <string name="dice_mex_name_mexico">Messico</string>
+    <string name="dice_mex_name_double">Doppio %1$d</string>
+    <string name="dice_mex_name_plain">%1$d-%2$d</string>
+    <string name="dice_mex_result_best">Combinazione migliore: %1$s con %2$s.</string>
+    <string name="dice_mex_result_loser">%1$s perde il round e una vita.</string>
+    <string name="dice_mex_result_draw">Pareggio perfetto: round nullo, nessuno perde una vita. Il round viene rigiocato.</string>
+    <string name="dice_mex_eliminated">%1$s non ha più vite: è eliminato.</string>
+    <string name="dice_mex_game_over">%1$s è l’ultimo in gioco e vince la partita!</string>
     <string name="dice_421_result_discharge">%1$s perde il round. Gettoni presi a %3$s: %2$d.</string>
     <string name="dice_421_next_round">Round successivo</string>
     <string name="dice_421_replay_round">Rigioca il round</string>

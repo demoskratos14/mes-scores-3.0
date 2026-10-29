@@ -28,15 +28,19 @@ internal data class Result421(val winner: Int, val loser: Int, val points: Int, 
  *   jeu perd la manche (voir [result]) et prend les jetons du meilleur (voir [Dice421.settle]) ; il commence la
  *   manche suivante.
  *
+ * Le Mexicain se joue de la même façon, avec deux dés et un autre classement des jeux ([ranking]) : le perdant de la
+ * manche y perd une vie au lieu de prendre des jetons.
+ *
  * [rollDie] tire un dé de 1 à 6 (remplaçable dans les tests).
  */
 internal class Round421(
     val playerCount: Int,
     val maxRolls: Int = 3,
+    val ranking: HandRanking = Dice421Ranking,
     private val rollDie: () -> Int = { Random.nextInt(1, 7) }
 ) {
     /** Les dés du joueur qui joue : réinitialisés à chaque joueur, avec la limite de lancers de la manche. */
-    val turn = DiceTurn(DiceSetup(diceCount = 3, maxRolls = maxRolls), rollDie)
+    val turn = DiceTurn(DiceSetup(diceCount = ranking.diceCount, maxRolls = maxRolls), rollDie)
 
     var phase by mutableStateOf(Phase421.DRAW)
         private set
@@ -141,7 +145,8 @@ internal class Round421(
     private fun startRound(first: Int, active: List<Int>) {
         val ring = active.filter { it in 0 until playerCount }.distinct().sorted()
         if (ring.size < 2) return
-        val start = ring.indexOf(first).coerceAtLeast(0)
+        // Le joueur désigné peut être éliminé (Mexicain) : c'est alors le suivant, dans l'ordre de la table, qui commence.
+        val start = ring.indexOfFirst { it >= first }.coerceAtLeast(0)
         order = ring.drop(start) + ring.take(start)
         starter = order.first()
         position = 0
@@ -186,14 +191,14 @@ internal class Round421(
     fun result(): Result421? {
         if (order.isEmpty() || order.any { hands.getOrNull(it).isNullOrEmpty() }) return null
         val ranked = order.withIndex().sortedWith(
-            compareByDescending<IndexedValue<Int>> { Dice421.strength(hands[it.value]) }
+            compareByDescending<IndexedValue<Int>> { ranking.strength(hands[it.value]) }
                 .thenBy { rolls[it.value] }
                 .thenBy { it.index }
         )
         val winner = ranked.first().value
         val loser = ranked.last().value
-        val draw = Dice421.strength(hands[winner]) == Dice421.strength(hands[loser]) && rolls[winner] == rolls[loser]
-        return Result421(winner = winner, loser = loser, points = Dice421.combo(hands[winner]).points, draw = draw)
+        val draw = ranking.strength(hands[winner]) == ranking.strength(hands[loser]) && rolls[winner] == rolls[loser]
+        return Result421(winner = winner, loser = loser, points = ranking.points(hands[winner]), draw = draw)
     }
 
     /** Retient les jetons déplacés ([fromPot] : pris au milieu), pour les afficher sur tous les téléphones. */
@@ -272,10 +277,10 @@ internal class Round421(
             val newFromPot = next() == 1
             val newOrder = players()
             val newRolls = List(playerCount) { next() }
-            val newHands = List(playerCount) { List(size(3)) { next() } }
+            val newHands = List(playerCount) { List(size(ranking.diceCount)) { next() } }
             require(newStarter in -1 until playerCount && newLimit in 1..maxRolls && newPosition in 0..newOrder.size)
             require(newRolls.all { it in 0..maxRolls })
-            require(newHands.all { it.isEmpty() || (it.size == 3 && it.all { die -> die in 1..6 }) })
+            require(newHands.all { it.isEmpty() || (it.size == ranking.diceCount && it.all { die -> die in 1..6 }) })
 
             phase = newPhase
             starter = newStarter

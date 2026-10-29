@@ -577,7 +577,7 @@
     <string name="rules_mexicain_3_title">Valeur des jeux</string>
     <string name="rules_mexicain_3_body">Du meilleur au moins bon : le Mexico (2 et 1), puis les doubles de 6-6 à 1-1, puis les autres jeux en lisant d\'abord le dé le plus fort (6-5 bat 6-4, qui bat 5-4, etc.). Les règles exactes varient d\'une maison à l\'autre.</string>
     <string name="rules_mexicain_4_title">Dans l\'appli</string>
-    <string name="rules_mexicain_4_body">Ajoute 1 au compteur du joueur qui perd la manche. Convenez du nombre de vies perdues qui élimine un joueur (5 par exemple). L\'appli ne termine pas la partie ; le classement met en tête le joueur qui a perdu le moins de vies.</string>
+    <string name="rules_mexicain_4_body">Chaque joueur a 5 vies. En version jouable, l’appli compte seule la vie perdue à chaque manche, élimine les joueurs sans vie et annonce le gagnant. Sur la feuille de scores seule, ajoute 1 au compteur du joueur qui perd la manche ; le classement met en tête le joueur qui a perdu le moins de vies.</string>
     <string name="rules_qwixx_1_title">But du jeu</string>
     <string name="rules_qwixx_1_body">Cocher le plus de nombres possible dans chacune des 4 couleurs, pour marquer le plus de points. La partie se termine quand deux rangées sont fermées par un cadenas, ou quand un joueur a 4 pénalités.</string>
     <string name="rules_qwixx_2_title">Le tour de jeu</string>
@@ -1380,6 +1380,18 @@
     <string name="dice_421_result_best">Meilleur jeu : %1$s avec %2$s (valeur : %3$d).</string>
     <string name="dice_421_result_pot">%1$s perd la manche. Jetons pris au milieu : %2$d.</string>
     <string name="dice_421_result_draw">Égalité parfaite : manche nulle, aucun jeton ne bouge. La manche est rejouée.</string>
+    <string name="dice_mex_lives_title">Vies restantes</string>
+    <string name="dice_mex_draw_intro">On joue d’abord une manche de départ, sans perdre de vie : celui qui a le meilleur jeu commence la partie.</string>
+    <string name="dice_mex_opening_title">Manche de départ (sans vie perdue)</string>
+    <string name="dice_mex_starter_hint">À %1$s d’ouvrir la manche : le jeu peut être gardé quand on veut (trois lancers au plus), et le nombre de lancers faits devient la limite de tous les autres joueurs.</string>
+    <string name="dice_mex_name_mexico">Mexico</string>
+    <string name="dice_mex_name_double">Double de %1$d</string>
+    <string name="dice_mex_name_plain">%1$d-%2$d</string>
+    <string name="dice_mex_result_best">Meilleur jeu : %1$s avec %2$s.</string>
+    <string name="dice_mex_result_loser">%1$s perd la manche et une vie.</string>
+    <string name="dice_mex_result_draw">Égalité parfaite : manche nulle, personne ne perd de vie. La manche est rejouée.</string>
+    <string name="dice_mex_eliminated">%1$s n’a plus de vie : il est éliminé.</string>
+    <string name="dice_mex_game_over">%1$s est le dernier en jeu et gagne la partie !</string>
     <string name="dice_421_result_discharge">%1$s perd la manche. Jetons pris à %3$s : %2$d.</string>
     <string name="dice_421_next_round">Manche suivante</string>
     <string name="dice_421_replay_round">Rejouer la manche</string>

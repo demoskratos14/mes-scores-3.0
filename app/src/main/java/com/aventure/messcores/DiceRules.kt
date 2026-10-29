@@ -31,7 +31,8 @@ internal object DiceSetups {
     fun forGame(gameId: String): DiceSetup? = when (gameId) {
         "builtin_yams" -> DiceSetup(diceCount = 5, maxRolls = 3)
         "builtin_421" -> DiceSetup(diceCount = 3, maxRolls = 3)
-        "builtin_kot" -> DiceSetup(diceCount = 6, maxRolls = 3)
+        // King of Tokyo demande son plateau : pas de jeu jouable, seulement des dés génériques sur sa feuille (lancers libres).
+        "builtin_kot" -> DiceSetup(diceCount = 6)
         "builtin_mexicain" -> DiceSetup(diceCount = 2, maxRolls = 3)
         "builtin_cdc" -> DiceSetup(diceCount = 3)
         "builtin_dixmille" -> DiceSetup(diceCount = 6)
@@ -154,6 +155,31 @@ internal data class Settlement421(val tokens: Int, val fromPot: Boolean)
 /** Une combinaison du 421 et le nombre de jetons qu'elle vaut. */
 internal data class Combo421(val points: Int, @StringRes val label: Int)
 
+/** Comment un jeu de dés classe les mains d'une manche : nombre de dés, force d'une main, et points qu'elle rapporte. */
+internal interface HandRanking {
+    val diceCount: Int
+
+    /** Force d'une main, pour savoir laquelle gagne la manche. */
+    fun strength(dice: List<Int>): Int
+
+    /** Points (jetons au 421) que rapporte une main. */
+    fun points(dice: List<Int>): Int
+}
+
+/** Le classement du 421 (voir [Dice421]). */
+internal object Dice421Ranking : HandRanking {
+    override val diceCount: Int = 3
+    override fun strength(dice: List<Int>): Int = Dice421.strength(dice)
+    override fun points(dice: List<Int>): Int = Dice421.combo(dice).points
+}
+
+/** Le classement du Mexicain (voir [DiceMexicain]). */
+internal object MexicainRanking : HandRanking {
+    override val diceCount: Int = 2
+    override fun strength(dice: List<Int>): Int = DiceMexicain.strength(dice)
+    override fun points(dice: List<Int>): Int = 1
+}
+
 /** Valeur et force des jeux du 421 : voir la fiche de règles du jeu (« Valeur des jeux »). */
 internal object Dice421 {
 
@@ -223,4 +249,48 @@ internal object QwixxDice {
         val color = dice.getOrElse(colorDie) { 0 }
         return dice.getOrElse(0) { 0 } + color to dice.getOrElse(1) { 0 } + color
     }
+}
+
+/**
+ * Le Mexicain : deux dés, trois lancers au plus ; le plus mauvais jeu de la manche fait perdre une vie. Le compteur
+ * de chaque joueur compte les vies perdues ; à [LIVES] vies perdues, le joueur est éliminé.
+ */
+internal object DiceMexicain {
+
+    /** Nombre de vies de chaque joueur au départ. */
+    const val LIVES = 5
+
+    /** Le Mexico : le 2 et le 1, le meilleur jeu. */
+    private const val MEXICO = 1000
+
+    /**
+     * Force d'un jeu : le Mexico (2 et 1), puis les doubles (6-6 … 1-1), puis les autres jeux en lisant d'abord
+     * le dé le plus fort (6-5 bat 6-4, qui bat 5-4, etc.).
+     */
+    fun strength(dice: List<Int>): Int {
+        if (dice.size != 2) return 0
+        val high = maxOf(dice[0], dice[1])
+        val low = minOf(dice[0], dice[1])
+        return when {
+            high == 2 && low == 1 -> MEXICO
+            high == low -> 900 + high
+            else -> high * 10 + low
+        }
+    }
+
+    fun isMexico(dice: List<Int>): Boolean = strength(dice) == MEXICO
+
+    /** Vrai pour un double (la valeur du dé est alors [doubleValue]). */
+    fun isDouble(dice: List<Int>): Boolean = dice.size == 2 && dice[0] == dice[1]
+
+    fun doubleValue(dice: List<Int>): Int = dice.firstOrNull() ?: 0
+
+    /** Vies restantes de chacun, d'après les vies perdues ([lost], le compteur de chaque joueur). */
+    fun livesLeft(lost: List<Int>): List<Int> = lost.map { (LIVES - it).coerceAtLeast(0) }
+
+    /** Joueurs encore en jeu : ceux qui ont encore au moins une vie. */
+    fun activePlayers(lost: List<Int>): List<Int> = lost.indices.filter { lost[it] < LIVES }
+
+    /** Le vainqueur : le dernier joueur qui a encore des vies ; null tant qu'ils sont plusieurs. */
+    fun winner(lost: List<Int>): Int? = activePlayers(lost).singleOrNull()
 }

@@ -483,7 +483,7 @@
     <string name="rules_mexicain_3_title">Hand values</string>
     <string name="rules_mexicain_3_body">From best to worst: Mexico (2 and 1), then the doubles from 6-6 down to 1-1, then the other hands, reading the higher die first (6-5 beats 6-4, which beats 5-4, etc.). The exact rules vary from one household to another.</string>
     <string name="rules_mexicain_4_title">In the app</string>
-    <string name="rules_mexicain_4_body">Add 1 to the counter of the player who loses the round. Agree on the number of lives lost that eliminates a player (5, for example). The app does not end the game; the standings put the player who has lost the fewest lives first.</string>
+    <string name="rules_mexicain_4_body">Each player has 5 lives. In the playable version, the app counts the life lost each round by itself, eliminates players with no lives left and announces the winner. On the score sheet alone, add 1 to the counter of the player who loses the round; the standings put the player who has lost the fewest lives first.</string>
     <string name="rules_qwixx_1_title">Goal</string>
     <string name="rules_qwixx_1_body">Tick as many numbers as possible in each of the 4 colours, to score the most points. The game ends when two rows are closed with a lock, or when a player has 4 penalties.</string>
     <string name="rules_qwixx_2_title">Taking a turn</string>
@@ -1340,6 +1340,18 @@
     <string name="dice_421_result_best">Best hand: %1$s with %2$s (value: %3$d).</string>
     <string name="dice_421_result_pot">%1$s loses the round. Tokens taken from the middle: %2$d.</string>
     <string name="dice_421_result_draw">Perfect tie: round void, no tokens move. The round is replayed.</string>
+    <string name="dice_mex_lives_title">Lives left</string>
+    <string name="dice_mex_draw_intro">First a starting round is played, with no life lost: the player with the best hand starts the game.</string>
+    <string name="dice_mex_opening_title">Starting round (no life lost)</string>
+    <string name="dice_mex_starter_hint">%1$s opens the round: the hand can be kept whenever you like (three rolls at most), and the number of rolls made becomes the limit for all the other players.</string>
+    <string name="dice_mex_name_mexico">Mexico</string>
+    <string name="dice_mex_name_double">Double %1$d</string>
+    <string name="dice_mex_name_plain">%1$d-%2$d</string>
+    <string name="dice_mex_result_best">Best hand: %1$s with %2$s.</string>
+    <string name="dice_mex_result_loser">%1$s loses the round and a life.</string>
+    <string name="dice_mex_result_draw">Perfect tie: round void, nobody loses a life. The round is replayed.</string>
+    <string name="dice_mex_eliminated">%1$s has no lives left: eliminated.</string>
+    <string name="dice_mex_game_over">%1$s is the last player standing and wins the game!</string>
     <string name="dice_421_result_discharge">%1$s loses the round. Tokens taken from %3$s: %2$d.</string>
     <string name="dice_421_next_round">Next round</string>
     <string name="dice_421_replay_round">Replay the round</string>

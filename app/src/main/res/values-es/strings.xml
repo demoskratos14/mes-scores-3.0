@@ -483,7 +483,7 @@
     <string name="rules_mexicain_3_title">Valor de las manos</string>
     <string name="rules_mexicain_3_body">De mejor a peor: Mexicano (2 y 1), después los dobles de 6-6 a 1-1, y luego las demás manos, leyendo primero el dado más alto (6-5 gana a 6-4, que gana a 5-4, etc.). Las reglas exactas varían de una casa a otra.</string>
     <string name="rules_mexicain_4_title">En la aplicación</string>
-    <string name="rules_mexicain_4_body">Suma 1 al contador del jugador que pierde la ronda. Acordad el número de vidas perdidas que elimina a un jugador (5, por ejemplo). La aplicación no termina la partida; la clasificación pone primero al jugador que ha perdido menos vidas.</string>
+    <string name="rules_mexicain_4_body">Cada jugador tiene 5 vidas. En la versión jugable, la aplicación cuenta sola la vida perdida en cada ronda, elimina a los jugadores sin vidas y anuncia al ganador. En la hoja de puntuación sola, suma 1 al contador del jugador que pierde la ronda; la clasificación pone primero al jugador que ha perdido menos vidas.</string>
     <string name="rules_qwixx_1_title">Objetivo</string>
     <string name="rules_qwixx_1_body">Marcar el mayor número posible de casillas en cada uno de los 4 colores para conseguir la mayor puntuación. La partida termina cuando se cierran dos filas con un candado, o cuando un jugador tiene 4 penalizaciones.</string>
     <string name="rules_qwixx_2_title">Cómo se juega un turno</string>
@@ -1365,6 +1365,18 @@
     <string name="dice_421_result_best">Mejor juego: %1$s con %2$s (valor: %3$d).</string>
     <string name="dice_421_result_pot">%1$s pierde la ronda. Fichas tomadas del centro: %2$d.</string>
     <string name="dice_421_result_draw">Empate perfecto: ronda nula, no se mueve ninguna ficha. Se repite la ronda.</string>
+    <string name="dice_mex_lives_title">Vidas restantes</string>
+    <string name="dice_mex_draw_intro">Primero se juega una ronda de salida, sin perder vidas: el jugador con la mejor mano empieza la partida.</string>
+    <string name="dice_mex_opening_title">Ronda de salida (sin perder vidas)</string>
+    <string name="dice_mex_starter_hint">A %1$s le toca abrir la ronda: puede guardar su mano cuando quiera (tres lanzamientos como máximo), y el número de lanzamientos hechos pasa a ser el límite de todos los demás jugadores.</string>
+    <string name="dice_mex_name_mexico">México</string>
+    <string name="dice_mex_name_double">Doble de %1$d</string>
+    <string name="dice_mex_name_plain">%1$d-%2$d</string>
+    <string name="dice_mex_result_best">Mejor mano: %1$s con %2$s.</string>
+    <string name="dice_mex_result_loser">%1$s pierde la ronda y una vida.</string>
+    <string name="dice_mex_result_draw">Empate perfecto: ronda nula, nadie pierde una vida. Se repite la ronda.</string>
+    <string name="dice_mex_eliminated">%1$s se queda sin vidas: queda eliminado.</string>
+    <string name="dice_mex_game_over">¡%1$s es el último en juego y gana la partida!</string>
     <string name="dice_421_result_discharge">%1$s pierde la ronda. Fichas tomadas de %3$s: %2$d.</string>
     <string name="dice_421_next_round">Siguiente ronda</string>
     <string name="dice_421_replay_round">Repetir la ronda</string>

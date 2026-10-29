@@ -75,7 +75,7 @@ fun DiceButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 /** Jeux dont la version jouable se joue entièrement sur la page des dés : pas de feuille de score derrière. */
-private val DICE_ONLY_GAME_IDS = setOf("builtin_yams", "builtin_cochon", "builtin_421", "builtin_bunco", "builtin_cdc", "builtin_dixmille")
+private val DICE_ONLY_GAME_IDS = setOf("builtin_yams", "builtin_cochon", "builtin_421", "builtin_bunco", "builtin_cdc", "builtin_dixmille", "builtin_mexicain")
 
 /** Vrai si, en version jouable, le jeu se joue sur la seule page des dés (scores compris). */
 internal fun GameRules.isDiceOnly(): Boolean = id in DICE_ONLY_GAME_IDS
@@ -95,8 +95,8 @@ private fun rememberDiceTurn(setup: DiceSetup): DiceTurn = rememberSaveable(
 
 /** La manche de 421 de la partie : gardée par la partie, donc aussi quand on passe par l'écran des scores et qu'on revient. */
 @Composable
-private fun rememberRound421(viewModel: ScoreViewModel, setup: DiceSetup): Round421 =
-    remember(viewModel, viewModel.players.size) { viewModel.round421(setup.maxRolls ?: 3) }
+private fun rememberRound421(viewModel: ScoreViewModel, setup: DiceSetup, ranking: HandRanking): Round421 =
+    remember(viewModel, viewModel.players.size) { viewModel.round421(setup.maxRolls ?: 3, ranking) }
 
 /** La partie de Bunco : gardée par la partie, donc aussi quand on passe par l'écran des scores et qu'on revient. */
 @Composable
@@ -119,12 +119,13 @@ private fun rememberDixMilleRound(viewModel: ScoreViewModel): DixMilleRound =
  * - Yams : le score de chaque ligne est calculé d'après les dés ; on l'inscrit (ou on barre la ligne), avec le total de chaque joueur affiché ;
  * - Cochon : total du tour, à garder ou perdu au premier 1, avec le score de chaque joueur affiché sur la page ;
  * - 421 : la manche se joue tour par tour (voir [Round421] et [Round421Section]), les jetons du perdant sont comptés seuls ;
+ * - Mexicain : de même (voir [MexicainSection]), la vie perdue par le plus mauvais jeu est comptée seule ;
  * - Bunco : la partie se joue tour par tour (voir [BuncoRound] et [BuncoSection]), les points de chaque manche sont inscrits seuls ;
  * - Cul de chouette : la partie se joue tour par tour (voir [CdcRound] et [CdcSection]), chaque lancer est inscrit seul ;
  * - Dix mille : la partie se joue tour par tour (voir [DixMilleRound] et [DixMilleSection]), les points gardés de chaque tour sont inscrits seuls ;
  * - autres jeux : les dés et leur total (Qwixx : les combinaisons possibles avec les dés blancs).
  *
- * [diceOnly] : Yams, Cochon, 421, Bunco, Cul de chouette et Dix mille jouables n'ont pas de feuille de score derrière cet écran (tout s'y affiche) ;
+ * [diceOnly] : Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette et Dix mille jouables n'ont pas de feuille de score derrière cet écran (tout s'y affiche) ;
  * « Retour » et la fin de partie quittent alors la partie ([onBack]), et [onOpenShare] ouvre le partage.
  */
 @Composable
@@ -147,8 +148,13 @@ internal fun DiceScreen(
 
     val players = viewModel.players
     val is421 = rules.id == "builtin_421"
-    // Au 421, la manche (tirage, ordre des joueurs, limite de lancers) garde elle-même les dés du joueur qui joue.
-    val round: Round421? = if (is421) rememberRound421(viewModel, setup) else null
+    val isMexicain = rules.id == "builtin_mexicain"
+    // Au 421 et au Mexicain, la manche (tirage, ordre des joueurs, limite de lancers) garde elle-même les dés du joueur qui joue.
+    val round: Round421? = if (is421 || isMexicain) {
+        rememberRound421(viewModel, setup, if (isMexicain) MexicainRanking else Dice421Ranking)
+    } else {
+        null
+    }
     // Au Bunco, la partie (manche, joueur qui joue, points) garde de la même façon les dés du joueur qui joue.
     val isBunco = rules.id == "builtin_bunco"
     val bunco: BuncoRound? = if (isBunco) rememberBuncoRound(viewModel) else null
@@ -292,7 +298,16 @@ internal fun DiceScreen(
                 PlayerChooser(players = players, selected = currentPlayer, onSelect = { player = it; newTurn(it) })
             }
 
-            if (round != null) {
+            if (round != null && isMexicain) {
+                MexicainSection(
+                    viewModel = viewModel,
+                    round = round,
+                    canAct = canAct,
+                    onChanged = { publish() },
+                    onBack = onBack,
+                    backLabel = if (diceOnly) R.string.dice_leave_game else R.string.dice_see_scores
+                )
+            } else if (round != null) {
                 Round421Section(
                     viewModel = viewModel,
                     round = round,
@@ -361,7 +376,7 @@ internal fun DiceScreen(
                     onWritten = { nextPlayer() }
                 )
                 isQwixx -> QwixxPanel(turn = turn)
-                // 421, Bunco, Cul de chouette et Dix mille : tout est dans la section de la partie, plus haut.
+                // 421, Mexicain, Bunco, Cul de chouette et Dix mille : tout est dans la section de la partie, plus haut.
                 round != null || bunco != null || cdc != null || dixMille != null -> Unit
                 turn.hasRolled -> Card(
                     colors = CardDefaults.cardColors(containerColor = cardSurface()),
@@ -376,11 +391,11 @@ internal fun DiceScreen(
             }
         }
 
-        // Au 421, les jetons suivent la manche : on la rejoue plutôt que d'annuler un seul compteur.
+        // Au 421, les jetons suivent la manche : on la rejoue plutôt que d'annuler un seul compteur (de même pour les vies du Mexicain).
         // Au Bunco, les points d'une manche sont inscrits d'un coup avec la fin de la manche : on ne les annule pas un à un.
         // Au Cul de chouette, chaque lancer est inscrit avec le tour du joueur : on ne défait pas un seul compteur.
         // Au Dix mille, de même, les points gardés suivent le tour du joueur : annuler une case ferait perdre le fil de la partie.
-        if (viewModel.canUndo && !is421 && !isBunco && !isCdc && !isDixMille) {
+        if (viewModel.canUndo && !is421 && !isMexicain && !isBunco && !isCdc && !isDixMille) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { viewModel.undo() },
