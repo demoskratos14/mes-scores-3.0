@@ -582,7 +582,7 @@
     <string name="rules_qwixx_4_title">I punti</string>
     <string name="rules_qwixx_4_body">Per ogni colore: 1 croce = 1 punto, 2 croci = 3 punti, 3 croci = 6 punti, e così via (1 + 2 + 3 +…), fino a 78 punti per 12 croci. Ogni penalità fa perdere 5 punti.</string>
     <string name="rules_qwixx_5_title">Nell\'app</string>
-    <string name="rules_qwixx_5_body">Alla fine della partita, tocca la casella di ogni colore per scegliere i punti corrispondenti al numero di croci, poi quella delle penalità. La partita è terminata quando tutte le caselle sono riempite.</string>
+    <string name="rules_qwixx_5_body">Sul foglio dei punteggi, alla fine della partita, tocca la casella di ogni colore per scegliere i punti corrispondenti al numero di croci, poi quella delle penalità. Nella versione giocabile, lancia i dadi: l’app tiene il tabellone di ogni giocatore, propone solo le croci permesse, chiude le righe, conta le penalità e i punti e ferma la partita da sola.</string>
 
     <string name="category_classic">Classici</string>
     <string name="category_cards">Giochi di carte</string>
@@ -1420,8 +1420,21 @@
     <string name="dice_dm_hot">Tutti e 6 i dadi hanno fatto punti: si rilanciano tutti!</string>
     <string name="dice_dm_open_needed">Non hai ancora segnato: servono %1$d punti in un solo turno per poter tenere. Rilancia!</string>
     <string name="dice_dm_last_turn">%1$s ha raggiunto %2$d punti: i giocatori che non hanno ancora giocato nel round hanno un ultimo turno.</string>
-    <string name="dice_qwixx_white">Dadi bianchi: %1$d</string>
-    <string name="dice_qwixx_option">%1$s: %2$d o %3$d</string>
+    <string name="dice_qwixx_roll_hint">Lancia i 6 dadi: due bianchi e uno per ogni colore.</string>
+    <string name="dice_qwixx_white_prompt">Dadi bianchi: %1$d. Ogni giocatore può barrare questo numero nel colore che vuole, oppure passare.</string>
+    <string name="dice_qwixx_white_pick">Barrare %1$d:</string>
+    <string name="dice_qwixx_pass">Passa</string>
+    <string name="dice_qwixx_cancel">Annulla</string>
+    <string name="dice_qwixx_marked">Ha barrato: %1$s %2$d</string>
+    <string name="dice_qwixx_passed">Passa</string>
+    <string name="dice_qwixx_no_move">Nessuna croce possibile</string>
+    <string name="dice_qwixx_color_prompt">%1$s può barrare un dado bianco + un dado colorato, nel colore di quel dado, oppure passare.</string>
+    <string name="dice_qwixx_color_none">Nessuna combinazione possibile con i dadi colorati.</string>
+    <string name="dice_qwixx_pick">%1$s %2$d</string>
+    <string name="dice_qwixx_penalty_note">%1$s non ha barrato nulla in questo turno: una penalità (−5 punti).</string>
+    <string name="dice_qwixx_penalties">Penalità: %1$d / %2$d</string>
+    <string name="dice_qwixx_row_desc">%1$s: %2$d croci</string>
+    <string name="dice_qwixx_game_over">La partita è finita: due righe sono chiuse o un giocatore ha 4 penalità.</string>
     <string name="dice_new_turn">Nuovo turno</string>
 
     <!-- Mastermind -->

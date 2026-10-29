@@ -96,6 +96,17 @@ class ScoreViewModel : ViewModel() {
         return DixMilleRound(players.size, startPlayer = next).also { dixMilleRound = it }
     }
 
+    // La partie de Qwixx en cours (plateau de chaque joueur, tour en cours). Elle vit ici pour la même raison ; une partie
+    // reprise ou rouverte repart d'une partie neuve.
+    private var qwixxRound: QwixxRound? = null
+
+    /** La partie de Qwixx ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun qwixxRound(): QwixxRound {
+        val current = qwixxRound
+        if (current != null && current.playerCount == players.size) return current
+        return QwixxRound(players.size).also { qwixxRound = it }
+    }
+
     /**
      * Partage de la partie avec un autre téléphone (voir [SyncSession]). Sur un téléphone invité, les actions
      * ne s'appliquent pas ici : elles sont envoyées à l'organisateur, qui renvoie l'état de la partie.
@@ -196,6 +207,7 @@ class ScoreViewModel : ViewModel() {
         buncoRound = null
         cdcRound = null
         dixMilleRound = null
+        qwixxRound = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
         phases.clear()
@@ -226,6 +238,7 @@ class ScoreViewModel : ViewModel() {
             buncoRound = null
             cdcRound = null
             dixMilleRound = null
+            qwixxRound = null
         }
         currentSaveId = saved.id
         savedBaseline = saved
@@ -248,7 +261,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la partie ouverte contient au moins un score saisi (donc qu'il y a quelque chose à perdre). */
     fun hasProgress(): Boolean {
         if (!gameActive || players.isEmpty()) return false
-        return mode.hasProgress()
+        return mode.hasProgress() || qwixxRound?.hasMarks == true
     }
 
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
@@ -258,6 +271,7 @@ class ScoreViewModel : ViewModel() {
         buncoRound = null
         cdcRound = null
         dixMilleRound = null
+        qwixxRound = null
         currentSaveId = null
         savedBaseline = null
         lastSavedContent = null

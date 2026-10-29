@@ -493,7 +493,7 @@
     <string name="rules_qwixx_4_title">Pontuação</string>
     <string name="rules_qwixx_4_body">Por cada cor: 1 cruz = 1 ponto, 2 cruzes = 3 pontos, 3 cruzes = 6 pontos, e assim sucessivamente (1 + 2 + 3 +…), até 78 pontos por 12 cruzes. Cada penalização custa 5 pontos.</string>
     <string name="rules_qwixx_5_title">Na aplicação</string>
-    <string name="rules_qwixx_5_body">No fim da partida, toca na célula de cada cor para escolher os pontos correspondentes ao número de cruzes, e depois na célula das penalizações. A partida termina quando todas as células estão preenchidas.</string>
+    <string name="rules_qwixx_5_body">Na folha de pontuação, no fim da partida, toca na célula de cada cor para escolher os pontos correspondentes ao número de cruzes, e depois na das penalizações. Na versão jogável, lança os dados: a app guarda o tabuleiro de cada jogador, só propõe as cruzes permitidas, fecha as linhas, conta as penalizações e os pontos, e termina a partida sozinha.</string>
     <string name="category_classic">Clássicos</string>
     <string name="category_cards">Jogos de cartas</string>
     <string name="category_dice">Jogos de dados</string>
@@ -1410,8 +1410,21 @@
     <string name="dice_dm_hot">Os 6 dados pontuaram: lançam-se todos de novo!</string>
     <string name="dice_dm_open_needed">Ainda não pontuaste: precisas de %1$d pontos no mesmo turno para poderes guardar. Lança de novo!</string>
     <string name="dice_dm_last_turn">%1$s chegou aos %2$d pontos: os jogadores que ainda não jogaram na ronda têm uma última vez.</string>
-    <string name="dice_qwixx_white">Dados brancos: %1$d</string>
-    <string name="dice_qwixx_option">%1$s: %2$d ou %3$d</string>
+    <string name="dice_qwixx_roll_hint">Lança os 6 dados: dois brancos e um de cada cor.</string>
+    <string name="dice_qwixx_white_prompt">Dados brancos: %1$d. Cada jogador pode riscar este número na cor que quiser, ou passar.</string>
+    <string name="dice_qwixx_white_pick">Riscar %1$d:</string>
+    <string name="dice_qwixx_pass">Passar</string>
+    <string name="dice_qwixx_cancel">Cancelar</string>
+    <string name="dice_qwixx_marked">Riscou: %1$s %2$d</string>
+    <string name="dice_qwixx_passed">Passa</string>
+    <string name="dice_qwixx_no_move">Nenhuma cruz possível</string>
+    <string name="dice_qwixx_color_prompt">%1$s pode riscar um dado branco + um dado colorido, na cor desse dado, ou passar.</string>
+    <string name="dice_qwixx_color_none">Nenhuma combinação possível com os dados coloridos.</string>
+    <string name="dice_qwixx_pick">%1$s %2$d</string>
+    <string name="dice_qwixx_penalty_note">%1$s não riscou nada neste turno: uma penalização (−5 pontos).</string>
+    <string name="dice_qwixx_penalties">Penalizações: %1$d / %2$d</string>
+    <string name="dice_qwixx_row_desc">%1$s: %2$d cruzes</string>
+    <string name="dice_qwixx_game_over">A partida terminou: duas linhas estão fechadas ou um jogador tem 4 penalizações.</string>
     <string name="dice_new_turn">Nova vez</string>
 
     <!-- Mastermind -->

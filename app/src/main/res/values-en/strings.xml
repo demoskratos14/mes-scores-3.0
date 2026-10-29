@@ -493,7 +493,7 @@
     <string name="rules_qwixx_4_title">Scoring</string>
     <string name="rules_qwixx_4_body">For each colour: 1 cross = 1 point, 2 crosses = 3 points, 3 crosses = 6 points, and so on (1 + 2 + 3 +…), up to 78 points for 12 crosses. Each penalty costs 5 points.</string>
     <string name="rules_qwixx_5_title">In the app</string>
-    <string name="rules_qwixx_5_body">At the end of the game, tap the cell of each colour to choose the points matching the number of crosses, then the penalties cell. The game is over when all the cells are filled.</string>
+    <string name="rules_qwixx_5_body">On the score sheet, at the end of the game, tap the cell of each colour to choose the points matching the number of crosses, then the penalties cell. In the playable version, roll the dice: the app keeps each player’s board, only offers the crosses that are allowed, locks the rows, counts the penalties and the points, and ends the game by itself.</string>
     <string name="category_classic">Classic</string>
     <string name="category_cards">Card games</string>
     <string name="category_dice">Dice games</string>
@@ -1384,8 +1384,21 @@
     <string name="dice_dm_hot">All 6 dice scored: all the dice are rolled again!</string>
     <string name="dice_dm_open_needed" tools:ignore="PluralsCandidate">You haven’t scored yet: you need %1$d points in a single turn before you can keep. Roll again!</string>
     <string name="dice_dm_last_turn" tools:ignore="PluralsCandidate">%1$s has reached %2$d points: players who haven’t played yet this round get one last turn.</string>
-    <string name="dice_qwixx_white">White dice: %1$d</string>
-    <string name="dice_qwixx_option">%1$s: %2$d or %3$d</string>
+    <string name="dice_qwixx_roll_hint">Roll the 6 dice: two white and one of each colour.</string>
+    <string name="dice_qwixx_white_prompt" tools:ignore="PluralsCandidate">White dice: %1$d. Every player may cross this number in the colour of their choice, or pass.</string>
+    <string name="dice_qwixx_white_pick" tools:ignore="PluralsCandidate">Cross %1$d:</string>
+    <string name="dice_qwixx_pass">Pass</string>
+    <string name="dice_qwixx_cancel">Cancel</string>
+    <string name="dice_qwixx_marked" tools:ignore="PluralsCandidate">Crossed: %1$s %2$d</string>
+    <string name="dice_qwixx_passed">Passes</string>
+    <string name="dice_qwixx_no_move">No cross possible</string>
+    <string name="dice_qwixx_color_prompt">%1$s may cross one white die + one coloured die, in the colour of that die, or pass.</string>
+    <string name="dice_qwixx_color_none">No combination possible with the coloured dice.</string>
+    <string name="dice_qwixx_pick" tools:ignore="PluralsCandidate">%1$s %2$d</string>
+    <string name="dice_qwixx_penalty_note">%1$s crossed nothing this turn: one penalty (−5 points).</string>
+    <string name="dice_qwixx_penalties" tools:ignore="PluralsCandidate">Penalties: %1$d / %2$d</string>
+    <string name="dice_qwixx_row_desc" tools:ignore="PluralsCandidate">%1$s: %2$d crosses</string>
+    <string name="dice_qwixx_game_over">The game is over: two rows are locked or a player has 4 penalties.</string>
     <string name="dice_new_turn">New turn</string>
 
     <!-- Mastermind -->

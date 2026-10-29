@@ -75,13 +75,16 @@ fun DiceButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 /** Jeux dont la version jouable se joue entièrement sur la page des dés : pas de feuille de score derrière. */
-private val DICE_ONLY_GAME_IDS = setOf("builtin_yams", "builtin_cochon", "builtin_421", "builtin_bunco", "builtin_cdc", "builtin_dixmille", "builtin_mexicain")
+private val DICE_ONLY_GAME_IDS = setOf("builtin_yams", "builtin_cochon", "builtin_421", "builtin_bunco", "builtin_cdc", "builtin_dixmille", "builtin_mexicain", "builtin_qwixx")
 
 /** Vrai si, en version jouable, le jeu se joue sur la seule page des dés (scores compris). */
 internal fun GameRules.isDiceOnly(): Boolean = id in DICE_ONLY_GAME_IDS
 
 /** Vrai si le jeu a des dés à lancer dans l'appli. */
 internal fun GameRules.hasDice(): Boolean = DiceSetups.forGame(id) != null
+
+/** Vrai si le bouton « Dés » est aussi sur la feuille de scores seule (King of Tokyo, qui n'est pas un jeu jouable). */
+internal fun GameRules.hasDiceOnSheet(): Boolean = id == KOT_ID
 
 /** Garde l'état d'un tour de dés quand l'écran tourne. */
 @Composable
@@ -113,6 +116,11 @@ private fun rememberCdcRound(viewModel: ScoreViewModel): CdcRound =
 private fun rememberDixMilleRound(viewModel: ScoreViewModel): DixMilleRound =
     remember(viewModel, viewModel.players.size) { viewModel.dixMilleRound() }
 
+/** La partie de Qwixx : gardée par la partie, donc aussi quand on passe par l'écran des scores et qu'on revient. */
+@Composable
+private fun rememberQwixxRound(viewModel: ScoreViewModel): QwixxRound =
+    remember(viewModel, viewModel.players.size) { viewModel.qwixxRound() }
+
 /**
  * Écran des dés d'un jeu : les dés du jeu à lancer, ceux que l'on garde pour relancer les autres, et
  * l'inscription du résultat là où le jeu le permet :
@@ -123,9 +131,11 @@ private fun rememberDixMilleRound(viewModel: ScoreViewModel): DixMilleRound =
  * - Bunco : la partie se joue tour par tour (voir [BuncoRound] et [BuncoSection]), les points de chaque manche sont inscrits seuls ;
  * - Cul de chouette : la partie se joue tour par tour (voir [CdcRound] et [CdcSection]), chaque lancer est inscrit seul ;
  * - Dix mille : la partie se joue tour par tour (voir [DixMilleRound] et [DixMilleSection]), les points gardés de chaque tour sont inscrits seuls ;
- * - autres jeux : les dés et leur total (Qwixx : les combinaisons possibles avec les dés blancs).
+ * - Qwixx : la partie se joue tour par tour (voir [QwixxRound] et [QwixxSection]), les croix de chaque plateau sont tenues par l'appli
+ *   et les points de chacun sont inscrits seuls à la fin de la partie ;
+ * - autres jeux : les dés et leur total.
  *
- * [diceOnly] : Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette et Dix mille jouables n'ont pas de feuille de score derrière cet écran (tout s'y affiche) ;
+ * [diceOnly] : Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille et Qwixx jouables n'ont pas de feuille de score derrière cet écran (tout s'y affiche) ;
  * « Retour » et la fin de partie quittent alors la partie ([onBack]), et [onOpenShare] ouvre le partage.
  */
 @Composable
@@ -164,7 +174,10 @@ internal fun DiceScreen(
     // Au Dix mille, la partie (joueur qui joue, dés mis de côté, points du tour) garde de la même façon les dés du joueur qui joue.
     val isDixMille = rules.id == "builtin_dixmille"
     val dixMille: DixMilleRound? = if (isDixMille) rememberDixMilleRound(viewModel) else null
-    val turn = round?.turn ?: bunco?.turn ?: cdc?.turn ?: dixMille?.turn ?: rememberDiceTurn(setup)
+    // Au Qwixx, la partie (plateau de chaque joueur, tour en cours) garde de la même façon les dés du joueur qui joue.
+    val isQwixx = rules.id == "builtin_qwixx"
+    val qwixx: QwixxRound? = if (isQwixx) rememberQwixxRound(viewModel) else null
+    val turn = round?.turn ?: bunco?.turn ?: cdc?.turn ?: dixMille?.turn ?: qwixx?.turn ?: rememberDiceTurn(setup)
     // Les dés tournent puis s'arrêtent un à un ; ce qui dévoile le résultat attend la fin (voir DiceRollAnimation).
     val rollAnimation = rememberDiceRollAnimation(turn)
     var player by rememberSaveable { mutableIntStateOf(0) }
@@ -174,18 +187,19 @@ internal fun DiceScreen(
 
     val isYams = rules.sheet == ScoreSheets.YAMS
     val isPig = rules.id == "builtin_cochon"
-    val isQwixx = rules.id == "builtin_qwixx"
     // Au Bunco et au Cul de chouette, la fin de partie n'est annoncée qu'une fois les dés du dernier lancer arrêtés.
     val gameOver = viewModel.isGameOver() && !((bunco != null || cdc != null) && rollAnimation.rolling)
-    val currentPlayer = (round?.currentPlayer ?: bunco?.current ?: cdc?.current ?: dixMille?.current ?: player).coerceIn(0, (players.size - 1).coerceAtLeast(0))
+    val currentPlayer = (round?.currentPlayer ?: bunco?.current ?: cdc?.current ?: dixMille?.current ?: qwixx?.current ?: player).coerceIn(0, (players.size - 1).coerceAtLeast(0))
 
     // Ce qui est partagé des dés : le tour de dés, ou toute la manche au 421 (toute la partie au Bunco).
-    fun tableTurn(): List<Int> = round?.snapshot() ?: bunco?.snapshot() ?: cdc?.snapshot() ?: dixMille?.snapshot() ?: turn.snapshot()
+    fun tableTurn(): List<Int> = round?.snapshot() ?: bunco?.snapshot() ?: cdc?.snapshot() ?: dixMille?.snapshot() ?: qwixx?.snapshot() ?: turn.snapshot()
 
     // Plusieurs téléphones : le tour de dés est partagé, et seul le joueur dont c'est le tour peut lancer.
     val shared = session != null && session.isConnected && session.kind == SyncKind.SCORE
     val myPlayer = session?.dicePlayer ?: DICE_UNSET
     val canAct = !shared || myPlayer == DICE_ALL || myPlayer == currentPlayer
+    // Au Qwixx, chacun coche sur son propre plateau : un téléphone joue pour le joueur qu'il a choisi (ou pour tous).
+    val canActFor: (Int) -> Boolean = { who -> !shared || myPlayer == DICE_ALL || myPlayer == who }
 
     fun publish(forPlayer: Int = currentPlayer) {
         if (shared) session?.publishDice(DiceTable(forPlayer, tableTurn(), pigTotal, pigBust))
@@ -195,7 +209,7 @@ internal fun DiceScreen(
     val sharedTable = session?.diceTable
     LaunchedEffect(sharedTable, shared) {
         if (shared && sharedTable != null && sharedTable != DiceTable(currentPlayer, tableTurn(), pigTotal, pigBust)) {
-            if (round != null) round.restoreFrom(sharedTable.turn) else if (bunco != null) bunco.restoreFrom(sharedTable.turn) else if (cdc != null) cdc.restoreFrom(sharedTable.turn) else if (dixMille != null) dixMille.restoreFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
+            if (round != null) round.restoreFrom(sharedTable.turn) else if (bunco != null) bunco.restoreFrom(sharedTable.turn) else if (cdc != null) cdc.restoreFrom(sharedTable.turn) else if (dixMille != null) dixMille.restoreFrom(sharedTable.turn) else if (qwixx != null) qwixx.restoreFrom(sharedTable.turn) else turn.restoreFrom(sharedTable.turn)
             player = sharedTable.player
             pigTotal = sharedTable.pigTotal
             pigBust = sharedTable.pigBust
@@ -337,6 +351,14 @@ internal fun DiceScreen(
                     canAct = canAct,
                     onChanged = { publish() }
                 )
+            } else if (qwixx != null) {
+                QwixxSection(
+                    viewModel = viewModel,
+                    round = qwixx,
+                    canAct = canAct,
+                    canActFor = canActFor,
+                    onChanged = { publish() }
+                )
             } else {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = cardSurface()),
@@ -375,9 +397,8 @@ internal fun DiceScreen(
                     enabled = !gameOver && canAct,
                     onWritten = { nextPlayer() }
                 )
-                isQwixx -> QwixxPanel(turn = turn)
-                // 421, Mexicain, Bunco, Cul de chouette et Dix mille : tout est dans la section de la partie, plus haut.
-                round != null || bunco != null || cdc != null || dixMille != null -> Unit
+                // 421, Mexicain, Bunco, Cul de chouette, Dix mille et Qwixx : tout est dans la section de la partie, plus haut.
+                round != null || bunco != null || cdc != null || dixMille != null || qwixx != null -> Unit
                 turn.hasRolled -> Card(
                     colors = CardDefaults.cardColors(containerColor = cardSurface()),
                     modifier = Modifier.fillMaxWidth()
@@ -395,7 +416,8 @@ internal fun DiceScreen(
         // Au Bunco, les points d'une manche sont inscrits d'un coup avec la fin de la manche : on ne les annule pas un à un.
         // Au Cul de chouette, chaque lancer est inscrit avec le tour du joueur : on ne défait pas un seul compteur.
         // Au Dix mille, de même, les points gardés suivent le tour du joueur : annuler une case ferait perdre le fil de la partie.
-        if (viewModel.canUndo && !is421 && !isMexicain && !isBunco && !isCdc && !isDixMille) {
+        // Au Qwixx, les croix sont tenues par la partie et les points ne sont inscrits qu'à la fin : chaque choix se défait sur le plateau.
+        if (viewModel.canUndo && !is421 && !isMexicain && !isBunco && !isCdc && !isDixMille && !isQwixx) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = { viewModel.undo() },
@@ -765,36 +787,6 @@ private fun PigPanel(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-/** Qwixx : total des deux dés blancs, puis pour chaque couleur les deux totaux possibles (un dé blanc + le dé de couleur). */
-@Composable
-private fun QwixxPanel(turn: DiceTurn) {
-    if (!turn.hasRolled) return
-    val colorNames = listOf(
-        R.string.sheet_qwixx_red,
-        R.string.sheet_qwixx_yellow,
-        R.string.sheet_qwixx_green,
-        R.string.sheet_qwixx_blue
-    )
-    Card(
-        colors = CardDefaults.cardColors(containerColor = cardSurface()),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                text = stringResource(R.string.dice_qwixx_white, QwixxDice.whiteSum(turn.values)),
-                style = MaterialTheme.typography.titleMedium
-            )
-            colorNames.forEachIndexed { offset, name ->
-                val (first, second) = QwixxDice.colorOptions(turn.values, colorDie = 2 + offset)
-                Text(
-                    text = stringResource(R.string.dice_qwixx_option, stringResource(name), first, second),
-                    style = MaterialTheme.typography.bodyLarge
-                )
             }
         }
     }
