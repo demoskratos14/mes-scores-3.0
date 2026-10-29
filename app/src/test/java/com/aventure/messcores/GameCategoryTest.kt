@@ -71,6 +71,17 @@ class GameCategoryTest {
     }
 
     @Test
+    fun kingOfTokyoNEstPasUnJeuJouableMaisGardeSaFeuilleEtSesDes() {
+        val kot = builtIns.single { it.id == "builtin_kot" }
+        assertEquals(false, kot.isPlayableGame())
+        assertEquals(false, kot.isMultiPhone())
+        assertEquals(true, kot.hasScoreSheet())
+        assertEquals(true, kot.hasDice())
+        // Les autres jeux de dés restent jouables.
+        assertEquals(true, builtIns.single { it.id == "builtin_yams" }.isPlayableGame())
+    }
+
+    @Test
     fun lesJeuxCreesParLUtilisateurVontDansAutres() {
         val custom = GameRules(id = "custom_123", name = "Mon jeu")
         assertEquals(GameCategory.OTHER, custom.category())
