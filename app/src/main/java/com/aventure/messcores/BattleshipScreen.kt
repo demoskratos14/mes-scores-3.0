@@ -136,6 +136,7 @@ internal fun BattleshipScreen(
     KeepScreenOn()
     val context = LocalContext.current
     SpaceFleetSprites.load(context)
+    SeaFleetSprites.load(context)
     // Premier écran, juste après le choix du jeu : la mer ou le ciel étoilé.
     var choosingBackdrop by rememberSaveable { mutableStateOf(true) }
     var backdrop by remember { mutableStateOf(BattleshipBackdropPreference.load(context)) }
@@ -1146,6 +1147,7 @@ private fun DrawScope.drawShipAt(
             drawSpaceship(length, cs, sunk, alpha, variant)
             return@withTransform
         }
+        if (drawSeaSprite(length, cs, sunk, alpha, variant)) return@withTransform
         drawPath(hull, color = (if (sunk) SUNK_HULL_COLOR else HULL_COLOR).copy(alpha = alpha))
         drawPath(hull, color = HULL_EDGE_COLOR.copy(alpha = alpha), style = Stroke(width = cs * 0.06f))
         val bridge = length / 2

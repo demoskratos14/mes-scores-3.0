@@ -44,7 +44,8 @@ private const val STAR_COUNT = 90
 internal fun DrawScope.drawBoardBackdrop(backdrop: BattleshipBackdrop, topLeft: Offset, side: Float, cs: Float, time: Float = 0f) {
     val size = Size(side, side)
     if (backdrop == BattleshipBackdrop.SEA) {
-        drawRect(SEA_COLOR, topLeft = topLeft, size = size)
+        // L'image de la mer ; la couleur unie reste le secours si elle ne peut pas être lue.
+        if (!drawSeaImage(topLeft, side)) drawRect(SEA_COLOR, topLeft = topLeft, size = size)
         return
     }
     drawRect(

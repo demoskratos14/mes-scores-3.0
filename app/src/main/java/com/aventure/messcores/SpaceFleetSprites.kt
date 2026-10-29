@@ -51,7 +51,7 @@ internal object SpaceFleetSprites {
 internal fun spriteVariant(lengths: List<Int>, index: Int): Int = lengths.take(index).count { it == lengths[index] }
 
 // Un vaisseau détruit : gris sombre, sans couleur.
-private val SUNK_FILTER = ColorFilter.colorMatrix(
+internal val SUNK_SPRITE_FILTER = ColorFilter.colorMatrix(
     ColorMatrix(
         floatArrayOf(
             0.15f, 0.29f, 0.06f, 0f, 0f,
@@ -80,6 +80,6 @@ internal fun DrawScope.drawSpaceSprite(sprite: ImageBitmap, length: Int, cs: Flo
         dstOffset = IntOffset(x.roundToInt(), y.roundToInt()),
         dstSize = IntSize(width.roundToInt(), height.roundToInt()),
         alpha = alpha,
-        colorFilter = if (sunk) SUNK_FILTER else null
+        colorFilter = if (sunk) SUNK_SPRITE_FILTER else null
     )
 }
