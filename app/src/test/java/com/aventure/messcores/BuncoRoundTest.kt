@@ -182,6 +182,33 @@ class BuncoRoundTest {
         assertEquals(listOf(0, 0, 0), game.points)
     }
 
+    @Test
+    fun unMessageEnRetardNeDefaitPasUnLancerDejaJoue() {
+        val game = game(2, 1, 1, 2, 3)
+        val before = game.snapshot()
+        game.roll()
+        game.mergeFrom(before)
+        assertEquals(listOf(1, 0), game.points)
+        // Et l'état le plus avancé est repris par un téléphone en retard.
+        val other = BuncoRound(2)
+        other.restoreFrom(before)
+        other.mergeFrom(game.snapshot())
+        assertEquals(game.snapshot(), other.snapshot())
+    }
+
+    @Test
+    fun deuxLancersAuMemeInstantFinissentAvecLeMemeEtat() {
+        val a = game(2, 1, 1, 2, 3)
+        val b = game(2, 1, 1, 1, 3)
+        a.roll()
+        b.roll()
+        val fromA = a.snapshot()
+        val fromB = b.snapshot()
+        a.mergeFrom(fromB)
+        b.mergeFrom(fromA)
+        assertEquals(a.snapshot(), b.snapshot())
+    }
+
     // ---------- Tableau des scores et partie ----------
 
     @Test

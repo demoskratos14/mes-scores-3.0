@@ -287,6 +287,56 @@ class QwixxRoundTest {
     }
 
     @Test
+    fun deuxTelephonesQuiCochentEnMemeTempsGardentChacunLeurPart() {
+        val a = game(3, 3, 4, 1, 2, 5, 6)
+        a.roll()
+        val b = QwixxRound(3)
+        b.restoreFrom(a.snapshot())
+        // Chacun coche pour un joueur différent, au même instant.
+        a.markWhite(0, 0)
+        b.markWhite(1, 3)
+        val fromA = a.snapshot()
+        val fromB = b.snapshot()
+        a.mergeFrom(fromB)
+        b.mergeFrom(fromA)
+        assertEquals(a.snapshot(), b.snapshot())
+        assertEquals(0, a.whiteChoices[0])
+        assertEquals(3, a.whiteChoices[1])
+        assertEquals(1, a.crossesOf(0, 0))
+        assertEquals(1, a.crossesOf(1, 3))
+    }
+
+    @Test
+    fun unChoixDefaitNeRevientPasAvecUnEtatEnRetard() {
+        val a = game(2, 3, 4, 1, 2, 5, 6)
+        a.roll()
+        a.markWhite(0, 0)
+        val stale = a.snapshot()
+        a.cancelWhite(0)
+        a.mergeFrom(stale)
+        assertEquals(QwixxScoring.NO_CHOICE, a.whiteChoices[0])
+        assertEquals(0, a.crossesOf(0, 0))
+    }
+
+    @Test
+    fun unTourPlusAvanceLEmporteEnEntier() {
+        val a = game(2, 3, 4, 1, 2, 5, 6)
+        a.roll()
+        val stale = a.snapshot()
+        a.passWhite(0)
+        a.passWhite(1)
+        a.passColor()
+        a.endTurn()
+        val b = QwixxRound(2)
+        b.restoreFrom(stale)
+        b.mergeFrom(a.snapshot())
+        assertEquals(a.snapshot(), b.snapshot())
+        assertEquals(1, b.current)
+        a.mergeFrom(stale)
+        assertEquals(1, a.current)
+    }
+
+    @Test
     fun leQwixxEstUnJeuJouableQuiSeJoueSurLaPageDesDes() {
         val qwixx = qwixxRules()
         assertTrue(qwixx.isPlayableGame())
