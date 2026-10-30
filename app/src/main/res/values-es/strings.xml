@@ -556,7 +556,7 @@
     <string name="rules_huit_3_title">Puntuación</string>
     <string name="rules_huit_3_body">Cuando un jugador se queda sin cartas, los demás cuentan los puntos de su mano: 8 = 50 puntos, figuras = 10 puntos, as = 1 punto, demás cartas = su valor. En algunas mesas se juega a 200 puntos.</string>
     <string name="rules_huit_4_title">En la aplicación</string>
-    <string name="rules_huit_4_body">Al final de cada mano, introduce en la columna de cada jugador los puntos que tiene en la mano (0 para quien ha ganado la mano). La clasificación pone primero al total más bajo.</string>
+    <string name="rules_huit_4_body">La aplicación juega la partida: reparte (5 cartas, 7 con dos jugadores), comprueba cada carta jugada, hace robar y cuenta los puntos. Se pasa el teléfono: la mano de un jugador solo aparece después de «Ver mi mano». Un 8 pide después el palo que sigue. Sin carta jugable se roba (las cartas jugadas se barajan de nuevo cuando se acaba el mazo); si ya no queda nada que robar se pasa, y si todos pasan la ronda queda bloqueada: gana la mano más ligera. Los puntos de cada ronda se anotan en la tabla y gana el total más bajo. En la hoja de puntuación sola, introduce tú mismo al final de cada mano los puntos de la mano de cada jugador (0 para quien ha ganado la mano).</string>
     <string name="rules_cribbage_1_title">Objetivo</string>
     <string name="rules_cribbage_1_body">Ser el primero en alcanzar los 121 puntos, anotándolos en el tablero. La aplicación detiene la partida en cuanto un jugador llega a 121.</string>
     <string name="rules_cribbage_2_title">Cómo se juega un turno</string>
@@ -1561,7 +1561,7 @@
     <string name="home_scores">Hojas de puntuación</string>
     <string name="home_scores_hint">Cuenta los puntos de tus partidas (cartas, dados, deportes…)</string>
     <string name="home_playable">Juegos jugables</string>
-    <string name="home_playable_hint">Juega directamente en la app (dados, Mastermind…), con un teléfono o con varios</string>
+    <string name="home_playable_hint">Juega directamente en la app (dados, cartas, Mastermind…), con un teléfono o con varios</string>
     <string name="playable_one_phone">Un solo teléfono</string>
     <string name="playable_multi_phone">Se pueden conectar varios teléfonos</string>
     <string name="game_morpion">Tres en raya</string>
@@ -2035,4 +2035,28 @@
     <string name="rules_chess_3_body">La ronda termina con jaque mate, un abandono o tablas: rey ahogado, material insuficiente, regla de los 50 movimientos, triple repetición de la misma posición (estas tablas se declaran automáticamente) o acuerdo de los dos jugadores.</string>
     <string name="rules_chess_4_title">En la app</string>
     <string name="rules_chess_4_body">La puntuación de la sesión (victorias de cada uno, tablas) sigue a la vista y los colores se intercambian en cada ronda. Se juega entre dos en un solo teléfono pasándoselo («Girar el tablero» ayuda si os sentáis frente a frente), o cada uno en el suyo con «Jugar cada uno en su teléfono», disponible mientras no se haya jugado nada. Con dos teléfonos se pueden proponer tablas o abandonar.</string>
+
+    <!-- Huit américain jouable -->
+    <string name="huit_ranks">A,2,3,4,5,6,7,8,9,10,J,Q,K</string>
+    <string name="huit_suits">picas,corazones,diamantes,tréboles</string>
+    <string name="huit_card_desc">%1$s de %2$s</string>
+    <string name="huit_card_blocked">%1$s, no se puede jugar</string>
+    <string name="huit_round">Ronda %1$d</string>
+    <string name="huit_top_card">Última carta jugada</string>
+    <string name="huit_asked_suit">Palo pedido: %1$s</string>
+    <string name="huit_stock">Mazo para robar: %1$d</string>
+    <string name="huit_hands_title">Cartas en la mano</string>
+    <string name="huit_cover_hint">Pasa el teléfono a %1$s: nadie más debe ver su mano.</string>
+    <string name="huit_show_hand">Ver mi mano</string>
+    <string name="huit_hand_title">Tu mano</string>
+    <string name="huit_hint">Juega una carta del mismo palo o del mismo valor que la última carta jugada. Un 8 se puede jugar en cualquier momento.</string>
+    <string name="huit_no_play">No tienes ninguna carta jugable: roba hasta tener una.</string>
+    <string name="huit_must_pass">Ya no queda nada que robar y no tienes ninguna carta jugable: pasas el turno.</string>
+    <string name="huit_draw">Robar una carta</string>
+    <string name="huit_pass">Pasar mi turno</string>
+    <string name="huit_pick_suit">Juegas un 8: elige el palo que sigue.</string>
+    <string name="huit_round_won">¡%1$s ha jugado su última carta!</string>
+    <string name="huit_round_blocked">Ya nadie puede jugar: la ronda está bloqueada. %1$s tiene la mano más ligera.</string>
+    <string name="huit_points_line">%1$s: +%2$d</string>
+    <string name="huit_next_round">Ronda siguiente</string>
 </resources>

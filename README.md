@@ -128,6 +128,7 @@ MesScores/
             │   ├── QwixxRound.kt, QwixxPanel.kt   Qwixx tour par tour : plateau de chaque joueur, moteur de la partie (pur, testé) et son interface
             │   ├── DixMilleRound.kt, DixMillePanel.kt     Dix mille tour par tour : points des dés, Farkle, ouverture, moteur de la partie (pur, testé par `DixMilleRoundTest`) et son interface
             │   ├── ShutBoxRound.kt, ShutBoxPanel.kt       Shut the Box tour par tour : clapets, combinaisons, un seul dé, boîte fermée, moteur de la partie (pur, testé par `ShutBoxRoundTest`) et son interface
+            │   ├── HuitRound.kt, HuitPanel.kt             Huit américain tour par tour : règles des cartes (`HuitScoring`), moteur de la manche (pur, testé par `HuitRoundTest`) et son écran (`HuitScreen`), un seul téléphone qu'on se passe
             │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt, TicTacToeProtocol.kt   Morpion : règles, écran (un ou deux téléphones), table en ligne et messages
             │   ├── Connect4.kt, Connect4Screen.kt, Connect4Online.kt, Connect4Protocol.kt   Puissance 4 : règles, écran (un ou deux téléphones), table en ligne et messages
             │   ├── Nim.kt, NimScreen.kt, NimOnline.kt, NimProtocol.kt   Jeu des allumettes (Nim) : règles, écran (un ou deux téléphones), table en ligne et messages
@@ -262,6 +263,20 @@ En version jouable, le Shut the Box se joue tour par tour sur la page des dés (
 - **Annulation** : comme au Dix mille, pas d'annulation d'une seule case (le bouton « Annuler la dernière saisie » est absent).
 - **Reprise** : une partie reprise continue avec le premier joueur qui n'a pas encore joué dans la dernière manche inscrite ; les clapets du tour en cours ne sont pas repris. La partie en cours vit dans `ScoreViewModel` (`shutBoxRound`) : elle survit à une rotation de l'écran.
 - **Plusieurs téléphones** : l'état de la partie (`ShutBoxRound.snapshot` : joueur, clapets ouverts et choisis, un seul dé, dés) passe dans `DiceTable.turn`, comme pour le 421, le Bunco, le Cul de chouette et le Dix mille.
+
+
+## Huit américain jouable
+
+Premier jeu de cartes distribué par l'appli. En version jouable, le Huit américain a son propre écran (`HuitScreen`, route `huit`) et se joue tour par tour (`HuitRound` et `HuitScoring`, `HuitPanel.kt` pour l'affichage ; testés par `HuitRoundTest`). Il garde sa feuille de scores en version « feuilles de scores seules » ; seule la version jouable change de route (`gameRouteFor`) :
+
+- **Distribution** : 5 cartes chacun, 7 à deux joueurs (`HuitScoring.handSize`), paquet de 52 cartes, première carte retournée qui n'est jamais un 8. Une carte est un entier de 0 à 51 (`couleur * 13 + valeur - 1`).
+- **Le tour** : la main d'un joueur n'apparaît qu'après « Voir ma main » (`HuitRound.reveal`), puisqu'on se passe le téléphone ; elle se cache dès que le tour change. Seules les cartes jouables sont touchables (`HuitScoring.isPlayable` : même couleur que celle demandée, même valeur que la dernière carte posée, ou un 8).
+- **Le 8** : joker de tout moment ; on touche le 8 puis la couleur qui suit (`HuitRound.play(card, suit)`). Si le 8 est la dernière carte de la main, aucune couleur n'est demandée.
+- **Piocher et passer** : sans carte jouable, on pioche (`draw`) jusqu'à en avoir une ; quand la pioche est vide, les cartes posées, sauf la dernière, sont remélangées ; s'il ne reste vraiment rien à piocher, on passe (`pass`). Si tous les joueurs passent de suite, la manche est bloquée (`blocked`) et la main la plus légère gagne.
+- **Points** : le gagnant de la manche marque 0, les autres les points de leur main (8 = 50, figures = 10, as = 1, autres = leur valeur : `HuitScoring.points`). `HuitRound.settle` les inscrit tout de suite dans la première ligne vide du tableau (une seule fois), donc le total de chacun, la fin de partie à 100 points (`endCondition` du jeu : le plus petit total gagne, la manche en cours est terminée) et le journal viennent de ce tableau. `nextRound` distribue la suivante, commencée par le joueur qui suit celui qui avait commencé.
+- **Reprise** : la partie en cours vit dans `ScoreViewModel` (`huitRound`) : elle survit à une rotation de l'écran. Une partie reprise continue avec la manche qui suit celles déjà inscrites ; la donne en cours n'est pas reprise. Quitter pendant une donne entamée demande confirmation (`HuitRound.inProgress`, pris en compte par `ScoreViewModel.hasProgress`).
+- **Un seul téléphone** : `SINGLE_PHONE_GAMES` (`GameCategory.kt`) contient le Huit américain (un téléphone dessiné dans la liste) : les mains sont secrètes, le partage à plusieurs téléphones demanderait que chaque invité ne reçoive que sa main.
+- **Pour un autre jeu de cartes** : même recette — un moteur pur et testé (cartes, coups permis, points), un écran qui cache la main entre deux joueurs, l'inscription des points dans le tableau, un cas dans `gameRouteFor`, `isPlayableGame` et les textes dans les 5 langues.
 
 ## Couleurs des joueurs et mode daltonien
 

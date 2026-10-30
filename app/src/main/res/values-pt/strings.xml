@@ -556,7 +556,7 @@
     <string name="rules_huit_3_title">Pontuação</string>
     <string name="rules_huit_3_body">Quando um jogador fica sem cartas, os outros contam os pontos da sua mão: 8 = 50 pontos, figuras = 10 pontos, ás = 1 ponto, outras cartas = o seu valor. Algumas mesas jogam até aos 200 pontos.</string>
     <string name="rules_huit_4_title">Na aplicação</string>
-    <string name="rules_huit_4_body">No fim de cada mão, introduz na coluna de cada jogador os pontos que tem na mão (0 para quem ganhou a mão). A classificação coloca em primeiro o total mais baixo.</string>
+    <string name="rules_huit_4_body">A aplicação joga a partida: distribui (5 cartas, 7 com dois jogadores), verifica cada carta jogada, faz comprar e conta os pontos. Passa-se o telemóvel: a mão de um jogador só aparece depois de «Ver a minha mão». Um 8 pede depois o naipe que se segue. Sem carta jogável, compra-se (as cartas jogadas são baralhadas de novo quando o baralho acaba); se já não há nada para comprar, passa-se, e se todos passam a mão fica bloqueada: ganha a mão mais leve. Os pontos de cada mão são registados na tabela e ganha o total mais baixo. Só na folha de pontuação, introduz tu no fim de cada mão os pontos da mão de cada jogador (0 para quem ganhou a mão).</string>
     <string name="rules_cribbage_1_title">Objetivo</string>
     <string name="rules_cribbage_1_body">Ser o primeiro a atingir os 121 pontos, marcando-os no tabuleiro. A aplicação pára a partida assim que um jogador chega aos 121.</string>
     <string name="rules_cribbage_2_title">A tua vez</string>
@@ -1561,7 +1561,7 @@
     <string name="home_scores">Folhas de pontuação</string>
     <string name="home_scores_hint">Conta os pontos dos teus jogos (cartas, dados, desportos…)</string>
     <string name="home_playable">Jogos jogáveis</string>
-    <string name="home_playable_hint">Joga diretamente na app (dados, Mastermind…), com um telemóvel ou com vários</string>
+    <string name="home_playable_hint">Joga diretamente na app (dados, cartas, Mastermind…), com um telemóvel ou com vários</string>
     <string name="playable_one_phone">Um só telemóvel</string>
     <string name="playable_multi_phone">Podem ligar-se vários telemóveis</string>
     <string name="game_morpion">Jogo do galo</string>
@@ -2035,4 +2035,28 @@
     <string name="rules_chess_3_body">A ronda termina em xeque-mate, desistência ou empate: rei afogado, material insuficiente, regra dos 50 lances, tripla repetição da mesma posição (estes empates são declarados automaticamente) ou acordo dos dois jogadores.</string>
     <string name="rules_chess_4_title">Na app</string>
     <string name="rules_chess_4_body">A pontuação da sessão (vitórias de cada um, empates) fica sempre visível e as cores trocam a cada ronda. Joga-se a dois num só telemóvel passando-o de mão em mão («Virar o tabuleiro» ajuda se estiverem frente a frente), ou cada um no seu com «Jogar cada um no seu telemóvel», disponível enquanto nada tiver sido jogado. Com dois telemóveis, é possível propor empate ou desistir.</string>
+
+    <!-- Huit américain jouable -->
+    <string name="huit_ranks">A,2,3,4,5,6,7,8,9,10,V,D,R</string>
+    <string name="huit_suits">espadas,copas,ouros,paus</string>
+    <string name="huit_card_desc">%1$s de %2$s</string>
+    <string name="huit_card_blocked">%1$s, não jogável</string>
+    <string name="huit_round">Mão %1$d</string>
+    <string name="huit_top_card">Última carta jogada</string>
+    <string name="huit_asked_suit">Naipe pedido: %1$s</string>
+    <string name="huit_stock">Baralho para comprar: %1$d</string>
+    <string name="huit_hands_title">Cartas na mão</string>
+    <string name="huit_cover_hint">Passa o telemóvel a %1$s: mais ninguém deve ver a sua mão.</string>
+    <string name="huit_show_hand">Ver a minha mão</string>
+    <string name="huit_hand_title">A tua mão</string>
+    <string name="huit_hint">Joga uma carta do mesmo naipe ou do mesmo valor que a última carta jogada. Um 8 joga-se a qualquer momento.</string>
+    <string name="huit_no_play">Nenhuma carta jogável: compra até teres uma.</string>
+    <string name="huit_must_pass">Já não há nada para comprar e nenhuma carta jogável: passas a vez.</string>
+    <string name="huit_draw">Comprar uma carta</string>
+    <string name="huit_pass">Passar a minha vez</string>
+    <string name="huit_pick_suit">Jogas um 8: escolhe o naipe que se segue.</string>
+    <string name="huit_round_won">%1$s jogou a sua última carta!</string>
+    <string name="huit_round_blocked">Ninguém pode jogar: a mão está bloqueada. %1$s tem a mão mais leve.</string>
+    <string name="huit_points_line">%1$s: +%2$d</string>
+    <string name="huit_next_round">Mão seguinte</string>
 </resources>

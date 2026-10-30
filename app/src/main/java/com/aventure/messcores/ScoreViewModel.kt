@@ -109,6 +109,18 @@ class ScoreViewModel : ViewModel() {
         return ShutBoxRound(players.size, startPlayer = next).also { shutBoxRound = it }
     }
 
+    // La partie de Huit américain en cours (mains, pioche, cartes posées, tour). Elle vit ici pour la même raison ; une partie
+    // reprise ou rouverte repart d'une donne neuve, après les manches déjà inscrites au tableau (le premier joueur tourne à chaque manche).
+    private var huitRound: HuitRound? = null
+
+    /** La partie de Huit américain ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun huitRound(): HuitRound {
+        val current = huitRound
+        if (current != null && current.playerCount == players.size) return current
+        val played = roundsPlayed()
+        return HuitRound(players.size, startPlayer = played % players.size.coerceAtLeast(1), startRound = played + 1).also { huitRound = it }
+    }
+
     // La partie de Qwixx en cours (plateau de chaque joueur, tour en cours). Elle vit ici pour la même raison ; une partie
     // reprise ou rouverte repart d'une partie neuve.
     private var qwixxRound: QwixxRound? = null
@@ -221,6 +233,7 @@ class ScoreViewModel : ViewModel() {
         cdcRound = null
         dixMilleRound = null
         shutBoxRound = null
+        huitRound = null
         qwixxRound = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
@@ -253,6 +266,7 @@ class ScoreViewModel : ViewModel() {
             cdcRound = null
             dixMilleRound = null
             shutBoxRound = null
+            huitRound = null
             qwixxRound = null
         }
         currentSaveId = saved.id
@@ -276,7 +290,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la partie ouverte contient au moins un score saisi (donc qu'il y a quelque chose à perdre). */
     fun hasProgress(): Boolean {
         if (!gameActive || players.isEmpty()) return false
-        return mode.hasProgress() || qwixxRound?.hasMarks == true
+        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true
     }
 
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
@@ -287,6 +301,7 @@ class ScoreViewModel : ViewModel() {
         cdcRound = null
         dixMilleRound = null
         shutBoxRound = null
+        huitRound = null
         qwixxRound = null
         currentSaveId = null
         savedBaseline = null

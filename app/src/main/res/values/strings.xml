@@ -652,7 +652,7 @@
     <string name="rules_huit_3_title">Les points</string>
     <string name="rules_huit_3_body">Quand un joueur n\'a plus de cartes, les autres comptent les points de leur main : 8 = 50 points, figures = 10 points, as = 1 point, autres cartes = leur valeur. Certaines tables jouent à 200 points.</string>
     <string name="rules_huit_4_title">Dans l\'appli</string>
-    <string name="rules_huit_4_body">À la fin de chaque donne, saisis dans la colonne de chaque joueur les points de sa main (0 pour celui qui a gagné la donne). Le classement met en tête le plus petit total.</string>
+    <string name="rules_huit_4_body">L’appli joue la partie : elle distribue (5 cartes, 7 à deux joueurs), vérifie chaque carte posée, fait piocher et compte les points. On se passe le téléphone : la main d’un joueur n’apparaît qu’après « Voir ma main ». Un 8 demande ensuite la couleur qui suit. Sans carte jouable, on pioche (les cartes posées sont remélangées quand la pioche est vide) ; s’il n’y a plus rien à piocher, on passe, et si tout le monde passe, la manche est bloquée : la main la plus légère gagne. Les points de chaque manche sont inscrits au tableau, le plus petit total gagne. Sur la feuille de scores seule, saisis toi-même à la fin de chaque donne les points de la main de chaque joueur (0 pour celui qui a gagné la donne).</string>
     <string name="rules_cribbage_1_title">But du jeu</string>
     <string name="rules_cribbage_1_body">Être le premier à atteindre 121 points en les marquant sur le plateau. L\'appli arrête la partie dès qu\'un joueur atteint 121.</string>
     <string name="rules_cribbage_2_title">Le tour de jeu</string>
@@ -1576,7 +1576,7 @@
     <string name="home_scores">Feuilles de scores</string>
     <string name="home_scores_hint">Compter les points de tes parties (cartes, dés, sports…)</string>
     <string name="home_playable">Jeux jouables</string>
-    <string name="home_playable_hint">Jouer directement dans l\'appli (dés, Mastermind…), sur un téléphone ou à plusieurs</string>
+    <string name="home_playable_hint">Jouer directement dans l\'appli (dés, cartes, Mastermind…), sur un téléphone ou à plusieurs</string>
     <string name="playable_one_phone">Un seul téléphone</string>
     <string name="playable_multi_phone">Plusieurs téléphones possibles</string>
     <string name="game_morpion">Morpion</string>
@@ -2050,4 +2050,28 @@
     <string name="rules_chess_3_body">La manche s’arrête sur un échec et mat, un abandon, ou une nulle : pat, matériel insuffisant, règle des 50 coups, triple répétition de la même position (ces nulles sont déclarées automatiquement) ou accord des deux joueurs.</string>
     <string name="rules_chess_4_title">Dans l’appli</string>
     <string name="rules_chess_4_body">Le score de la séance (victoires de chacun, nulles) reste affiché, et les couleurs s’échangent à chaque manche. On joue à deux sur un seul téléphone en se le passant (« Retourner l’échiquier » aide à s’asseoir face à face), ou chacun sur le sien avec « Jouer chacun sur son téléphone », proposé tant que rien n’a été joué. À deux téléphones, on peut proposer la nulle ou abandonner.</string>
+
+    <!-- Huit américain jouable -->
+    <string name="huit_ranks">A,2,3,4,5,6,7,8,9,10,V,D,R</string>
+    <string name="huit_suits">pique,cœur,carreau,trèfle</string>
+    <string name="huit_card_desc">%1$s de %2$s</string>
+    <string name="huit_card_blocked">%1$s, injouable</string>
+    <string name="huit_round">Manche %1$d</string>
+    <string name="huit_top_card">Dernière carte posée</string>
+    <string name="huit_asked_suit">Couleur demandée : %1$s</string>
+    <string name="huit_stock">Pioche : %1$d</string>
+    <string name="huit_hands_title">Cartes en main</string>
+    <string name="huit_cover_hint">Passe le téléphone à %1$s : personne d’autre ne doit voir sa main.</string>
+    <string name="huit_show_hand">Voir ma main</string>
+    <string name="huit_hand_title">Ta main</string>
+    <string name="huit_hint">Pose une carte de la même couleur ou de la même valeur que la dernière carte posée. Un 8 se joue à tout moment.</string>
+    <string name="huit_no_play">Aucune carte jouable : pioche jusqu’à en avoir une.</string>
+    <string name="huit_must_pass">Plus rien à piocher et aucune carte jouable : tu passes ton tour.</string>
+    <string name="huit_draw">Piocher une carte</string>
+    <string name="huit_pass">Passer mon tour</string>
+    <string name="huit_pick_suit">Tu poses un 8 : choisis la couleur qui suit.</string>
+    <string name="huit_round_won">%1$s a posé sa dernière carte !</string>
+    <string name="huit_round_blocked">Plus personne ne peut jouer : la manche est bloquée. %1$s a la main la plus légère.</string>
+    <string name="huit_points_line">%1$s : +%2$d</string>
+    <string name="huit_next_round">Manche suivante</string>
 </resources>

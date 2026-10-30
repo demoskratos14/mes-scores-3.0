@@ -647,7 +647,7 @@
     <string name="rules_huit_3_title">I punti</string>
     <string name="rules_huit_3_body">Quando un giocatore non ha più carte, gli altri contano i punti della loro mano: 8 = 50 punti, figure = 10 punti, asso = 1 punto, altre carte = il loro valore. Alcuni tavoli giocano a 200 punti.</string>
     <string name="rules_huit_4_title">Nell\'app</string>
-    <string name="rules_huit_4_body">Alla fine di ogni mano, inserisci nella colonna di ciascun giocatore i punti della sua mano (0 per chi ha vinto la mano). La classifica mette in testa il totale più basso.</string>
+    <string name="rules_huit_4_body">L’app gioca la partita: distribuisce (5 carte, 7 con due giocatori), controlla ogni carta giocata, fa pescare e conta i punti. Ci si passa il telefono: la mano di un giocatore compare solo dopo «Vedi la mia mano». Un 8 chiede poi il seme che segue. Senza carte giocabili si pesca (le carte giocate vengono rimescolate quando il mazzo è finito); se non c’è più nulla da pescare si passa e, se passano tutti, la mano è bloccata: vince la mano più leggera. I punti di ogni mano sono scritti nella tabella e vince il totale più basso. Sul solo foglio dei punteggi, inserisci tu alla fine di ogni mano i punti della mano di ciascun giocatore (0 per chi ha vinto la mano).</string>
     <string name="rules_cribbage_1_title">Obiettivo del gioco</string>
     <string name="rules_cribbage_1_body">Essere il primo a raggiungere 121 punti, segnandoli sul tabellone. L\'app ferma la partita non appena un giocatore raggiunge 121.</string>
     <string name="rules_cribbage_2_title">Svolgimento del turno</string>
@@ -1571,7 +1571,7 @@
     <string name="home_scores">Fogli punteggio</string>
     <string name="home_scores_hint">Conta i punti delle tue partite (carte, dadi, sport…)</string>
     <string name="home_playable">Giochi giocabili</string>
-    <string name="home_playable_hint">Gioca direttamente nell\'app (dadi, Mastermind…), con un telefono o con più telefoni</string>
+    <string name="home_playable_hint">Gioca direttamente nell\'app (dadi, carte, Mastermind…), con un telefono o con più telefoni</string>
     <string name="playable_one_phone">Un solo telefono</string>
     <string name="playable_multi_phone">Si possono collegare più telefoni</string>
     <string name="game_morpion">Tris</string>
@@ -2045,4 +2045,28 @@
     <string name="rules_chess_3_body">Il round termina con uno scacco matto, un abbandono o una patta: stallo, materiale insufficiente, regola delle 50 mosse, triplice ripetizione della stessa posizione (queste patte sono dichiarate automaticamente) o accordo dei due giocatori.</string>
     <string name="rules_chess_4_title">Nell’app</string>
     <string name="rules_chess_4_body">Il punteggio della sessione (vittorie di ciascuno, patte) resta visibile e i colori si scambiano a ogni round. Si gioca in due su un solo telefono passandoselo («Ruota la scacchiera» aiuta se ci si siede uno di fronte all’altro), oppure ognuno sul proprio con «Giocare ognuno col proprio telefono», disponibile finché non si è giocato nulla. Con due telefoni si può proporre la patta o abbandonare.</string>
+
+    <!-- Huit américain jouable -->
+    <string name="huit_ranks">A,2,3,4,5,6,7,8,9,10,J,Q,K</string>
+    <string name="huit_suits">picche,cuori,quadri,fiori</string>
+    <string name="huit_card_desc">%1$s di %2$s</string>
+    <string name="huit_card_blocked">%1$s, non giocabile</string>
+    <string name="huit_round">Mano %1$d</string>
+    <string name="huit_top_card">Ultima carta giocata</string>
+    <string name="huit_asked_suit">Seme richiesto: %1$s</string>
+    <string name="huit_stock">Mazzo da pescare: %1$d</string>
+    <string name="huit_hands_title">Carte in mano</string>
+    <string name="huit_cover_hint">Passa il telefono a %1$s: nessun altro deve vedere la sua mano.</string>
+    <string name="huit_show_hand">Vedi la mia mano</string>
+    <string name="huit_hand_title">La tua mano</string>
+    <string name="huit_hint">Gioca una carta dello stesso seme o dello stesso valore dell’ultima carta giocata. Un 8 si gioca in qualsiasi momento.</string>
+    <string name="huit_no_play">Nessuna carta giocabile: pesca finché non ne hai una.</string>
+    <string name="huit_must_pass">Non c’è più nulla da pescare e nessuna carta giocabile: passi il turno.</string>
+    <string name="huit_draw">Pesca una carta</string>
+    <string name="huit_pass">Passo il turno</string>
+    <string name="huit_pick_suit">Giochi un 8: scegli il seme che segue.</string>
+    <string name="huit_round_won">%1$s ha giocato la sua ultima carta!</string>
+    <string name="huit_round_blocked">Nessuno può più giocare: la mano è bloccata. %1$s ha la mano più leggera.</string>
+    <string name="huit_points_line">%1$s: +%2$d</string>
+    <string name="huit_next_round">Mano successiva</string>
 </resources>

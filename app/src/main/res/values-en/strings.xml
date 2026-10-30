@@ -556,7 +556,7 @@
     <string name="rules_huit_3_title">Scoring</string>
     <string name="rules_huit_3_body">When a player has no cards left, the others count the points in their hand: 8 = 50 points, face cards = 10 points, ace = 1 point, other cards = their value. Some tables play to 200 points.</string>
     <string name="rules_huit_4_title">In the app</string>
-    <string name="rules_huit_4_body">At the end of each deal, enter in each player’s column the points in their hand (0 for the one who won the deal). The standings put the lowest total first.</string>
+    <string name="rules_huit_4_body">The app runs the game: it deals (5 cards, 7 with two players), checks every card played, makes you draw and counts the points. The phone is passed around: a player’s hand only appears after “Show my hand”. An 8 then asks for the suit that follows. With no playable card you draw (the cards played are reshuffled when the draw pile is empty); if there is nothing left to draw you pass, and if everybody passes the round is blocked: the lightest hand wins. The points of each round are recorded in the table, the lowest total wins. On the score sheet alone, enter the points in each player’s hand yourself at the end of each deal (0 for the one who won the deal).</string>
     <string name="rules_cribbage_1_title">Goal</string>
     <string name="rules_cribbage_1_body">Be the first to reach 121 points, scoring them on the board. The app stops the game as soon as a player reaches 121.</string>
     <string name="rules_cribbage_2_title">Taking a turn</string>
@@ -1535,7 +1535,7 @@
     <string name="home_scores">Score sheets</string>
     <string name="home_scores_hint">Keep score for your games (cards, dice, sports…)</string>
     <string name="home_playable">Playable games</string>
-    <string name="home_playable_hint">Play right in the app (dice, Mastermind…), on one phone or with several</string>
+    <string name="home_playable_hint">Play right in the app (dice, cards, Mastermind…), on one phone or with several</string>
     <string name="playable_one_phone">One phone only</string>
     <string name="playable_multi_phone">Can connect several phones</string>
     <string name="game_morpion">Tic-tac-toe</string>
@@ -2007,4 +2007,28 @@
     <string name="rules_chess_3_body">The round ends on checkmate, a resignation, or a draw: stalemate, insufficient material, the fifty-move rule, threefold repetition of the same position (these draws are declared automatically) or agreement between both players.</string>
     <string name="rules_chess_4_title">In the app</string>
     <string name="rules_chess_4_body">The session score (each player’s wins, draws) stays on screen, and colours swap every round. Play two on one phone by passing it around (“Flip the board” helps when sitting face to face), or each on your own with “Play on separate phones”, available as long as nothing has been played. On two phones, you can offer a draw or resign.</string>
+
+    <!-- Huit américain jouable -->
+    <string name="huit_ranks">A,2,3,4,5,6,7,8,9,10,J,Q,K</string>
+    <string name="huit_suits">spades,hearts,diamonds,clubs</string>
+    <string name="huit_card_desc">%1$s of %2$s</string>
+    <string name="huit_card_blocked">%1$s, not playable</string>
+    <string name="huit_round">Round %1$d</string>
+    <string name="huit_top_card">Last card played</string>
+    <string name="huit_asked_suit">Suit to follow: %1$s</string>
+    <string name="huit_stock">Draw pile: %1$d</string>
+    <string name="huit_hands_title">Cards in hand</string>
+    <string name="huit_cover_hint">Pass the phone to %1$s: nobody else should see their hand.</string>
+    <string name="huit_show_hand">Show my hand</string>
+    <string name="huit_hand_title">Your hand</string>
+    <string name="huit_hint">Play a card of the same suit or the same rank as the last card played. An 8 can be played at any time.</string>
+    <string name="huit_no_play">No playable card: draw until you get one.</string>
+    <string name="huit_must_pass">Nothing left to draw and no playable card: you pass your turn.</string>
+    <string name="huit_draw">Draw a card</string>
+    <string name="huit_pass">Pass my turn</string>
+    <string name="huit_pick_suit">You are playing an 8: choose the suit that follows.</string>
+    <string name="huit_round_won">%1$s played their last card!</string>
+    <string name="huit_round_blocked">Nobody can play any more: the round is blocked. %1$s has the lightest hand.</string>
+    <string name="huit_points_line">%1$s: +%2$d</string>
+    <string name="huit_next_round">Next round</string>
 </resources>

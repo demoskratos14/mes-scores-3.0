@@ -170,8 +170,10 @@ fun ScoreApp(
     SideEffect { sync.playable = playMode }
     val diceOnlyGame = playable && viewModel.gameRules.isDiceOnly()
     val onDiceOnlyRoute = currentRoute == "dice" && diceOnlyGame
+    // Huit américain jouable : son écran est celui de la partie (pas de feuille de score derrière), comme les jeux de dés ci-dessus.
+    val onHuitRoute = currentRoute == "huit" && playable && viewModel.gameRules.id == HUIT_ID
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
-        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute
+        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute
     var showQuitDialog by remember { mutableStateOf(false) }
 
     // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
@@ -229,8 +231,12 @@ fun ScoreApp(
 
     // Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille, Qwixx et Shut the Box jouables : tout (scores compris) s'affiche sur la page des dés, sans feuille de score.
     // Un invité y est amené comme l'organisateur, mais seulement si celui-ci joue en version jouable.
-    fun gameRouteFor(rules: GameRules): String =
-        if (playable && rules.isDiceOnly()) "dice" else scoreRouteFor(rules)
+    // Le Huit américain jouable aussi : tout (scores compris) s'affiche sur son écran de cartes.
+    fun gameRouteFor(rules: GameRules): String = when {
+        playable && rules.id == HUIT_ID -> "huit"
+        playable && rules.isDiceOnly() -> "dice"
+        else -> scoreRouteFor(rules)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Fond commun à tous les écrans, décodé une seule fois.
@@ -660,6 +666,19 @@ fun ScoreApp(
                         if (!onDiceOnlyRoute) {
                             navController.popBackStack()
                         } else if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
+            composable("huit") {
+                HuitScreen(
+                    viewModel = viewModel,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
                             showQuitDialog = true
                         } else {
                             quitGame(save = false)
