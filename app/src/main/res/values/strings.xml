@@ -2116,7 +2116,11 @@
     <string name="rules_reflex_2_body">Les deux zones sont rouges : on attend. Après un délai au hasard (de 1,5 à 5 secondes), elles passent au vert. Toucher sa zone avant le vert est un faux départ : la manche va à l’adversaire. Le temps de réaction du vainqueur s’affiche en millisecondes.</string>
     <string name="rules_reflex_3_title">Dans l’appli</string>
     <string name="rules_reflex_3_body">On joue à deux sur un seul téléphone, posé à plat entre les joueurs : chacun a sa moitié d’écran, celle du haut est retournée. Ou chacun sur son téléphone (« Jouer chacun sur son téléphone ») : chaque téléphone mesure le temps de réaction de son joueur depuis son propre signal, et le plus rapide gagne ; un léger décalage entre les deux téléphones ne change rien. Deux faux départs, personne qui touche ou des temps identiques : la manche est rejouée. Le score de la séance reste affiché. Avec le mode daltonien, le rouge et le vert deviennent orange et bleu.</string>
-    <string name="reflex_hint">Chacun pose un doigt près de sa zone. Quand elle passe au vert, touche-la le premier ! Premier à %1$d manches.</string>
+    <plurals name="reflex_hint">
+        <item quantity="one">Chacun pose un doigt près de sa zone. Quand elle passe au vert, touche-la le premier ! Premier à %1$d manche.</item>
+        <item quantity="other">Chacun pose un doigt près de sa zone. Quand elle passe au vert, touche-la le premier ! Premier à %1$d manches.</item>
+        <item quantity="many">Chacun pose un doigt près de sa zone. Quand elle passe au vert, touche-la le premier ! Premier à %1$d de manches.</item>
+    </plurals>
     <string name="reflex_status_wait">Attention… ne touche pas avant le vert !</string>
     <string name="reflex_go">TOUCHE !</string>
     <string name="reflex_wait">Attends…</string>

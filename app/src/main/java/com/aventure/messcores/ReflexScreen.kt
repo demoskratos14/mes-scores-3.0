@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -158,7 +159,7 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
     fun nameOf(player: Int) = if (player == 1) name1 else name2
 
     val statusText = when {
-        phase == PHASE_READY -> stringResource(R.string.reflex_hint, Reflex.TARGET)
+        phase == PHASE_READY -> pluralStringResource(R.plurals.reflex_hint, Reflex.TARGET, Reflex.TARGET)
         phase == PHASE_WAITING -> stringResource(R.string.reflex_status_wait)
         phase == PHASE_GO -> stringResource(R.string.reflex_go)
         match.isOver -> stringResource(
@@ -425,7 +426,7 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
         online.running && online.reported -> stringResource(R.string.reflex_sent_status)
         online.running && phase == PHASE_GO -> stringResource(R.string.reflex_go)
         online.running -> stringResource(R.string.reflex_status_wait)
-        !roundDone -> stringResource(R.string.reflex_hint, Reflex.TARGET)
+        !roundDone -> pluralStringResource(R.plurals.reflex_hint, Reflex.TARGET, Reflex.TARGET)
         match.lastDraw -> stringResource(R.string.reflex_draw)
         match.isOver -> stringResource(R.string.reflex_match_won, names[match.winner - 1], match.winsOf(match.winner), match.winsOf(3 - match.winner))
         match.falseStart -> stringResource(R.string.reflex_false_start, names[2 - match.lastWinner], names[match.lastWinner - 1])

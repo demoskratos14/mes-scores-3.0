@@ -2110,7 +2110,11 @@
     <string name="rules_reflex_2_body">Le due zone sono rosse: si aspetta. Dopo un ritardo casuale (da 1,5 a 5 secondi) diventano verdi. Toccare la propria zona prima del verde è una falsa partenza: il turno va all’avversario. Il tempo di reazione del vincitore è mostrato in millisecondi.</string>
     <string name="rules_reflex_3_title">Nell’app</string>
     <string name="rules_reflex_3_body">Si gioca in due con un solo telefono, appoggiato in piano tra i giocatori: ognuno ha la sua metà dello schermo, quella in alto è capovolta. Oppure ognuno sul proprio telefono («Gioca ognuno sul proprio telefono»): ogni telefono misura il tempo di reazione del suo giocatore dal proprio segnale e vince il più veloce; un piccolo scarto tra i due telefoni non cambia nulla. Due false partenze, nessuno che tocca o tempi identici: il turno si rigioca. Il punteggio della sessione resta visibile. Con la modalità daltonici, il rosso e il verde diventano arancione e blu.</string>
-    <string name="reflex_hint">Ognuno appoggia un dito vicino alla propria zona. Quando diventa verde, toccala per primo! Vince chi arriva a %1$d turni.</string>
+    <plurals name="reflex_hint">
+        <item quantity="one">Ognuno appoggia un dito vicino alla propria zona. Quando diventa verde, toccala per primo! Vince chi arriva a %1$d turno.</item>
+        <item quantity="other">Ognuno appoggia un dito vicino alla propria zona. Quando diventa verde, toccala per primo! Vince chi arriva a %1$d turni.</item>
+        <item quantity="many">Ognuno appoggia un dito vicino alla propria zona. Quando diventa verde, toccala per primo! Vince chi arriva a %1$d di turni.</item>
+    </plurals>
     <string name="reflex_status_wait">Attenzione… non toccare prima del verde!</string>
     <string name="reflex_go">TOCCA!</string>
     <string name="reflex_wait">Aspetta…</string>

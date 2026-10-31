@@ -2100,7 +2100,11 @@
     <string name="rules_reflex_2_body">As duas zonas estão vermelhas: é preciso esperar. Após um atraso aleatório (de 1,5 a 5 segundos), ficam verdes. Tocar na sua zona antes do verde é uma falsa partida: a ronda vai para o adversário. O tempo de reação do vencedor é mostrado em milissegundos.</string>
     <string name="rules_reflex_3_title">Na app</string>
     <string name="rules_reflex_3_body">Joga-se a dois com um só telemóvel, pousado na horizontal entre os jogadores: cada um tem a sua metade do ecrã, e a de cima está virada ao contrário. Ou cada um no seu telemóvel («Jogar cada um no seu telemóvel»): cada telemóvel mede o tempo de reação do seu jogador a partir do seu próprio sinal, e ganha o mais rápido; um pequeno desfasamento entre os dois telemóveis não muda nada. Duas falsas partidas, ninguém a tocar ou tempos idênticos: a ronda repete-se. O resultado da sessão fica sempre visível. Com o modo daltónico, o vermelho e o verde passam a laranja e azul.</string>
-    <string name="reflex_hint">Cada um pousa um dedo perto da sua zona. Quando ficar verde, toca nela primeiro! Ganha quem chegar a %1$d rondas.</string>
+    <plurals name="reflex_hint">
+        <item quantity="one">Cada um pousa um dedo perto da sua zona. Quando ficar verde, toca nela primeiro! Ganha quem chegar a %1$d ronda.</item>
+        <item quantity="other">Cada um pousa um dedo perto da sua zona. Quando ficar verde, toca nela primeiro! Ganha quem chegar a %1$d rondas.</item>
+        <item quantity="many">Cada um pousa um dedo perto da sua zona. Quando ficar verde, toca nela primeiro! Ganha quem chegar a %1$d de rondas.</item>
+    </plurals>
     <string name="reflex_status_wait">Atenção… não toques antes do verde!</string>
     <string name="reflex_go">TOCA!</string>
     <string name="reflex_wait">Espera…</string>

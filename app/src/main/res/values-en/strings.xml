@@ -2072,7 +2072,10 @@
     <string name="rules_reflex_2_body">Both zones are red: wait. After a random delay (1.5 to 5 seconds) they turn green. Touching your zone before it turns green is a false start: the round goes to your opponent. The winner’s reaction time is shown in milliseconds.</string>
     <string name="rules_reflex_3_title">In the app</string>
     <string name="rules_reflex_3_body">Two players share one phone, laid flat between them: each has their half of the screen, and the top one is upside down. Or each on their own phone (“Play on separate phones”): each phone measures its player’s reaction time from its own signal, and the fastest wins; a small delay between the two phones makes no difference. Two false starts, nobody touching or identical times: the round is replayed. The session score stays on screen. In colour-blind mode, red and green become orange and blue.</string>
-    <string name="reflex_hint">Each player rests a finger near their zone. When it turns green, touch it first! First to %1$d rounds.</string>
+    <plurals name="reflex_hint">
+        <item quantity="one">Each player rests a finger near their zone. When it turns green, touch it first! First to %1$d round.</item>
+        <item quantity="other">Each player rests a finger near their zone. When it turns green, touch it first! First to %1$d rounds.</item>
+    </plurals>
     <string name="reflex_status_wait">Get ready… don’t touch before green!</string>
     <string name="reflex_go">TOUCH!</string>
     <string name="reflex_wait">Wait…</string>
