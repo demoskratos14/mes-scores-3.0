@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
@@ -43,7 +44,7 @@ private const val GRID_COLUMNS = 3
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
     MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID,
-    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID
+    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
 /**
@@ -126,6 +127,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             OTHELLO_ID -> drawOthello()
             HANGMAN_ID -> drawHangman()
             CHESS_ID -> drawChess()
+            UNO_ID -> drawUno()
             else -> drawGeneric()
         }
     }
@@ -327,6 +329,36 @@ private fun DrawScope.drawOthello() {
     fun center(c: Int, r: Int) = Offset(margin + cell * (c + 0.5f), margin + cell * (r + 0.5f))
     listOf(1 to 1, 2 to 2, 1 to 0).forEach { (c, r) -> drawCircle(Color(0xFF212121), cell * 0.4f, center(c, r)) }
     listOf(2 to 1, 1 to 2, 3 to 3).forEach { (c, r) -> drawCircle(Color(0xFFFAFAFA), cell * 0.4f, center(c, r)) }
+}
+
+private fun DrawScope.drawUno() {
+    paper(Color(0xFF263238))
+    val s = size.minDimension
+    val w = s * 0.4f
+    val h = s * 0.6f
+    // Trois cartes en éventail ; la dernière porte l'ovale blanc du Uno.
+    fun card(color: Color, angle: Float, dx: Float, oval: Boolean) {
+        val left = s / 2f + dx - w / 2f
+        val top = s / 2f - h / 2f
+        rotate(angle, pivot = Offset(s / 2f + dx, s * 0.8f)) {
+            drawRoundRect(Color.White, topLeft = Offset(left, top), size = Size(w, h), cornerRadius = CornerRadius(s * 0.06f))
+            val inset = s * 0.025f
+            drawRoundRect(
+                color,
+                topLeft = Offset(left + inset, top + inset),
+                size = Size(w - 2 * inset, h - 2 * inset),
+                cornerRadius = CornerRadius(s * 0.045f)
+            )
+            if (oval) {
+                rotate(30f, pivot = Offset(s / 2f + dx, s / 2f)) {
+                    drawOval(Color.White, topLeft = Offset(left + w * 0.15f, top + h * 0.2f), size = Size(w * 0.7f, h * 0.6f))
+                }
+            }
+        }
+    }
+    card(Color(0xFF1565C0), -26f, -s * 0.12f, oval = false)
+    card(Color(0xFFF9A825), 0f, 0f, oval = false)
+    card(Color(0xFFD32F2F), 26f, s * 0.12f, oval = true)
 }
 
 private fun DrawScope.drawHangman() {

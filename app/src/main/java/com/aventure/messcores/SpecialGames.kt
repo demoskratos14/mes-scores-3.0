@@ -25,7 +25,8 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         maxPlayers = 10,
         lowestWins = false,
         allowNegativeScores = false,
-        scoreMode = ScoreMode.TABLE
+        scoreMode = ScoreMode.TABLE,
+        endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 500, stopImmediately = false)
     ),
     GameRules(
         id = "builtin_milleb",

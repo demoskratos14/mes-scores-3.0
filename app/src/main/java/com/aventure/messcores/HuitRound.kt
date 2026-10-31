@@ -247,9 +247,7 @@ internal class HuitRound(
      */
     fun settle(viewModel: ScoreViewModel): Boolean {
         if (!roundOver || settled) return false
-        val row = viewModel.scores.indexOfFirst { line -> line.all { it.baseValue == null } }
-        if (row < 0) return false
-        roundPoints().forEachIndexed { player, points -> viewModel.setCell(row, player, points, false) }
+        if (!writeRoundPoints(viewModel, roundPoints())) return false
         settled = true
         return true
     }
