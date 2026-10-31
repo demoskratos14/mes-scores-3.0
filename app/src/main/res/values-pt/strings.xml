@@ -355,7 +355,7 @@
     <string name="rules_uno_3_title">Pontuação</string>
     <string name="rules_uno_3_body">O vencedor da ronda marca os pontos das cartas que restam na mão dos outros jogadores: cartas numeradas = o seu valor · +2, inverter, saltar = 20 · joker e joker +4 = 50.</string>
     <string name="rules_uno_4_title">Na aplicação</string>
-    <string name="rules_uno_4_body">Introduz os pontos ganhos por cada jogador em cada ronda. A pontuação mais alta lidera. A partida não termina automaticamente (a regra oficial fixa o objetivo nos 500 pontos).</string>
+    <string name="rules_uno_4_body">A aplicação joga a partida: distribui 7 cartas, verifica cada carta jogada, aplica as cartas de ação (+2, inverter, saltar, joker, joker +4; o +4 só se joga sem nenhuma carta da cor pedida), faz comprar e diz «UNO!» por ti. Passa-se o telemóvel: a mão de um jogador só aparece depois de «Ver a minha mão». Sem carta jogável compra-se uma carta: se puder ser jogada, joga-se, ou guarda-se e passa-se a vez. As cartas jogadas são baralhadas de novo quando o baralho acaba. O vencedor de cada mão marca os pontos das mãos dos outros, registados na tabela; a partida pára aos 500 pontos (ganha o total mais alto) no fim da mão em curso. Na folha de pontuações sozinha, introduz tu os pontos ganhos em cada mão.</string>
     <string name="rules_button">Regras</string>
     <string name="rules_dialog_title">Regras · %1$s</string>
     <string name="game_generic">Jogo clássico</string>
@@ -532,7 +532,7 @@
     <string name="rules_coeurs_3_title">Disparar à lua</string>
     <string name="rules_coeurs_3_body">Um jogador que recolhe todas as copas e a dama de espadas (26 pontos) “dispara à lua”: marca 0 e cada um dos outros jogadores marca 26 pontos (ou, consoante a mesa, subtrai 26 pontos à sua própria pontuação).</string>
     <string name="rules_coeurs_4_title">Na aplicação</string>
-    <string name="rules_coeurs_4_body">Depois de cada mão, introduz na coluna de cada jogador os pontos recolhidos. O jogo joga-se com 3 a 6 jogadores (as regras acima são as de 4).</string>
+    <string name="rules_coeurs_4_body">A aplicação joga a partida: distribui as cartas (com 3, 5 e 6 jogadores retira algumas cartas baixas para que todos tenham o mesmo número), faz passar 3 cartas conforme a mão (à esquerda, à direita, em frente com 4 e 6 jogadores, depois uma mão sem passe), decide quem leva cada vaza, verifica o naipe a servir e a abertura das copas, e regista os pontos da mão na tabela, incluindo o grande slam. Passa-se o telemóvel: a mão de um jogador só aparece depois de «Ver a minha mão». Na folha de pontuações sozinha, introduz os pontos recolhidos em cada mão.</string>
     <string name="rules_pique_1_title">Objetivo</string>
     <string name="rules_pique_1_body">Fazer o número de vazas que licitaste. As equipas (2 contra 2) pontuam cumprindo o seu contrato; ganha a primeira equipa a atingir os 500 pontos. A aplicação termina a ronda em curso e depois anuncia o vencedor.</string>
     <string name="rules_pique_2_title">A tua vez</string>
@@ -2059,4 +2059,38 @@
     <string name="huit_round_blocked">Ninguém pode jogar: a mão está bloqueada. %1$s tem a mão mais leve.</string>
     <string name="huit_points_line">%1$s: +%2$d</string>
     <string name="huit_next_round">Mão seguinte</string>
+    <string name="uno_kinds">0,1,2,3,4,5,6,7,8,9,saltar,inverter,+2,joker,joker +4</string>
+    <string name="uno_colors">vermelho,amarelo,verde,azul</string>
+    <string name="uno_card_desc">%1$s %2$s</string>
+    <string name="uno_asked_color">Cor pedida: %1$s</string>
+    <string name="uno_direction_forward">Sentido: ordem da lista ↓</string>
+    <string name="uno_direction_backward">Sentido: ordem inversa da lista ↑</string>
+    <string name="uno_call">UNO!</string>
+    <string name="uno_pick_color">Jogas um joker: escolhe a cor que se segue.</string>
+    <string name="uno_hint">Joga uma carta da mesma cor, do mesmo número ou do mesmo símbolo que a última carta jogada. Um joker joga-se a qualquer momento; o joker +4 só se não tiveres nenhuma carta da cor pedida.</string>
+    <string name="uno_no_play">Nenhuma carta jogável: compra uma carta.</string>
+    <string name="uno_drawn_playable">Compraste uma carta que podes jogar: joga-a, ou guarda-a e passa a vez.</string>
+    <string name="uno_drawn_blocked">A carta comprada não pode ser jogada: passas a vez.</string>
+    <string name="uno_keep">Guardar a carta e passar a vez</string>
+    <string name="uno_event_skip">%1$s joga %2$s: %3$s perde a vez.</string>
+    <string name="uno_event_reverse">%1$s joga %2$s: o sentido do jogo inverte-se.</string>
+    <string name="uno_event_draw">%1$s joga %2$s: %3$s compra %4$d cartas e perde a vez.</string>
+    <string name="uno_event_wild">%1$s joga %2$s e escolhe a cor.</string>
+    <string name="hearts_no_pass">Sem passe nesta mão.</string>
+    <string name="hearts_pass_pick">Escolhe 3 cartas para passar a %1$s.</string>
+    <string name="hearts_pass_count">%1$d / %2$d cartas escolhidas</string>
+    <string name="hearts_pass_confirm">Passar estas cartas</string>
+    <string name="hearts_lead_first">Tens o 2 de paus: começas tu, joga-o.</string>
+    <string name="hearts_hint">Serve o naipe pedido se puderes. Senão, descarta o que quiseres (na primeira vaza, nem copas nem a dama de espadas, a não ser que não tenhas outra coisa). Não se começa uma vaza com copas enquanto nenhuma copa tiver sido jogada.</string>
+    <string name="hearts_received_hint">As cartas rodeadas são as que acabaste de receber.</string>
+    <string name="hearts_trick_title">Vaza em curso</string>
+    <string name="hearts_trick_empty">Ninguém jogou ainda nesta vaza.</string>
+    <string name="hearts_trick_line">%1$s: %2$s</string>
+    <string name="hearts_taken_title">Pontos recolhidos nesta mão</string>
+    <string name="hearts_broken_yes">Copas abertas: pode começar-se uma vaza com copas.</string>
+    <string name="hearts_broken_no">Copas ainda não abertas: não se começa uma vaza com copas.</string>
+    <string name="hearts_trick_won">%1$s leva a vaza (%2$d pontos).</string>
+    <string name="hearts_continue">Continuar</string>
+    <string name="hearts_round_over">Mão terminada</string>
+    <string name="hearts_moon">%1$s faz o grande slam: os outros marcam 26 pontos!</string>
 </resources>

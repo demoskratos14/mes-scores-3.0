@@ -172,8 +172,12 @@ fun ScoreApp(
     val onDiceOnlyRoute = currentRoute == "dice" && diceOnlyGame
     // Huit américain jouable : son écran est celui de la partie (pas de feuille de score derrière), comme les jeux de dés ci-dessus.
     val onHuitRoute = currentRoute == "huit" && playable && viewModel.gameRules.id == HUIT_ID
+    // Uno jouable : même principe, son écran est celui de la partie.
+    val onUnoRoute = currentRoute == "uno" && playable && viewModel.gameRules.id == UNO_ID
+    // Cœurs jouable : même principe.
+    val onHeartsRoute = currentRoute == "hearts" && playable && viewModel.gameRules.id == HEARTS_ID
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
-        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute
+        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute
     var showQuitDialog by remember { mutableStateOf(false) }
 
     // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
@@ -234,6 +238,8 @@ fun ScoreApp(
     // Le Huit américain jouable aussi : tout (scores compris) s'affiche sur son écran de cartes.
     fun gameRouteFor(rules: GameRules): String = when {
         playable && rules.id == HUIT_ID -> "huit"
+        playable && rules.id == UNO_ID -> "uno"
+        playable && rules.id == HEARTS_ID -> "hearts"
         playable && rules.isDiceOnly() -> "dice"
         else -> scoreRouteFor(rules)
     }
@@ -675,6 +681,32 @@ fun ScoreApp(
             }
             composable("huit") {
                 HuitScreen(
+                    viewModel = viewModel,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
+            composable("uno") {
+                UnoScreen(
+                    viewModel = viewModel,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
+            composable("hearts") {
+                HeartsScreen(
                     viewModel = viewModel,
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {

@@ -45,7 +45,7 @@ private val SPECIAL_GAMES = setOf(
 fun GameRules.isPlayableGame(): Boolean =
     id == MASTERMIND_ID || id == MORPION_ID || id == CONNECT4_ID || id == BATTLESHIP_ID || id == NIM_ID || id == PFC_ID ||
         id == GOMOKU_ID || id == DOTS_ID || id == DRAUGHTS_ID || id == OTHELLO_ID || id == HANGMAN_ID || id == CHESS_ID ||
-        id == HUIT_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
+        id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
 
 /** Vrai si le jeu a une feuille de scores : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont chacun leur écran, sans feuille. */
 fun GameRules.hasScoreSheet(): Boolean =
@@ -54,7 +54,7 @@ fun GameRules.hasScoreSheet(): Boolean =
 
 // Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : le Huit américain, dont chaque joueur cache sa main : on se passe le téléphone.
 // Le Mastermind, le Morpion, le Gomoku, la Pipopipette, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
-private val SINGLE_PHONE_GAMES = setOf(HUIT_ID)
+private val SINGLE_PHONE_GAMES = setOf(HUIT_ID, UNO_ID, HEARTS_ID)
 
 /** Vrai si le jeu jouable peut se jouer en connectant plusieurs téléphones (deux téléphones dessinés dans la liste). */
 fun GameRules.isMultiPhone(): Boolean = isPlayableGame() && id !in SINGLE_PHONE_GAMES

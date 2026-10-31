@@ -361,7 +361,7 @@
     <string name="rules_uno_3_title">Comptage des points</string>
     <string name="rules_uno_3_body">Le gagnant de la manche marque les points des cartes restant dans les mains des autres : cartes numérotées = leur valeur · +2, inversion, passe ton tour = 20 · joker et joker +4 = 50.</string>
     <string name="rules_uno_4_title">Dans l\'appli</string>
-    <string name="rules_uno_4_body">Saisissez les points gagnés par joueur à chaque manche. Le score le plus haut est en tête. La partie ne se termine pas automatiquement (la règle officielle fixe l\'objectif à 500 points).</string>
+    <string name="rules_uno_4_body">L’appli joue la partie : elle distribue 7 cartes, vérifie chaque carte posée, applique les cartes action (+2, inversion, passe ton tour, joker, joker +4 ; le +4 ne se pose que sans carte de la couleur demandée), fait piocher et annonce « UNO ! » à ta place. On se passe le téléphone : la main d’un joueur n’apparaît qu’après « Voir ma main ». Sans carte jouable, on pioche une carte : si elle peut être posée, on la pose ou on la garde et on passe son tour. Les cartes posées sont remélangées quand la pioche est vide. Le gagnant de chaque manche marque les points des mains des autres, inscrits au tableau ; la partie s’arrête à 500 points (le total le plus haut gagne) après la manche en cours. Sur la feuille de scores seule, saisis toi-même les points gagnés à chaque manche.</string>
     <string name="rules_button">Règles</string>
     <string name="rules_dialog_title">Règles · %1$s</string>
     <string name="game_generic">Jeu classique</string>
@@ -628,7 +628,7 @@
     <string name="rules_coeurs_3_title">Faire le grand chelem</string>
     <string name="rules_coeurs_3_body">Un joueur qui ramasse tous les cœurs et la dame de pique (26 points) réussit le « grand chelem » : il marque 0 et chacun des autres joueurs marque 26 points (ou, selon les tables, il retire 26 points à son propre score).</string>
     <string name="rules_coeurs_4_title">Dans l\'appli</string>
-    <string name="rules_coeurs_4_body">Après chaque donne, saisis dans la colonne de chaque joueur les points ramassés. La partie se joue de 3 à 6 joueurs (les règles ci-dessus sont celles à 4).</string>
+    <string name="rules_coeurs_4_body">L’appli joue la partie : elle distribue les cartes (à 3, 5 et 6 joueurs, elle retire quelques petites cartes pour que chacun en ait autant), fait passer 3 cartes à la manche (à gauche, à droite, en face à 4 et 6 joueurs, puis une manche sans passe), désigne qui ramasse chaque pli, vérifie la couleur à fournir et l’ouverture des cœurs, puis inscrit les points de la manche au tableau, grand chelem compris. On se passe le téléphone : la main d’un joueur n’apparaît qu’après « Voir ma main ». Sur la feuille de scores seule, saisis les points ramassés à chaque donne.</string>
     <string name="rules_pique_1_title">But du jeu</string>
     <string name="rules_pique_1_body">Réaliser le nombre de plis annoncé. Les équipes (2 contre 2) marquent des points en réussissant leur contrat ; la première équipe à atteindre 500 points gagne. L\'appli termine la manche en cours puis annonce le gagnant.</string>
     <string name="rules_pique_2_title">Le tour de jeu</string>
@@ -2074,4 +2074,39 @@
     <string name="huit_round_blocked">Plus personne ne peut jouer : la manche est bloquée. %1$s a la main la plus légère.</string>
     <string name="huit_points_line">%1$s : +%2$d</string>
     <string name="huit_next_round">Manche suivante</string>
+    <string name="uno_faces" translatable="false">0,1,2,3,4,5,6,7,8,9,⊘,⇄,+2,★,+4</string>
+    <string name="uno_kinds">0,1,2,3,4,5,6,7,8,9,passe ton tour,inversion,+2,joker,joker +4</string>
+    <string name="uno_colors">rouge,jaune,vert,bleu</string>
+    <string name="uno_card_desc">%1$s %2$s</string>
+    <string name="uno_asked_color">Couleur demandée : %1$s</string>
+    <string name="uno_direction_forward">Sens du jeu : ordre de la liste ↓</string>
+    <string name="uno_direction_backward">Sens du jeu : sens inverse de la liste ↑</string>
+    <string name="uno_call">UNO !</string>
+    <string name="uno_pick_color">Tu poses un joker : choisis la couleur qui suit.</string>
+    <string name="uno_hint">Pose une carte de la même couleur, du même chiffre ou du même symbole que la dernière carte posée. Un joker se joue à tout moment ; le joker +4 seulement si tu n’as aucune carte de la couleur demandée.</string>
+    <string name="uno_no_play">Aucune carte jouable : pioche une carte.</string>
+    <string name="uno_drawn_playable">Tu as pioché une carte que tu peux poser : pose-la, ou garde-la et passe ton tour.</string>
+    <string name="uno_drawn_blocked">La carte piochée ne peut pas être posée : tu passes ton tour.</string>
+    <string name="uno_keep">Garder la carte et passer mon tour</string>
+    <string name="uno_event_skip">%1$s joue %2$s : %3$s passe son tour.</string>
+    <string name="uno_event_reverse">%1$s joue %2$s : le sens du jeu s’inverse.</string>
+    <string name="uno_event_draw">%1$s joue %2$s : %3$s pioche %4$d cartes et passe son tour.</string>
+    <string name="uno_event_wild">%1$s joue %2$s et choisit la couleur.</string>
+    <string name="hearts_no_pass">Pas de passe dans cette manche.</string>
+    <string name="hearts_pass_pick">Choisis 3 cartes à passer à %1$s.</string>
+    <string name="hearts_pass_count">%1$d / %2$d cartes choisies</string>
+    <string name="hearts_pass_confirm">Passer ces cartes</string>
+    <string name="hearts_lead_first">Tu as le 2 de trèfle : tu commences, pose-le.</string>
+    <string name="hearts_hint">Fournis la couleur demandée si tu le peux. Sinon, défausse ce que tu veux (au premier pli, ni cœur ni dame de pique, sauf si tu n’as que ça). On ne commence pas un pli par un cœur tant qu’aucun cœur n’a été joué.</string>
+    <string name="hearts_received_hint">Les cartes entourées sont celles que tu viens de recevoir.</string>
+    <string name="hearts_trick_title">Pli en cours</string>
+    <string name="hearts_trick_empty">Personne n’a encore joué dans ce pli.</string>
+    <string name="hearts_trick_line">%1$s : %2$s</string>
+    <string name="hearts_taken_title">Points ramassés cette manche</string>
+    <string name="hearts_broken_yes">Cœurs ouverts : on peut commencer un pli par un cœur.</string>
+    <string name="hearts_broken_no">Cœurs pas encore ouverts : on ne commence pas un pli par un cœur.</string>
+    <string name="hearts_trick_won">%1$s ramasse le pli (%2$d points).</string>
+    <string name="hearts_continue">Continuer</string>
+    <string name="hearts_round_over">Manche terminée</string>
+    <string name="hearts_moon">%1$s réussit le grand chelem : les autres marquent 26 points !</string>
 </resources>

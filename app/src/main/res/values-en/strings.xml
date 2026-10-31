@@ -355,7 +355,7 @@
     <string name="rules_uno_3_title">Scoring</string>
     <string name="rules_uno_3_body">The winner of the round scores the points of the cards left in the other players’ hands: numbered cards = their value · +2, reverse, skip = 20 · wild and wild +4 = 50.</string>
     <string name="rules_uno_4_title">In the app</string>
-    <string name="rules_uno_4_body">Enter the points won by each player every round. The highest score leads. The game does not end automatically (the official rule sets the target at 500 points).</string>
+    <string name="rules_uno_4_body">The app runs the game: it deals 7 cards, checks every card played, applies the action cards (+2, reverse, skip, wild, wild +4; the +4 can only be played with no card of the colour asked), makes you draw and calls “UNO!” for you. The phone is passed around: a player’s hand only appears after “Show my hand”. With no playable card you draw one card: if it can be played you play it, or keep it and pass your turn. The cards played are reshuffled when the draw pile is empty. The winner of each round scores the points of the other hands, recorded in the table; the game stops at 500 points (the highest total wins) once the current round is over. On the score sheet alone, enter the points won in each round yourself.</string>
     <string name="rules_button">Rules</string>
     <string name="rules_dialog_title">Rules · %1$s</string>
     <string name="game_generic">Classic game</string>
@@ -532,7 +532,7 @@
     <string name="rules_coeurs_3_title">Shooting the moon</string>
     <string name="rules_coeurs_3_body">A player who collects all the hearts and the queen of spades (26 points) “shoots the moon”: they score 0 and each of the other players scores 26 points (or, depending on the table, they subtract 26 points from their own score).</string>
     <string name="rules_coeurs_4_title">In the app</string>
-    <string name="rules_coeurs_4_body">After each deal, enter in each player’s column the points collected. The game is played by 3 to 6 players (the rules above are those for 4).</string>
+    <string name="rules_coeurs_4_body">The app runs the game: it deals the cards (with 3, 5 and 6 players it removes a few low cards so everyone gets the same number), passes 3 cards according to the round (left, right, across with 4 and 6 players, then a round with no passing), decides who takes each trick, checks following suit and the opening of hearts, then records the round’s points in the table, shooting the moon included. The phone is passed around: a player’s hand only appears after “Show my hand”. On the score sheet alone, enter the points taken in each deal.</string>
     <string name="rules_pique_1_title">Goal</string>
     <string name="rules_pique_1_body">Make the number of tricks you bid. The teams (2 against 2) score points by making their contract; the first team to reach 500 points wins. The app finishes the current round, then announces the winner.</string>
     <string name="rules_pique_2_title">Taking a turn</string>
@@ -2031,4 +2031,38 @@
     <string name="huit_round_blocked">Nobody can play any more: the round is blocked. %1$s has the lightest hand.</string>
     <string name="huit_points_line">%1$s: +%2$d</string>
     <string name="huit_next_round">Next round</string>
+    <string name="uno_kinds">0,1,2,3,4,5,6,7,8,9,skip,reverse,+2,wild,wild +4</string>
+    <string name="uno_colors">red,yellow,green,blue</string>
+    <string name="uno_card_desc">%1$s %2$s</string>
+    <string name="uno_asked_color">Colour asked: %1$s</string>
+    <string name="uno_direction_forward">Direction: order of the list ↓</string>
+    <string name="uno_direction_backward">Direction: reverse order of the list ↑</string>
+    <string name="uno_call">UNO!</string>
+    <string name="uno_pick_color">You are playing a wild: choose the colour that follows.</string>
+    <string name="uno_hint">Play a card of the same colour, the same number or the same symbol as the last card played. A wild can be played at any time; the wild +4 only if you have no card of the colour asked.</string>
+    <string name="uno_no_play">No playable card: draw a card.</string>
+    <string name="uno_drawn_playable">You drew a card you can play: play it, or keep it and pass your turn.</string>
+    <string name="uno_drawn_blocked">The card you drew cannot be played: you pass your turn.</string>
+    <string name="uno_keep">Keep the card and pass my turn</string>
+    <string name="uno_event_skip">%1$s plays %2$s: %3$s misses a turn.</string>
+    <string name="uno_event_reverse">%1$s plays %2$s: the direction of play is reversed.</string>
+    <string name="uno_event_draw">%1$s plays %2$s: %3$s draws %4$d cards and misses a turn.</string>
+    <string name="uno_event_wild">%1$s plays %2$s and chooses the colour.</string>
+    <string name="hearts_no_pass">No passing in this round.</string>
+    <string name="hearts_pass_pick">Choose 3 cards to pass to %1$s.</string>
+    <string name="hearts_pass_count">%1$d / %2$d cards chosen</string>
+    <string name="hearts_pass_confirm">Pass these cards</string>
+    <string name="hearts_lead_first">You hold the 2 of clubs: you lead, play it.</string>
+    <string name="hearts_hint">Follow the suit led if you can. Otherwise discard anything you like (on the first trick, no heart and no queen of spades unless that is all you have). A trick cannot be led with a heart until a heart has been played.</string>
+    <string name="hearts_received_hint">The circled cards are the ones you have just received.</string>
+    <string name="hearts_trick_title">Current trick</string>
+    <string name="hearts_trick_empty">Nobody has played in this trick yet.</string>
+    <string name="hearts_trick_line">%1$s: %2$s</string>
+    <string name="hearts_taken_title">Points taken this round</string>
+    <string name="hearts_broken_yes">Hearts broken: a trick can be led with a heart.</string>
+    <string name="hearts_broken_no">Hearts not broken yet: a trick cannot be led with a heart.</string>
+    <string name="hearts_trick_won">%1$s takes the trick (%2$d points).</string>
+    <string name="hearts_continue">Continue</string>
+    <string name="hearts_round_over">Round over</string>
+    <string name="hearts_moon">%1$s shoots the moon: the others score 26 points!</string>
 </resources>

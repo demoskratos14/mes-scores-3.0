@@ -355,7 +355,7 @@
     <string name="rules_uno_3_title">Puntuación</string>
     <string name="rules_uno_3_body">El ganador de la ronda suma los puntos de las cartas que quedan en la mano de los demás jugadores: cartas numeradas = su valor · +2, cambio de sentido, salto = 20 · comodín y comodín +4 = 50.</string>
     <string name="rules_uno_4_title">En la aplicación</string>
-    <string name="rules_uno_4_body">Introduce los puntos ganados por cada jugador en cada ronda. La puntuación más alta lidera. La partida no termina automáticamente (la regla oficial fija el objetivo en 500 puntos).</string>
+    <string name="rules_uno_4_body">La app juega la partida: reparte 7 cartas, comprueba cada carta jugada, aplica las cartas de acción (+2, cambio de sentido, salto, comodín, comodín +4; el +4 solo se juega sin ninguna carta del color pedido), hace robar y dice «¡UNO!» por ti. Se pasa el teléfono: la mano de un jugador solo aparece tras «Ver mi mano». Sin carta jugable se roba una carta: si se puede jugar, se juega, o se guarda y se pasa el turno. Las cartas jugadas se barajan de nuevo cuando se acaba el mazo. El ganador de cada ronda suma los puntos de las manos de los demás, anotados en la tabla; la partida se detiene a los 500 puntos (gana el total más alto) al terminar la ronda en curso. En la hoja de puntuaciones sola, introduce tú mismo los puntos ganados en cada ronda.</string>
     <string name="rules_button">Reglas</string>
     <string name="rules_dialog_title">Reglas · %1$s</string>
     <string name="game_generic">Juego clásico</string>
@@ -532,7 +532,7 @@
     <string name="rules_coeurs_3_title">Disparar a la luna</string>
     <string name="rules_coeurs_3_body">Un jugador que recoge todos los corazones y la dama de picas (26 puntos) “dispara a la luna”: anota 0 y cada uno de los demás jugadores anota 26 puntos (o, según la mesa, se restan 26 puntos de su propia puntuación).</string>
     <string name="rules_coeurs_4_title">En la aplicación</string>
-    <string name="rules_coeurs_4_body">Después de cada mano, introduce en la columna de cada jugador los puntos recogidos. El juego se juega entre 3 y 6 jugadores (las reglas anteriores son las de 4).</string>
+    <string name="rules_coeurs_4_body">La app juega la partida: reparte las cartas (con 3, 5 y 6 jugadores retira algunas cartas bajas para que todos tengan las mismas), hace pasar 3 cartas según la ronda (a la izquierda, a la derecha, enfrente con 4 y 6 jugadores, y luego una ronda sin pase), decide quién se lleva cada baza, comprueba que se siga el palo y la apertura de corazones, y anota los puntos de la ronda en la tabla, incluido el gran slam. Se pasa el teléfono: la mano de un jugador solo aparece tras «Ver mi mano». En la hoja de puntuaciones sola, introduce los puntos recogidos en cada mano.</string>
     <string name="rules_pique_1_title">Objetivo</string>
     <string name="rules_pique_1_body">Hacer el número de bazas que has apostado. Los equipos (2 contra 2) puntúan cumpliendo su contrato; gana el primer equipo que alcanza los 500 puntos. La aplicación termina la ronda en curso y después anuncia al ganador.</string>
     <string name="rules_pique_2_title">Cómo se juega un turno</string>
@@ -2059,4 +2059,38 @@
     <string name="huit_round_blocked">Ya nadie puede jugar: la ronda está bloqueada. %1$s tiene la mano más ligera.</string>
     <string name="huit_points_line">%1$s: +%2$d</string>
     <string name="huit_next_round">Ronda siguiente</string>
+    <string name="uno_kinds">0,1,2,3,4,5,6,7,8,9,salto,cambio de sentido,+2,comodín,comodín +4</string>
+    <string name="uno_colors">rojo,amarillo,verde,azul</string>
+    <string name="uno_card_desc">%1$s %2$s</string>
+    <string name="uno_asked_color">Color pedido: %1$s</string>
+    <string name="uno_direction_forward">Sentido: orden de la lista ↓</string>
+    <string name="uno_direction_backward">Sentido: orden inverso de la lista ↑</string>
+    <string name="uno_call">¡UNO!</string>
+    <string name="uno_pick_color">Juegas un comodín: elige el color que sigue.</string>
+    <string name="uno_hint">Juega una carta del mismo color, del mismo número o del mismo símbolo que la última carta jugada. Un comodín se puede jugar en cualquier momento; el comodín +4 solo si no tienes ninguna carta del color pedido.</string>
+    <string name="uno_no_play">No tienes ninguna carta jugable: roba una carta.</string>
+    <string name="uno_drawn_playable">Has robado una carta que puedes jugar: juégala, o quédatela y pasa el turno.</string>
+    <string name="uno_drawn_blocked">La carta robada no se puede jugar: pasas el turno.</string>
+    <string name="uno_keep">Quedarme la carta y pasar el turno</string>
+    <string name="uno_event_skip">%1$s juega %2$s: %3$s pierde el turno.</string>
+    <string name="uno_event_reverse">%1$s juega %2$s: cambia el sentido del juego.</string>
+    <string name="uno_event_draw">%1$s juega %2$s: %3$s roba %4$d cartas y pierde el turno.</string>
+    <string name="uno_event_wild">%1$s juega %2$s y elige el color.</string>
+    <string name="hearts_no_pass">Sin pase en esta ronda.</string>
+    <string name="hearts_pass_pick">Elige 3 cartas para pasar a %1$s.</string>
+    <string name="hearts_pass_count">%1$d / %2$d cartas elegidas</string>
+    <string name="hearts_pass_confirm">Pasar estas cartas</string>
+    <string name="hearts_lead_first">Tienes el 2 de tréboles: empiezas, juégalo.</string>
+    <string name="hearts_hint">Sigue el palo pedido si puedes. Si no, descarta lo que quieras (en la primera baza, ni corazones ni la dama de picas, salvo que no tengas otra cosa). No se empieza una baza con un corazón mientras no se haya jugado ninguno.</string>
+    <string name="hearts_received_hint">Las cartas rodeadas son las que acabas de recibir.</string>
+    <string name="hearts_trick_title">Baza en curso</string>
+    <string name="hearts_trick_empty">Nadie ha jugado todavía en esta baza.</string>
+    <string name="hearts_trick_line">%1$s: %2$s</string>
+    <string name="hearts_taken_title">Puntos recogidos en esta ronda</string>
+    <string name="hearts_broken_yes">Corazones abiertos: se puede empezar una baza con un corazón.</string>
+    <string name="hearts_broken_no">Corazones aún no abiertos: no se empieza una baza con un corazón.</string>
+    <string name="hearts_trick_won">%1$s se lleva la baza (%2$d puntos).</string>
+    <string name="hearts_continue">Continuar</string>
+    <string name="hearts_round_over">Ronda terminada</string>
+    <string name="hearts_moon">¡%1$s consigue el gran slam: los demás suman 26 puntos!</string>
 </resources>

@@ -356,7 +356,7 @@
     <string name="rules_uno_3_title">Conteggio dei punti</string>
     <string name="rules_uno_3_body">Il vincitore del round segna i punti delle carte rimaste in mano agli altri: carte numerate = il loro valore · +2, cambio giro, salta il turno = 20 · jolly e jolly +4 = 50.</string>
     <string name="rules_uno_4_title">Nell\'app</string>
-    <string name="rules_uno_4_body">Inserisci i punti guadagnati da ciascun giocatore a ogni round. Il punteggio più alto è in testa. La partita non finisce automaticamente (il regolamento ufficiale fissa l\'obiettivo a 500 punti).</string>
+    <string name="rules_uno_4_body">L’app gioca la partita: distribuisce 7 carte, controlla ogni carta giocata, applica le carte azione (+2, cambio giro, salta il turno, jolly, jolly +4; il +4 si gioca solo senza carte del colore richiesto), fa pescare e dice «UNO!» al posto tuo. Ci si passa il telefono: la mano di un giocatore compare solo dopo «Vedi la mia mano». Senza carta giocabile si pesca una carta: se si può giocare la si gioca, oppure la si tiene e si passa il turno. Le carte giocate vengono rimescolate quando il mazzo è finito. Il vincitore di ogni mano segna i punti delle mani degli altri, scritti nella tabella; la partita si ferma a 500 punti (vince il totale più alto) alla fine della mano in corso. Sul foglio punteggi da solo, inserisci tu i punti guadagnati a ogni mano.</string>
     <string name="rules_button">Regole</string>
     <string name="rules_dialog_title">Regole · %1$s</string>
     <string name="game_generic">Gioco classico</string>
@@ -623,7 +623,7 @@
     <string name="rules_coeurs_3_title">Fare il grande slam</string>
     <string name="rules_coeurs_3_body">Un giocatore che raccoglie tutti i cuori e la regina di picche (26 punti) fa il « grande slam »: segna 0 e ciascuno degli altri giocatori segna 26 punti (oppure, in certi tavoli, toglie 26 punti al proprio punteggio).</string>
     <string name="rules_coeurs_4_title">Nell\'app</string>
-    <string name="rules_coeurs_4_body">Dopo ogni mano, inserisci nella colonna di ciascun giocatore i punti raccolti. Si gioca da 3 a 6 giocatori (le regole qui sopra sono quelle a 4).</string>
+    <string name="rules_coeurs_4_body">L’app gioca la partita: distribuisce le carte (con 3, 5 e 6 giocatori toglie alcune carte basse perché tutti ne abbiano lo stesso numero), fa passare 3 carte secondo la mano (a sinistra, a destra, di fronte con 4 e 6 giocatori, poi una mano senza passaggio), decide chi prende ogni presa, controlla il seme da rispondere e l’apertura dei cuori, poi scrive i punti della mano nella tabella, compreso il gran slam. Ci si passa il telefono: la mano di un giocatore compare solo dopo «Vedi la mia mano». Sul foglio punteggi da solo, inserisci i punti presi a ogni mano.</string>
     <string name="rules_pique_1_title">Obiettivo del gioco</string>
     <string name="rules_pique_1_body">Realizzare il numero di prese annunciato. Le squadre (2 contro 2) segnano punti realizzando il proprio contratto; la prima squadra a raggiungere 500 punti vince. L\'app termina il round in corso, poi annuncia il vincitore.</string>
     <string name="rules_pique_2_title">Svolgimento del turno</string>
@@ -2069,4 +2069,38 @@
     <string name="huit_round_blocked">Nessuno può più giocare: la mano è bloccata. %1$s ha la mano più leggera.</string>
     <string name="huit_points_line">%1$s: +%2$d</string>
     <string name="huit_next_round">Mano successiva</string>
+    <string name="uno_kinds">0,1,2,3,4,5,6,7,8,9,salta il turno,cambio giro,+2,jolly,jolly +4</string>
+    <string name="uno_colors">rosso,giallo,verde,blu</string>
+    <string name="uno_card_desc">%1$s %2$s</string>
+    <string name="uno_asked_color">Colore richiesto: %1$s</string>
+    <string name="uno_direction_forward">Senso di gioco: ordine della lista ↓</string>
+    <string name="uno_direction_backward">Senso di gioco: ordine inverso della lista ↑</string>
+    <string name="uno_call">UNO!</string>
+    <string name="uno_pick_color">Giochi un jolly: scegli il colore che segue.</string>
+    <string name="uno_hint">Gioca una carta dello stesso colore, dello stesso numero o dello stesso simbolo dell’ultima carta giocata. Un jolly si gioca in qualsiasi momento; il jolly +4 solo se non hai nessuna carta del colore richiesto.</string>
+    <string name="uno_no_play">Nessuna carta giocabile: pesca una carta.</string>
+    <string name="uno_drawn_playable">Hai pescato una carta che puoi giocare: giocala, oppure tienila e passa il turno.</string>
+    <string name="uno_drawn_blocked">La carta pescata non si può giocare: passi il turno.</string>
+    <string name="uno_keep">Tenere la carta e passare il turno</string>
+    <string name="uno_event_skip">%1$s gioca %2$s: %3$s salta il turno.</string>
+    <string name="uno_event_reverse">%1$s gioca %2$s: il senso di gioco si inverte.</string>
+    <string name="uno_event_draw">%1$s gioca %2$s: %3$s pesca %4$d carte e salta il turno.</string>
+    <string name="uno_event_wild">%1$s gioca %2$s e sceglie il colore.</string>
+    <string name="hearts_no_pass">Nessun passaggio in questa mano.</string>
+    <string name="hearts_pass_pick">Scegli 3 carte da passare a %1$s.</string>
+    <string name="hearts_pass_count">%1$d / %2$d carte scelte</string>
+    <string name="hearts_pass_confirm">Passa queste carte</string>
+    <string name="hearts_lead_first">Hai il 2 di fiori: cominci tu, giocalo.</string>
+    <string name="hearts_hint">Rispondi al seme richiesto se puoi. Altrimenti scarta quello che vuoi (alla prima presa, né cuori né la donna di picche, a meno che tu non abbia altro). Non si inizia una presa con un cuore finché nessun cuore è stato giocato.</string>
+    <string name="hearts_received_hint">Le carte cerchiate sono quelle che hai appena ricevuto.</string>
+    <string name="hearts_trick_title">Presa in corso</string>
+    <string name="hearts_trick_empty">Nessuno ha ancora giocato in questa presa.</string>
+    <string name="hearts_trick_line">%1$s: %2$s</string>
+    <string name="hearts_taken_title">Punti presi in questa mano</string>
+    <string name="hearts_broken_yes">Cuori aperti: si può iniziare una presa con un cuore.</string>
+    <string name="hearts_broken_no">Cuori non ancora aperti: non si inizia una presa con un cuore.</string>
+    <string name="hearts_trick_won">%1$s prende la presa (%2$d punti).</string>
+    <string name="hearts_continue">Continua</string>
+    <string name="hearts_round_over">Mano terminata</string>
+    <string name="hearts_moon">%1$s fa il gran slam: gli altri segnano 26 punti!</string>
 </resources>
