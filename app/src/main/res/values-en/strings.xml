@@ -2046,11 +2046,11 @@
     <string name="uno_keep">Keep the card and pass my turn</string>
     <string name="uno_event_skip">%1$s plays %2$s: %3$s misses a turn.</string>
     <string name="uno_event_reverse">%1$s plays %2$s: the direction of play is reversed.</string>
-    <string name="uno_event_draw">%1$s plays %2$s: %3$s draws %4$d cards and misses a turn.</string>
+    <string name="uno_event_draw">%1$s plays %2$s: %3$s misses a turn (cards drawn: %4$d).</string>
     <string name="uno_event_wild">%1$s plays %2$s and chooses the colour.</string>
     <string name="hearts_no_pass">No passing in this round.</string>
     <string name="hearts_pass_pick">Choose 3 cards to pass to %1$s.</string>
-    <string name="hearts_pass_count">%1$d / %2$d cards chosen</string>
+    <string name="hearts_pass_count">Cards chosen: %1$d / %2$d</string>
     <string name="hearts_pass_confirm">Pass these cards</string>
     <string name="hearts_lead_first">You hold the 2 of clubs: you lead, play it.</string>
     <string name="hearts_hint">Follow the suit led if you can. Otherwise discard anything you like (on the first trick, no heart and no queen of spades unless that is all you have). A trick cannot be led with a heart until a heart has been played.</string>
@@ -2061,7 +2061,7 @@
     <string name="hearts_taken_title">Points taken this round</string>
     <string name="hearts_broken_yes">Hearts broken: a trick can be led with a heart.</string>
     <string name="hearts_broken_no">Hearts not broken yet: a trick cannot be led with a heart.</string>
-    <string name="hearts_trick_won">%1$s takes the trick (%2$d points).</string>
+    <string name="hearts_trick_won">%1$s takes the trick (points: %2$d).</string>
     <string name="hearts_continue">Continue</string>
     <string name="hearts_round_over">Round over</string>
     <string name="hearts_moon">%1$s shoots the moon: the others score 26 points!</string>
