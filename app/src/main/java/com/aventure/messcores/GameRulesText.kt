@@ -354,6 +354,11 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_othello_3_title, R.string.rules_othello_3_body),
         RulesSection(R.string.rules_othello_4_title, R.string.rules_othello_4_body)
     ),
+    "builtin_reflex" to listOf(
+        RulesSection(R.string.rules_reflex_1_title, R.string.rules_reflex_1_body),
+        RulesSection(R.string.rules_reflex_2_title, R.string.rules_reflex_2_body),
+        RulesSection(R.string.rules_reflex_3_title, R.string.rules_reflex_3_body)
+    ),
     "builtin_pfc" to listOf(
         RulesSection(R.string.rules_pfc_1_title, R.string.rules_pfc_1_body),
         RulesSection(R.string.rules_pfc_2_title, R.string.rules_pfc_2_body),

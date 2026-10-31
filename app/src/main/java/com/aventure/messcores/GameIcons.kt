@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -121,6 +121,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             BATTLESHIP_ID -> drawBattleship()
             NIM_ID -> drawNim()
             PFC_ID -> drawRockPaperScissors()
+            REFLEX_ID -> drawReflex()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -222,6 +223,26 @@ private fun DrawScope.drawNim() {
         val top = s * 0.35f + (shift[i] ?: 0) * s * 0.3f
         drawLine(Color(0xFFD7A86E), Offset(x, top), Offset(x, top + height), stickWidth, StrokeCap.Round)
         drawCircle(Color(0xFFD32F2F), radius = stickWidth * 0.95f, center = Offset(x, top))
+    }
+}
+
+private fun DrawScope.drawReflex() {
+    paper(Color(0xFFECEFF1))
+    val s = size.minDimension
+    // Un feu : le rouge est éteint, le vert s'allume.
+    drawRoundRect(
+        Color(0xFF37474F),
+        topLeft = Offset(s * 0.32f, s * 0.12f),
+        size = Size(s * 0.36f, s * 0.76f),
+        cornerRadius = CornerRadius(s * 0.1f)
+    )
+    drawCircle(Color(0xFF7F2A2A), radius = s * 0.11f, center = Offset(s * 0.5f, s * 0.3f))
+    drawCircle(Color(0xFF4CAF50), radius = s * 0.11f, center = Offset(s * 0.5f, s * 0.68f))
+    // Un éclair de chaque côté : tout se joue en un instant.
+    for (side in listOf(-1f, 1f)) {
+        val x = s * 0.5f + side * s * 0.33f
+        drawLine(Color(0xFFFFB300), Offset(x, s * 0.3f), Offset(x - side * s * 0.06f, s * 0.5f), s * 0.035f, StrokeCap.Round)
+        drawLine(Color(0xFFFFB300), Offset(x - side * s * 0.06f, s * 0.5f), Offset(x + side * s * 0.02f, s * 0.7f), s * 0.035f, StrokeCap.Round)
     }
 }
 

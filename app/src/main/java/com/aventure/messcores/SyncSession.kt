@@ -15,7 +15,7 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 internal enum class SyncRole { NONE, HOST, GUEST }
 
 /** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des dames, un Othello, un Pendu ou des échecs chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -114,6 +114,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Le jeu des allumettes chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var nim: NimOnline? = null
+
+    /** Le Duel de réflexes chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var reflex: ReflexOnline? = null
 
     /** Pierre-feuille-ciseaux chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var rockPaperScissors: RockPaperScissorsOnline? = null
@@ -268,6 +271,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         reset()
         role = SyncRole.HOST
         kind = SyncKind.NIM
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
+    /** Annonce un Duel de réflexes chacun sur son téléphone : l'autre joueur le rejoint comme une partie de score. */
+    fun startHostingReflex(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.REFLEX
         advertising = true
         transport.startHosting(deviceName)
     }
@@ -449,6 +461,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         connect4?.onPeerConnected(id)
         battleship?.onPeerConnected(id)
         nim?.onPeerConnected(id)
+        reflex?.onPeerConnected(id)
         rockPaperScissors?.onPeerConnected(id)
         draughts?.onPeerConnected(id)
         othello?.onPeerConnected(id)
@@ -469,6 +482,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         connect4?.onPeerDisconnected(id)
         battleship?.onPeerDisconnected(id)
         nim?.onPeerDisconnected(id)
+        reflex?.onPeerDisconnected(id)
         rockPaperScissors?.onPeerDisconnected(id)
         draughts?.onPeerDisconnected(id)
         othello?.onPeerDisconnected(id)
@@ -504,6 +518,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Nim -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.NIM
                 nim?.onMessage(id, message.nim)
+            }
+            is SyncMessage.Reflex -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.REFLEX
+                reflex?.onMessage(id, message.reflex)
             }
             is SyncMessage.Rps -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.PFC

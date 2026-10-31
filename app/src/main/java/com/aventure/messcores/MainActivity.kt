@@ -113,6 +113,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     CONNECT4_ID to "connect4",
     PFC_ID to "pfc",
     NIM_ID to "nim",
+    REFLEX_ID to "reflex",
     DRAUGHTS_ID to "draughts",
     OTHELLO_ID to "othello",
     CHESS_ID to "chess"
@@ -144,6 +145,7 @@ fun ScoreApp(
     val connect4Online = syncViewModel.connect4
     val battleshipOnline = syncViewModel.battleship
     val nimOnline = syncViewModel.nim
+    val reflexOnline = syncViewModel.reflex
     val rockPaperScissorsOnline = syncViewModel.rockPaperScissors
     val gomokuOnline = syncViewModel.gomoku
     val dotsOnline = syncViewModel.dots
@@ -489,6 +491,25 @@ fun ScoreApp(
                     onHostedNim = { navController.popBackStack() }
                 )
             }
+            composable("reflex") {
+                ReflexScreen(
+                    players = pendingPlayerNames,
+                    online = reflexOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareReflex") }
+                )
+            }
+            composable("shareReflex") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.REFLEX,
+                    reflex = reflexOnline,
+                    // La table du Duel de réflexes est l'écran du jeu, juste derrière.
+                    onHostedReflex = { navController.popBackStack() }
+                )
+            }
             composable("pfc") {
                 RockPaperScissorsScreen(
                     players = pendingPlayerNames,
@@ -773,6 +794,8 @@ fun ScoreApp(
             },
             nim = nimOnline,
             onNimJoined = { navController.navigate("nim") { popUpTo("home") } },
+            reflex = reflexOnline,
+            onReflexJoined = { navController.navigate("reflex") { popUpTo("home") } },
             rockPaperScissors = rockPaperScissorsOnline,
             onRockPaperScissorsJoined = { navController.navigate("pfc") { popUpTo("home") } },
             gomoku = gomokuOnline,

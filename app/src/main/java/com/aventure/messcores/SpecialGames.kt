@@ -309,6 +309,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Duel de réflexes : écran à part (voir ReflexScreen), à deux joueurs sur un téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = REFLEX_ID,
+        name = context.getString(R.string.game_reflex),
+        minPlayers = 2,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Gomoku : écran à part (voir DuoGameScreen), à deux joueurs ; le mode de score n'est pas utilisé.
     GameRules(
         id = GOMOKU_ID,

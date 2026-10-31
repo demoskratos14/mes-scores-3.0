@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -116,6 +116,8 @@ internal fun ShareScreen(
     onHostedBattleship: () -> Unit = {},
     nim: NimOnline? = null,
     onHostedNim: () -> Unit = {},
+    reflex: ReflexOnline? = null,
+    onHostedReflex: () -> Unit = {},
     rockPaperScissors: RockPaperScissorsOnline? = null,
     onHostedRockPaperScissors: () -> Unit = {},
     // Le Gomoku et la Pipopipette (ShareKind.GOMOKU ou DOTS) : la table du jeu à organiser.
@@ -173,6 +175,11 @@ internal fun ShareScreen(
                 session.startHostingNim(deviceName)
                 nim.openLobby(deviceName)
                 onHostedNim()
+            }
+            kind == ShareKind.REFLEX && reflex != null -> {
+                session.startHostingReflex(deviceName)
+                reflex.openLobby(deviceName)
+                onHostedReflex()
             }
             kind == ShareKind.PFC && rockPaperScissors != null -> {
                 session.startHostingRockPaperScissors(deviceName)
@@ -397,6 +404,8 @@ internal fun SyncEffects(
     onBattleshipJoined: () -> Unit,
     nim: NimOnline,
     onNimJoined: () -> Unit,
+    reflex: ReflexOnline,
+    onReflexJoined: () -> Unit,
     rockPaperScissors: RockPaperScissorsOnline,
     onRockPaperScissorsJoined: () -> Unit,
     gomoku: DuoOnline<GomokuMatch>,
@@ -443,6 +452,11 @@ internal fun SyncEffects(
         if (nim.joined == 0 || nim.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup" || current == "shareNim") onNimJoined()
+    }
+    LaunchedEffect(reflex.joined) {
+        if (reflex.joined == 0 || reflex.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareReflex") onReflexJoined()
     }
     LaunchedEffect(rockPaperScissors.joined) {
         if (rockPaperScissors.joined == 0 || rockPaperScissors.isHost) return@LaunchedEffect
