@@ -19,7 +19,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -53,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -62,6 +65,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -436,10 +440,20 @@ private fun RhythmPlayfield(session: RhythmSession, colorBlind: Boolean, onFinis
         }
     }
 
+    // Les touches du bas et des bords sont touchées en continu : on empêche le système d'y voir des gestes (retour par
+    // balayage depuis le bord gauche ou droit, retour à l'accueil depuis le bas), qui rendaient les touches extérieures
+    // peu sensibles. Android limite cette exclusion à environ 200 dp de haut sur chaque bord.
+    val maxExclusionPx = with(LocalDensity.current) { 200.dp.toPx() }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF10131A))
+            .navigationBarsPadding()
+            .systemGestureExclusion { coordinates ->
+                val height = coordinates.size.height.toFloat()
+                val top = maxOf(height * KEYS_TOP_FRACTION, height - maxExclusionPx)
+                Rect(0f, top, coordinates.size.width.toFloat(), height)
+            }
             .pointerInput(session) {
                 // Chaque doigt qui se pose sur une touche du clavier (en bas) joue la piste de cette touche ; plusieurs doigts
                 // à la fois pour les accords et les notes maintenues. Un doigt posé ailleurs sur l'écran ne compte pas.
