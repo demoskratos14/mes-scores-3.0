@@ -2147,9 +2147,9 @@
     <string name="rules_rhythm_1_title">Goal</string>
     <string name="rules_rhythm_1_body">Hit the falling notes at the exact moment they reach the hit line, in time with the music. The more notes you chain without a mistake, the higher your multiplier climbs (up to ×4).</string>
     <string name="rules_rhythm_2_title">The notes</string>
-    <string name="rules_rhythm_2_body">A round note is a single tap, in its lane. A long note is held: press at the start and keep your finger down until the end of the trail, then lift. Letting go too early breaks the note and your streak. A note hit dead on is “Perfect”, a little off is “Good”, too late is “Miss”.</string>
+    <string name="rules_rhythm_2_body">Each lane has its piano key at the bottom of the screen: press it when the note reaches its target on the line. A round note is a single tap. A long note is held: keep your finger down on the key until the end of the trail, then lift. They are always on the two outer lanes (left and right), so you can keep playing the other keys with your other fingers. Letting go too early breaks the note and your streak. A note hit dead on is “Perfect”, a little off is “Good”, too late is “Miss”.</string>
     <string name="rules_rhythm_3_title">Difficulties</string>
-    <string name="rules_rhythm_3_body">Easy: 4 lanes, few notes, one finger at a time, and tapping on nothing does not break your streak. Medium: 4 lanes, more notes, normal precision. Hard: 5 lanes, lots of notes, chords (two notes at once) and tighter precision.</string>
+    <string name="rules_rhythm_3_body">Easy: 4 lanes, few notes, and tapping on nothing does not break your streak. Medium: 4 lanes, more notes, normal precision. Hard: 5 lanes, lots of notes, chords (two notes at once) and tighter precision.</string>
     <string name="rules_rhythm_4_title">In the app</string>
     <string name="rules_rhythm_4_body">Choose a song stored on your phone (MP3, M4A, OGG, WAV, FLAC…). The app analyses it silently, without playing it, to create the notes: bass (kick drum, bass guitar) on the left, treble (melody, cymbals) on the right. If the game seems early or late compared with the sound, adjust the audio offset. In colour-blind mode, the lanes change colours. One player, one phone.</string>
 </resources>
