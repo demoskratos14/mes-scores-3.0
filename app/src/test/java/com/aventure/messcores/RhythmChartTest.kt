@@ -120,11 +120,46 @@ class RhythmChartTest {
     }
 
     @Test
-    fun enFacileUneNoteMaintenueEstSeule() {
-        val samples = song(10_000, listOf(Triple(2_000, 2_500, 800.0), Triple(3_000, 80, 100.0), Triple(3_600, 80, 3_000.0)))
-        val chart = chartOf(samples, RhythmDifficulty.EASY)
-        val hold = chart.notes.firstOrNull { it.isHold } ?: return // pas de maintien détecté : rien à vérifier
-        assertTrue(chart.notes.none { it !== hold && it.timeMs > hold.timeMs && it.timeMs <= hold.endMs })
+    fun lesNotesMaintenuesSontSeulementSurLesPistesExterieures() {
+        // Des sons tenus à toutes les hauteurs, entre des coups courts.
+        val freqs = listOf(80.0, 150.0, 300.0, 800.0, 1_500.0, 3_000.0, 4_500.0)
+        val bursts = freqs.mapIndexed { i, f -> Triple(1_000 + i * 3_000, 1_800, f) } +
+            (1..30).map { Triple(it * 700, 60, 200.0 * it) }
+        val samples = song(24_000, bursts)
+        var holds = 0
+        for (difficulty in RhythmDifficulty.values()) {
+            val chart = chartOf(samples, difficulty)
+            for (note in chart.notes.filter { it.isHold }) {
+                holds++
+                assertTrue("$difficulty : maintien sur la piste ${note.lane}", isHoldLane(note.lane, difficulty.lanes))
+            }
+            assertEquals(chart.notes.sortedWith(compareBy({ it.timeMs }, { it.lane })), chart.notes)
+        }
+        assertTrue("aucun maintien trouvé", holds > 0)
+    }
+
+    @Test
+    fun unSonTenuDansUnePisteDuMilieuEstDeplaceSurUnExterieur() {
+        // 800 Hz tombe dans une piste du milieu : la note maintenue doit finir sur la piste 0 ou la dernière.
+        val samples = song(8_000, listOf(Triple(2_000, 2_000, 800.0)))
+        val chart = chartOf(samples, RhythmDifficulty.HARD)
+        val hold = chart.notes.firstOrNull { it.isHold }
+        assertTrue("aucune note maintenue : ${chart.notes}", hold != null)
+        assertTrue(isHoldLane(hold!!.lane, RhythmDifficulty.HARD.lanes))
+    }
+
+    @Test
+    fun uneNoteMaintenueNeChevauchePasUneAutreNoteDeSaPiste() {
+        val samples = song(16_000, listOf(Triple(2_000, 2_500, 80.0), Triple(2_800, 80, 90.0), Triple(3_600, 80, 100.0)))
+        for (difficulty in RhythmDifficulty.values()) {
+            val chart = chartOf(samples, difficulty)
+            for (hold in chart.notes.filter { it.isHold }) {
+                assertTrue(
+                    "$difficulty : note dans le maintien $hold",
+                    chart.notes.none { it !== hold && it.lane == hold.lane && it.timeMs > hold.timeMs && it.timeMs <= hold.endMs }
+                )
+            }
+        }
     }
 
     @Test
