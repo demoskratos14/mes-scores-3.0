@@ -36,9 +36,9 @@ internal enum class RhythmDifficulty(
     /** Facteur appliqué aux fenêtres de précision : plus de 1 pardonne davantage. */
     val windowScale: Float
 ) {
-    EASY(4, 600, 380, 1.6f, 1, 800, 2600, 1.3f),
-    MEDIUM(4, 350, 230, 1.2f, 1, 550, 2200, 1.0f),
-    HARD(5, 220, 130, 0.9f, 2, 450, 1800, 0.85f)
+    EASY(4, 600, 380, 1.6f, 1, 800, 2600, 1.5f),
+    MEDIUM(4, 350, 230, 1.2f, 1, 550, 2200, 1.15f),
+    HARD(5, 220, 130, 0.9f, 2, 450, 1800, 0.95f)
 }
 
 /** Les pistes sur lesquelles on peut maintenir une note : les deux extérieures, pour garder les autres doigts libres. */
@@ -575,10 +575,10 @@ internal class RhythmRun(val chart: RhythmChart) {
         }
 
     companion object {
-        const val BASE_PERFECT_MS = 70
-        const val BASE_GOOD_MS = 130
-        const val BASE_MISS_MS = 170
-        const val BASE_HOLD_TOLERANCE_MS = 150
+        const val BASE_PERFECT_MS = 80
+        const val BASE_GOOD_MS = 150
+        const val BASE_MISS_MS = 190
+        const val BASE_HOLD_TOLERANCE_MS = 170
         const val PERFECT_POINTS = 100
         const val GOOD_POINTS = 60
         const val HOLD_POINTS = 50

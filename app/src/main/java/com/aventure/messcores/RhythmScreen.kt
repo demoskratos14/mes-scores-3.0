@@ -163,7 +163,14 @@ internal fun RhythmScreen(players: List<String>) {
                         return@launch
                     }
                     val player = withContext(Dispatchers.IO) { createRhythmPlayer(context, uri) }
-                    session = RhythmSession(player, chart, offsetMs, SystemClock.uptimeMillis())
+                    session = RhythmSession(
+                        player = player,
+                        chart = chart,
+                        audioOffsetMs = offsetMs,
+                        startUptimeMs = SystemClock.uptimeMillis(),
+                        startLatencyMs = RhythmPreferences.loadLatency(context),
+                        onLatencyMeasured = { RhythmPreferences.saveLatency(context, it) }
+                    )
                     stage = RhythmStage.PLAYING
                 } catch (e: CancellationException) {
                     throw e

@@ -24,12 +24,19 @@ internal enum class SessionStage {
  *
  * [audioOffsetMs] est le décalage audio réglé par le joueur : positif, les notes arrivent plus tard sur la ligne
  * (casque Bluetooth, dont le son part en retard) ; négatif, plus tôt.
+ *
+ * Le lecteur met un instant à sortir du son après `start()` (démarrage de la sortie audio). Pour que la première note
+ * tombe juste, la musique est lancée [startLatencyMs] avant l'instant 0, pendant l'introduction ; l'horloge ne se cale
+ * sur le lecteur que lorsqu'il annonce enfin une position, d'un seul coup (pas en tirant l'horloge en arrière, ce qui
+ * ralentissait le défilement). Le délai réellement observé est transmis à [onLatencyMeasured] pour la partie suivante.
  */
 internal class RhythmSession(
     private val player: MediaPlayer,
     val chart: RhythmChart,
     private val audioOffsetMs: Int,
-    startUptimeMs: Long
+    startUptimeMs: Long,
+    private val startLatencyMs: Int = RhythmPreferences.DEFAULT_LATENCY_MS,
+    private val onLatencyMeasured: (Int) -> Unit = {}
 ) {
     val run = RhythmRun(chart)
 
@@ -59,6 +66,10 @@ internal class RhythmSession(
     private var pausedFrom = SessionStage.INTRO
     private var pausedAtUptime = 0L
 
+    // La musique est lancée (le lecteur ne sort pas encore de son) : on attend qu'il annonce une position.
+    private var started = false
+    private var startedAtUptime = 0L
+
     init {
         player.setOnCompletionListener { completed = true }
     }
@@ -74,10 +85,25 @@ internal class RhythmSession(
     /** Avance la partie : à appeler à chaque image. */
     fun tick(uptimeMs: Long) {
         when (stage) {
-            SessionStage.INTRO -> if (uptimeMs - startUptime >= leadInMs()) {
-                player.start()
-                clock.start(uptimeMs)
-                stage = SessionStage.PLAYING
+            SessionStage.INTRO -> {
+                val raw = uptimeMs - startUptime - leadInMs()
+                if (!started && !released && raw >= -startLatencyMs) {
+                    player.start()
+                    started = true
+                    startedAtUptime = uptimeMs
+                }
+                if (started) {
+                    val position = if (released) 0L else player.currentPosition.toLong()
+                    if (position > 0L) {
+                        onLatencyMeasured(((uptimeMs - startedAtUptime) - position).toInt().coerceIn(0, RhythmPreferences.MAX_LATENCY_MS))
+                        clock.hardSet(position, uptimeMs)
+                        stage = SessionStage.PLAYING
+                    } else if (raw >= START_TIMEOUT_MS) {
+                        // Le lecteur n'annonce rien : on continue avec l'horloge du téléphone.
+                        clock.hardSet(raw, uptimeMs)
+                        stage = SessionStage.PLAYING
+                    }
+                }
             }
             SessionStage.PLAYING -> if (!released) clock.sync(player.currentPosition.toLong(), uptimeMs)
             else -> return
@@ -132,6 +158,12 @@ internal class RhythmSession(
         pausedFrom = stage
         pausedAtUptime = uptimeMs
         if (stage == SessionStage.PLAYING && !released) player.pause()
+        if (stage == SessionStage.INTRO && started && !released) {
+            // Musique lancée pendant l'introduction : on la remet au début, elle repartira à la reprise.
+            player.pause()
+            player.seekTo(0)
+            started = false
+        }
         stage = SessionStage.PAUSED
     }
 
@@ -164,6 +196,9 @@ internal class RhythmSession(
 
         /** Après la fin de la musique, temps laissé pour terminer les dernières notes avant de finir d'office. */
         const val FINISH_GRACE_MS = 3_000
+
+        /** Si le lecteur n'a toujours pas annoncé de position à ce moment de la chanson (en ms), on avance sans lui. */
+        const val START_TIMEOUT_MS = 800
     }
 }
 
@@ -175,6 +210,22 @@ internal object RhythmPreferences {
 
     const val MAX_OFFSET_MS = 400
     const val OFFSET_STEP_MS = 10
+
+    /** Délai entre `start()` et le premier son du lecteur : valeur de départ, puis celle mesurée sur le téléphone. */
+    const val DEFAULT_LATENCY_MS = 150
+    const val MAX_LATENCY_MS = 600
+    private const val KEY_LATENCY = "start_latency_ms"
+
+    fun loadLatency(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getInt(KEY_LATENCY, DEFAULT_LATENCY_MS)
+            .coerceIn(0, MAX_LATENCY_MS)
+
+    /** Retient le délai mesuré, lissé avec le précédent pour ne pas suivre un à-coup isolé. */
+    fun saveLatency(context: Context, measuredMs: Int) {
+        val smoothed = (loadLatency(context) + measuredMs.coerceIn(0, MAX_LATENCY_MS)) / 2
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putInt(KEY_LATENCY, smoothed) }
+    }
 
     fun loadDifficulty(context: Context): Int =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
