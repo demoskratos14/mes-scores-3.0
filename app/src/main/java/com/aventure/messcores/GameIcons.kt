@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, RHYTHM_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -122,6 +122,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             NIM_ID -> drawNim()
             PFC_ID -> drawRockPaperScissors()
             REFLEX_ID -> drawReflex()
+            RHYTHM_ID -> drawRhythm()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -244,6 +245,20 @@ private fun DrawScope.drawReflex() {
         drawLine(Color(0xFFFFB300), Offset(x, s * 0.3f), Offset(x - side * s * 0.06f, s * 0.5f), s * 0.035f, StrokeCap.Round)
         drawLine(Color(0xFFFFB300), Offset(x - side * s * 0.06f, s * 0.5f), Offset(x + side * s * 0.02f, s * 0.7f), s * 0.035f, StrokeCap.Round)
     }
+}
+
+private fun DrawScope.drawRhythm() {
+    paper(Color(0xFF1A1F2B))
+    val s = size.minDimension
+    // Quatre pistes, une note qui tombe sur chacune et la ligne de frappe en bas.
+    val colors = listOf(Color(0xFF43A047), Color(0xFFE53935), Color(0xFFFDD835), Color(0xFF1E88E5))
+    val tops = listOf(0.52f, 0.22f, 0.4f, 0.12f)
+    for (i in 0 until 4) {
+        val x = s * (0.2f + 0.2f * i)
+        drawCircle(colors[i], radius = s * 0.07f, center = Offset(x, s * tops[i]))
+        drawCircle(Color.White.copy(alpha = 0.55f), radius = s * 0.07f, center = Offset(x, s * 0.78f), style = Stroke(s * 0.02f))
+    }
+    drawLine(Color.White.copy(alpha = 0.6f), Offset(s * 0.08f, s * 0.78f), Offset(s * 0.92f, s * 0.78f), s * 0.015f)
 }
 
 private fun DrawScope.drawRockPaperScissors() {
