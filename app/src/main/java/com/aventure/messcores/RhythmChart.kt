@@ -34,14 +34,15 @@ internal enum class RhythmDifficulty(
     /** Temps que met une note pour descendre du haut de l'écran à la ligne de frappe. */
     val approachMs: Int,
     /** Facteur appliqué aux fenêtres de précision : plus de 1 pardonne davantage. */
-    val windowScale: Float,
-    /** Faux : pas de note dans une autre piste pendant qu'une note est maintenue (un seul doigt à la fois). */
-    val notesDuringHold: Boolean
+    val windowScale: Float
 ) {
-    EASY(4, 600, 380, 1.6f, 1, 800, 2600, 1.3f, false),
-    MEDIUM(4, 350, 230, 1.2f, 1, 550, 2200, 1.0f, true),
-    HARD(5, 220, 130, 0.9f, 2, 450, 1800, 0.85f, true)
+    EASY(4, 600, 380, 1.6f, 1, 800, 2600, 1.3f),
+    MEDIUM(4, 350, 230, 1.2f, 1, 550, 2200, 1.0f),
+    HARD(5, 220, 130, 0.9f, 2, 450, 1800, 0.85f)
 }
+
+/** Les pistes sur lesquelles on peut maintenir une note : les deux extérieures, pour garder les autres doigts libres. */
+internal fun isHoldLane(lane: Int, lanes: Int): Boolean = lane == 0 || lane == lanes - 1
 
 /** Une note : [timeMs] est l'instant où elle doit être touchée ; [holdMs] > 0 pour une note à maintenir. */
 internal data class RhythmNote(val timeMs: Int, val lane: Int, val holdMs: Int = 0) {
@@ -328,7 +329,12 @@ internal object RhythmAnalyzer {
         }
     }
 
-    /** Transforme en note à maintenir une note dont le son se prolonge, tant que la piste reste bien au-dessus de son niveau d'avant l'attaque. */
+    /**
+     * Transforme en note à maintenir une note dont le son se prolonge, tant que la piste reste bien au-dessus de son niveau
+     * d'avant l'attaque. Les notes maintenues sont seulement sur les pistes extérieures (voir [isHoldLane]) : un son tenu
+     * dans une piste du milieu est déplacé sur l'extérieur le plus proche si celui-ci est libre pendant tout le maintien,
+     * sinon il reste une simple note. Ainsi on garde les autres doigts libres pour les notes qui arrivent pendant ce temps.
+     */
     private fun addHolds(
         notes: List<RhythmNote>,
         level: Array<FloatArray>,
@@ -360,20 +366,22 @@ internal object RhythmAnalyzer {
             var g = f + probe
             while (g < frames && g - f < maxHoldFrames && row[g] >= threshold) g++
             var holdMs = ((g - 1 - f) * hop).toInt()
-            val limit = nextInLane[index]
-            if (limit != Int.MAX_VALUE) holdMs = min(holdMs, limit - HOLD_RELEASE_GAP_MS - note.timeMs)
-            if (holdMs >= d.minHoldMs) result[index] = note.copy(holdMs = holdMs)
+            if (isHoldLane(note.lane, d.lanes)) {
+                val limit = nextInLane[index]
+                if (limit != Int.MAX_VALUE) holdMs = min(holdMs, limit - HOLD_RELEASE_GAP_MS - note.timeMs)
+                if (holdMs >= d.minHoldMs) result[index] = note.copy(holdMs = holdMs)
+            } else if (holdMs >= d.minHoldMs) {
+                // Piste du milieu : on essaie l'extérieur le plus proche.
+                val target = if (note.lane < d.lanes / 2) 0 else d.lanes - 1
+                val from = note.timeMs - HOLD_RELEASE_GAP_MS
+                val to = note.timeMs + holdMs + HOLD_RELEASE_GAP_MS
+                val busy = result.indices.any { j ->
+                    j != index && result[j].lane == target && result[j].timeMs <= to && result[j].endMs >= from
+                }
+                if (!busy) result[index] = note.copy(lane = target, holdMs = holdMs)
+            }
         }
-        if (d.notesDuringHold) return result
-        // Un seul doigt à la fois : on retire les notes des autres pistes jouées pendant qu'une note est maintenue.
-        val filtered = ArrayList<RhythmNote>()
-        var holdUntil = Int.MIN_VALUE
-        for (note in result) {
-            if (note.timeMs <= holdUntil) continue
-            filtered += note
-            if (note.isHold) holdUntil = note.endMs
-        }
-        return filtered
+        return result.sortedWith(compareBy({ it.timeMs }, { it.lane }))
     }
 
     /** Ramène un niveau sonore entre 0 (le plus calme) et 1 (le plus fort, hors rares pointes). */

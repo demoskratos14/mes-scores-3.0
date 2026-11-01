@@ -441,13 +441,16 @@ private fun RhythmPlayfield(session: RhythmSession, colorBlind: Boolean, onFinis
             .fillMaxSize()
             .background(Color(0xFF10131A))
             .pointerInput(session) {
-                // Chaque doigt qui se pose touche la piste sous lui ; plusieurs doigts à la fois pour les accords.
+                // Chaque doigt qui se pose sur une touche du clavier (en bas) joue la piste de cette touche ; plusieurs doigts
+                // à la fois pour les accords et les notes maintenues. Un doigt posé ailleurs sur l'écran ne compte pas.
                 awaitPointerEventScope {
                     val laneOf = HashMap<PointerId, Int>()
                     while (true) {
                         val event = awaitPointerEvent()
                         for (change in event.changes) {
-                            if (change.pressed && !change.previousPressed && !change.isConsumed) {
+                            if (change.pressed && !change.previousPressed && !change.isConsumed &&
+                                change.position.y >= size.height * KEYS_TOP_FRACTION
+                            ) {
                                 val lane = (change.position.x / size.width * lanes).toInt().coerceIn(0, lanes - 1)
                                 laneOf[change.id] = lane
                                 pressedMask = pressedMask or (1 shl lane)
@@ -545,12 +548,22 @@ private fun JudgementLabel(session: RhythmSession, modifier: Modifier = Modifier
 
 private const val JUDGEMENT_SHOWN_MS = 450
 
-/** Dessine les pistes (qui s'éclairent avec la musique), la ligne de frappe et les notes. */
+/** Hauteur (en part de l'écran) de la zone de frappe : c'est là que les notes doivent être touchées. */
+private const val HIT_Y_FRACTION = 0.6f
+
+/** Haut du clavier : les touches de piano occupent tout ce qui est en dessous. */
+private const val KEYS_TOP_FRACTION = 0.7f
+
+/**
+ * Dessine les pistes (qui s'éclairent avec la musique), les notes, leur cible sur la ligne de frappe, et en dessous le
+ * clavier : une touche de piano par piste, sur laquelle on tape quand la note arrive dans sa cible.
+ */
 private fun DrawScope.drawPlayfield(session: RhythmSession, colors: List<Color>, pressedMask: Int, nowMs: Int) {
     val chart = session.chart
     val lanes = chart.lanes
     val laneWidth = size.width / lanes
-    val hitY = size.height * 0.8f
+    val hitY = size.height * HIT_Y_FRACTION
+    val keysTop = size.height * KEYS_TOP_FRACTION
     val approach = chart.difficulty.approachMs.toFloat()
     val radius = min(laneWidth * 0.34f, size.height * 0.045f)
 
@@ -560,10 +573,10 @@ private fun DrawScope.drawPlayfield(session: RhythmSession, colors: List<Color>,
         drawRect(
             color = colors[lane].copy(alpha = 0.05f + 0.3f * level),
             topLeft = Offset(lane * laneWidth, 0f),
-            size = Size(laneWidth, size.height)
+            size = Size(laneWidth, keysTop)
         )
         if (lane > 0) {
-            drawLine(Color.White.copy(alpha = 0.12f), Offset(lane * laneWidth, 0f), Offset(lane * laneWidth, size.height), strokeWidth = 2f)
+            drawLine(Color.White.copy(alpha = 0.12f), Offset(lane * laneWidth, 0f), Offset(lane * laneWidth, keysTop), strokeWidth = 2f)
         }
     }
     drawLine(Color.White.copy(alpha = 0.55f), Offset(0f, hitY), Offset(size.width, hitY), strokeWidth = 3f)
@@ -572,6 +585,8 @@ private fun DrawScope.drawPlayfield(session: RhythmSession, colors: List<Color>,
         val pressed = pressedMask and (1 shl lane) != 0
         drawNoteShape(lane, center, radius * 1.1f, colors[lane], filled = pressed, alpha = if (pressed) 0.9f else 0.8f)
     }
+
+    drawKeyboard(lanes, colors, pressedMask, keysTop)
 
     val run = session.run
     for ((index, note) in run.notes.withIndex()) {
@@ -603,6 +618,56 @@ private fun DrawScope.drawPlayfield(session: RhythmSession, colors: List<Color>,
             }
             else -> Unit
         }
+    }
+}
+
+/**
+ * Le clavier : une grande touche blanche par piste, avec la forme et la couleur de la piste, et des touches noires
+ * décoratives entre elles. Une touche enfoncée prend la couleur de sa piste.
+ */
+private fun DrawScope.drawKeyboard(lanes: Int, colors: List<Color>, pressedMask: Int, keysTop: Float) {
+    val laneWidth = size.width / lanes
+    val keyHeight = size.height - keysTop
+    val gap = 3f
+    val corner = CornerRadius(min(laneWidth * 0.12f, 28f))
+    drawRect(Color(0xFF05070B), topLeft = Offset(0f, keysTop), size = Size(size.width, keyHeight))
+    for (lane in 0 until lanes) {
+        val pressed = pressedMask and (1 shl lane) != 0
+        val left = lane * laneWidth + gap
+        val top = keysTop + gap + if (pressed) keyHeight * 0.02f else 0f
+        val width = laneWidth - 2 * gap
+        // La touche dépasse sous l'écran : seuls ses coins du haut sont visibles arrondis.
+        drawRoundRect(
+            color = if (pressed) colors[lane] else Color(0xFFF2F2F5),
+            topLeft = Offset(left, top),
+            size = Size(width, size.height - top + corner.x),
+            cornerRadius = corner
+        )
+        // Un liseré de la couleur de la piste en bas de la touche.
+        drawRect(
+            color = colors[lane].copy(alpha = if (pressed) 0.0f else 0.9f),
+            topLeft = Offset(left, size.height - keyHeight * 0.07f),
+            size = Size(width, keyHeight * 0.07f)
+        )
+        val shapeRadius = min(laneWidth * 0.2f, keyHeight * 0.13f)
+        drawNoteShape(
+            lane = lane,
+            center = Offset(left + width / 2, top + keyHeight * 0.74f),
+            radius = shapeRadius,
+            color = if (pressed) Color.White else colors[lane],
+            filled = true
+        )
+    }
+    // Touches noires, comme un vrai clavier : entre les touches 1-2, 2-3, puis 4-5 (pas entre 3 et 4, comme mi-fa).
+    for (boundary in 1 until lanes) {
+        if (boundary == 3) continue
+        val width = laneWidth * 0.5f
+        drawRoundRect(
+            color = Color(0xFF14171F),
+            topLeft = Offset(boundary * laneWidth - width / 2, keysTop + gap),
+            size = Size(width, keyHeight * 0.5f),
+            cornerRadius = CornerRadius(width * 0.12f)
+        )
     }
 }
 
