@@ -167,4 +167,63 @@ class ReflexTest {
         assertTrue(match.isOver)
         assertNull(match.resolve(100, 200))
     }
+
+    @Test
+    fun aDeuxTelephonesLeTempsDuPerdantEstNote() {
+        val one = ReflexMatch().resolve(210, 340)!!
+        assertEquals(1, one.lastWinner)
+        assertEquals(210, one.lastReactionMs)
+        assertEquals(340, one.lastLoserReactionMs)
+
+        val two = ReflexMatch().resolve(500, 255)!!
+        assertEquals(2, two.lastWinner)
+        assertEquals(255, two.lastReactionMs)
+        assertEquals(500, two.lastLoserReactionMs)
+
+        // Le temps du perdant est plafonné comme celui du vainqueur.
+        assertEquals(9_999, ReflexMatch().resolve(100, 500_000)!!.lastLoserReactionMs)
+    }
+
+    @Test
+    fun sansTempsDuPerdantOnNeNoteRien() {
+        // Le perdant n'a pas touché, ou a fait un faux départ, ou la manche est nulle : pas de temps pour lui.
+        assertEquals(0, ReflexMatch().resolve(300, Reflex.MISS)!!.lastLoserReactionMs)
+        assertEquals(0, ReflexMatch().resolve(Reflex.EARLY, 300)!!.lastLoserReactionMs)
+        assertEquals(0, ReflexMatch().resolve(250, 250)!!.lastLoserReactionMs)
+        assertEquals(0, ReflexMatch().resolve(Reflex.MISS, Reflex.MISS)!!.lastLoserReactionMs)
+        assertEquals(0, ReflexMatch().tapAfterSignal(1, 200)!!.lastLoserReactionMs)
+        assertEquals(0, ReflexMatch().tapTooEarly(1)!!.lastLoserReactionMs)
+    }
+
+    @Test
+    fun leTempsDuPerdantNeSurvitPasALaMancheSuivante() {
+        val first = ReflexMatch().resolve(210, 340)!!
+        val second = first.resolve(Reflex.MISS, 280)!!
+        assertEquals(2, second.lastWinner)
+        assertEquals(0, second.lastLoserReactionMs)
+        assertEquals(0, first.resolve(100, 100)!!.lastLoserReactionMs)
+    }
+
+    @Test
+    fun surUnSeulTelephoneLeTempsDuPerdantEstNoteApresLeVainqueur() {
+        val won = ReflexMatch().tapAfterSignal(player = 1, reactionMs = 210)!!
+        val done = won.loserTapped(335)
+        assertEquals(1, done.wins1)
+        assertEquals(0, done.wins2)
+        assertEquals(1, done.lastWinner)
+        assertEquals(210, done.lastReactionMs)
+        assertEquals(335, done.lastLoserReactionMs)
+        // Un second toucher ne change plus rien, et le score non plus.
+        assertEquals(done, done.loserTapped(900))
+        // Le temps est ramené à une valeur permise.
+        assertEquals(1, won.loserTapped(-20).lastLoserReactionMs)
+        assertEquals(9_999, won.loserTapped(120_000).lastLoserReactionMs)
+    }
+
+    @Test
+    fun surUnSeulTelephoneAucunTempsPourUnFauxDepartOuSansManche() {
+        val early = ReflexMatch().tapTooEarly(1)!!
+        assertEquals(early, early.loserTapped(300))
+        assertEquals(ReflexMatch(), ReflexMatch().loserTapped(300))
+    }
 }

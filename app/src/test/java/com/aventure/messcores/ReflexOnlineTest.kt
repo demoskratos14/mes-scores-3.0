@@ -116,6 +116,7 @@ class ReflexOnlineTest {
             assertFalse(phone.online.running)
             assertEquals(2, phone.online.match.lastWinner)
             assertEquals(240, phone.online.match.lastReactionMs)
+            assertEquals(310, phone.online.match.lastLoserReactionMs)
             assertEquals(1, phone.online.match.wins2)
         }
     }
@@ -285,7 +286,7 @@ class ReflexOnlineTest {
 
     @Test
     fun lesMessagesSontCodesPuisDecodesSansPerte() {
-        val played = ReflexMatch(wins1 = 2, wins2 = 1, lastWinner = 1, lastReactionMs = 187)
+        val played = ReflexMatch(wins1 = 2, wins2 = 1, lastWinner = 1, lastReactionMs = 187, lastLoserReactionMs = 264)
         val messages = listOf(
             ReflexMessage.Table(listOf("Anna", "Ben"), 1, ReflexMatch(), ReflexNotice.NONE, 0, 0L, false),
             ReflexMessage.Table(listOf("Anna", "Ben"), 1, played, ReflexNotice.NONE, 4, 2_345L, true),
@@ -307,12 +308,13 @@ class ReflexOnlineTest {
     @Test
     fun unMessageAbsurdeEstRamenePuisUnInconnuEstRefuse() {
         val json = ReflexMessage.Table(listOf("Anna", "Ben"), 1, ReflexMatch(), ReflexNotice.NONE, 1, 2_000L, true).toJson()
-        json.put("w1", 99).put("last", 9).put("ms", 123_456).put("delay", 1_000_000L).put("round", -5)
+        json.put("w1", 99).put("last", 9).put("ms", 123_456).put("lms", 654_321).put("delay", 1_000_000L).put("round", -5)
 
         val decoded = reflexMessageFromJson(json) as ReflexMessage.Table
         assertEquals(Reflex.TARGET, decoded.match.wins1)
         assertEquals(2, decoded.match.lastWinner)
         assertEquals(9_999, decoded.match.lastReactionMs)
+        assertEquals(9_999, decoded.match.lastLoserReactionMs)
         assertEquals(Reflex.MAX_DELAY_MS, decoded.delayMs)
         assertEquals(0, decoded.round)
 
