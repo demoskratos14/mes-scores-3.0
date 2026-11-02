@@ -44,7 +44,7 @@ internal fun ReflexMessage.toJson(): JSONObject {
         is ReflexMessage.Table -> json.put("k", "table")
             .put("names", JSONArray().also { array -> names.forEach { array.put(it) } })
             .put("seat", seat).put("w1", match.wins1).put("w2", match.wins2).put("last", match.lastWinner)
-            .put("ms", match.lastReactionMs).put("early", match.falseStart).put("draw", match.lastDraw)
+            .put("ms", match.lastReactionMs).put("lms", match.lastLoserReactionMs).put("early", match.falseStart).put("draw", match.lastDraw)
             .put("notice", notice.name).put("round", round).put("delay", delayMs).put("run", running)
         is ReflexMessage.Result -> json.put("k", "result").put("round", round).put("ms", reactionMs)
         ReflexMessage.Start -> json.put("k", "start")
@@ -65,6 +65,7 @@ internal fun reflexMessageFromJson(json: JSONObject): ReflexMessage? = when (jso
                 wins2 = json.getInt("w2").coerceIn(0, Reflex.TARGET),
                 lastWinner = json.getInt("last").coerceIn(0, 2),
                 lastReactionMs = json.getInt("ms").coerceIn(0, 9_999),
+                lastLoserReactionMs = json.optInt("lms", 0).coerceIn(0, 9_999),
                 falseStart = json.getBoolean("early"),
                 lastDraw = json.getBoolean("draw")
             ),

@@ -57,6 +57,7 @@ private const val PHASE_READY = 0 // on attend que quelqu'un lance la manche
 private const val PHASE_WAITING = 1 // la zone est rouge : toucher maintenant est un faux départ
 private const val PHASE_GO = 2 // le signal est donné : le premier qui touche gagne
 private const val PHASE_DONE = 3 // la manche est jouée
+private const val PHASE_LOSER = 4 // un seul téléphone : le vainqueur a touché, on note encore le temps du perdant
 
 /**
  * Duel de réflexes à deux joueurs : sur un seul téléphone (voir [LocalReflex]) ou chacun sur le sien (voir [ReflexOnline]).
@@ -125,19 +126,28 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
     var wins2 by rememberSaveable { mutableIntStateOf(0) }
     var lastWinner by rememberSaveable { mutableIntStateOf(0) }
     var lastReaction by rememberSaveable { mutableIntStateOf(0) }
+    var lastLoserReaction by rememberSaveable { mutableIntStateOf(0) }
     var falseStart by rememberSaveable { mutableStateOf(false) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var goAt by rememberSaveable { mutableLongStateOf(0L) }
 
-    val match = ReflexMatch(wins1, wins2, lastWinner, lastReaction, falseStart)
+    val match = ReflexMatch(
+        wins1 = wins1,
+        wins2 = wins2,
+        lastWinner = lastWinner,
+        lastReactionMs = lastReaction,
+        falseStart = falseStart,
+        lastLoserReactionMs = lastLoserReaction
+    )
 
-    fun applyMatch(next: ReflexMatch) {
+    fun applyMatch(next: ReflexMatch, nextPhase: Int = PHASE_DONE) {
         wins1 = next.wins1
         wins2 = next.wins2
         lastWinner = next.lastWinner
         lastReaction = next.lastReactionMs
+        lastLoserReaction = next.lastLoserReactionMs
         falseStart = next.falseStart
-        phase = PHASE_DONE
+        phase = nextPhase
     }
 
     // Après une attente aléatoire, le signal est donné et le chrono part.
@@ -147,12 +157,22 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
             goAt = SystemClock.elapsedRealtime()
             phase = PHASE_GO
         }
+        // Le vainqueur a touché : le perdant a encore un peu de temps pour toucher, et son temps est noté.
+        if (phase == PHASE_LOSER) {
+            val left = Reflex.RESPONSE_TIMEOUT_MS - (SystemClock.elapsedRealtime() - goAt)
+            delay(left.coerceAtLeast(Reflex.LOSER_MIN_WINDOW_MS))
+            phase = PHASE_DONE
+        }
     }
 
     fun onTap(player: Int) {
         when (phase) {
-            PHASE_WAITING -> match.tapTooEarly(player)?.let(::applyMatch)
-            PHASE_GO -> match.tapAfterSignal(player, SystemClock.elapsedRealtime() - goAt)?.let(::applyMatch)
+            PHASE_WAITING -> match.tapTooEarly(player)?.let { applyMatch(it) }
+            PHASE_GO -> match.tapAfterSignal(player, SystemClock.elapsedRealtime() - goAt)
+                ?.let { applyMatch(it, nextPhase = PHASE_LOSER) }
+            PHASE_LOSER -> if (player == 3 - match.lastWinner) {
+                applyMatch(match.loserTapped(SystemClock.elapsedRealtime() - goAt))
+            }
         }
     }
 
@@ -169,6 +189,13 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
             match.winsOf(3 - match.winner)
         )
         match.falseStart -> stringResource(R.string.reflex_false_start, nameOf(3 - match.lastWinner), nameOf(match.lastWinner))
+        match.lastLoserReactionMs > 0 -> stringResource(
+            R.string.reflex_round_won_both,
+            nameOf(match.lastWinner),
+            match.lastReactionMs,
+            nameOf(3 - match.lastWinner),
+            match.lastLoserReactionMs
+        )
         else -> stringResource(R.string.reflex_round_won, nameOf(match.lastWinner), match.lastReactionMs)
     }
 
@@ -275,21 +302,25 @@ private fun ReflexZone(
     val stop = if (colorBlind) Color(0xFFD55E00) else Color(0xFFC62828)
     val go = if (colorBlind) Color(0xFF0072B2) else Color(0xFF2E7D32)
     val idle = Color(0xFF455A64)
-    val won = phase == PHASE_DONE && match.lastWinner == player
+    val won = (phase == PHASE_DONE || phase == PHASE_LOSER) && match.lastWinner == player
+    // Le vainqueur a touché mais le perdant peut encore le faire : sa zone reste verte avec « TOUCHEZ ! ».
+    val loserStillCanTap = phase == PHASE_LOSER && !won
 
     val background = when (phase) {
         PHASE_WAITING -> stop
         PHASE_GO -> go
+        PHASE_LOSER -> go
         PHASE_DONE -> if (won) go else stop
         else -> idle
     }
     val label = when {
         phase == PHASE_READY -> stringResource(R.string.reflex_zone_ready)
         phase == PHASE_WAITING -> stringResource(R.string.reflex_wait)
-        phase == PHASE_GO -> stringResource(R.string.reflex_go)
+        phase == PHASE_GO || loserStillCanTap -> stringResource(R.string.reflex_go)
         won && match.lastReactionMs > 0 -> stringResource(R.string.reflex_zone_win_ms, match.lastReactionMs)
         won -> stringResource(R.string.reflex_zone_win)
         match.falseStart -> stringResource(R.string.reflex_zone_early)
+        match.lastLoserReactionMs > 0 -> stringResource(R.string.reflex_zone_lose_ms, match.lastLoserReactionMs)
         else -> stringResource(R.string.reflex_zone_lose)
     }
 
@@ -420,6 +451,7 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
         iWon && match.lastReactionMs > 0 -> stringResource(R.string.reflex_zone_win_ms, match.lastReactionMs)
         iWon -> stringResource(R.string.reflex_zone_win)
         match.falseStart -> stringResource(R.string.reflex_zone_early)
+        match.lastLoserReactionMs > 0 -> stringResource(R.string.reflex_zone_lose_ms, match.lastLoserReactionMs)
         else -> stringResource(R.string.reflex_zone_lose)
     }
     val status = when {
@@ -430,6 +462,13 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
         match.lastDraw -> stringResource(R.string.reflex_draw)
         match.isOver -> stringResource(R.string.reflex_match_won, names[match.winner - 1], match.winsOf(match.winner), match.winsOf(3 - match.winner))
         match.falseStart -> stringResource(R.string.reflex_false_start, names[2 - match.lastWinner], names[match.lastWinner - 1])
+        match.lastLoserReactionMs > 0 -> stringResource(
+            R.string.reflex_round_won_both,
+            names[match.lastWinner - 1],
+            match.lastReactionMs,
+            names[2 - match.lastWinner],
+            match.lastLoserReactionMs
+        )
         else -> stringResource(R.string.reflex_round_won, names[match.lastWinner - 1], match.lastReactionMs)
     }
 

@@ -21,6 +21,9 @@ internal object Reflex {
      */
     const val RESPONSE_TIMEOUT_MS = 3_000L
 
+    /** Un seul téléphone : temps minimal laissé au perdant pour toucher après le vainqueur, pour noter son temps. */
+    const val LOSER_MIN_WINDOW_MS = 1_000L
+
     /** Résultat d'un joueur pour une manche à deux téléphones : toucher avant le signal. */
     const val EARLY = 0
 
@@ -37,7 +40,8 @@ internal object Reflex {
  * à l'autre. Le premier à [target] manches gagnées remporte la partie.
  *
  * Les joueurs sont numérotés 1 et 2. [lastWinner] vaut 0 tant qu'aucune manche n'est jouée ; [lastReactionMs] est
- * le temps de réaction du vainqueur de la dernière manche (0 après un faux départ).
+ * le temps de réaction du vainqueur de la dernière manche (0 après un faux départ) et [lastLoserReactionMs] celui du
+ * perdant (0 s'il a fait un faux départ, n'a pas touché à temps ou si la manche est nulle).
  */
 internal data class ReflexMatch(
     val wins1: Int = 0,
@@ -47,6 +51,7 @@ internal data class ReflexMatch(
     val falseStart: Boolean = false,
     /** Manche nulle (deux téléphones seulement : égalité exacte, deux faux départs ou personne n'a touché) : on la rejoue. */
     val lastDraw: Boolean = false,
+    val lastLoserReactionMs: Int = 0,
     val target: Int = Reflex.TARGET
 ) {
     /** Le vainqueur de la partie (1 ou 2), ou 0 si elle continue. */
@@ -71,6 +76,16 @@ internal data class ReflexMatch(
         return win(player, reactionMs.coerceIn(1L, MAX_REACTION_MS).toInt(), falseStart = false)
     }
 
+    /**
+     * Un seul téléphone : le perdant a touché sa zone [reactionMs] millisecondes après le signal, après le vainqueur.
+     * Son temps est noté sans changer le score. Sans effet après un faux départ, une manche nulle ou si le temps du
+     * perdant est déjà connu.
+     */
+    fun loserTapped(reactionMs: Long): ReflexMatch {
+        if (lastWinner == 0 || falseStart || lastDraw || lastLoserReactionMs > 0) return this
+        return copy(lastLoserReactionMs = reactionMs.coerceIn(1L, MAX_REACTION_MS).toInt())
+    }
+
     /** Le joueur [player] touche avant le signal : faux départ, la manche va à l'autre joueur. */
     fun tapTooEarly(player: Int): ReflexMatch? {
         if (isOver || player !in 1..2) return null
@@ -93,8 +108,8 @@ internal data class ReflexMatch(
             r1 == Reflex.EARLY -> win(2, reactionMs = 0, falseStart = true)
             r2 == Reflex.EARLY -> win(1, reactionMs = 0, falseStart = true)
             r1 > 0 && r2 > 0 -> when {
-                r1 < r2 -> win(1, r1, falseStart = false)
-                r2 < r1 -> win(2, r2, falseStart = false)
+                r1 < r2 -> win(1, r1, falseStart = false, loserMs = r2)
+                r2 < r1 -> win(2, r2, falseStart = false, loserMs = r1)
                 else -> draw()
             }
             r1 > 0 -> win(1, r1, falseStart = false)
@@ -106,13 +121,14 @@ internal data class ReflexMatch(
     /** Une nouvelle partie : les scores repartent de zéro, la cible reste la même. */
     fun newMatch(): ReflexMatch = ReflexMatch(target = target)
 
-    private fun draw() = copy(lastWinner = 0, lastReactionMs = 0, falseStart = false, lastDraw = true)
+    private fun draw() = copy(lastWinner = 0, lastReactionMs = 0, lastLoserReactionMs = 0, falseStart = false, lastDraw = true)
 
-    private fun win(player: Int, reactionMs: Int, falseStart: Boolean) = copy(
+    private fun win(player: Int, reactionMs: Int, falseStart: Boolean, loserMs: Int = 0) = copy(
         wins1 = wins1 + if (player == 1) 1 else 0,
         wins2 = wins2 + if (player == 2) 1 else 0,
         lastWinner = player,
         lastReactionMs = reactionMs,
+        lastLoserReactionMs = loserMs,
         falseStart = falseStart,
         lastDraw = false
     )
