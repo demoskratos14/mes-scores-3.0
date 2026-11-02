@@ -63,7 +63,7 @@ fun ChooseGameScreen(
     // Vrai : seuls les jeux jouables dans l'appli sont proposés ; faux : les feuilles de scores (tous les jeux qui n'ont pas leur propre écran : Mastermind, Morpion, dames, Othello, touché coulé…).
     playableOnly: Boolean = false
 ) {
-    var games by remember { mutableStateOf(repository.gamesFor(playableOnly)) }
+    var games by remember { mutableStateOf(repository.gamesFor(playableOnly, playerCount)) }
     // On retient l'id (et non le jeu) : la sélection survit au passage par le formulaire de modification.
     var selectedId by rememberSaveable { mutableStateOf(if (playableOnly) "builtin_yams" else "builtin_generic") }
     val selected = games.firstOrNull { it.id == selectedId } ?: games.first()
@@ -105,7 +105,7 @@ fun ChooseGameScreen(
                         true to resources.getString(R.string.choose_import_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }
                 }
-                games = repository.gamesFor(playableOnly)
+                games = repository.gamesFor(playableOnly, playerCount)
                 errorMessage = if (outcome.first) outcome.second else null
                 infoMessage = if (outcome.first) null else outcome.second
             }
@@ -352,7 +352,7 @@ fun ChooseGameScreen(
             confirmButton = {
                 TextButton(onClick = {
                     repository.deleteCustomGame(selected.id)
-                    games = repository.gamesFor(playableOnly)
+                    games = repository.gamesFor(playableOnly, playerCount)
                     selectedId = "builtin_generic"
                     errorMessage = null
                     confirmDelete = false
@@ -389,6 +389,12 @@ private fun ruleSummary(context: Context, game: GameRules): String {
     return context.getString(R.string.choose_rule_summary, direction, negative, players)
 }
 
-/** Jeux proposés : ceux qui se jouent dans l'appli, ou les feuilles de scores (le Mastermind, le Morpion, les dames et l'Othello n'en ont pas, comme les autres jeux à écran propre). */
-private fun GameRepository.gamesFor(playableOnly: Boolean): List<GameRules> =
-    allGames().filter { if (playableOnly) it.isPlayableGame() else it.hasScoreSheet() }
+/**
+ * Jeux proposés : ceux qui se jouent dans l'appli, ou les feuilles de scores (le Mastermind, le Morpion, les dames et l'Othello n'en ont pas, comme les autres jeux à écran propre).
+ * Seuls les jeux qui acceptent le nombre de joueurs saisi sont gardés (ni les jeux en solo à 2 joueurs, ni ceux qui demandent 3 joueurs ou plus).
+ * Si aucun jeu ne convient, on garde toute la liste plutôt que de laisser l'écran vide.
+ */
+private fun GameRepository.gamesFor(playableOnly: Boolean, playerCount: Int): List<GameRules> {
+    val all = allGames().filter { if (playableOnly) it.isPlayableGame() else it.hasScoreSheet() }
+    return all.filter { playerCount in it.minPlayers..it.maxPlayers }.ifEmpty { all }
+}
