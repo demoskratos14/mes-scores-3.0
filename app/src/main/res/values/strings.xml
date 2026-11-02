@@ -2113,9 +2113,9 @@
     <string name="rules_reflex_1_title">But du jeu</string>
     <string name="rules_reflex_1_body">Être le plus rapide : le premier à toucher sa zone quand elle passe au vert gagne la manche. Le premier à 3 manches gagne la partie.</string>
     <string name="rules_reflex_2_title">Une manche</string>
-    <string name="rules_reflex_2_body">Les deux zones sont rouges : on attend. Après un délai au hasard (de 1,5 à 5 secondes), elles passent au vert. Toucher sa zone avant le vert est un faux départ : la manche va à l’adversaire. Le temps de réaction du vainqueur s’affiche en millisecondes.</string>
+    <string name="rules_reflex_2_body">Les deux zones sont rouges : on attend. Après un délai au hasard (de 1,5 à 5 secondes), elles passent au vert. Toucher sa zone avant le vert est un faux départ : la manche va à l’adversaire. Les temps de réaction du vainqueur et du perdant s’affichent en millisecondes.</string>
     <string name="rules_reflex_3_title">Dans l’appli</string>
-    <string name="rules_reflex_3_body">On joue à deux sur un seul téléphone, posé à plat entre les joueurs : chacun a sa moitié d’écran, celle du haut est retournée. Ou chacun sur son téléphone (« Jouer chacun sur son téléphone ») : chaque téléphone mesure le temps de réaction de son joueur depuis son propre signal, et le plus rapide gagne ; un léger décalage entre les deux téléphones ne change rien. Deux faux départs, personne qui touche ou des temps identiques : la manche est rejouée. Le score de la séance reste affiché. Avec le mode daltonien, le rouge et le vert deviennent orange et bleu.</string>
+    <string name="rules_reflex_3_body">On joue à deux sur un seul téléphone, posé à plat entre les joueurs : chacun a sa moitié d’écran, celle du haut est retournée. Ou chacun sur son téléphone (« Jouer chacun sur son téléphone ») : chaque téléphone mesure le temps de réaction de son joueur depuis son propre signal, et le plus rapide gagne ; un léger décalage entre les deux téléphones ne change rien. Deux faux départs, personne qui touche ou des temps identiques : la manche est rejouée. Le score de la séance reste affiché. Avec le mode daltonien, le rouge et le vert deviennent orange et bleu. Sur un seul téléphone, le perdant a encore un instant pour toucher sa zone afin que son temps soit noté.</string>
     <plurals name="reflex_hint">
         <item quantity="one">Chacun pose un doigt près de sa zone. Quand elle passe au vert, touche-la le premier ! Premier à %1$d manche.</item>
         <item quantity="other">Chacun pose un doigt près de sa zone. Quand elle passe au vert, touche-la le premier ! Premier à %1$d manches.</item>
@@ -2131,11 +2131,13 @@
     <string name="reflex_match_won">%1$s gagne la partie, %2$d à %3$d !</string>
     <string name="reflex_false_start">Faux départ de %1$s : %2$s gagne la manche !</string>
     <string name="reflex_round_won">%1$s gagne la manche en %2$d ms !</string>
+    <string name="reflex_round_won_both">%1$s gagne la manche en %2$d ms (%3$s : %4$d ms) !</string>
     <string name="reflex_zone_ready">Prêt ?</string>
     <string name="reflex_zone_win">Gagné !</string>
     <string name="reflex_zone_win_ms">Gagné ! %1$d ms</string>
     <string name="reflex_zone_early">Trop tôt !</string>
     <string name="reflex_zone_lose">Perdu</string>
+    <string name="reflex_zone_lose_ms">Perdu · %1$d ms</string>
     <string name="reflex_online_button">Jouer chacun sur son téléphone</string>
     <string name="reflex_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="reflex_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
