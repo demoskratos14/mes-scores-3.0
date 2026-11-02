@@ -679,9 +679,8 @@ private fun DrawScope.drawKeyboard(lanes: Int, colors: List<Color>, pressedMask:
             filled = true
         )
     }
-    // Touches noires, comme un vrai clavier : entre les touches 1-2, 2-3, puis 4-5 (pas entre 3 et 4, comme mi-fa).
+    // Touches noires décoratives : une entre chaque paire de touches blanches (sinon il en manquait une du côté droit).
     for (boundary in 1 until lanes) {
-        if (boundary == 3) continue
         val width = laneWidth * 0.5f
         drawRoundRect(
             color = Color(0xFF14171F),
