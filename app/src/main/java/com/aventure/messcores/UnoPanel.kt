@@ -352,7 +352,7 @@ private fun UnoRoundResult(round: UnoRound, players: List<String>, canContinue: 
 }
 
 /**
- * Une carte de Uno : fond de la couleur de la carte (noir pour un joker), chiffre ou symbole au centre. [playable] faux :
+ * Une carte de Uno dessinée comme sur un vrai jeu (voir [UnoCardImage]). [playable] faux :
  * grisée et non touchable ; [onClick] null : simple affichage.
  */
 @Composable
@@ -364,13 +364,11 @@ private fun UnoCardFace(
     selected: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
-    val color = UnoScoring.color(card)
     val name = labels.description(card)
-    PlayingCard(
-        text = labels.face(card),
+    UnoCardImage(
+        card = card,
         description = if (playable) name else stringResource(R.string.huit_card_blocked, name),
-        background = if (playable) unoColor(color) else CardBlocked,
-        textColor = if (playable) unoOnColor(color) else unoColor(color).copy(alpha = 0.7f),
+        playable = playable,
         modifier = modifier,
         selected = selected,
         onClick = onClick

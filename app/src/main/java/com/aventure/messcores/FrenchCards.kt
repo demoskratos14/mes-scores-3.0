@@ -68,7 +68,7 @@ internal fun frenchSuitColor(suit: Int): Color =
     if (suit == FrenchCards.HEART || suit == FrenchCards.DIAMOND) CardRed else CardBlack
 
 /**
- * Une carte à jouer : fond clair, valeur et couleur en noir ou en rouge. [playable] faux : estompée et non touchable ;
+ * Une carte à jouer, affichée par son image (valeur et couleur en noir ou en rouge). [playable] faux : estompée et non touchable ;
  * [selected] entoure la carte ; [onClick] null : simple affichage.
  */
 @Composable
@@ -82,11 +82,10 @@ internal fun FrenchCardFace(
 ) {
     val suit = FrenchCards.suit(card)
     val name = stringResource(R.string.huit_card_desc, labels.rank(card), labels.suitName(suit))
-    PlayingCard(
-        text = labels.face(card),
+    ImageCard(
+        image = frenchCardImage(card),
         description = if (playable) name else stringResource(R.string.huit_card_blocked, name),
-        background = if (playable) CardWhite else CardBlocked,
-        textColor = if (playable) frenchSuitColor(suit) else frenchSuitColor(suit).copy(alpha = 0.55f),
+        playable = playable,
         modifier = modifier,
         selected = selected,
         onClick = onClick
