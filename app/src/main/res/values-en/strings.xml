@@ -2165,4 +2165,24 @@
     <string name="rules_rhythm_3_body">Easy: 4 lanes, few notes, and tapping on nothing does not break your streak. Medium: 4 lanes, more notes, normal precision. Hard: 5 lanes, lots of notes, chords (two notes at once) and tighter precision.</string>
     <string name="rules_rhythm_4_title">In the app</string>
     <string name="rules_rhythm_4_body">Choose a song stored on your phone (MP3, M4A, OGG, WAV, FLAC…). The app analyses it silently, without playing it, to create the notes: bass (kick drum, bass guitar) on the left, treble (melody, cymbals) on the right. If the game seems early or late compared with the sound, adjust the audio offset. In colour-blind mode, the lanes change colours. One player, one phone.</string>
+    <string name="game_circles">Circles</string>
+    <string name="rules_circles_1_title">Goal</string>
+    <string name="rules_circles_1_body">Touch the circles before they disappear, and chain as many as you can without missing one. The winner is whoever makes the longest streak.</string>
+    <string name="rules_circles_2_title">A streak</string>
+    <string name="rules_circles_2_body">A circle appears at a random spot on the screen and shrinks until it disappears. Touch it before it vanishes: another one appears right away, a little faster each time. The streak ends as soon as a circle disappears without being touched. Touching beside a circle does not count.</string>
+    <string name="rules_circles_3_title">In the app</string>
+    <string name="rules_circles_3_body">Play alone or with 2 to 8 players on a single phone that you pass around: everyone plays their streak in turn, then the streaks are compared. The longest streak wins; on a tie, the players share the win. If nobody touches a single circle, there is no winner.</string>
+    <string name="circles_ready_title">%1$s’s turn</string>
+    <string name="circles_ready_hint">Touch each circle before it disappears. The streak ends at the first missed circle.</string>
+    <string name="circles_go">Go!</string>
+    <string name="circles_streak">Streak: %1$d</string>
+    <string name="circles_streak_entry">%1$s: streak of %2$d</string>
+    <string name="circles_run_over">%1$s: streak of %2$d!</string>
+    <string name="circles_next_player">Next player</string>
+    <string name="circles_results_title">Result</string>
+    <string name="circles_winner">%1$s wins with a streak of %2$d!</string>
+    <string name="circles_tie">Tie between %1$s, with a streak of %2$d!</string>
+    <string name="circles_nobody">Nobody touched a single circle.</string>
+    <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
+    <string name="circles_new_game">New game</string>
 </resources>

@@ -2211,4 +2211,24 @@
     <string name="rules_rhythm_3_body">Facile : 4 pistes, peu de notes, et taper dans le vide ne casse pas la série. Moyen : 4 pistes, plus de notes, précision normale. Difficile : 5 pistes, beaucoup de notes, des accords (deux notes à la fois) et une précision plus exigeante.</string>
     <string name="rules_rhythm_4_title">Dans l’appli</string>
     <string name="rules_rhythm_4_body">Choisis une chanson présente sur ton téléphone (MP3, M4A, OGG, WAV, FLAC…). L’appli l’analyse en silence, sans la jouer, pour créer les notes : les graves (grosse caisse, basse) à gauche, les aigus (mélodie, cymbales) à droite. Si le jeu semble en avance ou en retard sur le son, ajuste le décalage audio. Avec le mode daltonien, les pistes changent de couleurs. On joue seul, sur un seul téléphone.</string>
+    <string name="game_circles">Ronds</string>
+    <string name="rules_circles_1_title">But du jeu</string>
+    <string name="rules_circles_1_body">Toucher les ronds avant qu’ils disparaissent, et en enchaîner le plus possible sans en rater un. Le gagnant est celui qui fait la plus longue série.</string>
+    <string name="rules_circles_2_title">Une série</string>
+    <string name="rules_circles_2_body">Un rond apparaît au hasard sur l’écran et rétrécit jusqu’à disparaître. Touche-le avant qu’il s’efface : un autre apparaît aussitôt, un peu plus rapide à chaque fois. La série s’arrête dès qu’un rond disparaît sans avoir été touché. Toucher à côté d’un rond ne compte pas.</string>
+    <string name="rules_circles_3_title">Dans l’appli</string>
+    <string name="rules_circles_3_body">On joue seul ou de 2 à 8 joueurs sur un seul téléphone qu’on se passe : chacun fait sa série à son tour, puis on compare. La plus longue série gagne ; à égalité, les joueurs sont ex æquo. Si personne ne touche un seul rond, il n’y a pas de gagnant.</string>
+    <string name="circles_ready_title">À %1$s de jouer</string>
+    <string name="circles_ready_hint">Touche chaque rond avant qu’il ne disparaisse. La série s’arrête au premier rond manqué.</string>
+    <string name="circles_go">C’est parti !</string>
+    <string name="circles_streak">Série : %1$d</string>
+    <string name="circles_streak_entry">%1$s : série de %2$d</string>
+    <string name="circles_run_over">%1$s : série de %2$d !</string>
+    <string name="circles_next_player">Joueur suivant</string>
+    <string name="circles_results_title">Résultat</string>
+    <string name="circles_winner">%1$s gagne avec une série de %2$d !</string>
+    <string name="circles_tie">Égalité entre %1$s, avec une série de %2$d !</string>
+    <string name="circles_nobody">Personne n’a touché un seul rond.</string>
+    <string name="circles_rank_entry">%1$d. %2$s : %3$d</string>
+    <string name="circles_new_game">Nouvelle partie</string>
 </resources>

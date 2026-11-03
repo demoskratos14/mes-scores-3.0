@@ -114,6 +114,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     PFC_ID to "pfc",
     NIM_ID to "nim",
     REFLEX_ID to "reflex",
+    CIRCLES_ID to "circles",
     RHYTHM_ID to "rhythm",
     DRAUGHTS_ID to "draughts",
     OTHELLO_ID to "othello",
@@ -499,6 +500,9 @@ fun ScoreApp(
                     onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareReflex") }
                 )
+            }
+            composable("circles") {
+                CirclesScreen(players = pendingPlayerNames)
             }
             composable("rhythm") {
                 RhythmScreen(players = pendingPlayerNames)

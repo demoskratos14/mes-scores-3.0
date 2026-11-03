@@ -2205,4 +2205,24 @@
     <string name="rules_rhythm_3_body">Facile: 4 corsie, poche note, e toccare a vuoto non interrompe la serie. Medio: 4 corsie, più note, precisione normale. Difficile: 5 corsie, molte note, accordi (due note insieme) e una precisione più severa.</string>
     <string name="rules_rhythm_4_title">Nell’app</string>
     <string name="rules_rhythm_4_body">Scegli una canzone presente sul telefono (MP3, M4A, OGG, WAV, FLAC…). L’app la analizza in silenzio, senza riprodurla, per creare le note: i bassi (cassa, basso) a sinistra, gli alti (melodia, piatti) a destra. Se il gioco sembra in anticipo o in ritardo rispetto al suono, regola lo scarto audio. Con la modalità daltonici, le corsie cambiano colore. Si gioca da soli, su un solo telefono.</string>
+    <string name="game_circles">Cerchi</string>
+    <string name="rules_circles_1_title">Obiettivo</string>
+    <string name="rules_circles_1_body">Tocca i cerchi prima che scompaiano e concatenane più che puoi senza sbagliarne nessuno. Vince chi fa la serie più lunga.</string>
+    <string name="rules_circles_2_title">Una serie</string>
+    <string name="rules_circles_2_body">Un cerchio compare in un punto a caso dello schermo e rimpicciolisce fino a scomparire. Toccalo prima che svanisca: ne compare subito un altro, ogni volta un po’ più veloce. La serie finisce non appena un cerchio scompare senza essere stato toccato. Toccare accanto a un cerchio non conta.</string>
+    <string name="rules_circles_3_title">Nell’app</string>
+    <string name="rules_circles_3_body">Si gioca da soli o da 2 a 8 giocatori con un solo telefono che si passa di mano: ognuno fa la sua serie a turno, poi si confrontano. Vince la serie più lunga; in caso di parità, i giocatori condividono la vittoria. Se nessuno tocca nemmeno un cerchio, non c’è un vincitore.</string>
+    <string name="circles_ready_title">Tocca a %1$s</string>
+    <string name="circles_ready_hint">Tocca ogni cerchio prima che scompaia. La serie finisce al primo cerchio mancato.</string>
+    <string name="circles_go">Via!</string>
+    <string name="circles_streak">Serie: %1$d</string>
+    <string name="circles_streak_entry">%1$s: serie di %2$d</string>
+    <string name="circles_run_over">%1$s: serie di %2$d!</string>
+    <string name="circles_next_player">Giocatore successivo</string>
+    <string name="circles_results_title">Risultato</string>
+    <string name="circles_winner">%1$s vince con una serie di %2$d!</string>
+    <string name="circles_tie">Parità tra %1$s, con una serie di %2$d!</string>
+    <string name="circles_nobody">Nessuno ha toccato nemmeno un cerchio.</string>
+    <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
+    <string name="circles_new_game">Nuova partita</string>
 </resources>

@@ -2195,4 +2195,24 @@
     <string name="rules_rhythm_3_body">Fácil: 4 pistas, poucas notas, e tocar no vazio não quebra a sequência. Médio: 4 pistas, mais notas, precisão normal. Difícil: 5 pistas, muitas notas, acordes (duas notas ao mesmo tempo) e uma precisão mais exigente.</string>
     <string name="rules_rhythm_4_title">Na aplicação</string>
     <string name="rules_rhythm_4_body">Escolhe uma música guardada no teu telemóvel (MP3, M4A, OGG, WAV, FLAC…). A aplicação analisa-a em silêncio, sem a tocar, para criar as notas: os graves (bombo, baixo) à esquerda, os agudos (melodia, pratos) à direita. Se o jogo parecer adiantado ou atrasado em relação ao som, ajusta o desvio de áudio. Com o modo daltónico, as pistas mudam de cor. Joga-se sozinho, num só telemóvel.</string>
+    <string name="game_circles">Círculos</string>
+    <string name="rules_circles_1_title">Objetivo</string>
+    <string name="rules_circles_1_body">Toque nos círculos antes que desapareçam e encadeie o máximo possível sem falhar nenhum. Ganha quem fizer a sequência mais longa.</string>
+    <string name="rules_circles_2_title">Uma sequência</string>
+    <string name="rules_circles_2_body">Um círculo aparece num lugar aleatório do ecrã e encolhe até desaparecer. Toque nele antes que se apague: logo aparece outro, um pouco mais rápido de cada vez. A sequência termina assim que um círculo desaparece sem ter sido tocado. Tocar ao lado de um círculo não conta.</string>
+    <string name="rules_circles_3_title">Na aplicação</string>
+    <string name="rules_circles_3_body">Joga-se sozinho ou de 2 a 8 jogadores num único telemóvel que se passa de mão em mão: cada um faz a sua sequência à vez e depois comparam-se. Ganha a sequência mais longa; em caso de empate, os jogadores partilham a vitória. Se ninguém tocar num único círculo, não há vencedor.</string>
+    <string name="circles_ready_title">Vez de %1$s</string>
+    <string name="circles_ready_hint">Toque em cada círculo antes que desapareça. A sequência termina no primeiro círculo falhado.</string>
+    <string name="circles_go">Vamos!</string>
+    <string name="circles_streak">Sequência: %1$d</string>
+    <string name="circles_streak_entry">%1$s: sequência de %2$d</string>
+    <string name="circles_run_over">%1$s: sequência de %2$d!</string>
+    <string name="circles_next_player">Jogador seguinte</string>
+    <string name="circles_results_title">Resultado</string>
+    <string name="circles_winner">%1$s ganha com uma sequência de %2$d!</string>
+    <string name="circles_tie">Empate entre %1$s, com uma sequência de %2$d!</string>
+    <string name="circles_nobody">Ninguém tocou num único círculo.</string>
+    <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
+    <string name="circles_new_game">Novo jogo</string>
 </resources>

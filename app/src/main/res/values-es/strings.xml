@@ -2195,4 +2195,24 @@
     <string name="rules_rhythm_3_body">Fácil: 4 carriles, pocas notas, y tocar en vacío no rompe la racha. Medio: 4 carriles, más notas, precisión normal. Difícil: 5 carriles, muchas notas, acordes (dos notas a la vez) y una precisión más exigente.</string>
     <string name="rules_rhythm_4_title">En la aplicación</string>
     <string name="rules_rhythm_4_body">Elige una canción guardada en tu teléfono (MP3, M4A, OGG, WAV, FLAC…). La aplicación la analiza en silencio, sin reproducirla, para crear las notas: los graves (bombo, bajo) a la izquierda y los agudos (melodía, platillos) a la derecha. Si el juego va adelantado o retrasado respecto al sonido, ajusta el desfase de audio. Con el modo daltónico, los carriles cambian de colores. Se juega solo, en un solo teléfono.</string>
+    <string name="game_circles">Círculos</string>
+    <string name="rules_circles_1_title">Objetivo</string>
+    <string name="rules_circles_1_body">Toca los círculos antes de que desaparezcan y encadena todos los que puedas sin fallar ninguno. Gana quien consiga la racha más larga.</string>
+    <string name="rules_circles_2_title">Una racha</string>
+    <string name="rules_circles_2_body">Un círculo aparece en un lugar al azar de la pantalla y se encoge hasta desaparecer. Tócalo antes de que se borre: enseguida aparece otro, un poco más rápido cada vez. La racha termina en cuanto un círculo desaparece sin haber sido tocado. Tocar al lado de un círculo no cuenta.</string>
+    <string name="rules_circles_3_title">En la aplicación</string>
+    <string name="rules_circles_3_body">Se juega solo o de 2 a 8 jugadores con un único teléfono que se van pasando: cada uno hace su racha por turno y después se comparan. Gana la racha más larga; en caso de empate, los jugadores comparten la victoria. Si nadie toca ni un círculo, no hay ganador.</string>
+    <string name="circles_ready_title">Le toca a %1$s</string>
+    <string name="circles_ready_hint">Toca cada círculo antes de que desaparezca. La racha termina en el primer círculo fallado.</string>
+    <string name="circles_go">¡Vamos!</string>
+    <string name="circles_streak">Racha: %1$d</string>
+    <string name="circles_streak_entry">%1$s: racha de %2$d</string>
+    <string name="circles_run_over">%1$s: ¡racha de %2$d!</string>
+    <string name="circles_next_player">Siguiente jugador</string>
+    <string name="circles_results_title">Resultado</string>
+    <string name="circles_winner">¡%1$s gana con una racha de %2$d!</string>
+    <string name="circles_tie">¡Empate entre %1$s, con una racha de %2$d!</string>
+    <string name="circles_nobody">Nadie ha tocado ni un círculo.</string>
+    <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
+    <string name="circles_new_game">Nueva partida</string>
 </resources>

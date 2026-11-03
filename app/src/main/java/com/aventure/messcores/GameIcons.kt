@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, RHYTHM_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, RHYTHM_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -122,6 +122,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             NIM_ID -> drawNim()
             PFC_ID -> drawRockPaperScissors()
             REFLEX_ID -> drawReflex()
+            CIRCLES_ID -> drawCircles()
             RHYTHM_ID -> drawRhythm()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
@@ -245,6 +246,18 @@ private fun DrawScope.drawReflex() {
         drawLine(Color(0xFFFFB300), Offset(x, s * 0.3f), Offset(x - side * s * 0.06f, s * 0.5f), s * 0.035f, StrokeCap.Round)
         drawLine(Color(0xFFFFB300), Offset(x - side * s * 0.06f, s * 0.5f), Offset(x + side * s * 0.02f, s * 0.7f), s * 0.035f, StrokeCap.Round)
     }
+}
+
+private fun DrawScope.drawCircles() {
+    paper(Color(0xFFE8EAF6))
+    val s = size.minDimension
+    // Trois ronds de tailles différentes : le plus petit est sur le point de disparaître.
+    drawCircle(Color(0xFFE53935), radius = s * 0.2f, center = Offset(s * 0.34f, s * 0.36f))
+    drawCircle(Color.White.copy(alpha = 0.85f), radius = s * 0.08f, center = Offset(s * 0.34f, s * 0.36f))
+    drawCircle(Color(0xFF1E88E5), radius = s * 0.14f, center = Offset(s * 0.7f, s * 0.5f))
+    drawCircle(Color.White.copy(alpha = 0.85f), radius = s * 0.056f, center = Offset(s * 0.7f, s * 0.5f))
+    drawCircle(Color(0xFF43A047), radius = s * 0.08f, center = Offset(s * 0.4f, s * 0.74f))
+    drawCircle(Color.White.copy(alpha = 0.85f), radius = s * 0.032f, center = Offset(s * 0.4f, s * 0.74f))
 }
 
 private fun DrawScope.drawRhythm() {

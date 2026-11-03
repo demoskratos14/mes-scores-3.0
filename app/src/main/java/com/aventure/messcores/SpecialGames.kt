@@ -319,6 +319,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Ronds : écran à part (voir CirclesScreen), seul ou jusqu'à huit joueurs sur un téléphone qu'on se passe ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = CIRCLES_ID,
+        name = context.getString(R.string.game_circles),
+        minPlayers = Circles.MIN_PLAYERS,
+        maxPlayers = Circles.MAX_PLAYERS,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Jeu de rythme : écran à part (voir RhythmScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = RHYTHM_ID,
