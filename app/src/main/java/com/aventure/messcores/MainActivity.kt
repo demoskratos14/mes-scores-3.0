@@ -122,6 +122,12 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     CHESS_ID to "chess"
 )
 
+/** Écrans de jeux jouables sur lesquels le badge chronomètre / minuteur est masqué. */
+private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
+    "battleship", "morpion", "connect4", "nim", "reflex", "circles", "simon", "rhythm",
+    "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
+)
+
 @Composable
 fun ScoreApp(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -829,8 +835,11 @@ fun ScoreApp(
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)
 
-        // Superposé à toutes les pages ci-dessus, sauf le poker qui a son propre minuteur de blinds.
-        if (currentRoute != "poker") TimerOverlay(viewModel = timerViewModel)
+        // Superposé à toutes les pages ci-dessus, sauf le poker (minuteur de blinds) et les jeux jouables
+        // qui n'ont pas besoin d'horloge (les échecs ont la leur, le réflexe et le rythme mesurent le temps eux-mêmes).
+        val hideTimer = currentRoute == "poker" || currentRoute in PLAYABLE_ROUTES_WITHOUT_TIMER ||
+            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute
+        if (!hideTimer) TimerOverlay(viewModel = timerViewModel)
 
         if (showQuitDialog) {
             AlertDialog(
