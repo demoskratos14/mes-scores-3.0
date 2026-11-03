@@ -364,6 +364,11 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_circles_2_title, R.string.rules_circles_2_body),
         RulesSection(R.string.rules_circles_3_title, R.string.rules_circles_3_body)
     ),
+    "builtin_simon" to listOf(
+        RulesSection(R.string.rules_simon_1_title, R.string.rules_simon_1_body),
+        RulesSection(R.string.rules_simon_2_title, R.string.rules_simon_2_body),
+        RulesSection(R.string.rules_simon_3_title, R.string.rules_simon_3_body)
+    ),
     "builtin_rhythm" to listOf(
         RulesSection(R.string.rules_rhythm_1_title, R.string.rules_rhythm_1_body),
         RulesSection(R.string.rules_rhythm_2_title, R.string.rules_rhythm_2_body),
