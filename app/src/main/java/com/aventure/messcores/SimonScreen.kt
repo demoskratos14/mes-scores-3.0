@@ -4,6 +4,8 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,13 +13,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -42,9 +44,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
@@ -57,7 +63,11 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -82,7 +92,19 @@ private const val ERROR_PAUSE_MS = 900L
 
 /** Les quatre touches : vert, rouge, jaune, bleu. */
 private val PAD_COLORS = listOf(Color(0xFF2E9E4F), Color(0xFFD93A35), Color(0xFFF2C21B), Color(0xFF2F6FDB))
+/** Début (en degrés, dans le sens des aiguilles d'une montre depuis 3 h) du quart de chaque touche, comme sur le Simon d'origine : vert en haut à gauche, rouge en haut à droite, jaune en bas à gauche, bleu en bas à droite. */
+private val PAD_START_ANGLES = floatArrayOf(180f, 270f, 90f, 0f)
+
+/** Rayon du bouton central, en fraction du rayon du plateau. */
+private const val HUB_FRACTION = 0.36f
+
+/** Le noir du boîtier, des séparations entre les touches et du bouton central. */
+private val BODY_COLOR = Color(0xFF111111)
+
 private val PAD_NAMES = listOf(R.string.simon_pad_green, R.string.simon_pad_red, R.string.simon_pad_yellow, R.string.simon_pad_blue)
+
+/** Message vide (espace insécable) avant le lancement : la ligne garde sa hauteur. */
+private const val NO_STATUS = "\u00A0"
 
 private val IntListSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
 
@@ -91,7 +113,8 @@ private val IntListSaver = listSaver<List<Int>, Int>(save = { it }, restore = { 
  * reproduit de mémoire ; la suite s'allonge d'une couleur et va un peu plus vite à chaque manche réussie. Seul, on
  * joue sa série (voir [SimonRun]). À plusieurs, deux modes au choix : « chacun sa série » (chacun sa suite, le meilleur
  * score gagne, voir [SimonGame]) ou « chacun son tour » (une seule suite pour tous, une erreur élimine, le dernier en
- * jeu gagne, voir [SimonTurns]). Chaque touche porte aussi une forme pour la reconnaître sans les couleurs.
+ * jeu gagne, voir [SimonTurns]). Le plateau est rond comme sur le Simon d'origine (voir [SimonBoard]) et la suite part quand on touche le bouton noir du
+ * centre. Chaque touche porte aussi une forme pour la reconnaître sans les couleurs.
  */
 @Composable
 internal fun SimonScreen(players: List<String>) {
@@ -440,20 +463,63 @@ private fun SimonStatus(text: String) {
     )
 }
 
-/** Les quatre touches en deux rangées de deux ; [lit] est la touche allumée (-1 si aucune). */
+/** Un quart de couronne : la forme d'une touche du plateau rond (le centre est laissé au bouton noir). */
+private class PadSectorShape(private val startAngle: Float) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val radius = size.minDimension / 2f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val path = Path().apply {
+            arcTo(Rect(center, radius), startAngle, 90f, true)
+            arcTo(Rect(center, radius * HUB_FRACTION), startAngle + 90f, -90f, false)
+            close()
+        }
+        return Outline.Generic(path)
+    }
+}
+
+/**
+ * Le plateau rond du Simon d'origine : un boîtier noir, quatre touches en quarts de disque séparées par une croix
+ * noire, et au centre un bouton noir qui lance la suite ([onStart], tant que [started] est faux). [lit] est la touche
+ * allumée (-1 si aucune).
+ */
 @Composable
-private fun ColumnScope.SimonPadGrid(lit: Int, onPad: (Int) -> Unit) {
-    Column(modifier = Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        for (rowStart in 0 until Simon.PADS step 2) {
-            Row(modifier = Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                for (pad in rowStart until rowStart + 2) {
-                    SimonPad(
-                        pad = pad,
-                        lit = lit == pad,
-                        onPress = { onPad(pad) },
-                        modifier = Modifier.weight(1f).fillMaxHeight()
-                    )
-                }
+private fun ColumnScope.SimonBoard(lit: Int, started: Boolean, onStart: () -> Unit, onPad: (Int) -> Unit) {
+    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .aspectRatio(1f)
+                .clip(CircleShape)
+                .background(BODY_COLOR)
+                .padding(8.dp)
+        ) {
+            for (pad in 0 until Simon.PADS) {
+                SimonPad(pad = pad, lit = lit == pad, onPress = { onPad(pad) }, modifier = Modifier.fillMaxSize())
+            }
+            // La croix noire entre les touches.
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val gap = size.minDimension * 0.045f
+                drawLine(BODY_COLOR, Offset(0f, size.height / 2f), Offset(size.width, size.height / 2f), strokeWidth = gap)
+                drawLine(BODY_COLOR, Offset(size.width / 2f, 0f), Offset(size.width / 2f, size.height), strokeWidth = gap)
+            }
+            // Le bouton noir du centre : il lance la suite, puis rappelle le nom du jeu.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxSize(HUB_FRACTION + 0.03f)
+                    .clip(CircleShape)
+                    .background(Color.Black)
+                    .border(3.dp, Color(0xFF3A3A3A), CircleShape)
+                    .clickable(enabled = !started, role = Role.Button, onClick = onStart),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (started) stringResource(R.string.game_simon).uppercase() else stringResource(R.string.simon_go),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
     }
@@ -477,6 +543,8 @@ private fun SimonPlayfield(name: String, onFinished: (Int) -> Unit) {
     // L'appli montre la suite : les touches ne répondent pas.
     var showing by remember { mutableStateOf(true) }
     var lit by remember { mutableIntStateOf(-1) }
+    // Le bouton noir du centre lance la suite (une seule fois par série ; ensuite elle s'allonge toute seule).
+    var started by rememberSaveable { mutableStateOf(false) }
     val finished by rememberUpdatedState(onFinished)
 
     fun run() = SimonRun(sequence, progress, completed, failed)
@@ -488,8 +556,8 @@ private fun SimonPlayfield(name: String, onFinished: (Int) -> Unit) {
     }
 
     // La suite est montrée au départ, puis chaque fois qu'elle s'allonge.
-    LaunchedEffect(sequence) {
-        if (failed) return@LaunchedEffect
+    LaunchedEffect(sequence, started) {
+        if (failed || !started) return@LaunchedEffect
         showing = true
         progress = 0
         playSequence(sequence, sound) { lit = it }
@@ -533,12 +601,13 @@ private fun SimonPlayfield(name: String, onFinished: (Int) -> Unit) {
         SimonStatus(
             when {
                 failed -> stringResource(R.string.simon_wrong)
+                !started -> NO_STATUS
                 showing && !roundDone -> stringResource(R.string.simon_watch)
                 roundDone -> stringResource(R.string.simon_well_done)
                 else -> stringResource(R.string.simon_your_turn)
             }
         )
-        SimonPadGrid(lit = lit, onPad = ::onPad)
+        SimonBoard(lit = lit, started = started, onStart = { started = true }, onPad = ::onPad)
     }
 }
 
@@ -557,13 +626,15 @@ private fun SimonTurnPlayfield(name: String, sequence: List<Int>, onResult: (Boo
     var failed by rememberSaveable { mutableStateOf(false) }
     var showing by remember { mutableStateOf(true) }
     var lit by remember { mutableIntStateOf(-1) }
+    // Le bouton noir du centre lance la suite à montrer.
+    var started by rememberSaveable { mutableStateOf(false) }
     val result by rememberUpdatedState(onResult)
     val done = !failed && progress >= sequence.size
 
     fun run() = SimonRun(sequence, progress, 0, failed)
 
-    LaunchedEffect(Unit) {
-        if (failed || done) return@LaunchedEffect
+    LaunchedEffect(started) {
+        if (failed || done || !started) return@LaunchedEffect
         showing = true
         progress = 0
         playSequence(sequence, sound) { lit = it }
@@ -606,58 +677,66 @@ private fun SimonTurnPlayfield(name: String, sequence: List<Int>, onResult: (Boo
             when {
                 failed -> stringResource(R.string.simon_wrong)
                 done -> stringResource(R.string.simon_well_done)
+                !started -> NO_STATUS
                 showing -> stringResource(R.string.simon_watch)
                 else -> stringResource(R.string.simon_your_turn)
             }
         )
-        SimonPadGrid(lit = lit, onPad = ::onPad)
+        SimonBoard(lit = lit, started = started, onStart = { started = true }, onPad = ::onPad)
     }
 }
 
-/** Une touche colorée, avec sa forme ; elle réagit dès que le doigt se pose. */
+/** Une touche en quart de disque, avec sa forme ; elle réagit dès que le doigt se pose (et seulement dans son quart). */
 @Composable
 private fun SimonPad(pad: Int, lit: Boolean, onPress: () -> Unit, modifier: Modifier = Modifier) {
     val label = stringResource(PAD_NAMES[pad])
     val press by rememberUpdatedState(onPress)
+    val shape = remember(pad) { PadSectorShape(PAD_START_ANGLES[pad]) }
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(PAD_COLORS[pad].copy(alpha = if (lit) 1f else 0.5f))
+            .clip(shape)
+            .background(lerp(BODY_COLOR, PAD_COLORS[pad], if (lit) 1f else 0.55f))
             .semantics {
                 contentDescription = label
                 role = Role.Button
             }
-            .pointerInput(pad) { detectTapGestures(onPress = { press() }) },
-        contentAlignment = Alignment.Center
+            .pointerInput(pad) { detectTapGestures(onPress = { press() }) }
     ) {
-        Canvas(modifier = Modifier.size(48.dp)) {
-            drawShape(pad, Color.White.copy(alpha = if (lit) 1f else 0.75f))
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val radius = size.minDimension / 2f
+            val side = radius * 0.2f
+            // La forme est posée au milieu du quart, entre le bouton central et le bord.
+            val angle = Math.toRadians((PAD_START_ANGLES[pad] + 45f).toDouble())
+            val distance = radius * (1f + HUB_FRACTION) / 2f
+            val cx = size.width / 2f + (cos(angle) * distance).toFloat()
+            val cy = size.height / 2f + (sin(angle) * distance).toFloat()
+            drawShape(pad, Color.White.copy(alpha = if (lit) 1f else 0.75f), Offset(cx - side / 2f, cy - side / 2f), side)
         }
     }
 }
 
-/** La forme de la touche [pad] : rond, triangle, carré, losange. */
-private fun DrawScope.drawShape(pad: Int, color: Color) {
-    val w = size.width
-    val h = size.height
+/** La forme de la touche [pad] (rond, triangle, carré, losange), dans un carré de côté [side] dont le coin haut gauche est [topLeft]. */
+private fun DrawScope.drawShape(pad: Int, color: Color, topLeft: Offset, side: Float) {
+    val x = topLeft.x
+    val y = topLeft.y
     when (pad) {
-        0 -> drawCircle(color, radius = size.minDimension / 2f)
+        0 -> drawCircle(color, radius = side / 2f, center = Offset(x + side / 2f, y + side / 2f))
         1 -> drawPath(
             Path().apply {
-                moveTo(w / 2f, 0f)
-                lineTo(w, h)
-                lineTo(0f, h)
+                moveTo(x + side / 2f, y)
+                lineTo(x + side, y + side)
+                lineTo(x, y + side)
                 close()
             },
             color
         )
-        2 -> drawRect(color, topLeft = Offset(w * 0.1f, h * 0.1f), size = Size(w * 0.8f, h * 0.8f))
+        2 -> drawRect(color, topLeft = Offset(x + side * 0.1f, y + side * 0.1f), size = Size(side * 0.8f, side * 0.8f))
         else -> drawPath(
             Path().apply {
-                moveTo(w / 2f, 0f)
-                lineTo(w, h / 2f)
-                lineTo(w / 2f, h)
-                lineTo(0f, h / 2f)
+                moveTo(x + side / 2f, y)
+                lineTo(x + side, y + side / 2f)
+                lineTo(x + side / 2f, y + side)
+                lineTo(x, y + side / 2f)
                 close()
             },
             color
