@@ -115,6 +115,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     NIM_ID to "nim",
     REFLEX_ID to "reflex",
     CIRCLES_ID to "circles",
+    SIMON_ID to "simon",
     RHYTHM_ID to "rhythm",
     DRAUGHTS_ID to "draughts",
     OTHELLO_ID to "othello",
@@ -503,6 +504,9 @@ fun ScoreApp(
             }
             composable("circles") {
                 CirclesScreen(players = pendingPlayerNames)
+            }
+            composable("simon") {
+                SimonScreen(players = pendingPlayerNames)
             }
             composable("rhythm") {
                 RhythmScreen(players = pendingPlayerNames)

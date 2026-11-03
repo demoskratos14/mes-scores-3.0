@@ -329,6 +329,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Simon : écran à part (voir SimonScreen), seul ou jusqu'à huit joueurs sur un téléphone qu'on se passe ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = SIMON_ID,
+        name = context.getString(R.string.game_simon),
+        minPlayers = Simon.MIN_PLAYERS,
+        maxPlayers = Simon.MAX_PLAYERS,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Jeu de rythme : écran à part (voir RhythmScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = RHYTHM_ID,

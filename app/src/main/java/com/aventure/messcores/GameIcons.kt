@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, RHYTHM_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -123,6 +123,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             PFC_ID -> drawRockPaperScissors()
             REFLEX_ID -> drawReflex()
             CIRCLES_ID -> drawCircles()
+            SIMON_ID -> drawSimon()
             RHYTHM_ID -> drawRhythm()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
@@ -258,6 +259,21 @@ private fun DrawScope.drawCircles() {
     drawCircle(Color.White.copy(alpha = 0.85f), radius = s * 0.056f, center = Offset(s * 0.7f, s * 0.5f))
     drawCircle(Color(0xFF43A047), radius = s * 0.08f, center = Offset(s * 0.4f, s * 0.74f))
     drawCircle(Color.White.copy(alpha = 0.85f), radius = s * 0.032f, center = Offset(s * 0.4f, s * 0.74f))
+}
+
+private fun DrawScope.drawSimon() {
+    paper(Color(0xFF263238))
+    val s = size.minDimension
+    // Les quatre touches : vert, rouge, jaune, bleu ; la verte est allumée.
+    val pad = s * 0.36f
+    val gap = s * 0.04f
+    val left = s * 0.5f - pad - gap / 2f
+    val top = left
+    val corner = CornerRadius(s * 0.1f)
+    drawRoundRect(Color(0xFF43D675), Offset(left, top), Size(pad, pad), corner)
+    drawRoundRect(Color(0xFF9E2A27), Offset(left + pad + gap, top), Size(pad, pad), corner)
+    drawRoundRect(Color(0xFF9C7F10), Offset(left, top + pad + gap), Size(pad, pad), corner)
+    drawRoundRect(Color(0xFF1F4FA0), Offset(left + pad + gap, top + pad + gap), Size(pad, pad), corner)
 }
 
 private fun DrawScope.drawRhythm() {
