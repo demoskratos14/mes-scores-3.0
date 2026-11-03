@@ -32,7 +32,8 @@ class ReflexOnlineTest {
 
         /** Un invité de plus tente de rejoindre la table. */
         fun join(name: String): Phone {
-            val guest = Phone(star, "guest-$name")
+            // L'identifiant est propre à chaque invité : deux invités de même nom ne doivent pas partager le même bout du faux lien.
+            val guest = Phone(star, "guest-${guests.size}-$name")
             guest.session.startJoining()
             guest.session.connectTo(guest.session.endpoints.single(), name)
             host.session.accept()
