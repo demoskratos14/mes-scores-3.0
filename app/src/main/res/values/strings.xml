@@ -2066,7 +2066,11 @@
     <string name="huit_hand_title">Ta main</string>
     <string name="huit_hint">Pose une carte de la même couleur ou de la même valeur que la dernière carte posée. Un 8 se joue à tout moment.</string>
     <string name="huit_not_playable">Cette carte ne peut pas être jouée : elle doit être de la couleur demandée ou de la même valeur que la dernière carte posée (un 8 se joue à tout moment).</string>
-    <string name="card_stock_desc">Pioche, %1$d cartes : touche pour piocher</string>
+    <plurals name="card_stock_desc">
+        <item quantity="one">Pioche, %d carte : touche pour piocher</item>
+        <item quantity="many">Pioche, %d de cartes : touche pour piocher</item>
+        <item quantity="other">Pioche, %d cartes : touche pour piocher</item>
+    </plurals>
     <string name="card_stock_tap">Touche la pioche pour piocher une carte.</string>
     <string name="card_draw_forbidden">Tu ne peux pas piocher : tu as une carte jouable.</string>
     <string name="uno_already_drawn">Tu as déjà pioché : pose la carte piochée si tu le peux, sinon passe ton tour.</string>

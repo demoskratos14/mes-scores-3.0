@@ -2023,7 +2023,10 @@
     <string name="huit_hand_title">Your hand</string>
     <string name="huit_hint">Play a card of the same suit or the same rank as the last card played. An 8 can be played at any time.</string>
     <string name="huit_not_playable">This card cannot be played: it must be of the suit asked or of the same rank as the last card played (an 8 can be played at any time).</string>
-    <string name="card_stock_desc">Draw pile, %1$d cards: tap to draw</string>
+    <plurals name="card_stock_desc">
+        <item quantity="one">Draw pile, %d card: tap to draw</item>
+        <item quantity="other">Draw pile, %d cards: tap to draw</item>
+    </plurals>
     <string name="card_stock_tap">Tap the draw pile to draw a card.</string>
     <string name="card_draw_forbidden">You cannot draw: you have a playable card.</string>
     <string name="uno_already_drawn">You have already drawn: play the drawn card if you can, otherwise pass your turn.</string>

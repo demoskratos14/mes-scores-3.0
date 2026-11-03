@@ -2051,7 +2051,11 @@
     <string name="huit_hand_title">A tua mão</string>
     <string name="huit_hint">Joga uma carta do mesmo naipe ou do mesmo valor que a última carta jogada. Um 8 joga-se a qualquer momento.</string>
     <string name="huit_not_playable">Esta carta não pode ser jogada: tem de ser do naipe pedido ou do mesmo valor que a última carta jogada (um 8 joga-se a qualquer momento).</string>
-    <string name="card_stock_desc">Baralho para comprar, %1$d cartas: toca para comprar</string>
+    <plurals name="card_stock_desc">
+        <item quantity="one">Baralho para comprar, %d carta: toca para comprar</item>
+        <item quantity="many">Baralho para comprar, %d de cartas: toca para comprar</item>
+        <item quantity="other">Baralho para comprar, %d cartas: toca para comprar</item>
+    </plurals>
     <string name="card_stock_tap">Toca no baralho para comprar uma carta.</string>
     <string name="card_draw_forbidden">Não podes comprar: tens uma carta jogável.</string>
     <string name="uno_already_drawn">Já compraste: joga a carta comprada se puderes; senão, passa a vez.</string>

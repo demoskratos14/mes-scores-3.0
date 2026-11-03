@@ -2051,7 +2051,11 @@
     <string name="huit_hand_title">Tu mano</string>
     <string name="huit_hint">Juega una carta del mismo palo o del mismo valor que la última carta jugada. Un 8 se puede jugar en cualquier momento.</string>
     <string name="huit_not_playable">Esta carta no se puede jugar: debe ser del palo pedido o del mismo valor que la última carta jugada (un 8 se puede jugar en cualquier momento).</string>
-    <string name="card_stock_desc">Mazo para robar, %1$d cartas: toca para robar</string>
+    <plurals name="card_stock_desc">
+        <item quantity="one">Mazo para robar, %d carta: toca para robar</item>
+        <item quantity="many">Mazo para robar, %d de cartas: toca para robar</item>
+        <item quantity="other">Mazo para robar, %d cartas: toca para robar</item>
+    </plurals>
     <string name="card_stock_tap">Toca el mazo para robar una carta.</string>
     <string name="card_draw_forbidden">No puedes robar: tienes una carta jugable.</string>
     <string name="uno_already_drawn">Ya has robado: juega la carta robada si puedes; si no, pasa tu turno.</string>

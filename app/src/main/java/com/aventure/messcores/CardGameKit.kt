@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -152,7 +153,7 @@ internal fun CardErrorText(message: String) {
  */
 @Composable
 internal fun CardStockRow(count: Int, onClick: () -> Unit, pile: @Composable (Modifier) -> Unit) {
-    val description = stringResource(R.string.card_stock_desc, count)
+    val description = pluralStringResource(R.plurals.card_stock_desc, count, count)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         pile(
             Modifier

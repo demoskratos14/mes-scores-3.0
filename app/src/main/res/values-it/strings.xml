@@ -2061,7 +2061,11 @@
     <string name="huit_hand_title">La tua mano</string>
     <string name="huit_hint">Gioca una carta dello stesso seme o dello stesso valore dell’ultima carta giocata. Un 8 si gioca in qualsiasi momento.</string>
     <string name="huit_not_playable">Questa carta non si può giocare: deve essere del seme richiesto o dello stesso valore dell’ultima carta giocata (un 8 si gioca in qualsiasi momento).</string>
-    <string name="card_stock_desc">Mazzo da cui pescare, %1$d carte: tocca per pescare</string>
+    <plurals name="card_stock_desc">
+        <item quantity="one">Mazzo da cui pescare, %d carta: tocca per pescare</item>
+        <item quantity="many">Mazzo da cui pescare, %d di carte: tocca per pescare</item>
+        <item quantity="other">Mazzo da cui pescare, %d carte: tocca per pescare</item>
+    </plurals>
     <string name="card_stock_tap">Tocca il mazzo per pescare una carta.</string>
     <string name="card_draw_forbidden">Non puoi pescare: hai una carta giocabile.</string>
     <string name="uno_already_drawn">Hai già pescato: gioca la carta pescata se puoi, altrimenti passa il turno.</string>
