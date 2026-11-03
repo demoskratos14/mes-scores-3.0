@@ -10,28 +10,33 @@ import kotlin.random.Random
 /**
  * Duel de réflexes chacun sur son téléphone, sur la connexion de [SyncSession].
  *
- * - Deux joueurs exactement : l'organisateur ([isHost]) est le premier joueur, l'invité le deuxième. La partie commence
- *   dès que l'invité est connecté.
- * - Chacun peut lancer la manche. L'organisateur tire l'attente avant le signal ([delayMs]) et l'envoie à l'invité ; chaque
- *   téléphone attend ce délai de son côté, donne le signal, et mesure le temps de réaction de son joueur depuis ce signal.
- *   Que le signal n'apparaisse pas au même instant sur les deux téléphones ne change rien : seul compte le temps de
- *   réaction de chacun.
- * - Chaque joueur envoie son résultat ([report]) ; quand l'organisateur a les deux, il les compare (voir
- *   [ReflexMatch.resolve]) et renvoie l'état complet à l'invité.
+ * - De [Reflex.MIN_PLAYERS] à [Reflex.MAX_PLAYERS] joueurs. L'organisateur ([isHost]) est le premier joueur (place 0), les
+ *   invités prennent les places suivantes dans l'ordre d'arrivée.
+ * - Les joueurs arrivent tant que la première manche n'est pas lancée ([acceptsPlayers]) ; dès qu'ils sont deux, l'écran
+ *   de jeu s'ouvre et l'organisateur lance la partie ([gathering]). Ensuite la table est fermée : un téléphone qui
+ *   arrive plus tard est refusé.
+ * - Une fois la partie lancée, n'importe quel joueur peut lancer la manche suivante. L'organisateur tire l'attente avant
+ *   le signal ([delayMs]) et l'envoie aux invités ; chaque téléphone attend ce délai de son côté, donne le signal, et
+ *   mesure le temps de réaction de son joueur depuis ce signal. Que le signal n'apparaisse pas au même instant sur tous
+ *   les téléphones ne change rien : seul compte le temps de réaction de chacun.
+ * - Chaque joueur envoie son résultat ([report]) ; quand l'organisateur a tout le monde, il compare (voir
+ *   [ReflexGame.resolve]) et renvoie l'état complet à chaque invité.
+ * - Un invité qui part en cours de partie quitte la table : la manche en cours est annulée et la partie continue avec les
+ *   autres, tant qu'ils restent deux. Si l'organisateur se retrouve seul, la table repart de zéro.
  */
 internal class ReflexOnline(
     private val session: SyncSession,
     private val random: Random = Random.Default
 ) {
 
-    /** Vrai tant qu'une partie à deux téléphones est ouverte, de l'attente de l'autre joueur à la fin de la séance. */
+    /** Vrai tant qu'une partie chacun sur son téléphone est ouverte, de l'attente des autres joueurs à la fin de la séance. */
     var active by mutableStateOf(false)
         private set
 
     var isHost by mutableStateOf(false)
         private set
 
-    /** Ma place à la table (0 : organisateur, premier joueur ; 1 : invité, deuxième joueur), ou -1 hors partie. */
+    /** Ma place à la table (0 : organisateur, puis les invités dans l'ordre d'arrivée), ou -1 hors partie. */
     var seat by mutableIntStateOf(-1)
         private set
 
@@ -40,7 +45,7 @@ internal class ReflexOnline(
         private set
 
     /** Le score de la séance et le résultat de la dernière manche. */
-    var match by mutableStateOf(ReflexMatch())
+    var match by mutableStateOf(ReflexGame.of(0))
         private set
 
     var notice by mutableStateOf(ReflexNotice.NONE)
@@ -50,7 +55,7 @@ internal class ReflexOnline(
     var joined by mutableIntStateOf(0)
         private set
 
-    /** Numéro de la manche lancée, qui augmente à chaque lancement. */
+    /** Numéro de la manche lancée, qui augmente à chaque lancement (0 tant que la partie n'est pas lancée). */
     var round by mutableIntStateOf(0)
         private set
 
@@ -58,7 +63,7 @@ internal class ReflexOnline(
     var delayMs by mutableLongStateOf(0L)
         private set
 
-    /** Vrai de l'instant où la manche est lancée jusqu'à ce que les deux résultats soient connus. */
+    /** Vrai de l'instant où la manche est lancée jusqu'à ce que tous les résultats soient connus. */
     var running by mutableStateOf(false)
         private set
 
@@ -66,16 +71,20 @@ internal class ReflexOnline(
     var reported by mutableStateOf(false)
         private set
 
-    /** Mon numéro de joueur : 1 pour l'organisateur, 2 pour l'invité. */
-    val myNumber: Int get() = seat + 1
+    /** Vrai quand assez de joueurs sont là pour que la partie puisse se jouer. */
+    val ready: Boolean get() = active && lobby.size >= Reflex.MIN_PLAYERS
 
-    /** Vrai quand les deux joueurs sont là et que la partie peut se jouer. */
-    val ready: Boolean get() = active && lobby.size >= PLAYERS
+    /** Vrai tant que la première manche n'est pas lancée : les joueurs se rassemblent, l'organisateur lance la partie. */
+    val gathering: Boolean get() = ready && !running && round == 0
 
-    // Organisateur : l'identifiant de connexion de l'invité, et les résultats reçus pour la manche en cours.
-    private var guestId: String? = null
-    private var hostResult: Int? = null
-    private var guestResult: Int? = null
+    /** Vrai (organisateur) quand un téléphone de plus peut encore s'asseoir à la table. */
+    val acceptsPlayers: Boolean
+        get() = active && isHost && !running && round == 0 && lobby.size < Reflex.MAX_PLAYERS
+
+    // Organisateur : les identifiants de connexion des invités (le premier invité a la place 1, etc.), et les résultats
+    // reçus pour la manche en cours, par place (null tant qu'une place n'a rien donné).
+    private val guestIds = mutableListOf<String>()
+    private var results = mutableListOf<Int?>()
 
     init {
         session.reflex = this
@@ -90,14 +99,18 @@ internal class ReflexOnline(
         isHost = true
         seat = 0
         lobby = listOf(hostName)
+        match = ReflexGame.of(1)
     }
 
-    // ---------- Les deux joueurs ----------
+    // ---------- Tous les joueurs ----------
 
-    /** Lance la manche suivante (ou la première) : l'organisateur la lance, l'invité la demande à l'organisateur. */
+    /**
+     * Lance la manche suivante (ou la première) : l'organisateur la lance, un invité la demande à l'organisateur. La
+     * première manche n'est lancée que par l'organisateur, une fois tout le monde à la table.
+     */
     fun startRound() {
         if (!ready || running || match.isOver) return
-        if (isHost) beginRound() else session.sendToHost(SyncMessage.Reflex(ReflexMessage.Start))
+        if (isHost) beginRound() else if (round > 0) session.sendToHost(SyncMessage.Reflex(ReflexMessage.Start))
     }
 
     /**
@@ -108,14 +121,14 @@ internal class ReflexOnline(
         if (!ready || !running || reported) return
         reported = true
         if (isHost) {
-            hostResult = result
+            results[0] = result
             resolveIfComplete()
         } else {
             session.sendToHost(SyncMessage.Reflex(ReflexMessage.Result(round, result)))
         }
     }
 
-    /** Nouvelle partie, une fois la partie finie ; chacun des deux joueurs peut la lancer. */
+    /** Nouvelle partie, une fois la partie finie ; chacun des joueurs peut la lancer. */
     fun newMatch() {
         if (!ready || !match.isOver) return
         if (isHost) {
@@ -137,15 +150,14 @@ internal class ReflexOnline(
         isHost = false
         seat = -1
         lobby = emptyList()
-        match = ReflexMatch()
+        match = ReflexGame.of(0)
         notice = ReflexNotice.NONE
         round = 0
         delayMs = 0L
         running = false
         reported = false
-        guestId = null
-        hostResult = null
-        guestResult = null
+        guestIds.clear()
+        results = mutableListOf()
     }
 
     private fun beginRound() {
@@ -153,15 +165,14 @@ internal class ReflexOnline(
         delayMs = Reflex.randomDelayMs(random)
         running = true
         reported = false
-        hostResult = null
-        guestResult = null
+        notice = ReflexNotice.NONE
+        results = MutableList<Int?>(lobby.size) { null }
         broadcast()
     }
 
     private fun resolveIfComplete() {
-        val mine = hostResult ?: return
-        val theirs = guestResult ?: return
-        match = match.resolve(mine, theirs) ?: match
+        if (results.size != lobby.size || results.any { it == null }) return
+        match = match.resolve(results.map { it ?: Reflex.MISS }) ?: match
         running = false
         broadcast()
     }
@@ -169,16 +180,15 @@ internal class ReflexOnline(
     // ---------- Connexions (rapportées par la session) ----------
 
     fun onPeerConnected(id: String) {
-        if (!active || !isHost) return
-        // Une table à deux est pleine : personne d'autre n'y entre.
-        if (guestId != null || lobby.size >= PLAYERS) {
+        if (!active || !isHost || id in guestIds) return
+        // La table est fermée une fois la partie lancée, ou pleine : personne d'autre n'y entre.
+        if (!acceptsPlayers) {
             session.disconnectEndpoint(id)
             return
         }
-        guestId = id
+        guestIds.add(id)
         lobby = PlayerNames.makeUnique(lobby + session.nameOf(id))
-        match = ReflexMatch()
-        running = false
+        match = ReflexGame.of(lobby.size)
         notice = ReflexNotice.NONE
         broadcast()
     }
@@ -186,16 +196,23 @@ internal class ReflexOnline(
     fun onPeerDisconnected(id: String) {
         if (!active) return
         if (isHost) {
-            if (id != guestId) return
-            // L'invité parti, la table repart de zéro : un autre téléphone peut la rejoindre.
-            guestId = null
-            lobby = lobby.take(1)
-            match = ReflexMatch()
+            val index = guestIds.indexOf(id)
+            if (index < 0) return
+            // Sa place disparaît ; la manche en cours, qui l'attendait, est annulée.
+            guestIds.removeAt(index)
+            lobby = lobby.filterIndexed { i, _ -> i != index + 1 }
             running = false
             reported = false
-            hostResult = null
-            guestResult = null
+            results = mutableListOf()
             notice = ReflexNotice.PLAYER_LEFT
+            if (lobby.size < Reflex.MIN_PLAYERS) {
+                // L'organisateur est seul : la table repart de zéro, un autre téléphone peut la rejoindre.
+                match = ReflexGame.of(lobby.size)
+                round = 0
+            } else {
+                match = match.removePlayer(index + 1)
+            }
+            broadcast()
         } else {
             running = false
             notice = ReflexNotice.HOST_LEFT
@@ -226,13 +243,15 @@ internal class ReflexOnline(
     }
 
     private fun onHostMessage(fromId: String, message: ReflexMessage) {
-        if (!active || fromId != guestId) return
+        if (!active) return
+        val guestSeat = guestIds.indexOf(fromId) + 1
+        if (guestSeat == 0) return
         when (message) {
-            ReflexMessage.Start -> if (ready && !running && !match.isOver) beginRound()
-            // Le résultat de l'invité n'est pris que pour la manche en cours, et une seule fois.
+            ReflexMessage.Start -> if (ready && !running && !match.isOver && round > 0) beginRound()
+            // Le résultat d'un invité n'est pris que pour la manche en cours, et une seule fois.
             is ReflexMessage.Result -> {
-                if (!running || message.round != round || guestResult != null) return
-                guestResult = message.reactionMs
+                if (!running || message.round != round || results.getOrNull(guestSeat) != null) return
+                results[guestSeat] = message.reactionMs
                 resolveIfComplete()
             }
             ReflexMessage.NewMatch -> if (match.isOver) {
@@ -243,12 +262,13 @@ internal class ReflexOnline(
         }
     }
 
+    /** Envoie à chaque invité l'état de la table, avec sa propre place. */
     private fun broadcast() {
-        val id = guestId ?: return
-        session.sendTo(listOf(id), SyncMessage.Reflex(ReflexMessage.Table(lobby, 1, match, notice, round, delayMs, running)))
-    }
-
-    companion object {
-        const val PLAYERS = 2
+        guestIds.forEachIndexed { index, id ->
+            session.sendTo(
+                listOf(id),
+                SyncMessage.Reflex(ReflexMessage.Table(lobby, index + 1, match, notice, round, delayMs, running))
+            )
+        }
     }
 }

@@ -2109,7 +2109,7 @@
     <string name="rules_reflex_2_title">Un turno</string>
     <string name="rules_reflex_2_body">Le due zone sono rosse: si aspetta. Dopo un ritardo casuale (da 1,5 a 5 secondi) diventano verdi. Toccare la propria zona prima del verde è una falsa partenza: il turno va all’avversario. I tempi di reazione del vincitore e dello sconfitto sono mostrati in millisecondi.</string>
     <string name="rules_reflex_3_title">Nell’app</string>
-    <string name="rules_reflex_3_body">Si gioca in due con un solo telefono, appoggiato in piano tra i giocatori: ognuno ha la sua metà dello schermo, quella in alto è capovolta. Oppure ognuno sul proprio telefono («Gioca ognuno sul proprio telefono»): ogni telefono misura il tempo di reazione del suo giocatore dal proprio segnale e vince il più veloce; un piccolo scarto tra i due telefoni non cambia nulla. Due false partenze, nessuno che tocca o tempi identici: il turno si rigioca. Il punteggio della sessione resta visibile. Con la modalità daltonici, il rosso e il verde diventano arancione e blu. Con un solo telefono, lo sconfitto ha ancora un istante per toccare la sua zona e far registrare il suo tempo.</string>
+    <string name="rules_reflex_3_body">Si gioca in due con un solo telefono, appoggiato in piano tra i giocatori: ognuno ha la sua metà dello schermo, quella in alto è capovolta. Oppure ognuno sul proprio telefono («Gioca ognuno sul proprio telefono»), da 2 a 8 giocatori: l’organizzatore aspetta che tutti si siano uniti, poi avvia la partita. Ogni telefono misura il tempo di reazione del suo giocatore dal proprio segnale e vince il più veloce; un piccolo scarto tra i telefoni non cambia nulla. Una falsa partenza non può vincere il turno. Parità sul miglior tempo o nessuno che tocca: il turno si rigioca. Una volta avviata la partita, nessun altro può unirsi; se un giocatore se ne va, il turno in corso viene annullato e gli altri continuano. Il punteggio e il tempo medio di ciascuno restano visibili. Con la modalità daltonici, il rosso e il verde diventano arancione e blu. Con un solo telefono, lo sconfitto ha ancora un istante per toccare la sua zona e far registrare il suo tempo.</string>
     <plurals name="reflex_hint">
         <item quantity="one">Ognuno appoggia un dito vicino alla propria zona. Quando diventa verde, toccala per primo! Vince chi arriva a %1$d turno.</item>
         <item quantity="other">Ognuno appoggia un dito vicino alla propria zona. Quando diventa verde, toccala per primo! Vince chi arriva a %1$d turni.</item>
@@ -2133,7 +2133,7 @@
     <string name="reflex_zone_lose">Hai perso</string>
     <string name="reflex_zone_lose_ms">Hai perso · %1$d ms</string>
     <string name="reflex_online_button">Gioca ognuno sul proprio telefono</string>
-    <string name="reflex_online_waiting">In attesa dell’altro giocatore… Sull’altro telefono, tocca «Unisciti a una partita».</string>
+    <string name="reflex_online_waiting">In attesa degli altri giocatori… Sugli altri telefoni, tocca «Unisciti a una partita».</string>
     <string name="reflex_online_notice_left">L’altro giocatore si è disconnesso. Puoi aspettare che un telefono si unisca di nuovo alla partita.</string>
     <string name="reflex_online_host_left">L’organizzatore si è disconnesso: la partita è finita.</string>
     <string name="reflex_online_vs">Stai giocando contro %1$s</string>
@@ -2141,9 +2141,20 @@
     <string name="reflex_quit_title">Uscire dalla partita?</string>
     <string name="reflex_quit_message">La connessione con l’altro telefono sarà interrotta e la sessione terminerà.</string>
     <string name="reflex_sent">Ricevuto!</string>
-    <string name="reflex_sent_status">In attesa dell’altro giocatore…</string>
+    <string name="reflex_sent_status">In attesa degli altri giocatori…</string>
     <string name="reflex_draw">Turno nullo: nessuno segna, si rigioca!</string>
     <string name="reflex_zone_draw">Pareggio</string>
+    <string name="reflex_avg">Tempo medio — %1$s</string>
+    <string name="reflex_avg_value">%1$d ms</string>
+    <string name="reflex_avg_none">–</string>
+    <string name="reflex_entry">%1$s: %2$s</string>
+    <string name="reflex_last_round">Ultimo turno — %1$s</string>
+    <string name="reflex_gather_host">Quando ci siete tutti, avvia la partita!</string>
+    <string name="reflex_gather_guest">In attesa che l’organizzatore avvii la partita…</string>
+    <string name="reflex_table_players">Al tavolo: %1$s</string>
+    <string name="reflex_match_won_n">%1$s vince la partita!</string>
+    <string name="reflex_win_default">%1$s vince il turno: falsa partenza di %2$s!</string>
+    <string name="reflex_online_notice_left_some">Un giocatore ha lasciato la partita: il turno in corso viene annullato.</string>
     <!-- Jeu de rythme -->
     <string name="game_rhythm">Ritmo</string>
     <string name="rhythm_song_label">Canzone: %1$s</string>

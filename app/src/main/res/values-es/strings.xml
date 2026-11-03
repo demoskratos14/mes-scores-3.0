@@ -2099,7 +2099,7 @@
     <string name="rules_reflex_2_title">Una ronda</string>
     <string name="rules_reflex_2_body">Las dos zonas están rojas: hay que esperar. Tras un retraso aleatorio (de 1,5 a 5 segundos) se ponen verdes. Tocar tu zona antes del verde es una salida en falso: la ronda es para tu rival. Los tiempos de reacción del ganador y del perdedor se muestran en milisegundos.</string>
     <string name="rules_reflex_3_title">En la app</string>
-    <string name="rules_reflex_3_body">Se juega entre dos con un solo teléfono, apoyado plano entre los jugadores: cada uno tiene su mitad de la pantalla, y la de arriba está al revés. O cada uno en su teléfono («Jugar cada uno en su teléfono»): cada teléfono mide el tiempo de reacción de su jugador desde su propia señal y gana el más rápido; un pequeño desfase entre los dos teléfonos no cambia nada. Dos salidas en falso, nadie que toque o tiempos idénticos: se repite la ronda. El marcador de la sesión se queda a la vista. Con el modo daltónico, el rojo y el verde pasan a naranja y azul. Con un solo teléfono, el perdedor aún tiene un instante para tocar su zona y que se anote su tiempo.</string>
+    <string name="rules_reflex_3_body">Se juega entre dos con un solo teléfono, apoyado plano entre los jugadores: cada uno tiene su mitad de la pantalla, y la de arriba está al revés. O cada uno en su teléfono («Jugar cada uno en su teléfono»), de 2 a 8 jugadores: el organizador espera a que todos se hayan unido y entonces empieza la partida. Cada teléfono mide el tiempo de reacción de su jugador desde su propia señal y gana el más rápido; un pequeño desfase entre los teléfonos no cambia nada. Una salida en falso no puede ganar la ronda. Empate en el mejor tiempo o nadie que toque: se repite la ronda. Una vez empezada la partida, nadie más puede unirse; si un jugador se va, la ronda en curso se cancela y los demás siguen. El marcador y el tiempo medio de cada uno se quedan a la vista. Con el modo daltónico, el rojo y el verde pasan a naranja y azul. Con un solo teléfono, el perdedor aún tiene un instante para tocar su zona y que se anote su tiempo.</string>
     <plurals name="reflex_hint">
         <item quantity="one">Cada uno apoya un dedo cerca de su zona. Cuando se ponga verde, ¡tócala el primero! Gana quien consiga %1$d ronda.</item>
         <item quantity="other">Cada uno apoya un dedo cerca de su zona. Cuando se ponga verde, ¡tócala el primero! Gana quien consiga %1$d rondas.</item>
@@ -2123,7 +2123,7 @@
     <string name="reflex_zone_lose">Pierdes</string>
     <string name="reflex_zone_lose_ms">Pierdes · %1$d ms</string>
     <string name="reflex_online_button">Jugar cada uno en su teléfono</string>
-    <string name="reflex_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
+    <string name="reflex_online_waiting">Esperando a los demás jugadores… En los otros teléfonos, toca «Unirse a una partida».</string>
     <string name="reflex_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono se una de nuevo a la partida.</string>
     <string name="reflex_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
     <string name="reflex_online_vs">Juegas contra %1$s</string>
@@ -2131,9 +2131,20 @@
     <string name="reflex_quit_title">¿Salir de la partida?</string>
     <string name="reflex_quit_message">Se cortará la conexión con el otro teléfono y la sesión terminará.</string>
     <string name="reflex_sent">¡Recibido!</string>
-    <string name="reflex_sent_status">Esperando al otro jugador…</string>
+    <string name="reflex_sent_status">Esperando a los demás jugadores…</string>
     <string name="reflex_draw">Ronda nula: nadie puntúa, ¡se repite!</string>
     <string name="reflex_zone_draw">Empate</string>
+    <string name="reflex_avg">Tiempo medio — %1$s</string>
+    <string name="reflex_avg_value">%1$d ms</string>
+    <string name="reflex_avg_none">–</string>
+    <string name="reflex_entry">%1$s: %2$s</string>
+    <string name="reflex_last_round">Última ronda — %1$s</string>
+    <string name="reflex_gather_host">Cuando estén todos, ¡empieza la partida!</string>
+    <string name="reflex_gather_guest">Esperando a que el organizador empiece la partida…</string>
+    <string name="reflex_table_players">En la mesa: %1$s</string>
+    <string name="reflex_match_won_n">¡%1$s gana la partida!</string>
+    <string name="reflex_win_default">¡%1$s gana la ronda: salida en falso de %2$s!</string>
+    <string name="reflex_online_notice_left_some">Un jugador ha abandonado la partida: la ronda en curso se cancela.</string>
     <!-- Jeu de rythme -->
     <string name="game_rhythm">Ritmo</string>
     <string name="rhythm_song_label">Canción: %1$s</string>

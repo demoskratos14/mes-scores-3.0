@@ -2115,7 +2115,7 @@
     <string name="rules_reflex_2_title">Une manche</string>
     <string name="rules_reflex_2_body">Les deux zones sont rouges : on attend. Après un délai au hasard (de 1,5 à 5 secondes), elles passent au vert. Toucher sa zone avant le vert est un faux départ : la manche va à l’adversaire. Les temps de réaction du vainqueur et du perdant s’affichent en millisecondes.</string>
     <string name="rules_reflex_3_title">Dans l’appli</string>
-    <string name="rules_reflex_3_body">On joue à deux sur un seul téléphone, posé à plat entre les joueurs : chacun a sa moitié d’écran, celle du haut est retournée. Ou chacun sur son téléphone (« Jouer chacun sur son téléphone ») : chaque téléphone mesure le temps de réaction de son joueur depuis son propre signal, et le plus rapide gagne ; un léger décalage entre les deux téléphones ne change rien. Deux faux départs, personne qui touche ou des temps identiques : la manche est rejouée. Le score de la séance reste affiché. Avec le mode daltonien, le rouge et le vert deviennent orange et bleu. Sur un seul téléphone, le perdant a encore un instant pour toucher sa zone afin que son temps soit noté.</string>
+    <string name="rules_reflex_3_body">On joue à deux sur un seul téléphone, posé à plat entre les joueurs : chacun a sa moitié d’écran, celle du haut est retournée. Ou chacun sur son téléphone (« Jouer chacun sur son téléphone »), de 2 à 8 joueurs : l’organisateur attend que tout le monde ait rejoint la partie, puis la lance. Chaque téléphone mesure le temps de réaction de son joueur depuis son propre signal, et le plus rapide gagne ; un léger décalage entre les téléphones ne change rien. Un faux départ ne peut pas gagner la manche. Égalité au meilleur temps ou personne qui touche : la manche est rejouée. Une fois la partie lancée, plus personne ne peut la rejoindre ; si un joueur part, la manche en cours est annulée et les autres continuent. Le score et le temps moyen de chacun restent affichés. Avec le mode daltonien, le rouge et le vert deviennent orange et bleu. Sur un seul téléphone, le perdant a encore un instant pour toucher sa zone afin que son temps soit noté.</string>
     <plurals name="reflex_hint">
         <item quantity="one">Chacun pose un doigt près de sa zone. Quand elle passe au vert, touche-la le premier ! Premier à %1$d manche.</item>
         <item quantity="other">Chacun pose un doigt près de sa zone. Quand elle passe au vert, touche-la le premier ! Premier à %1$d manches.</item>
@@ -2139,7 +2139,7 @@
     <string name="reflex_zone_lose">Perdu</string>
     <string name="reflex_zone_lose_ms">Perdu · %1$d ms</string>
     <string name="reflex_online_button">Jouer chacun sur son téléphone</string>
-    <string name="reflex_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
+    <string name="reflex_online_waiting">En attente des autres joueurs… Sur les autres téléphones, touche « Rejoindre une partie ».</string>
     <string name="reflex_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="reflex_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
     <string name="reflex_online_vs">Tu joues contre %1$s</string>
@@ -2147,9 +2147,20 @@
     <string name="reflex_quit_title">Quitter la partie ?</string>
     <string name="reflex_quit_message">La connexion avec l’autre téléphone sera coupée et la séance sera terminée.</string>
     <string name="reflex_sent">Reçu !</string>
-    <string name="reflex_sent_status">On attend l’autre joueur…</string>
+    <string name="reflex_sent_status">On attend les autres joueurs…</string>
     <string name="reflex_draw">Manche nulle : personne ne marque, on la rejoue !</string>
     <string name="reflex_zone_draw">Égalité</string>
+    <string name="reflex_avg">Temps moyen — %1$s</string>
+    <string name="reflex_avg_value">%1$d ms</string>
+    <string name="reflex_avg_none">–</string>
+    <string name="reflex_entry">%1$s : %2$s</string>
+    <string name="reflex_last_round">Dernière manche — %1$s</string>
+    <string name="reflex_gather_host">Quand tout le monde est là, lance la partie !</string>
+    <string name="reflex_gather_guest">On attend que l’organisateur lance la partie…</string>
+    <string name="reflex_table_players">À la table : %1$s</string>
+    <string name="reflex_match_won_n">%1$s gagne la partie !</string>
+    <string name="reflex_win_default">%1$s gagne la manche : faux départ de %2$s !</string>
+    <string name="reflex_online_notice_left_some">Un joueur a quitté la partie : la manche en cours est annulée.</string>
     <!-- Jeu de rythme -->
     <string name="game_rhythm">Rythme</string>
     <string name="rhythm_song_label">Chanson : %1$s</string>

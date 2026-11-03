@@ -11,6 +11,10 @@ internal object Reflex {
     /** Nombre de manches à gagner pour remporter la partie. */
     const val TARGET = 3
 
+    /** Chacun sur son téléphone : de deux joueurs à huit autour de la table. */
+    const val MIN_PLAYERS = 2
+    const val MAX_PLAYERS = 8
+
     /** Attente avant le signal : entre 1,5 et 5 secondes, pour qu'on ne puisse pas l'anticiper. */
     const val MIN_DELAY_MS = 1_500L
     const val MAX_DELAY_MS = 5_000L
@@ -24,10 +28,10 @@ internal object Reflex {
     /** Un seul téléphone : temps minimal laissé au perdant pour toucher après le vainqueur, pour noter son temps. */
     const val LOSER_MIN_WINDOW_MS = 1_000L
 
-    /** Résultat d'un joueur pour une manche à deux téléphones : toucher avant le signal. */
+    /** Résultat d'un joueur pour une manche chacun sur son téléphone : toucher avant le signal. */
     const val EARLY = 0
 
-    /** Résultat d'un joueur pour une manche à deux téléphones : pas touché à temps. Un temps de réaction est positif. */
+    /** Résultat d'un joueur pour une manche chacun sur son téléphone : pas touché à temps. Un temps de réaction est positif. */
     const val MISS = -1
 
     /** Tire au hasard l'attente avant le signal, en millisecondes. */
@@ -35,13 +39,13 @@ internal object Reflex {
 }
 
 /**
- * La séance de deux joueurs sur un téléphone : chacun a sa moitié d'écran, un signal apparaît après une attente
+ * La séance de deux joueurs sur un seul téléphone (chacun sur le sien : voir [ReflexGame]) : chacun a sa moitié d'écran, un signal apparaît après une attente
  * aléatoire et le premier qui touche sa zone gagne la manche. Toucher avant le signal (faux départ) donne la manche
  * à l'autre. Le premier à [target] manches gagnées remporte la partie.
  *
  * Les joueurs sont numérotés 1 et 2. [lastWinner] vaut 0 tant qu'aucune manche n'est jouée ; [lastReactionMs] est
  * le temps de réaction du vainqueur de la dernière manche (0 après un faux départ) et [lastLoserReactionMs] celui du
- * perdant (0 s'il a fait un faux départ, n'a pas touché à temps ou si la manche est nulle).
+ * perdant (0 s'il a fait un faux départ ou n'a pas touché à temps).
  */
 internal data class ReflexMatch(
     val wins1: Int = 0,
@@ -49,10 +53,14 @@ internal data class ReflexMatch(
     val lastWinner: Int = 0,
     val lastReactionMs: Int = 0,
     val falseStart: Boolean = false,
-    /** Manche nulle (deux téléphones seulement : égalité exacte, deux faux départs ou personne n'a touché) : on la rejoue. */
-    val lastDraw: Boolean = false,
     val lastLoserReactionMs: Int = 0,
-    val target: Int = Reflex.TARGET
+    val target: Int = Reflex.TARGET,
+    /** Somme des temps de réaction du joueur 1 depuis le début de la partie, et nombre de temps pris en compte. */
+    val totalMs1: Int = 0,
+    val timedRounds1: Int = 0,
+    /** Idem pour le joueur 2. */
+    val totalMs2: Int = 0,
+    val timedRounds2: Int = 0
 ) {
     /** Le vainqueur de la partie (1 ou 2), ou 0 si elle continue. */
     val winner: Int
@@ -67,6 +75,24 @@ internal data class ReflexMatch(
     /** Victoires du joueur [player] (1 ou 2). */
     fun winsOf(player: Int): Int = if (player == 1) wins1 else wins2
 
+    /** Nombre de manches où le joueur [player] (1 ou 2) a touché après le signal et dont le temps est compté. */
+    fun timedRoundsOf(player: Int): Int = if (player == 1) timedRounds1 else timedRounds2
+
+    /**
+     * Temps de réaction moyen du joueur [player] (1 ou 2) depuis le début de la partie, en millisecondes arrondies,
+     * ou `null` si aucun de ses temps n'est connu. Les faux départs, les manches non touchées et les manches nulles
+     * ne comptent pas : ce ne sont pas des temps de réaction.
+     */
+    fun averageMsOf(player: Int): Int? {
+        val count = timedRoundsOf(player)
+        if (count == 0) return null
+        val total = if (player == 1) totalMs1 else totalMs2
+        return ((total + count / 2) / count)
+    }
+
+    /** Vrai quand au moins un joueur a deux temps ou plus : c'est là qu'une moyenne apporte quelque chose. */
+    val hasAverages: Boolean get() = timedRounds1 >= 2 || timedRounds2 >= 2
+
     /**
      * Le joueur [player] touche sa zone [reactionMs] millisecondes après le signal : il gagne la manche.
      * Renvoie `null` si la partie est finie ou si le joueur n'existe pas.
@@ -78,12 +104,13 @@ internal data class ReflexMatch(
 
     /**
      * Un seul téléphone : le perdant a touché sa zone [reactionMs] millisecondes après le signal, après le vainqueur.
-     * Son temps est noté sans changer le score. Sans effet après un faux départ, une manche nulle ou si le temps du
+     * Son temps est noté sans changer le score. Sans effet après un faux départ ou si le temps du
      * perdant est déjà connu.
      */
     fun loserTapped(reactionMs: Long): ReflexMatch {
-        if (lastWinner == 0 || falseStart || lastDraw || lastLoserReactionMs > 0) return this
-        return copy(lastLoserReactionMs = reactionMs.coerceIn(1L, MAX_REACTION_MS).toInt())
+        if (lastWinner == 0 || falseStart || lastLoserReactionMs > 0) return this
+        val loserMs = reactionMs.coerceIn(1L, MAX_REACTION_MS).toInt()
+        return copy(lastLoserReactionMs = loserMs).withTime(3 - lastWinner, loserMs)
     }
 
     /** Le joueur [player] touche avant le signal : faux départ, la manche va à l'autre joueur. */
@@ -92,46 +119,24 @@ internal data class ReflexMatch(
         return win(3 - player, reactionMs = 0, falseStart = true)
     }
 
-    /**
-     * Deux téléphones : chacun a mesuré son propre temps de réaction depuis son propre signal, l'organisateur compare.
-     * Un résultat est un temps en millisecondes (positif), [Reflex.EARLY] (faux départ) ou [Reflex.MISS] (pas touché).
-     * Un faux départ perd la manche ; sinon le temps le plus court gagne, et toucher vaut mieux que ne pas toucher.
-     * Égalité exacte, deux faux départs ou deux « pas touché » : manche nulle, personne ne marque.
-     * Renvoie `null` si la partie est finie.
-     */
-    fun resolve(result1: Int, result2: Int): ReflexMatch? {
-        if (isOver) return null
-        val r1 = result1.coerceAtMost(MAX_REACTION_MS.toInt()).let { if (it < 0) Reflex.MISS else it }
-        val r2 = result2.coerceAtMost(MAX_REACTION_MS.toInt()).let { if (it < 0) Reflex.MISS else it }
-        return when {
-            r1 == Reflex.EARLY && r2 == Reflex.EARLY -> draw()
-            r1 == Reflex.EARLY -> win(2, reactionMs = 0, falseStart = true)
-            r2 == Reflex.EARLY -> win(1, reactionMs = 0, falseStart = true)
-            r1 > 0 && r2 > 0 -> when {
-                r1 < r2 -> win(1, r1, falseStart = false, loserMs = r2)
-                r2 < r1 -> win(2, r2, falseStart = false, loserMs = r1)
-                else -> draw()
-            }
-            r1 > 0 -> win(1, r1, falseStart = false)
-            r2 > 0 -> win(2, r2, falseStart = false)
-            else -> draw()
-        }
-    }
-
     /** Une nouvelle partie : les scores repartent de zéro, la cible reste la même. */
     fun newMatch(): ReflexMatch = ReflexMatch(target = target)
 
-    private fun draw() = copy(lastWinner = 0, lastReactionMs = 0, lastLoserReactionMs = 0, falseStart = false, lastDraw = true)
-
-    private fun win(player: Int, reactionMs: Int, falseStart: Boolean, loserMs: Int = 0) = copy(
+    private fun win(player: Int, reactionMs: Int, falseStart: Boolean) = copy(
         wins1 = wins1 + if (player == 1) 1 else 0,
         wins2 = wins2 + if (player == 2) 1 else 0,
         lastWinner = player,
         lastReactionMs = reactionMs,
-        lastLoserReactionMs = loserMs,
-        falseStart = falseStart,
-        lastDraw = false
-    )
+        lastLoserReactionMs = 0,
+        falseStart = falseStart
+    ).withTime(player, reactionMs)
+
+    /** Ajoute le temps de réaction [ms] du joueur [player] à ses totaux (rien si ce n'est pas un vrai temps). */
+    private fun withTime(player: Int, ms: Int): ReflexMatch = when {
+        ms <= 0 -> this
+        player == 1 -> copy(totalMs1 = totalMs1 + ms, timedRounds1 = timedRounds1 + 1)
+        else -> copy(totalMs2 = totalMs2 + ms, timedRounds2 = timedRounds2 + 1)
+    }
 
     private companion object {
         /** Au-delà de dix secondes, le temps n'a plus de sens (écran laissé de côté) : on le plafonne. */

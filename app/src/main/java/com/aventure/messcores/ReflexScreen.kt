@@ -128,6 +128,10 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
     var lastReaction by rememberSaveable { mutableIntStateOf(0) }
     var lastLoserReaction by rememberSaveable { mutableIntStateOf(0) }
     var falseStart by rememberSaveable { mutableStateOf(false) }
+    var totalMs1 by rememberSaveable { mutableIntStateOf(0) }
+    var timedRounds1 by rememberSaveable { mutableIntStateOf(0) }
+    var totalMs2 by rememberSaveable { mutableIntStateOf(0) }
+    var timedRounds2 by rememberSaveable { mutableIntStateOf(0) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var goAt by rememberSaveable { mutableLongStateOf(0L) }
 
@@ -137,7 +141,11 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
         lastWinner = lastWinner,
         lastReactionMs = lastReaction,
         falseStart = falseStart,
-        lastLoserReactionMs = lastLoserReaction
+        lastLoserReactionMs = lastLoserReaction,
+        totalMs1 = totalMs1,
+        timedRounds1 = timedRounds1,
+        totalMs2 = totalMs2,
+        timedRounds2 = timedRounds2
     )
 
     fun applyMatch(next: ReflexMatch, nextPhase: Int = PHASE_DONE) {
@@ -147,6 +155,10 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
         lastReaction = next.lastReactionMs
         lastLoserReaction = next.lastLoserReactionMs
         falseStart = next.falseStart
+        totalMs1 = next.totalMs1
+        timedRounds1 = next.timedRounds1
+        totalMs2 = next.totalMs2
+        timedRounds2 = next.timedRounds2
         phase = nextPhase
     }
 
@@ -238,6 +250,10 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                ReflexAverages(
+                    entries = listOf(name1 to match.averageMsOf(1), name2 to match.averageMsOf(2)),
+                    show = match.hasAverages
+                )
                 Text(
                     text = statusText,
                     style = MaterialTheme.typography.titleMedium,
@@ -280,6 +296,27 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
             modifier = Modifier.weight(1f)
         )
     }
+}
+
+/**
+ * Le temps de réaction moyen de chaque joueur sur les manches de la partie : un couple (nom, moyenne) par joueur. N'apparaît
+ * qu'à partir de deux temps pour un joueur ([show]) : avant, la moyenne ne dirait rien de plus que le temps de la
+ * manche. Un joueur sans temps (que des faux départs, par exemple) montre un tiret.
+ */
+@Composable
+private fun ReflexAverages(entries: List<Pair<String, Int?>>, show: Boolean) {
+    if (!show) return
+    val none = stringResource(R.string.reflex_avg_none)
+    // map est « inline » : les ressources peuvent y être lues, contrairement à joinToString.
+    val text = entries.map { (name, ms) ->
+        stringResource(R.string.reflex_entry, name, ms?.let { stringResource(R.string.reflex_avg_value, it) } ?: none)
+    }.joinToString(" · ")
+    Text(
+        text = stringResource(R.string.reflex_avg, text),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center
+    )
 }
 
 /**
@@ -362,8 +399,9 @@ private fun ReflexZone(
 // ---------- Chacun sur son téléphone ----------
 
 /**
- * La partie à deux téléphones : attente de l'autre joueur, puis une grande zone à toucher. Ce téléphone mesure lui-même
- * le temps de réaction de son joueur depuis son propre signal ; l'organisateur compare les deux temps.
+ * La partie chacun sur son téléphone, de deux à huit joueurs : attente des autres joueurs, rassemblement à la table, puis
+ * une grande zone à toucher. Ce téléphone mesure lui-même le temps de réaction de son joueur depuis son propre signal ;
+ * l'organisateur compare les temps de tout le monde.
  */
 @Composable
 private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -> Unit) {
@@ -395,9 +433,10 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
     KeepScreenOn()
 
     val match = online.match
-    val me = online.myNumber
-    val names = listOf(online.lobby.getOrElse(0) { "1" }, online.lobby.getOrElse(1) { "2" })
-    val opponent = names[2 - me]
+    val me = online.seat
+    val names = online.lobby
+    fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
+    val others = names.filterIndexed { index, _ -> index != me }.joinToString(", ")
     val colorBlind = LocalColorBlindMode.current
 
     // Étape de MA manche, suivie sur ce téléphone seulement ; [phaseRound] dit à quelle manche elle correspond.
@@ -431,9 +470,9 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
     val stop = if (colorBlind) Color(0xFFD55E00) else Color(0xFFC62828)
     val go = if (colorBlind) Color(0xFF0072B2) else Color(0xFF2E7D32)
     val idle = Color(0xFF455A64)
-    val started = match != ReflexMatch()
-    val roundDone = match.lastWinner != 0 || match.lastDraw
+    val roundDone = match.roundPlayed
     val iWon = match.lastWinner == me
+    val myResult = match.lastResults.getOrNull(me) ?: Reflex.MISS
 
     val background = when {
         online.running -> if (online.reported) idle else if (phase == PHASE_GO) go else stop
@@ -450,26 +489,25 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
         match.lastDraw -> stringResource(R.string.reflex_zone_draw)
         iWon && match.lastReactionMs > 0 -> stringResource(R.string.reflex_zone_win_ms, match.lastReactionMs)
         iWon -> stringResource(R.string.reflex_zone_win)
-        match.falseStart -> stringResource(R.string.reflex_zone_early)
-        match.lastLoserReactionMs > 0 -> stringResource(R.string.reflex_zone_lose_ms, match.lastLoserReactionMs)
+        myResult == Reflex.EARLY -> stringResource(R.string.reflex_zone_early)
+        myResult > 0 -> stringResource(R.string.reflex_zone_lose_ms, myResult)
         else -> stringResource(R.string.reflex_zone_lose)
     }
     val status = when {
         online.running && online.reported -> stringResource(R.string.reflex_sent_status)
         online.running && phase == PHASE_GO -> stringResource(R.string.reflex_go)
         online.running -> stringResource(R.string.reflex_status_wait)
+        online.gathering && online.isHost -> stringResource(R.string.reflex_gather_host)
+        online.gathering -> stringResource(R.string.reflex_gather_guest)
         !roundDone -> pluralStringResource(R.plurals.reflex_hint, Reflex.TARGET, Reflex.TARGET)
         match.lastDraw -> stringResource(R.string.reflex_draw)
-        match.isOver -> stringResource(R.string.reflex_match_won, names[match.winner - 1], match.winsOf(match.winner), match.winsOf(3 - match.winner))
-        match.falseStart -> stringResource(R.string.reflex_false_start, names[2 - match.lastWinner], names[match.lastWinner - 1])
-        match.lastLoserReactionMs > 0 -> stringResource(
-            R.string.reflex_round_won_both,
-            names[match.lastWinner - 1],
-            match.lastReactionMs,
-            names[2 - match.lastWinner],
-            match.lastLoserReactionMs
+        match.isOver -> stringResource(R.string.reflex_match_won_n, nameOf(match.winner))
+        match.lastReactionMs > 0 -> stringResource(R.string.reflex_round_won, nameOf(match.lastWinner), match.lastReactionMs)
+        else -> stringResource(
+            R.string.reflex_win_default,
+            nameOf(match.lastWinner),
+            match.falseStarters.joinToString(", ") { nameOf(it) }
         )
-        else -> stringResource(R.string.reflex_round_won, names[match.lastWinner - 1], match.lastReactionMs)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -492,12 +530,59 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
                         contentColor = MaterialTheme.colorScheme.primary
                     )
                 }
-                Text(text = stringResource(R.string.reflex_online_vs, opponent), style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    text = stringResource(R.string.reflex_score, names[0], match.wins1, names[1], match.wins2),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(text = stringResource(R.string.reflex_online_vs, others), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+                if (online.notice == ReflexNotice.PLAYER_LEFT) {
+                    Text(
+                        text = stringResource(R.string.reflex_online_notice_left_some),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                if (online.gathering) {
+                    Text(
+                        text = stringResource(R.string.reflex_table_players, names.joinToString(", ")),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    Text(
+                        text = names.indices.map {
+                            stringResource(R.string.reflex_entry, nameOf(it), match.winsOf(it).toString())
+                        }.joinToString(" · "),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    ReflexAverages(
+                        entries = names.indices.map { nameOf(it) to match.averageMsOf(it) },
+                        show = match.hasAverages
+                    )
+                    // Le détail de la dernière manche : le temps de chacun (ou « trop tôt »), une fois la manche jouée.
+                    if (!online.running && roundDone) {
+                        val none = stringResource(R.string.reflex_avg_none)
+                        val early = stringResource(R.string.reflex_zone_early)
+                        val detail = match.lastResults.indices.map { seat ->
+                            val result = match.lastResults[seat]
+                            stringResource(
+                                R.string.reflex_entry,
+                                nameOf(seat),
+                                when {
+                                    result > 0 -> stringResource(R.string.reflex_avg_value, result)
+                                    result == Reflex.EARLY -> early
+                                    else -> none
+                                }
+                            )
+                        }.joinToString(" · ")
+                        Text(
+                            text = stringResource(R.string.reflex_last_round, detail),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
                 Text(
                     text = status,
                     style = MaterialTheme.typography.titleMedium,
@@ -505,13 +590,14 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
                     modifier = Modifier.heightIn(min = 48.dp).semantics { liveRegion = LiveRegionMode.Polite }
                 )
                 if (!online.running) {
-                    if (match.isOver) {
-                        Button(onClick = { online.newMatch() }, modifier = Modifier.fillMaxWidth()) {
+                    when {
+                        match.isOver -> Button(onClick = { online.newMatch() }, modifier = Modifier.fillMaxWidth()) {
                             Text(stringResource(R.string.reflex_new_match))
                         }
-                    } else {
-                        Button(onClick = { online.startRound() }, modifier = Modifier.fillMaxWidth()) {
-                            Text(stringResource(if (started) R.string.reflex_next_round else R.string.reflex_start))
+                        // Tant que les joueurs arrivent, seul l'organisateur lance la partie.
+                        online.gathering && !online.isHost -> Unit
+                        else -> Button(onClick = { online.startRound() }, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(if (online.round > 0) R.string.reflex_next_round else R.string.reflex_start))
                         }
                     }
                 }
@@ -521,7 +607,7 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
             }
         }
         // Toute la place restante est ma zone : le doigt se pose, le temps est pris tout de suite.
-        ReflexPad(background = background, name = names[me - 1], label = label, onTap = ::onTap, modifier = Modifier.weight(1f))
+        ReflexPad(background = background, name = nameOf(me), label = label, onTap = ::onTap, modifier = Modifier.weight(1f))
     }
 }
 

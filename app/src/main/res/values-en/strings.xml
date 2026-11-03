@@ -2071,7 +2071,7 @@
     <string name="rules_reflex_2_title">A round</string>
     <string name="rules_reflex_2_body">Both zones are red: wait. After a random delay (1.5 to 5 seconds) they turn green. Touching your zone before it turns green is a false start: the round goes to your opponent. The reaction times of the winner and the loser are shown in milliseconds.</string>
     <string name="rules_reflex_3_title">In the app</string>
-    <string name="rules_reflex_3_body">Two players share one phone, laid flat between them: each has their half of the screen, and the top one is upside down. Or each on their own phone (“Play on separate phones”): each phone measures its player’s reaction time from its own signal, and the fastest wins; a small delay between the two phones makes no difference. Two false starts, nobody touching or identical times: the round is replayed. The session score stays on screen. In colour-blind mode, red and green become orange and blue. On a single phone, the loser still has a moment to touch their zone so their time is recorded.</string>
+    <string name="rules_reflex_3_body">Two players share one phone, laid flat between them: each has their half of the screen, and the top one is upside down. Or each on their own phone (“Play on separate phones”), from 2 to 8 players: the organiser waits until everyone has joined, then starts the game. Each phone measures its player’s reaction time from its own signal, and the fastest wins; a small delay between phones makes no difference. A false start can’t win the round. A tie for the best time or nobody touching: the round is replayed. Once the game has started, nobody else can join; if a player leaves, the current round is cancelled and the others carry on. Everyone’s score and average time stay on screen. In colour-blind mode, red and green become orange and blue. On a single phone, the loser still has a moment to touch their zone so their time is recorded.</string>
     <plurals name="reflex_hint">
         <item quantity="one">Each player rests a finger near their zone. When it turns green, touch it first! First to %1$d round.</item>
         <item quantity="other">Each player rests a finger near their zone. When it turns green, touch it first! First to %1$d rounds.</item>
@@ -2094,7 +2094,7 @@
     <string name="reflex_zone_lose">Lost</string>
     <string name="reflex_zone_lose_ms">Lost · %1$d ms</string>
     <string name="reflex_online_button">Play on separate phones</string>
-    <string name="reflex_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
+    <string name="reflex_online_waiting">Waiting for the other players… On the other phones, tap “Join a game”.</string>
     <string name="reflex_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="reflex_online_host_left">The host disconnected: the game is over.</string>
     <string name="reflex_online_vs">You are playing against %1$s</string>
@@ -2102,9 +2102,20 @@
     <string name="reflex_quit_title">Leave the game?</string>
     <string name="reflex_quit_message">The connection with the other phone will be cut and the session will end.</string>
     <string name="reflex_sent">Got it!</string>
-    <string name="reflex_sent_status">Waiting for the other player…</string>
+    <string name="reflex_sent_status">Waiting for the other players…</string>
     <string name="reflex_draw">Void round: nobody scores, it is replayed!</string>
     <string name="reflex_zone_draw">Tie</string>
+    <string name="reflex_avg">Average time — %1$s</string>
+    <string name="reflex_avg_value">%1$d ms</string>
+    <string name="reflex_avg_none">–</string>
+    <string name="reflex_entry">%1$s: %2$s</string>
+    <string name="reflex_last_round">Last round — %1$s</string>
+    <string name="reflex_gather_host">When everyone is here, start the game!</string>
+    <string name="reflex_gather_guest">Waiting for the organiser to start the game…</string>
+    <string name="reflex_table_players">At the table: %1$s</string>
+    <string name="reflex_match_won_n">%1$s wins the game!</string>
+    <string name="reflex_win_default">%1$s wins the round: false start by %2$s!</string>
+    <string name="reflex_online_notice_left_some">A player left the game: the current round is cancelled.</string>
     <!-- Jeu de rythme -->
     <string name="game_rhythm">Rhythm</string>
     <string name="rhythm_song_label">Song: %1$s</string>
