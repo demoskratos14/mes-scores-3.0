@@ -2050,9 +2050,13 @@
     <string name="huit_show_hand">Ver mi mano</string>
     <string name="huit_hand_title">Tu mano</string>
     <string name="huit_hint">Juega una carta del mismo palo o del mismo valor que la última carta jugada. Un 8 se puede jugar en cualquier momento.</string>
-    <string name="huit_no_play">No tienes ninguna carta jugable: roba hasta tener una.</string>
+    <string name="huit_not_playable">Esta carta no se puede jugar: debe ser del palo pedido o del mismo valor que la última carta jugada (un 8 se puede jugar en cualquier momento).</string>
+    <string name="card_stock_desc">Mazo para robar, %1$d cartas: toca para robar</string>
+    <string name="card_stock_tap">Toca el mazo para robar una carta.</string>
+    <string name="card_draw_forbidden">No puedes robar: tienes una carta jugable.</string>
+    <string name="uno_already_drawn">Ya has robado: juega la carta robada si puedes; si no, pasa tu turno.</string>
+    <string name="uno_drawn_only">Después de robar, solo puedes jugar la carta robada.</string>
     <string name="huit_must_pass">Ya no queda nada que robar y no tienes ninguna carta jugable: pasas el turno.</string>
-    <string name="huit_draw">Robar una carta</string>
     <string name="huit_pass">Pasar mi turno</string>
     <string name="huit_pick_suit">Juegas un 8: elige el palo que sigue.</string>
     <string name="huit_round_won">¡%1$s ha jugado su última carta!</string>
@@ -2068,10 +2072,7 @@
     <string name="uno_call">¡UNO!</string>
     <string name="uno_pick_color">Juegas un comodín: elige el color que sigue.</string>
     <string name="uno_hint">Juega una carta del mismo color, del mismo número o del mismo símbolo que la última carta jugada. Un comodín se puede jugar en cualquier momento; el comodín +4 solo si no tienes ninguna carta del color pedido.</string>
-    <string name="uno_no_play">No tienes ninguna carta jugable: roba una carta.</string>
-    <string name="uno_drawn_playable">Has robado una carta que puedes jugar: juégala, o quédatela y pasa el turno.</string>
-    <string name="uno_drawn_blocked">La carta robada no se puede jugar: pasas el turno.</string>
-    <string name="uno_keep">Quedarme la carta y pasar el turno</string>
+    <string name="uno_not_playable">Esta carta no se puede jugar: debe ser del mismo color, del mismo número o del mismo símbolo que la última carta jugada (el comodín +4 solo si no tienes ninguna carta del color pedido).</string>
     <string name="uno_event_skip">%1$s juega %2$s: %3$s pierde el turno.</string>
     <string name="uno_event_reverse">%1$s juega %2$s: cambia el sentido del juego.</string>
     <string name="uno_event_draw">%1$s juega %2$s: %3$s roba %4$d cartas y pierde el turno.</string>
@@ -2082,6 +2083,7 @@
     <string name="hearts_pass_confirm">Pasar estas cartas</string>
     <string name="hearts_lead_first">Tienes el 2 de tréboles: empiezas, juégalo.</string>
     <string name="hearts_hint">Sigue el palo pedido si puedes. Si no, descarta lo que quieras (en la primera baza, ni corazones ni la dama de picas, salvo que no tengas otra cosa). No se empieza una baza con un corazón mientras no se haya jugado ninguno.</string>
+    <string name="hearts_not_playable">Esta carta no se puede jugar: sigue el palo pedido si puedes (en la primera baza, ni corazones ni la dama de picas si tienes otra cosa; no se empieza una baza con un corazón mientras no se haya jugado ninguno).</string>
     <string name="hearts_received_hint">Las cartas rodeadas son las que acabas de recibir.</string>
     <string name="hearts_trick_title">Baza en curso</string>
     <string name="hearts_trick_empty">Nadie ha jugado todavía en esta baza.</string>
@@ -2215,6 +2217,8 @@
     <string name="circles_nobody">Nadie ha tocado ni un círculo.</string>
     <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
     <string name="circles_new_game">Nueva partida</string>
+    <string name="record_best">Récord: %1$d</string>
+    <string name="record_new">¡Nuevo récord: %1$d!</string>
     <string name="game_simon">Simon</string>
     <string name="rules_simon_1_title">Objetivo</string>
     <string name="rules_simon_1_body">Repetir de memoria una secuencia de colores que se alarga un color en cada ronda, mejor y durante más tiempo que los demás jugadores.</string>

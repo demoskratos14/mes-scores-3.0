@@ -154,6 +154,17 @@ internal object RhythmAudioDecoder {
         }
     }
 
+    /** La taille du fichier choisi en octets ; 0 si le téléphone ne la donne pas. */
+    fun fileSize(context: Context, uri: Uri): Long = try {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else 0L
+        } ?: 0L
+    } catch (e: SecurityException) {
+        0L
+    } catch (e: IllegalArgumentException) {
+        0L
+    }
+
     /** Le nom du fichier choisi, sans son extension, pour l'afficher. */
     fun displayName(context: Context, uri: Uri): String? {
         val name = try {

@@ -35,6 +35,19 @@ internal fun frenchCardImage(card: Int): Int = FRENCH_CARD_IMAGES[card.coerceIn(
 /** Largeur / hauteur des images des cartes. */
 internal const val FRENCH_CARD_RATIO = 192f / 279f
 
+/** Le dos bleu du jeu de cartes (res/drawable-nodpi/fr_card_back.webp), pour la pioche. */
+@Composable
+internal fun FrenchCardBack(modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(R.drawable.fr_card_back),
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
+        modifier = modifier
+            .aspectRatio(FRENCH_CARD_RATIO)
+            .clip(RoundedCornerShape(6.dp))
+    )
+}
+
 /** Filtre des cartes qu'on ne peut pas jouer : désaturées et assombries. */
 private val BlockedFilter = ColorFilter.colorMatrix(
     ColorMatrix().apply { setToSaturation(0f) }.also { m ->

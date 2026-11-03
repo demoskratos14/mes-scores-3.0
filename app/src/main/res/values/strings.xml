@@ -2065,9 +2065,13 @@
     <string name="huit_show_hand">Voir ma main</string>
     <string name="huit_hand_title">Ta main</string>
     <string name="huit_hint">Pose une carte de la même couleur ou de la même valeur que la dernière carte posée. Un 8 se joue à tout moment.</string>
-    <string name="huit_no_play">Aucune carte jouable : pioche jusqu’à en avoir une.</string>
+    <string name="huit_not_playable">Cette carte ne peut pas être jouée : elle doit être de la couleur demandée ou de la même valeur que la dernière carte posée (un 8 se joue à tout moment).</string>
+    <string name="card_stock_desc">Pioche, %1$d cartes : touche pour piocher</string>
+    <string name="card_stock_tap">Touche la pioche pour piocher une carte.</string>
+    <string name="card_draw_forbidden">Tu ne peux pas piocher : tu as une carte jouable.</string>
+    <string name="uno_already_drawn">Tu as déjà pioché : pose la carte piochée si tu le peux, sinon passe ton tour.</string>
+    <string name="uno_drawn_only">Après avoir pioché, tu ne peux poser que la carte piochée.</string>
     <string name="huit_must_pass">Plus rien à piocher et aucune carte jouable : tu passes ton tour.</string>
-    <string name="huit_draw">Piocher une carte</string>
     <string name="huit_pass">Passer mon tour</string>
     <string name="huit_pick_suit">Tu poses un 8 : choisis la couleur qui suit.</string>
     <string name="huit_round_won">%1$s a posé sa dernière carte !</string>
@@ -2084,10 +2088,7 @@
     <string name="uno_call">UNO !</string>
     <string name="uno_pick_color">Tu poses un joker : choisis la couleur qui suit.</string>
     <string name="uno_hint">Pose une carte de la même couleur, du même chiffre ou du même symbole que la dernière carte posée. Un joker se joue à tout moment ; le joker +4 seulement si tu n’as aucune carte de la couleur demandée.</string>
-    <string name="uno_no_play">Aucune carte jouable : pioche une carte.</string>
-    <string name="uno_drawn_playable">Tu as pioché une carte que tu peux poser : pose-la, ou garde-la et passe ton tour.</string>
-    <string name="uno_drawn_blocked">La carte piochée ne peut pas être posée : tu passes ton tour.</string>
-    <string name="uno_keep">Garder la carte et passer mon tour</string>
+    <string name="uno_not_playable">Cette carte ne peut pas être jouée : elle doit être de la même couleur, du même chiffre ou du même symbole que la dernière carte posée (le joker +4 seulement sans carte de la couleur demandée).</string>
     <string name="uno_event_skip">%1$s joue %2$s : %3$s passe son tour.</string>
     <string name="uno_event_reverse">%1$s joue %2$s : le sens du jeu s’inverse.</string>
     <string name="uno_event_draw">%1$s joue %2$s : %3$s pioche %4$d cartes et passe son tour.</string>
@@ -2098,6 +2099,7 @@
     <string name="hearts_pass_confirm">Passer ces cartes</string>
     <string name="hearts_lead_first">Tu as le 2 de trèfle : tu commences, pose-le.</string>
     <string name="hearts_hint">Fournis la couleur demandée si tu le peux. Sinon, défausse ce que tu veux (au premier pli, ni cœur ni dame de pique, sauf si tu n’as que ça). On ne commence pas un pli par un cœur tant qu’aucun cœur n’a été joué.</string>
+    <string name="hearts_not_playable">Cette carte ne peut pas être jouée : fournis la couleur demandée si tu le peux (au premier pli, ni cœur ni dame de pique si tu as autre chose ; pas de cœur pour commencer un pli tant qu’aucun cœur n’a été joué).</string>
     <string name="hearts_received_hint">Les cartes entourées sont celles que tu viens de recevoir.</string>
     <string name="hearts_trick_title">Pli en cours</string>
     <string name="hearts_trick_empty">Personne n’a encore joué dans ce pli.</string>
@@ -2231,6 +2233,8 @@
     <string name="circles_nobody">Personne n’a touché un seul rond.</string>
     <string name="circles_rank_entry">%1$d. %2$s : %3$d</string>
     <string name="circles_new_game">Nouvelle partie</string>
+    <string name="record_best">Record : %1$d</string>
+    <string name="record_new">Nouveau record : %1$d !</string>
     <string name="game_simon">Simon</string>
     <string name="rules_simon_1_title">But du jeu</string>
     <string name="rules_simon_1_body">Reproduire de mémoire une suite de couleurs qui s’allonge d’une couleur à chaque manche, mieux et plus longtemps que les autres joueurs.</string>

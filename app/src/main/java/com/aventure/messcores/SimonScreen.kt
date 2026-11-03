@@ -157,6 +157,8 @@ private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?) {
     var scores by rememberSaveable(stateSaver = IntListSaver) { mutableStateOf(listOf<Int>()) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var lastScore by rememberSaveable { mutableIntStateOf(0) }
+    // Le record n'existe que seul : à plusieurs, on compare les scores de la table.
+    val record = rememberSoloRecord(SIMON_ID)
 
     val game = SimonGame(players = names.size, scores = scores)
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
@@ -167,13 +169,15 @@ private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?) {
             onFinished = { score ->
                 scores = game.finishRun(score).scores
                 lastScore = score
+                if (names.size == 1) record.submit(score)
                 phase = PHASE_RUN_OVER
             }
         )
         phase == PHASE_RUN_OVER -> SimonCard {
             if (game.isOver) {
-                SimonResults(game = game, names = names, onChangeMode = onChangeMode, onNewGame = {
+                SimonResults(game = game, names = names, record = record, onChangeMode = onChangeMode, onNewGame = {
                     scores = game.newGame().scores
+                    record.clearNew()
                     phase = PHASE_READY
                 })
             } else {
@@ -199,6 +203,7 @@ private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+            if (names.size == 1) SoloRecordLine(record)
             if (scores.isNotEmpty()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     scores.forEachIndexed { seat, score ->
@@ -370,7 +375,7 @@ private fun SimonEndButtons(onNewGame: () -> Unit, onChangeMode: (() -> Unit)?) 
 
 /** Le résultat de « chacun sa série » : le gagnant (ou les ex æquo), puis tous les scores du meilleur au plus faible. */
 @Composable
-private fun SimonResults(game: SimonGame, names: List<String>, onChangeMode: (() -> Unit)?, onNewGame: () -> Unit) {
+private fun SimonResults(game: SimonGame, names: List<String>, record: SoloRecord, onChangeMode: (() -> Unit)?, onNewGame: () -> Unit) {
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
     val winners = game.winners
     val headline = when {
@@ -380,6 +385,7 @@ private fun SimonResults(game: SimonGame, names: List<String>, onChangeMode: (()
         else -> stringResource(R.string.simon_tie, winners.joinToString(", ") { nameOf(it) }, game.best)
     }
     SimonResultsHeader(headline)
+    if (names.size == 1) SoloRecordLine(record)
     if (names.size > 1) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             game.ranking().forEachIndexed { index, seat ->

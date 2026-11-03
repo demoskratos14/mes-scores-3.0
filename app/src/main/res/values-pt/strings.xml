@@ -2050,9 +2050,13 @@
     <string name="huit_show_hand">Ver a minha mão</string>
     <string name="huit_hand_title">A tua mão</string>
     <string name="huit_hint">Joga uma carta do mesmo naipe ou do mesmo valor que a última carta jogada. Um 8 joga-se a qualquer momento.</string>
-    <string name="huit_no_play">Nenhuma carta jogável: compra até teres uma.</string>
+    <string name="huit_not_playable">Esta carta não pode ser jogada: tem de ser do naipe pedido ou do mesmo valor que a última carta jogada (um 8 joga-se a qualquer momento).</string>
+    <string name="card_stock_desc">Baralho para comprar, %1$d cartas: toca para comprar</string>
+    <string name="card_stock_tap">Toca no baralho para comprar uma carta.</string>
+    <string name="card_draw_forbidden">Não podes comprar: tens uma carta jogável.</string>
+    <string name="uno_already_drawn">Já compraste: joga a carta comprada se puderes; senão, passa a vez.</string>
+    <string name="uno_drawn_only">Depois de comprar, só podes jogar a carta comprada.</string>
     <string name="huit_must_pass">Já não há nada para comprar e nenhuma carta jogável: passas a vez.</string>
-    <string name="huit_draw">Comprar uma carta</string>
     <string name="huit_pass">Passar a minha vez</string>
     <string name="huit_pick_suit">Jogas um 8: escolhe o naipe que se segue.</string>
     <string name="huit_round_won">%1$s jogou a sua última carta!</string>
@@ -2068,10 +2072,7 @@
     <string name="uno_call">UNO!</string>
     <string name="uno_pick_color">Jogas um joker: escolhe a cor que se segue.</string>
     <string name="uno_hint">Joga uma carta da mesma cor, do mesmo número ou do mesmo símbolo que a última carta jogada. Um joker joga-se a qualquer momento; o joker +4 só se não tiveres nenhuma carta da cor pedida.</string>
-    <string name="uno_no_play">Nenhuma carta jogável: compra uma carta.</string>
-    <string name="uno_drawn_playable">Compraste uma carta que podes jogar: joga-a, ou guarda-a e passa a vez.</string>
-    <string name="uno_drawn_blocked">A carta comprada não pode ser jogada: passas a vez.</string>
-    <string name="uno_keep">Guardar a carta e passar a vez</string>
+    <string name="uno_not_playable">Esta carta não pode ser jogada: tem de ser da mesma cor, do mesmo número ou do mesmo símbolo que a última carta jogada (o joker +4 só se não tiveres nenhuma carta da cor pedida).</string>
     <string name="uno_event_skip">%1$s joga %2$s: %3$s perde a vez.</string>
     <string name="uno_event_reverse">%1$s joga %2$s: o sentido do jogo inverte-se.</string>
     <string name="uno_event_draw">%1$s joga %2$s: %3$s compra %4$d cartas e perde a vez.</string>
@@ -2082,6 +2083,7 @@
     <string name="hearts_pass_confirm">Passar estas cartas</string>
     <string name="hearts_lead_first">Tens o 2 de paus: começas tu, joga-o.</string>
     <string name="hearts_hint">Serve o naipe pedido se puderes. Senão, descarta o que quiseres (na primeira vaza, nem copas nem a dama de espadas, a não ser que não tenhas outra coisa). Não se começa uma vaza com copas enquanto nenhuma copa tiver sido jogada.</string>
+    <string name="hearts_not_playable">Esta carta não pode ser jogada: serve o naipe pedido se puderes (na primeira vaza, nem copas nem a dama de espadas se tiveres outra coisa; não se começa uma vaza com copas enquanto nenhuma copa tiver sido jogada).</string>
     <string name="hearts_received_hint">As cartas rodeadas são as que acabaste de receber.</string>
     <string name="hearts_trick_title">Vaza em curso</string>
     <string name="hearts_trick_empty">Ninguém jogou ainda nesta vaza.</string>
@@ -2215,6 +2217,8 @@
     <string name="circles_nobody">Ninguém tocou num único círculo.</string>
     <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
     <string name="circles_new_game">Novo jogo</string>
+    <string name="record_best">Recorde: %1$d</string>
+    <string name="record_new">Novo recorde: %1$d!</string>
     <string name="game_simon">Simon</string>
     <string name="rules_simon_1_title">Objetivo</string>
     <string name="rules_simon_1_body">Repetir de memória uma sequência de cores que cresce uma cor em cada ronda, melhor e durante mais tempo do que os outros jogadores.</string>

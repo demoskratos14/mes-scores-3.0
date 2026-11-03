@@ -76,6 +76,8 @@ internal fun CirclesScreen(players: List<String>) {
     var streaks by rememberSaveable(stateSaver = IntListSaver) { mutableStateOf(listOf<Int>()) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var lastStreak by rememberSaveable { mutableIntStateOf(0) }
+    // Le record n'existe que seul : à plusieurs, on compare les séries de la table.
+    val record = rememberSoloRecord(CIRCLES_ID)
 
     val game = CirclesGame(players = names.size, streaks = streaks)
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
@@ -86,13 +88,15 @@ internal fun CirclesScreen(players: List<String>) {
             onFinished = { streak ->
                 streaks = game.finishRun(streak).streaks
                 lastStreak = streak
+                if (names.size == 1) record.submit(streak)
                 phase = PHASE_RUN_OVER
             }
         )
         phase == PHASE_RUN_OVER -> CirclesCard {
             if (game.isOver) {
-                CirclesResults(game = game, names = names, onNewGame = {
+                CirclesResults(game = game, names = names, record = record, onNewGame = {
                     streaks = game.newGame().streaks
+                    record.clearNew()
                     phase = PHASE_READY
                 })
             } else {
@@ -118,6 +122,7 @@ internal fun CirclesScreen(players: List<String>) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+            if (names.size == 1) SoloRecordLine(record)
             if (streaks.isNotEmpty()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     streaks.forEachIndexed { seat, streak ->
@@ -173,7 +178,7 @@ private fun CirclesCard(content: @Composable ColumnScope.() -> Unit) {
 
 /** Le résultat de la partie : le gagnant (ou les ex æquo), puis toutes les séries de la plus longue à la plus courte. */
 @Composable
-private fun CirclesResults(game: CirclesGame, names: List<String>, onNewGame: () -> Unit) {
+private fun CirclesResults(game: CirclesGame, names: List<String>, record: SoloRecord, onNewGame: () -> Unit) {
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
     val winners = game.winners
     val headline = when {
@@ -199,6 +204,7 @@ private fun CirclesResults(game: CirclesGame, names: List<String>, onNewGame: ()
             .background(highlightContainer())
             .padding(12.dp)
     )
+    if (names.size == 1) SoloRecordLine(record)
     if (names.size > 1) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             game.ranking().forEachIndexed { index, seat ->

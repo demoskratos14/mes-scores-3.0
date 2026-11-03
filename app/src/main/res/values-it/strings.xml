@@ -2060,9 +2060,13 @@
     <string name="huit_show_hand">Vedi la mia mano</string>
     <string name="huit_hand_title">La tua mano</string>
     <string name="huit_hint">Gioca una carta dello stesso seme o dello stesso valore dell’ultima carta giocata. Un 8 si gioca in qualsiasi momento.</string>
-    <string name="huit_no_play">Nessuna carta giocabile: pesca finché non ne hai una.</string>
+    <string name="huit_not_playable">Questa carta non si può giocare: deve essere del seme richiesto o dello stesso valore dell’ultima carta giocata (un 8 si gioca in qualsiasi momento).</string>
+    <string name="card_stock_desc">Mazzo da cui pescare, %1$d carte: tocca per pescare</string>
+    <string name="card_stock_tap">Tocca il mazzo per pescare una carta.</string>
+    <string name="card_draw_forbidden">Non puoi pescare: hai una carta giocabile.</string>
+    <string name="uno_already_drawn">Hai già pescato: gioca la carta pescata se puoi, altrimenti passa il turno.</string>
+    <string name="uno_drawn_only">Dopo aver pescato, puoi giocare solo la carta pescata.</string>
     <string name="huit_must_pass">Non c’è più nulla da pescare e nessuna carta giocabile: passi il turno.</string>
-    <string name="huit_draw">Pesca una carta</string>
     <string name="huit_pass">Passo il turno</string>
     <string name="huit_pick_suit">Giochi un 8: scegli il seme che segue.</string>
     <string name="huit_round_won">%1$s ha giocato la sua ultima carta!</string>
@@ -2078,10 +2082,7 @@
     <string name="uno_call">UNO!</string>
     <string name="uno_pick_color">Giochi un jolly: scegli il colore che segue.</string>
     <string name="uno_hint">Gioca una carta dello stesso colore, dello stesso numero o dello stesso simbolo dell’ultima carta giocata. Un jolly si gioca in qualsiasi momento; il jolly +4 solo se non hai nessuna carta del colore richiesto.</string>
-    <string name="uno_no_play">Nessuna carta giocabile: pesca una carta.</string>
-    <string name="uno_drawn_playable">Hai pescato una carta che puoi giocare: giocala, oppure tienila e passa il turno.</string>
-    <string name="uno_drawn_blocked">La carta pescata non si può giocare: passi il turno.</string>
-    <string name="uno_keep">Tenere la carta e passare il turno</string>
+    <string name="uno_not_playable">Questa carta non si può giocare: deve essere dello stesso colore, dello stesso numero o dello stesso simbolo dell’ultima carta giocata (il jolly +4 solo se non hai nessuna carta del colore richiesto).</string>
     <string name="uno_event_skip">%1$s gioca %2$s: %3$s salta il turno.</string>
     <string name="uno_event_reverse">%1$s gioca %2$s: il senso di gioco si inverte.</string>
     <string name="uno_event_draw">%1$s gioca %2$s: %3$s pesca %4$d carte e salta il turno.</string>
@@ -2092,6 +2093,7 @@
     <string name="hearts_pass_confirm">Passa queste carte</string>
     <string name="hearts_lead_first">Hai il 2 di fiori: cominci tu, giocalo.</string>
     <string name="hearts_hint">Rispondi al seme richiesto se puoi. Altrimenti scarta quello che vuoi (alla prima presa, né cuori né la donna di picche, a meno che tu non abbia altro). Non si inizia una presa con un cuore finché nessun cuore è stato giocato.</string>
+    <string name="hearts_not_playable">Questa carta non si può giocare: rispondi al seme richiesto se puoi (alla prima presa, né cuori né la donna di picche se hai altro; non si inizia una presa con un cuore finché nessun cuore è stato giocato).</string>
     <string name="hearts_received_hint">Le carte cerchiate sono quelle che hai appena ricevuto.</string>
     <string name="hearts_trick_title">Presa in corso</string>
     <string name="hearts_trick_empty">Nessuno ha ancora giocato in questa presa.</string>
@@ -2225,6 +2227,8 @@
     <string name="circles_nobody">Nessuno ha toccato nemmeno un cerchio.</string>
     <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
     <string name="circles_new_game">Nuova partita</string>
+    <string name="record_best">Record: %1$d</string>
+    <string name="record_new">Nuovo record: %1$d!</string>
     <string name="game_simon">Simon</string>
     <string name="rules_simon_1_title">Obiettivo</string>
     <string name="rules_simon_1_body">Riprodurre a memoria una sequenza di colori che si allunga di un colore a ogni turno, meglio e più a lungo degli altri giocatori.</string>

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -165,6 +166,8 @@ private fun HandCard(
     var pendingEight by rememberSaveable(round.current, round.roundNumber) { mutableIntStateOf(-1) }
     val hand = round.currentHand.sortedWith(compareBy({ HuitScoring.suit(it) }, { HuitScoring.rank(it) }))
     val choosing = pendingEight in hand
+    // Le texte (ressource) refusant la dernière carte ou pioche touchée ; effacé dès que la main ou le tour change.
+    var error by remember(round.current, round.roundNumber, hand.size) { mutableStateOf<Int?>(null) }
 
     CardPanel(spacing = 10) {
         Text(
@@ -177,15 +180,18 @@ private fun HandCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         CardRows(hand) { card, cardModifier ->
-            val playable = round.isPlayable(card)
+            // Toutes les cartes ont le même aspect (aucune aide) : une carte refusée l'est par un message.
             FrenchCardFace(
                 card = card,
                 labels = labels,
-                playable = playable,
+                playable = true,
                 selected = card == pendingEight,
                 modifier = cardModifier,
-                onClick = if (playable) {
-                    {
+                onClick = {
+                    if (!round.isPlayable(card)) {
+                        error = R.string.huit_not_playable
+                    } else {
+                        error = null
                         if (HuitScoring.rank(card) == HuitScoring.EIGHT && hand.size > 1) {
                             pendingEight = if (pendingEight == card) -1 else card
                         } else {
@@ -193,11 +199,26 @@ private fun HandCard(
                             onPlay(card, -1)
                         }
                     }
-                } else {
-                    null
                 }
             )
         }
+
+        // La pioche est toujours visible et touchable ; elle refuse le joueur qui a une carte jouable.
+        CardStockRow(
+            count = round.stock.size,
+            onClick = {
+                error = when {
+                    round.hasPlayable -> R.string.card_draw_forbidden
+                    round.canDraw -> {
+                        onDraw()
+                        null
+                    }
+                    else -> R.string.huit_must_pass
+                }
+            },
+            pile = { FrenchCardBack(it) }
+        )
+        error?.let { CardErrorText(stringResource(it)) }
 
         when {
             choosing -> {
@@ -227,19 +248,13 @@ private fun HandCard(
                     Text(stringResource(R.string.common_cancel))
                 }
             }
-            round.hasPlayable -> Text(stringResource(R.string.huit_hint), style = MaterialTheme.typography.bodyMedium)
-            round.canDraw -> {
-                Text(stringResource(R.string.huit_no_play), style = MaterialTheme.typography.bodyMedium)
-                Button(onClick = onDraw, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.huit_draw))
-                }
-            }
             round.mustPass -> {
                 Text(stringResource(R.string.huit_must_pass), style = MaterialTheme.typography.bodyMedium)
                 Button(onClick = onPass, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.huit_pass))
                 }
             }
+            else -> Text(stringResource(R.string.huit_hint), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

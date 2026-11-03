@@ -33,8 +33,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -126,6 +128,42 @@ internal fun CardPanel(spacing: Int = 8, content: @Composable ColumnScope.() -> 
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(spacing.dp), content = content)
+    }
+}
+
+/**
+ * Le message d'erreur affiché sous la main quand le joueur touche une carte qu'il ne peut pas jouer. Les cartes ne sont plus
+ * grisées (ce serait une aide) : c'est ce message, annoncé par TalkBack, qui refuse la carte.
+ */
+@Composable
+internal fun CardErrorText(message: String) {
+    Text(
+        text = message,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+    )
+}
+
+/**
+ * La pioche : un tas de cartes dos visible, à toucher pour piocher ([onClick]). Elle est toujours là, que le joueur ait une carte
+ * jouable ou non (aucune aide) : c'est à la règle du jeu de refuser une pioche interdite. [pile] dessine le dos de la carte du
+ * jeu avec le modifier qui lui donne sa largeur et le rend touchable.
+ */
+@Composable
+internal fun CardStockRow(count: Int, onClick: () -> Unit, pile: @Composable (Modifier) -> Unit) {
+    val description = stringResource(R.string.card_stock_desc, count)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        pile(
+            Modifier
+                .width(64.dp)
+                .clickable(role = Role.Button, onClick = onClick)
+                .semantics { contentDescription = description }
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(text = stringResource(R.string.huit_stock, count), style = MaterialTheme.typography.titleMedium)
+            Text(text = stringResource(R.string.card_stock_tap), style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 

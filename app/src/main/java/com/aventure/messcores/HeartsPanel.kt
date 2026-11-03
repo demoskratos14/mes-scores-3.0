@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -211,6 +212,8 @@ private fun HeartsHandCard(
     val hand = round.currentHand.sortedWith(compareBy({ FrenchCards.suit(it) }, { FrenchCards.strength(it) }))
     val count = java.lang.Long.bitCount(picked)
     val receivedNow = round.received.getOrElse(round.current) { emptySet() }
+    // Vrai après le toucher d'une carte qu'on ne peut pas jouer ; remis à faux dès que la main, le pli ou le tour change.
+    var notPlayable by remember(round.current, round.roundNumber, round.phase, round.trick.size, hand.size) { mutableStateOf(false) }
 
     CardPanel(spacing = 10) {
         Text(
@@ -226,19 +229,28 @@ private fun HeartsHandCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         CardRows(hand) { card, cardModifier ->
-            val playable = passing || round.isPlayable(card)
             val isPicked = (picked and (1L shl card)) != 0L
-            val toggle: () -> Unit = { picked = togglePick(picked, card, count) }
-            val play: () -> Unit = { onPlay(card) }
+            // Toutes les cartes ont le même aspect (aucune aide) : une carte refusée l'est par un message.
+            val tap: () -> Unit = {
+                when {
+                    passing -> picked = togglePick(picked, card, count)
+                    !round.isPlayable(card) -> notPlayable = true
+                    else -> {
+                        notPlayable = false
+                        onPlay(card)
+                    }
+                }
+            }
             FrenchCardFace(
                 card = card,
                 labels = labels,
-                playable = playable,
+                playable = true,
                 selected = if (passing) isPicked else card in receivedNow,
                 modifier = cardModifier,
-                onClick = if (!playable) null else if (passing) toggle else play
+                onClick = tap
             )
         }
+        if (notPlayable) CardErrorText(stringResource(R.string.hearts_not_playable))
 
         if (passing) {
             Text(

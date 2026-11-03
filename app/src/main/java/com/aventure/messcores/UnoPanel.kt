@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -250,6 +251,8 @@ private fun UnoHandCard(
         compareBy({ if (UnoScoring.isWild(it)) UnoScoring.COLORS else UnoScoring.color(it) }, { UnoScoring.kind(it) })
     )
     val choosing = pendingWild in hand
+    // Le texte (ressource) refusant la dernière carte ou pioche touchée ; effacé dès que la main ou le tour change.
+    var error by remember(round.current, round.roundNumber, hand.size) { mutableStateOf<Int?>(null) }
 
     CardPanel(spacing = 10) {
         Text(
@@ -262,15 +265,19 @@ private fun UnoHandCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         CardRows(hand) { card, cardModifier ->
-            val playable = round.isPlayable(card)
+            // Toutes les cartes ont le même aspect (aucune aide) : une carte refusée l'est par un message.
             UnoCardFace(
                 card = card,
                 labels = labels,
-                playable = playable,
+                playable = true,
                 selected = card == pendingWild || card == round.drawnCard,
                 modifier = cardModifier,
-                onClick = if (playable) {
-                    {
+                onClick = {
+                    if (!round.isPlayable(card)) {
+                        // Après une pioche, seule la carte piochée peut être posée.
+                        error = if (round.drawnCard >= 0 && card != round.drawnCard) R.string.uno_drawn_only else R.string.uno_not_playable
+                    } else {
+                        error = null
                         if (UnoScoring.isWild(card) && hand.size > 1) {
                             pendingWild = if (pendingWild == card) -1 else card
                         } else {
@@ -278,11 +285,27 @@ private fun UnoHandCard(
                             onPlay(card, -1)
                         }
                     }
-                } else {
-                    null
                 }
             )
         }
+
+        // La pioche est toujours visible et touchable ; elle refuse le joueur qui a une carte jouable ou qui a déjà pioché.
+        CardStockRow(
+            count = round.stock.size,
+            onClick = {
+                error = when {
+                    round.drawnCard >= 0 -> R.string.uno_already_drawn
+                    round.hasPlayable -> R.string.card_draw_forbidden
+                    round.canDraw -> {
+                        onDraw()
+                        null
+                    }
+                    else -> R.string.huit_must_pass
+                }
+            },
+            pile = { UnoCardBack(it) }
+        )
+        error?.let { CardErrorText(stringResource(it)) }
 
         when {
             choosing -> {
@@ -311,28 +334,20 @@ private fun UnoHandCard(
                     Text(stringResource(R.string.common_cancel))
                 }
             }
-            round.canKeep -> {
-                Text(stringResource(R.string.uno_drawn_playable), style = MaterialTheme.typography.bodyMedium)
+            round.drawnCard >= 0 -> {
+                // Après la pioche : on pose la carte piochée si on le peut, sinon on passe (sans dire si elle est jouable).
+                Text(stringResource(R.string.uno_already_drawn), style = MaterialTheme.typography.bodyMedium)
                 OutlinedButton(onClick = onPass, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.uno_keep))
-                }
-            }
-            round.hasPlayable -> Text(stringResource(R.string.uno_hint), style = MaterialTheme.typography.bodyMedium)
-            round.canDraw -> {
-                Text(stringResource(R.string.uno_no_play), style = MaterialTheme.typography.bodyMedium)
-                Button(onClick = onDraw, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.huit_draw))
+                    Text(stringResource(R.string.huit_pass))
                 }
             }
             round.mustPass -> {
-                Text(
-                    text = stringResource(if (round.drawnCard >= 0) R.string.uno_drawn_blocked else R.string.huit_must_pass),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(stringResource(R.string.huit_must_pass), style = MaterialTheme.typography.bodyMedium)
                 Button(onClick = onPass, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.huit_pass))
                 }
             }
+            else -> Text(stringResource(R.string.uno_hint), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

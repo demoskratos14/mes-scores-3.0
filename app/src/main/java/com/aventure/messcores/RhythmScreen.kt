@@ -116,8 +116,12 @@ internal fun RhythmScreen(players: List<String>) {
     var stage by remember { mutableStateOf(RhythmStage.MENU) }
     var songUri by rememberSaveable { mutableStateOf<String?>(null) }
     var songName by rememberSaveable { mutableStateOf<String?>(null) }
+    // Le morceau tel que le reconnaît le record (nom et taille du fichier).
+    var songId by rememberSaveable { mutableStateOf<String?>(null) }
     var difficultyIndex by rememberSaveable { mutableIntStateOf(RhythmPreferences.loadDifficulty(context)) }
     var offsetMs by rememberSaveable { mutableIntStateOf(RhythmPreferences.loadOffset(context)) }
+    // Le record du morceau choisi à la difficulté choisie (un par morceau et par difficulté).
+    val record = rememberSoloRecord(RhythmRecords.key(songId, difficultyIndex))
     var error by remember { mutableStateOf(RhythmError.NONE) }
     var progress by remember { mutableFloatStateOf(0f) }
     var spectrogram by remember { mutableStateOf<Spectrogram?>(null) }
@@ -133,6 +137,7 @@ internal fun RhythmScreen(players: List<String>) {
             }
             songUri = uri.toString()
             songName = RhythmAudioDecoder.displayName(context, uri)
+            songId = songName?.let { RhythmRecords.songId(it, RhythmAudioDecoder.fileSize(context, uri)) }
             spectrogram = null
             error = RhythmError.NONE
         }
@@ -144,6 +149,7 @@ internal fun RhythmScreen(players: List<String>) {
             val uri = uriString.toUri()
             val difficulty = RhythmDifficulty.entries[difficultyIndex]
             RhythmPreferences.save(context, difficultyIndex, offsetMs)
+            record.clearNew()
             session?.close()
             session = null
             job?.cancel()
@@ -187,6 +193,7 @@ internal fun RhythmScreen(players: List<String>) {
     }
 
     val backToMenu: () -> Unit = {
+        record.clearNew()
         job?.cancel()
         session?.close()
         session = null
@@ -228,6 +235,7 @@ internal fun RhythmScreen(players: List<String>) {
             difficultyIndex = difficultyIndex,
             offsetMs = offsetMs,
             error = error,
+            record = record,
             onPickSong = { picker.launch(arrayOf("audio/*")) },
             onDifficulty = { difficultyIndex = it },
             onOffset = { offsetMs = it.coerceIn(-RhythmPreferences.MAX_OFFSET_MS, RhythmPreferences.MAX_OFFSET_MS) },
@@ -243,8 +251,13 @@ internal fun RhythmScreen(players: List<String>) {
             )
         }
         RhythmStage.RESULT -> session?.let { current ->
+            // Le score de la partie finie est confronté au record une seule fois (un lancement par partie).
+            LaunchedEffect(current) {
+                if (songId != null) record.submit(current.run.score)
+            }
             RhythmResult(
                 run = current.run,
+                record = record,
                 playerName = players.firstOrNull().orEmpty(),
                 onReplay = startGame,
                 onMenu = backToMenu
@@ -288,6 +301,7 @@ private fun RhythmMenu(
     difficultyIndex: Int,
     offsetMs: Int,
     error: RhythmError,
+    record: SoloRecord,
     onPickSong: () -> Unit,
     onDifficulty: (Int) -> Unit,
     onOffset: (Int) -> Unit,
@@ -351,6 +365,8 @@ private fun RhythmMenu(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                // Le record de ce morceau à cette difficulté (rien tant qu'on n'a pas fini ce morceau à cette difficulté).
+                if (hasSong) SoloRecordLine(record)
             }
         }
 
@@ -745,7 +761,7 @@ private fun polygon(center: Offset, radius: Float, sides: Int, startDegrees: Flo
 }
 
 @Composable
-private fun RhythmResult(run: RhythmRun, playerName: String, onReplay: () -> Unit, onMenu: () -> Unit) {
+private fun RhythmResult(run: RhythmRun, record: SoloRecord, playerName: String, onReplay: () -> Unit, onMenu: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -774,6 +790,7 @@ private fun RhythmResult(run: RhythmRun, playerName: String, onReplay: () -> Uni
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(stringResource(R.string.rhythm_score, run.score), style = MaterialTheme.typography.titleLarge)
+                SoloRecordLine(record)
                 Text(
                     stringResource(R.string.rhythm_result_accuracy, (run.accuracy * 100).toInt()),
                     style = MaterialTheme.typography.titleMedium

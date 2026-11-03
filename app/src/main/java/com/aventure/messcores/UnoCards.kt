@@ -44,6 +44,56 @@ private val UnoCardEdge = Color(0xFFFDFDFD)
 /** Largeur / hauteur d'une carte de Uno. */
 private const val UNO_CARD_RATIO = 0.64f
 
+/** Le mot écrit au dos d'une carte : le nom du jeu, pas un texte à traduire. */
+private const val UNO_LOGO = "UNO"
+
+/**
+ * Le dos d'une carte de Uno (pour la pioche) : bord blanc, fond noir, grande ellipse rouge inclinée avec « UNO » en jaune
+ * ombré de noir.
+ */
+@Composable
+internal fun UnoCardBack(modifier: Modifier = Modifier) {
+    val measurer = rememberTextMeasurer()
+    val shape = RoundedCornerShape(8.dp)
+    Box(
+        modifier = modifier
+            .aspectRatio(UNO_CARD_RATIO)
+            .clip(shape)
+            .border(1.dp, Color.Gray, shape)
+    ) {
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val w = size.width
+            val h = size.height
+            val center = Offset(w / 2, h / 2)
+            val inset = w * 0.055f
+            val innerSize = Size(w - 2 * inset, h - 2 * inset)
+            drawRect(UnoCardEdge)
+            drawRoundRect(UnoCardBlack, topLeft = Offset(inset, inset), size = innerSize, cornerRadius = CornerRadius(w * 0.09f))
+            val inner = Path().apply {
+                addRoundRect(
+                    androidx.compose.ui.geometry.RoundRect(Rect(Offset(inset, inset), innerSize), CornerRadius(w * 0.09f))
+                )
+            }
+            clipPath(inner) {
+                rotate(degrees = -28f, pivot = center) {
+                    val ovalW = w * 1.05f
+                    val ovalH = w * 0.62f
+                    drawOval(UnoCardRed, Offset(center.x - ovalW / 2, center.y - ovalH / 2), Size(ovalW, ovalH))
+                    val style = TextStyle(
+                        fontSize = (w * 0.4f).toSp(),
+                        fontWeight = FontWeight.Black,
+                        fontStyle = FontStyle.Italic
+                    )
+                    val layout = measurer.measure(UNO_LOGO, style)
+                    val topLeft = Offset(center.x - layout.size.width / 2f, center.y - layout.size.height / 2f)
+                    drawText(layout, color = Color.Black, topLeft = topLeft + Offset(w * 0.03f, w * 0.03f))
+                    drawText(layout, color = UnoCardYellow, topLeft = topLeft)
+                }
+            }
+        }
+    }
+}
+
 private fun unoCardColor(color: Int): Color = when (color) {
     0 -> UnoCardRed
     1 -> UnoCardYellow
