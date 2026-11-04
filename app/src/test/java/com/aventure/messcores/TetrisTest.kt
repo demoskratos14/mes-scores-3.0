@@ -149,15 +149,22 @@ class TetrisTest {
 
     // --- Lignes et points ---
 
-    @Test
-    fun uneLigneCompleteDisparaitEtLesCasesDuDessusDescendent() {
+    /** Une partie où le carré, une fois lâché dans les colonnes 6 et 7, complète la ligne 19. */
+    private fun gameAboutToClearOneLine(): TetrisGame {
         val game = newGame()
         for (col in listOf(0, 1, 2, 3, 4, 5, 8, 9)) game.setCell(col, 19, t)
         game.spawn(o)
         game.moveRight()
         game.moveRight()
         assertEquals(6, game.x)
+        return game
+    }
+
+    @Test
+    fun uneLigneCompleteDisparaitEtLesCasesDuDessusDescendentApresL_animation() {
+        val game = gameAboutToClearOneLine()
         game.hardDrop()
+        game.tick(Tetris.LINE_CLEAR_MS)
         assertEquals(1, game.lines)
         assertEquals(1, game.lastCleared)
         // 18 cases de chute directe (36 points) plus une ligne au niveau 1 (100 points).
@@ -177,11 +184,133 @@ class TetrisTest {
         repeat(4) { assertTrue(game.moveRight()) }
         assertEquals(7, game.x)
         game.hardDrop()
+        assertEquals(listOf(16, 17, 18, 19), game.clearingRows)
+        game.tick(Tetris.LINE_CLEAR_MS)
         assertEquals(4, game.lines)
         assertEquals(4, game.lastCleared)
         // 16 cases de chute directe (32 points) plus un « Tetris » (800 points).
         assertEquals(832, game.score)
         for (row in 0 until Tetris.ROWS) for (col in 0 until Tetris.COLS) assertFalse(filled(game, col, row))
+    }
+
+    // --- Animation d'une ligne complète ---
+
+    @Test
+    fun uneLigneCompleteResteVisibleEtFigeLeJeuPendantL_animation() {
+        val game = gameAboutToClearOneLine()
+        game.hardDrop()
+        assertTrue(game.isClearing)
+        assertEquals(listOf(19), game.clearingRows)
+        // La ligne est toujours là, et ni les points ni le compte de lignes n'ont encore bougé.
+        assertTrue(filled(game, 0, 19) && filled(game, 6, 19))
+        assertEquals(0, game.lines)
+        assertEquals(36, game.score)
+        // Le joueur ne peut rien faire : la pièce suivante n'est pas encore là.
+        assertFalse(game.moveLeft())
+        assertFalse(game.moveRight())
+        assertFalse(game.rotate())
+        assertFalse(game.softDrop())
+        assertFalse(game.hold())
+        game.hardDrop()
+        assertEquals(36, game.score)
+        assertTrue(game.isClearing)
+    }
+
+    @Test
+    fun lAnimationDureLeTempsPrevuPuisLaPieceSuivanteArrive() {
+        val game = gameAboutToClearOneLine()
+        game.hardDrop()
+        game.tick(Tetris.LINE_CLEAR_MS - 1)
+        assertTrue(game.isClearing)
+        assertEquals(0, game.lines)
+        game.tick(1)
+        assertFalse(game.isClearing)
+        assertTrue(game.clearingRows.isEmpty())
+        assertEquals(1, game.lines)
+        // Une nouvelle pièce est en haut du plateau, et le joueur reprend la main.
+        assertEquals(0, game.y)
+        assertFalse(game.isOver)
+        assertTrue(game.moveLeft())
+    }
+
+    @Test
+    fun lesLignesClignotentPuisS_eteignentEtAinsiDeSuite() {
+        val game = gameAboutToClearOneLine()
+        assertFalse(game.isFlashing)
+        game.hardDrop()
+        assertTrue(game.isFlashing)
+        game.tick(Tetris.FLASH_MS)
+        assertFalse(game.isFlashing)
+        game.tick(Tetris.FLASH_MS)
+        assertTrue(game.isFlashing)
+        game.tick(Tetris.FLASH_MS)
+        assertFalse(game.isFlashing)
+        // Une fois l'animation finie, plus rien ne clignote.
+        game.tick(Tetris.LINE_CLEAR_MS)
+        assertFalse(game.isFlashing)
+    }
+
+    @Test
+    fun uneLongueImagePendantL_animationLaTermineSansPerdreDePoints() {
+        val game = gameAboutToClearOneLine()
+        game.hardDrop()
+        game.tick(10_000)
+        assertFalse(game.isClearing)
+        assertEquals(1, game.lines)
+        assertEquals(136, game.score)
+    }
+
+    @Test
+    fun uneAPoseSansLigneCompleteNAPasDAnimation() {
+        val game = gameWith(t)
+        game.hardDrop()
+        assertFalse(game.isClearing)
+        assertFalse(game.isFlashing)
+        assertEquals(0, game.y)
+        assertEquals(0, game.lastCleared)
+    }
+
+    @Test
+    fun uneNouvellePartieInterrompUneAnimationEnCours() {
+        val game = gameAboutToClearOneLine()
+        game.hardDrop()
+        game.reset()
+        assertFalse(game.isClearing)
+        assertTrue(game.clearingRows.isEmpty())
+        assertEquals(0, game.score)
+        assertTrue(game.moveLeft())
+    }
+
+    @Test
+    fun uneAnimationEnCoursSeRetrouveApresSauvegarde() {
+        val game = gameAboutToClearOneLine()
+        game.hardDrop()
+        game.tick(200)
+        val copy = requireNotNull(TetrisGame.restore(game.save(), Random(3)))
+        assertTrue(copy.isClearing)
+        assertEquals(listOf(19), copy.clearingRows)
+        assertEquals(game.isFlashing, copy.isFlashing)
+        assertTrue(filled(copy, 0, 19))
+        // Le temps déjà écoulé est gardé : il reste 160 ms avant la fin.
+        copy.tick(Tetris.LINE_CLEAR_MS - 200 - 1)
+        assertTrue(copy.isClearing)
+        copy.tick(1)
+        assertFalse(copy.isClearing)
+        assertEquals(1, copy.lines)
+        assertEquals(136, copy.score)
+    }
+
+    @Test
+    fun desLignesEnAnimationAbimeesNeDonnentPasDePartie() {
+        val game = gameAboutToClearOneLine()
+        game.hardDrop()
+        val saved = game.save()
+        assertNotNull(TetrisGame.restore(saved))
+        // Une ligne qui n'existe pas.
+        assertNull(TetrisGame.restore(saved.dropLast(1) + 25))
+        // La même ligne deux fois (le nombre de lignes annoncé suit).
+        val twice = saved.toMutableList().also { it[16] = 2; it.add(19) }
+        assertNull(TetrisGame.restore(twice))
     }
 
     @Test
