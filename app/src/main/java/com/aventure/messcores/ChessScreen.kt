@@ -49,6 +49,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -664,11 +667,33 @@ private fun ChessBoard(
     // Pendant l'animation, la case d'arrivée est laissée vide : la pièce y est dessinée par l'animation.
     val animatedSquare = fx?.to ?: -1
 
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+    // Le plateau agrandi par la caméra d'une prise reste découpé à sa place, sans déborder sur le reste de l'écran.
+    Box(
+        modifier = Modifier.fillMaxWidth().then(if (wizard) Modifier.clipToBounds() else Modifier),
+        contentAlignment = Alignment.Center
+    ) {
         Box(
             modifier = Modifier
                 .widthIn(max = 440.dp)
                 .fillMaxWidth()
+                // Pendant une prise (style sorcier), la caméra incline le plateau, se rapproche de la victime et secoue à l'impact.
+                .then(
+                    if (wizard && fx?.isCapture == true) {
+                        Modifier.graphicsLayer {
+                            val camera = fx?.let { wizardCamera(it, progress.value, flipped) }
+                            transformOrigin = TransformOrigin(camera?.pivotX ?: 0.5f, camera?.pivotY ?: 0.5f)
+                            cameraDistance = 20f * density
+                            rotationX = camera?.tiltDeg ?: 0f
+                            rotationY = camera?.orbitDeg ?: 0f
+                            scaleX = camera?.zoom ?: 1f
+                            scaleY = camera?.zoom ?: 1f
+                            translationX = (camera?.shakeX ?: 0f) * size.width
+                            translationY = (camera?.shakeY ?: 0f) * size.width
+                        }
+                    } else {
+                        Modifier
+                    }
+                )
                 .then(
                     if (wizard) {
                         Modifier

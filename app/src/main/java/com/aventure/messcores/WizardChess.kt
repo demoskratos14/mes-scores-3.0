@@ -815,6 +815,72 @@ private const val STEP_END = 0.95f
 /** Durée de l'animation d'un coup, en millisecondes : courte pour un déplacement, plus longue pour une prise. */
 internal fun wizardMoveDuration(fx: MoveFx): Int = if (fx.isCapture) 2100 else 280
 
+/**
+ * La caméra d'une prise : le plateau s'incline en perspective, la caméra se rapproche de la victime et tourne un peu autour,
+ * puis une secousse accompagne l'impact. Tout est en parts du plateau, pour que l'écran n'ait qu'à l'appliquer (voir
+ * `graphicsLayer` dans ChessScreen) : [tiltDeg] et [orbitDeg] sont des rotations autour des axes horizontal et vertical,
+ * [zoom] un grossissement centré sur ([pivotX], [pivotY]) (la case de la victime), [shakeX] et [shakeY] un décalage en part de
+ * la largeur du plateau.
+ */
+internal class WizardCamera(
+    val tiltDeg: Float,
+    val orbitDeg: Float,
+    val zoom: Float,
+    val shakeX: Float,
+    val shakeY: Float,
+    val pivotX: Float,
+    val pivotY: Float
+)
+
+/**
+ * Inclinaison maximale du plateau pendant une prise, en degrés. Si le plateau semble se pencher vers toi au lieu de s'éloigner,
+ * il suffit de la passer en négatif.
+ */
+internal const val WIZARD_CAMERA_TILT_DEG = 30f
+
+/** Rotation maximale de la caméra autour de l'action, en degrés, et grossissement ajouté au plus près de la victime. */
+private const val CAMERA_ORBIT_DEG = 9f
+private const val CAMERA_ZOOM = 0.45f
+
+/** La caméra se met en place pendant la première partie de la prise, puis revient à plat sur la fin. */
+private const val CAMERA_IN_END = 0.30f
+private const val CAMERA_OUT_START = 0.72f
+private const val CAMERA_OUT_END = 0.98f
+
+/** Durée de la secousse après l'impact (en avancement de 0 à 1). */
+private const val CAMERA_SHAKE_SPAN = 0.14f
+
+/**
+ * La caméra de la prise [fx] à l'avancement [progress] (de 0 à 1), ou null pour un simple déplacement (pas de caméra).
+ * [flipped] : les noirs sont en bas.
+ */
+internal fun wizardCamera(fx: MoveFx, progress: Float, flipped: Boolean): WizardCamera? {
+    if (!fx.isCapture) return null
+    val p = progress.coerceIn(0f, 1f)
+    val settle = smooth((p / CAMERA_IN_END).coerceIn(0f, 1f))
+    val release = smooth(((p - CAMERA_OUT_START) / (CAMERA_OUT_END - CAMERA_OUT_START)).coerceIn(0f, 1f))
+    val k = settle * (1f - release)
+
+    // Les colonnes et rangées telles qu'on les voit à l'écran.
+    fun column(square: Int): Int = if (flipped) 7 - square % 8 else square % 8
+    fun row(square: Int): Int = if (flipped) 7 - square / 8 else square / 8
+    // La caméra tourne du côté d'où vient le coup.
+    val side = (column(fx.capturedSquare) - column(fx.from)).let { if (it > 0) 1f else if (it < 0) -1f else 0f }
+
+    // La secousse : un fort coup à l'impact, qui s'éteint vite.
+    val since = (p - IMPACT) / CAMERA_SHAKE_SPAN
+    val punch = if (since in 0f..1f) (1f - since) * (1f - since) else 0f
+    return WizardCamera(
+        tiltDeg = WIZARD_CAMERA_TILT_DEG * k,
+        orbitDeg = CAMERA_ORBIT_DEG * side * k,
+        zoom = 1f + CAMERA_ZOOM * k + 0.07f * punch,
+        shakeX = punch * sin(since * 40f) * 0.014f,
+        shakeY = punch * cos(since * 47f) * 0.01f,
+        pivotX = (column(fx.capturedSquare) + 0.5f) / 8f,
+        pivotY = (row(fx.capturedSquare) + 0.5f) / 8f
+    )
+}
+
 private fun lerpFloat(a: Float, b: Float, t: Float): Float = a + (b - a) * t
 
 private fun lerpOffset(a: Offset, b: Offset, t: Float): Offset = Offset(lerpFloat(a.x, b.x, t), lerpFloat(a.y, b.y, t))
