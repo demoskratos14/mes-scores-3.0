@@ -1,0 +1,15 @@
+Modèles 3D du style « sorcier » (échecs), pour l'animation des prises.
+
+Source : « Harry Potter Chess Set » (REV J), Thingiverse n° 5886018, par PHusband / remix Meyerhouse,
+licence CC BY-NC-SA (usage non commercial, partage dans les mêmes conditions, auteur à citer).
+
+Format : glTF binaire (.glb), Y vers le haut, unité = le mètre (un roi fait 0,088), orientation horizontale conservée
+telle que dans le fichier d'origine (elle varie d'une pièce à l'autre), base posée à Y = 0 et centrée sur l'origine. Les normales sont déjà calculées, le matériau est un gris neutre
+(à remplacer par le marbre ou l'obsidienne selon le camp).
+Les pièces ont été simplifiées (de 65 000 - 120 000 triangles à 4 500 - 10 000) ; les armes (weapon_*) sont des objets
+séparés, à placer dans la main de la pièce (l'origine est le bas de l'arme).
+
+  king, queen, rook, bishop, knight, pawn    les six pièces
+  weapon_king_sword     épée du roi          weapon_rook_sword    épée de la tour
+  weapon_knight_mace    masse du cavalier    weapon_queen_wand    baguette de la reine
+  weapon_bishop_staff   crosse du fou
