@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.IntSize
+import androidx.core.graphics.createBitmap
 import java.io.IOException
 
 /*
@@ -110,6 +111,6 @@ private class Scene3DBuffers {
     fun bitmap(w: Int, h: Int): Bitmap {
         val b = bitmap
         if (b != null && b.width == w && b.height == h) return b
-        return Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { bitmap = it }
+        return createBitmap(w, h).also { bitmap = it }
     }
 }
