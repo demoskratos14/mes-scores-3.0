@@ -349,6 +349,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Tetris : écran à part (voir TetrisScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = TETRIS_ID,
+        name = context.getString(R.string.game_tetris),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Gomoku : écran à part (voir DuoGameScreen), à deux joueurs ; le mode de score n'est pas utilisé.
     GameRules(
         id = GOMOKU_ID,

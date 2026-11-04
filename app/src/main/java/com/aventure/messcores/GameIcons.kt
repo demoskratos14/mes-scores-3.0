@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -125,6 +125,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             CIRCLES_ID -> drawCircles()
             SIMON_ID -> drawSimon()
             RHYTHM_ID -> drawRhythm()
+            TETRIS_ID -> drawTetris()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -274,6 +275,33 @@ private fun DrawScope.drawSimon() {
     drawRoundRect(Color(0xFF9E2A27), Offset(left + pad + gap, top), Size(pad, pad), corner)
     drawRoundRect(Color(0xFF9C7F10), Offset(left, top + pad + gap), Size(pad, pad), corner)
     drawRoundRect(Color(0xFF1F4FA0), Offset(left + pad + gap, top + pad + gap), Size(pad, pad), corner)
+}
+
+private fun DrawScope.drawTetris() {
+    paper(Color(0xFF1A1F2B))
+    val s = size.minDimension
+    // Une pile de blocs dans un puits, et un « T » violet qui tombe.
+    val unit = s * 0.15f
+    val left = s * 0.2f
+    val bottom = s * 0.86f
+    val corner = CornerRadius(unit * 0.15f)
+    fun block(col: Int, row: Int, color: Color) = drawRoundRect(
+        color = color,
+        topLeft = Offset(left + col * unit + unit * 0.04f, bottom - (row + 1) * unit + unit * 0.04f),
+        size = Size(unit * 0.92f, unit * 0.92f),
+        cornerRadius = corner
+    )
+    val red = Color(0xFFE53935)
+    val cyan = Color(0xFF00BCD4)
+    val orange = Color(0xFFFB8C00)
+    val green = Color(0xFF43A047)
+    listOf(red, red, cyan, cyan).forEachIndexed { col, color -> block(col, 0, color) }
+    listOf(orange, green, green).forEachIndexed { col, color -> block(col, 1, color) }
+    val purple = Color(0xFF8E24AA)
+    block(1, 3, purple)
+    block(0, 4, purple)
+    block(1, 4, purple)
+    block(2, 4, purple)
 }
 
 private fun DrawScope.drawRhythm() {
