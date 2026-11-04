@@ -2027,7 +2027,6 @@
         <item quantity="one">Draw pile, %d card: tap to draw</item>
         <item quantity="other">Draw pile, %d cards: tap to draw</item>
     </plurals>
-    <string name="card_stock_tap">Tap the draw pile to draw a card.</string>
     <string name="card_draw_forbidden">You cannot draw: you have a playable card.</string>
     <string name="uno_already_drawn">You have already drawn: play the drawn card if you can, otherwise pass your turn.</string>
     <string name="uno_drawn_only">After drawing, you can only play the card you drew.</string>

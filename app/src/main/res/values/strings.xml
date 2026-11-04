@@ -2071,7 +2071,6 @@
         <item quantity="many">Pioche, %d de cartes : touche pour piocher</item>
         <item quantity="other">Pioche, %d cartes : touche pour piocher</item>
     </plurals>
-    <string name="card_stock_tap">Touche la pioche pour piocher une carte.</string>
     <string name="card_draw_forbidden">Tu ne peux pas piocher : tu as une carte jouable.</string>
     <string name="uno_already_drawn">Tu as déjà pioché : pose la carte piochée si tu le peux, sinon passe ton tour.</string>
     <string name="uno_drawn_only">Après avoir pioché, tu ne peux poser que la carte piochée.</string>

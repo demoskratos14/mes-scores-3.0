@@ -3,8 +3,6 @@ package com.aventure.messcores
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -105,6 +102,8 @@ internal fun UnoSection(viewModel: ScoreViewModel, round: UnoRound, onLeave: () 
     val players = viewModel.players
     val labels = rememberUnoLabels()
     val over = viewModel.isGameOver()
+    // Le texte (ressource) refusant la pioche touchée ; effacé dès que la main ou le tour change.
+    var stockError by remember(round.current, round.roundNumber, round.currentHand.size) { mutableStateOf<Int?>(null) }
 
     // Une manche qui vient de finir est inscrite tout de suite : quitter ensuite ne la fait pas perdre.
     fun settleIfOver() {
@@ -129,7 +128,28 @@ internal fun UnoSection(viewModel: ScoreViewModel, round: UnoRound, onLeave: () 
         color = Color.White
     )
 
-    UnoTableCard(round = round, labels = labels, players = players)
+    // La pioche est à côté de la dernière carte posée : touchable seulement quand la main est dévoilée.
+    UnoTableCard(
+        round = round,
+        labels = labels,
+        players = players,
+        stockError = stockError,
+        onStockClick = if (round.revealed && !round.roundOver) {
+            {
+                stockError = when {
+                    round.drawnCard >= 0 -> R.string.uno_already_drawn
+                    round.hasPlayable -> R.string.card_draw_forbidden
+                    round.canDraw -> {
+                        round.draw()
+                        null
+                    }
+                    else -> R.string.huit_must_pass
+                }
+            }
+        } else {
+            null
+        }
+    )
 
     if (round.roundOver) {
         UnoRoundResult(
@@ -155,7 +175,6 @@ internal fun UnoSection(viewModel: ScoreViewModel, round: UnoRound, onLeave: () 
         onPlay = { card, color ->
             if (round.play(card, color)) settleIfOver()
         },
-        onDraw = { round.draw() },
         onPass = {
             if (round.pass()) settleIfOver()
         }
@@ -181,34 +200,46 @@ private fun eventText(event: UnoEvent, labels: UnoLabels, players: List<String>)
     }
 }
 
-/** La table : dernière carte posée, couleur demandée, sens du jeu, pioche et nombre de cartes de chaque joueur (rien de secret). */
+/**
+ * La table : dernière carte posée avec la pioche juste en face, couleur demandée (sur 2 lignes si besoin), sens du jeu et nombre
+ * de cartes de chaque joueur (rien de secret). [onStockClick] null : la pioche n'est pas touchable (main cachée ou manche finie).
+ */
 @Composable
-private fun UnoTableCard(round: UnoRound, labels: UnoLabels, players: List<String>) {
+private fun UnoTableCard(
+    round: UnoRound,
+    labels: UnoLabels,
+    players: List<String>,
+    stockError: Int?,
+    onStockClick: (() -> Unit)?
+) {
     CardPanel {
         Text(
             text = stringResource(R.string.huit_top_card),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            UnoCardFace(card = round.top, labels = labels, playable = true, modifier = Modifier.width(64.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = stringResource(R.string.uno_asked_color, labels.colorName(round.askedColor)),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = unoInk(round.askedColor)
-                )
-                Text(
-                    text = stringResource(if (round.direction > 0) R.string.uno_direction_forward else R.string.uno_direction_backward),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = stringResource(R.string.huit_stock, round.stock.size),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+        CardTableRow(
+            stockCount = round.stock.size,
+            onStockClick = onStockClick,
+            top = { UnoCardFace(card = round.top, labels = labels, playable = true, modifier = it) },
+            pile = { UnoCardBack(it) }
+        ) {
+            Text(
+                text = stringResource(R.string.uno_asked_color, labels.colorName(round.askedColor)),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = unoInk(round.askedColor)
+            )
+            Text(
+                text = stringResource(if (round.direction > 0) R.string.uno_direction_forward else R.string.uno_direction_backward),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = stringResource(R.string.huit_stock, round.stock.size),
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
+        stockError?.let { CardErrorText(stringResource(it)) }
         round.lastEvent?.let { event ->
             Text(
                 text = eventText(event, labels, players),
@@ -242,7 +273,6 @@ private fun UnoHandCard(
     labels: UnoLabels,
     name: String,
     onPlay: (card: Int, color: Int) -> Unit,
-    onDraw: () -> Unit,
     onPass: () -> Unit
 ) {
     // Le joker que le joueur vient de toucher et dont il doit encore choisir la couleur (-1 : aucun).
@@ -289,22 +319,6 @@ private fun UnoHandCard(
             )
         }
 
-        // La pioche est toujours visible et touchable ; elle refuse le joueur qui a une carte jouable ou qui a déjà pioché.
-        CardStockRow(
-            count = round.stock.size,
-            onClick = {
-                error = when {
-                    round.drawnCard >= 0 -> R.string.uno_already_drawn
-                    round.hasPlayable -> R.string.card_draw_forbidden
-                    round.canDraw -> {
-                        onDraw()
-                        null
-                    }
-                    else -> R.string.huit_must_pass
-                }
-            },
-            pile = { UnoCardBack(it) }
-        )
         error?.let { CardErrorText(stringResource(it)) }
 
         when {

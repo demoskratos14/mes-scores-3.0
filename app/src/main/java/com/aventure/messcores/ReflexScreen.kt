@@ -135,7 +135,10 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var goAt by rememberSaveable { mutableLongStateOf(0L) }
 
-    val match = ReflexMatch(
+    // La séance relue dans les états à chaque appel : un toucher n'est pas traité sur la photo prise à la dernière
+    // recomposition. Sinon, quand le second joueur touche quelques millisecondes après le premier (avant que l'écran
+    // ne soit redessiné), sa zone verrait encore la manche d'avant et son temps serait perdu.
+    fun readMatch() = ReflexMatch(
         wins1 = wins1,
         wins2 = wins2,
         lastWinner = lastWinner,
@@ -147,6 +150,8 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
         totalMs2 = totalMs2,
         timedRounds2 = timedRounds2
     )
+
+    val match = readMatch()
 
     fun applyMatch(next: ReflexMatch, nextPhase: Int = PHASE_DONE) {
         wins1 = next.wins1
@@ -178,12 +183,15 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
     }
 
     fun onTap(player: Int) {
+        // Le moment du toucher est pris tout de suite, avant tout calcul.
+        val reaction = SystemClock.elapsedRealtime() - goAt
+        val current = readMatch()
         when (phase) {
-            PHASE_WAITING -> match.tapTooEarly(player)?.let { applyMatch(it) }
-            PHASE_GO -> match.tapAfterSignal(player, SystemClock.elapsedRealtime() - goAt)
+            PHASE_WAITING -> current.tapTooEarly(player)?.let { applyMatch(it) }
+            PHASE_GO -> current.tapAfterSignal(player, reaction)
                 ?.let { applyMatch(it, nextPhase = PHASE_LOSER) }
-            PHASE_LOSER -> if (player == 3 - match.lastWinner) {
-                applyMatch(match.loserTapped(SystemClock.elapsedRealtime() - goAt))
+            PHASE_LOSER -> if (player == 3 - current.lastWinner) {
+                applyMatch(current.loserTapped(reaction))
             }
         }
     }

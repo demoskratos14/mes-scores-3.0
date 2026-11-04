@@ -2066,7 +2066,6 @@
         <item quantity="many">Mazzo da cui pescare, %d di carte: tocca per pescare</item>
         <item quantity="other">Mazzo da cui pescare, %d carte: tocca per pescare</item>
     </plurals>
-    <string name="card_stock_tap">Tocca il mazzo per pescare una carta.</string>
     <string name="card_draw_forbidden">Non puoi pescare: hai una carta giocabile.</string>
     <string name="uno_already_drawn">Hai già pescato: gioca la carta pescata se puoi, altrimenti passa il turno.</string>
     <string name="uno_drawn_only">Dopo aver pescato, puoi giocare solo la carta pescata.</string>

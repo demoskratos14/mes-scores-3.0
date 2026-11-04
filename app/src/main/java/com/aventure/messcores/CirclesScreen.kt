@@ -380,7 +380,8 @@ private fun CirclesPlayfield(name: String, level: CirclesLevel, onFinished: (str
                     drawCircle(color.copy(alpha = 0.3f), radius = maxRadius, center = middle, style = Stroke(width = 2.dp.toPx()))
                     drawCircle(color, radius = radius, center = middle)
                     drawCircle(Color.White.copy(alpha = 0.85f), radius = radius * 0.4f, center = middle)
-                    skulls.forEach { drawSkull(Offset(it.x, it.y), skullRadius) }
+                    // Au niveau difficile, le fond des têtes de mort prend la couleur du rond, qui change à chaque rond touché.
+                    skulls.forEach { drawSkull(Offset(it.x, it.y), skullRadius, background = color) }
                 }
             }
         }
@@ -394,14 +395,15 @@ private fun levelName(level: CirclesLevel): Int = when (level) {
 }
 
 /**
- * Une tête de mort de rayon [radius] centrée en [center] : un crâne blanc sur un disque sombre cerclé de rouge, pour se
- * distinguer d'un rond de couleur sur un fond clair comme sur un fond sombre. On la reconnaît à sa forme, pas à sa couleur.
+ * Une tête de mort de rayon [radius] centrée en [center] : un crâne blanc sur un disque de la couleur [background] (celle du
+ * rond en cours, pour prêter à confusion), cerclé de sombre pour que le disque se détache du fond de l'écran. On la
+ * reconnaît à son crâne, pas à sa couleur.
  */
-private fun DrawScope.drawSkull(center: Offset, radius: Float) {
+private fun DrawScope.drawSkull(center: Offset, radius: Float, background: Color) {
     val dark = Color(0xFF212121)
     val bone = Color(0xFFF5F5F5)
-    drawCircle(dark, radius = radius, center = center)
-    drawCircle(Color(0xFFD32F2F), radius = radius, center = center, style = Stroke(width = radius * 0.08f))
+    drawCircle(background, radius = radius, center = center)
+    drawCircle(dark, radius = radius, center = center, style = Stroke(width = radius * 0.08f))
     // Le crâne, puis la mâchoire.
     drawCircle(bone, radius = radius * 0.6f, center = Offset(center.x, center.y - radius * 0.12f))
     drawRoundRect(

@@ -2056,7 +2056,6 @@
         <item quantity="many">Mazo para robar, %d de cartas: toca para robar</item>
         <item quantity="other">Mazo para robar, %d cartas: toca para robar</item>
     </plurals>
-    <string name="card_stock_tap">Toca el mazo para robar una carta.</string>
     <string name="card_draw_forbidden">No puedes robar: tienes una carta jugable.</string>
     <string name="uno_already_drawn">Ya has robado: juega la carta robada si puedes; si no, pasa tu turno.</string>
     <string name="uno_drawn_only">Después de robar, solo puedes jugar la carta robada.</string>

@@ -147,24 +147,29 @@ internal fun CardErrorText(message: String) {
 }
 
 /**
- * La pioche : un tas de cartes dos visible, à toucher pour piocher ([onClick]). Elle est toujours là, que le joueur ait une carte
- * jouable ou non (aucune aide) : c'est à la règle du jeu de refuser une pioche interdite. [pile] dessine le dos de la carte du
- * jeu avec le modifier qui lui donne sa largeur et le rend touchable.
+ * La ligne de la table : la dernière carte posée ([top]), la pioche juste en face d'elle, puis les infos ([info]) dans la place
+ * qui reste (le texte de la couleur demandée peut passer sur 2 lignes). [top] et [pile] dessinent une carte avec le modifier
+ * qui lui donne sa largeur. La pioche est toujours visible, que le joueur ait une carte jouable ou non (aucune aide) : c'est à
+ * la règle du jeu de refuser une pioche interdite. [onStockClick] null : pioche en simple affichage (main pas encore dévoilée).
  */
 @Composable
-internal fun CardStockRow(count: Int, onClick: () -> Unit, pile: @Composable (Modifier) -> Unit) {
-    val description = pluralStringResource(R.plurals.card_stock_desc, count, count)
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+internal fun CardTableRow(
+    stockCount: Int,
+    onStockClick: (() -> Unit)?,
+    top: @Composable (Modifier) -> Unit,
+    pile: @Composable (Modifier) -> Unit,
+    info: @Composable ColumnScope.() -> Unit
+) {
+    val description = pluralStringResource(R.plurals.card_stock_desc, stockCount, stockCount)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        top(Modifier.width(64.dp))
         pile(
             Modifier
                 .width(64.dp)
-                .clickable(role = Role.Button, onClick = onClick)
+                .then(if (onStockClick != null) Modifier.clickable(role = Role.Button, onClick = onStockClick) else Modifier)
                 .semantics { contentDescription = description }
         )
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(text = stringResource(R.string.huit_stock, count), style = MaterialTheme.typography.titleMedium)
-            Text(text = stringResource(R.string.card_stock_tap), style = MaterialTheme.typography.bodyMedium)
-        }
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp), content = info)
     }
 }
 
