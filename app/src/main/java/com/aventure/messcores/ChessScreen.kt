@@ -71,7 +71,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 /**
  * Échecs à deux joueurs : sur un seul téléphone (on se passe l'appareil) ou chacun sur le sien (voir [ChessOnline]).
@@ -645,6 +647,16 @@ private fun ChessBoard(
     // Rien ne s'anime à l'ouverture de l'écran, au changement de style ni au début d'une nouvelle manche.
     var fx by remember { mutableStateOf<MoveFx?>(null) }
     val progress = remember { Animatable(1f) }
+    // Les modèles 3D des pièces sorcier, chargés une fois hors du fil principal ; sans eux (fichier manquant ou illisible),
+    // les prises restent animées avec les statues 2D.
+    val assets = LocalContext.current.assets
+    var models3d by remember { mutableStateOf(false) }
+    LaunchedEffect(wizard) {
+        if (wizard && !models3d) {
+            withContext(Dispatchers.Default) { WizardModels.preload(assets) }
+            models3d = true
+        }
+    }
     var previousBoard by remember { mutableStateOf(game.position.board) }
     var previousCount by remember { mutableIntStateOf(game.moves.size) }
     LaunchedEffect(game.moves.size, wizard) {
@@ -775,10 +787,22 @@ private fun ChessBoard(
                     }
                 }
                 // Le coup en cours d'animation, dessiné par-dessus les cases (sans gêner les touches).
+                // Pour une prise, la pièce qui prend et sa victime sont en 3D (sous les effets) quand leurs modèles sont chargés.
                 val playing = fx
                 if (playing != null) {
+                    val capture3d = remember(playing, models3d) {
+                        if (models3d) Wizard3DCapture.create(playing) { WizardModels.mesh(assets, it) } else null
+                    }
+                    if (capture3d != null) {
+                        Scene3DView(
+                            scene = capture3d.scene,
+                            modifier = Modifier.matchParentSize(),
+                            renderScale = WIZARD_3D_RENDER_SCALE,
+                            update = { capture3d.update(progress.value, flipped) }
+                        )
+                    }
                     Canvas(modifier = Modifier.matchParentSize()) {
-                        drawMoveFx(playing, progress.value, flipped)
+                        drawMoveFx(playing, progress.value, flipped, capture3d?.anchors(progress.value, flipped))
                     }
                 }
             }

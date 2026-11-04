@@ -798,7 +798,7 @@ private val SHARDS: List<Shard> by lazy {
     result
 }
 
-private fun smooth(x: Float): Float = x * x * (3f - 2f * x)
+internal fun smooth(x: Float): Float = x * x * (3f - 2f * x)
 
 /*
  * Le déroulé d'une prise (avancement de 0 à 1) :
@@ -807,10 +807,10 @@ private fun smooth(x: Float): Float = x * x * (3f - 2f * x)
  *  - IMPACT → FOLLOW_END : l'arme revient au repos, la victime est tranchée, écrasée, percée ou foudroyée ;
  *  - FOLLOW_END → STEP_END : la pièce prend la place de sa victime ; les débris, eux, retombent jusqu'à la fin.
  */
-private const val ATTACK_START = 0.22f
-private const val IMPACT = 0.46f
-private const val FOLLOW_END = 0.62f
-private const val STEP_END = 0.95f
+internal const val ATTACK_START = 0.22f
+internal const val IMPACT = 0.46f
+internal const val FOLLOW_END = 0.62f
+internal const val STEP_END = 0.95f
 
 /** Durée de l'animation d'un coup, en millisecondes : courte pour un déplacement, plus longue pour une prise. */
 internal fun wizardMoveDuration(fx: MoveFx): Int = if (fx.isCapture) 2100 else 280
@@ -947,9 +947,10 @@ private fun bladeAngle(progress: Float, windup: Float, strike: Float): Float {
 /**
  * Dessine, par-dessus l'échiquier (côté [size].width), le coup [fx] à l'avancement [progress] (de 0 à 1) : la pièce glisse
  * d'une case à l'autre ; si elle en prend une, chaque pièce frappe avec son arme, à sa façon (voir [drawCapture]).
- * [flipped] : les noirs sont en bas.
+ * [flipped] : les noirs sont en bas. [anchors] : quand les pièces d'une prise sont dessinées en 3D (voir Wizard3D.kt), les
+ * points où les effets s'accrochent à elles ; les statues 2D ne sont alors pas dessinées, seuls les effets le sont.
  */
-internal fun DrawScope.drawMoveFx(fx: MoveFx, progress: Float, flipped: Boolean) {
+internal fun DrawScope.drawMoveFx(fx: MoveFx, progress: Float, flipped: Boolean, anchors: CaptureAnchors? = null) {
     val cell = size.width / 8f
     fun origin(square: Int): Offset {
         val row = square / 8
@@ -959,7 +960,7 @@ internal fun DrawScope.drawMoveFx(fx: MoveFx, progress: Float, flipped: Boolean)
     val from = origin(fx.from)
     val to = origin(fx.to)
     if (fx.isCapture) {
-        drawCapture(fx, progress, cell, from, to, origin(fx.capturedSquare))
+        drawCapture(fx, progress, cell, from, to, origin(fx.capturedSquare), anchors)
         return
     }
     val slide = smooth(progress.coerceIn(0f, 1f))
@@ -972,16 +973,53 @@ internal fun DrawScope.drawMoveFx(fx: MoveFx, progress: Float, flipped: Boolean)
 }
 
 /**
- * Une prise. Chaque pièce se sert de son arme :
- *  - le pion fait surgir deux épées courtes qu'il croise sur sa victime, coupée en deux ;
- *  - la tour recule d'un cran et tire un carreau d'arbalète en plein cœur : la victime se fissure et vole en éclats ;
- *  - le cavalier bondit et abat sa masse d'armes : la victime est écrasée, puis brisée ;
- *  - le fou lève sa crosse, qui s'embrase : un éclair d'or frappe la victime, qui se dissout en lumière ;
- *  - la dame dégaine une longue lame et la balaie d'un grand revers : la victime est tranchée en biais ;
- *  - le roi lève son épée à deux mains et l'abat : la victime est fendue en deux, de haut en bas.
- * Puis la pièce rengaine et prend la place de sa victime.
+ * Tout ce qui décrit, à l'avancement [progress], où est la pièce qui prend et comment elle tient son arme : calculé à part
+ * pour que les statues 2D et les pièces 3D (Wizard3D.kt) suivent exactement le même mouvement. Les positions sont en
+ * pixels, pour une case de [cell] pixels.
  */
-private fun DrawScope.drawCapture(fx: MoveFx, progress: Float, cell: Float, from: Offset, to: Offset, targetOrigin: Offset) {
+internal class CaptureMotion(
+    val kind: Char,
+    val targetCenter: Offset,
+    val dx: Float,
+    val u: Offset,
+    val angleU: Float,
+    val side: Float,
+    val stopCenter: Offset,
+    val a: Float,
+    val b: Float,
+    val after: Float,
+    val center: Offset,
+    val moverOrigin: Offset,
+    val bounce: Float,
+    val faceRight: Boolean?,
+    val flip: Boolean,
+    val unit: Float,
+    val rig: WeaponRig?,
+    val restAngle: Float,
+    val weaponDeg: Float,
+    val weaponScale: Float,
+    val swingAngle: Float,
+    val kingWind: Float,
+    val kingStrike: Float,
+    val knightWind: Float,
+    val knightStrike: Float
+)
+
+/** Le coin haut-gauche de la case [square], en pixels, pour des cases de [cell] pixels ([flipped] : les noirs sont en bas). */
+internal fun wizardSquareOrigin(square: Int, flipped: Boolean, cell: Float): Offset {
+    val row = square / 8
+    val col = square % 8
+    return Offset((if (flipped) 7 - col else col) * cell, (if (flipped) 7 - row else row) * cell)
+}
+
+internal fun captureMotionFor(fx: MoveFx, progress: Float, cell: Float, flipped: Boolean): CaptureMotion =
+    captureMotion(
+        fx, progress, cell,
+        wizardSquareOrigin(fx.from, flipped, cell), wizardSquareOrigin(fx.to, flipped, cell),
+        wizardSquareOrigin(fx.capturedSquare, flipped, cell)
+    )
+
+internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offset, to: Offset, targetOrigin: Offset): CaptureMotion {
     val kind = fx.mover.uppercaseChar()
     val half = Offset(cell / 2f, cell / 2f)
     val fromCenter = from + half
@@ -1072,7 +1110,58 @@ private fun DrawScope.drawCapture(fx: MoveFx, progress: Float, cell: Float, from
         }
     }
 
+
+    return CaptureMotion(
+        kind, targetCenter, dx, u, angleU, side, stopCenter, a, b, after, center, moverOrigin, bounce,
+        faceRight, flip, unit, rig, restAngle, weaponDeg, weaponScale, swingAngle,
+        kingWind, kingStrike, knightWind, knightStrike
+    )
+}
+
+/**
+ * Une prise. Chaque pièce se sert de son arme :
+ *  - le pion fait surgir deux épées courtes qu'il croise sur sa victime, coupée en deux ;
+ *  - la tour recule d'un cran et tire un carreau d'arbalète en plein cœur : la victime se fissure et vole en éclats ;
+ *  - le cavalier bondit et abat sa masse d'armes : la victime est écrasée, puis brisée ;
+ *  - le fou lève sa crosse, qui s'embrase : un éclair d'or frappe la victime, qui se dissout en lumière ;
+ *  - la dame dégaine une longue lame et la balaie d'un grand revers : la victime est tranchée en biais ;
+ *  - le roi lève son épée à deux mains et l'abat : la victime est fendue en deux, de haut en bas.
+ * Puis la pièce rengaine et prend la place de sa victime.
+ */
+private fun DrawScope.drawCapture(
+    fx: MoveFx, progress: Float, cell: Float, from: Offset, to: Offset, targetOrigin: Offset, anchors: CaptureAnchors?
+) {
+    val m = captureMotion(fx, progress, cell, from, to, targetOrigin)
+    val kind = m.kind
+    val targetCenter = m.targetCenter
+    val u = m.u
+    val angleU = m.angleU
+    val side = m.side
+    val stopCenter = m.stopCenter
+    val a = m.a
+    val b = m.b
+    val after = m.after
+    val center = m.center
+    val moverOrigin = m.moverOrigin
+    val bounce = m.bounce
+    val faceRight = m.faceRight
+    val flip = m.flip
+    val unit = m.unit
+    val rig = m.rig
+    val restAngle = m.restAngle
+    val weaponDeg = m.weaponDeg
+    val weaponScale = m.weaponScale
+    val swingAngle = m.swingAngle
+    val kingWind = m.kingWind
+    val kingStrike = m.kingStrike
+    val knightWind = m.knightWind
+    val knightStrike = m.knightStrike
+    // Pièces en 3D : les statues ne sont pas dessinées ici, et les effets s'accrochent aux points fournis (en cases).
+    val sprites = anchors == null
+    fun at(point: Offset) = Offset(point.x * cell, point.y * cell)
+
     fun drawMover() {
+        if (!sprites) return
         withTransform({ scale(bounce, bounce, pivot = center) }) {
             drawWizardPiece(
                 fx.mover, moverOrigin, cell,
@@ -1081,7 +1170,7 @@ private fun DrawScope.drawCapture(fx: MoveFx, progress: Float, cell: Float, from
         }
     }
 
-    fun drawTarget() = drawCaptured(kind, fx.captured, targetOrigin, cell, progress, a, after, angleU, side)
+    fun drawTarget() = drawCaptured(kind, fx.captured, targetOrigin, cell, progress, a, after, angleU, side, sprites)
 
     // Celui qui est le plus bas à l'écran passe devant.
     if (targetCenter.y > stopCenter.y + 1f) {
@@ -1103,8 +1192,8 @@ private fun DrawScope.drawCapture(fx: MoveFx, progress: Float, cell: Float, from
             // Deux épées courtes surgissent des mains du pion et se croisent sur la victime.
             val grow = if (progress < IMPACT) smooth((a / 0.25f).coerceIn(0f, 1f)) else 1f - smooth(b)
             val length = cell * 0.62f
-            val pivotA = wizardSpritePoint(moverOrigin, cell, flip, 38f, 56f)
-            val pivotB = wizardSpritePoint(moverOrigin, cell, flip, 46f, 62f)
+            val pivotA = if (anchors != null) at(anchors.pawnHandA) else wizardSpritePoint(moverOrigin, cell, flip, 38f, 56f)
+            val pivotB = if (anchors != null) at(anchors.pawnHandB) else wizardSpritePoint(moverOrigin, cell, flip, 46f, 62f)
             val windA = angleU + side * 80f
             val endA = angleU - side * 30f
             val windB = angleU - side * 80f
@@ -1124,7 +1213,7 @@ private fun DrawScope.drawCapture(fx: MoveFx, progress: Float, cell: Float, from
             // La dame dégaine une longue lame, levée par-dessus l'épaule puis balayée d'un grand revers.
             val grow = if (progress < IMPACT) smooth((a / 0.3f).coerceIn(0f, 1f)) else 1f - smooth(b)
             val length = cell * 0.95f
-            val pivot = wizardSpritePoint(moverOrigin, cell, flip, 62f, 56f)
+            val pivot = if (anchors != null) at(anchors.queenTip) else wizardSpritePoint(moverOrigin, cell, flip, 62f, 56f)
             val wind = angleU + side * 105f
             val end = angleU - side * 75f
             val angle = bladeAngle(progress, wind, end)
@@ -1133,16 +1222,16 @@ private fun DrawScope.drawCapture(fx: MoveFx, progress: Float, cell: Float, from
             drawBlade(pivot, angle, length * grow, fadeOut, Color(0xFFD9B44A))
         }
         'K' -> {
-            val pivot = wizardSpritePoint(moverOrigin, cell, flip, rig!!.px, rig.py)
-            val radius = 28f * unit * weaponScale * 0.85f
+            val pivot = if (anchors != null) at(anchors.hand) else wizardSpritePoint(moverOrigin, cell, flip, rig!!.px, rig.py)
+            val radius = if (anchors != null) anchors.swingRadius * cell else 28f * unit * weaponScale * 0.85f
             if (a >= 0.6f || progress >= IMPACT) {
                 val head = if (progress < IMPACT) swingAngle else kingStrike
                 drawSwingTrail(pivot, radius, head, kingWind, kingStrike, fadeOut)
             }
         }
         'N' -> {
-            val pivot = wizardSpritePoint(moverOrigin, cell, flip, rig!!.px, rig.py)
-            val radius = 24f * unit * weaponScale * 0.9f
+            val pivot = if (anchors != null) at(anchors.hand) else wizardSpritePoint(moverOrigin, cell, flip, rig!!.px, rig.py)
+            val radius = if (anchors != null) anchors.swingRadius * cell else 24f * unit * weaponScale * 0.9f
             if (a >= 0.6f || progress >= IMPACT) {
                 val head = if (progress < IMPACT) swingAngle else knightStrike
                 drawSwingTrail(pivot, radius, head, knightWind, knightStrike, fadeOut)
@@ -1150,9 +1239,13 @@ private fun DrawScope.drawCapture(fx: MoveFx, progress: Float, cell: Float, from
         }
         'R' -> {
             // Le carreau part de l'arbalète à la moitié du geste et file jusqu'à la victime.
-            val pivot = wizardSpritePoint(moverOrigin, cell, flip, rig!!.px, rig.py)
-            val aim = (restAngle + weaponDeg) * RAD
-            val muzzle = pivot + Offset(cos(aim), sin(aim)) * (18f * unit * weaponScale)
+            val muzzle = if (anchors != null) {
+                at(anchors.muzzle)
+            } else {
+                val pivot = wizardSpritePoint(moverOrigin, cell, flip, rig!!.px, rig.py)
+                val aim = (restAngle + weaponDeg) * RAD
+                pivot + Offset(cos(aim), sin(aim)) * (18f * unit * weaponScale)
+            }
             if (progress < IMPACT && a >= 0.5f) {
                 val flash = (1f - abs(a - 0.55f) / 0.2f).coerceIn(0f, 1f)
                 drawCircle(Color(0xFFFFE08A), radius = cell * 0.12f * flash, center = muzzle, alpha = flash)
@@ -1172,8 +1265,12 @@ private fun DrawScope.drawCapture(fx: MoveFx, progress: Float, cell: Float, from
         }
         'B' -> {
             // La crosse s'embrase, puis un éclair d'or file jusqu'à la victime.
-            val pivot = wizardSpritePoint(moverOrigin, cell, false, rig!!.px, rig.py)
-            val head = rotateAround(pivot, wizardSpritePoint(moverOrigin, cell, false, 76f, 13f), weaponDeg)
+            val head = if (anchors != null) {
+                at(anchors.bishopHead)
+            } else {
+                val pivot = wizardSpritePoint(moverOrigin, cell, false, rig!!.px, rig.py)
+                rotateAround(pivot, wizardSpritePoint(moverOrigin, cell, false, 76f, 13f), weaponDeg)
+            }
             val charge = if (progress < IMPACT) smooth((a / 0.55f).coerceIn(0f, 1f)) else 1f - smooth(b)
             val pulse = 0.85f + 0.15f * sin(progress * 90f)
             val radius = cell * (0.04f + 0.22f * charge) * pulse
@@ -1275,10 +1372,11 @@ private fun DrawScope.drawLightning(start: Offset, end: Offset, cell: Float, alp
  * celui qui la prend : tranchée (pion, dame, roi), écrasée (cavalier), percée (tour) ou dissoute en lumière (fou).
  */
 private fun DrawScope.drawCaptured(
-    kind: Char, piece: Char, origin: Offset, cell: Float, progress: Float, a: Float, after: Float, angleU: Float, side: Float
+    kind: Char, piece: Char, origin: Offset, cell: Float, progress: Float, a: Float, after: Float, angleU: Float, side: Float,
+    sprites: Boolean = true
 ) {
     if (progress < IMPACT) {
-        drawWizardPiece(piece, origin, cell)
+        if (sprites) drawWizardPiece(piece, origin, cell)
         if (kind == 'B' && a > 0.55f) {
             val center = Offset(origin.x + cell / 2f, origin.y + cell / 2f)
             val glow = smooth(((a - 0.55f) / 0.45f).coerceIn(0f, 1f))
@@ -1292,24 +1390,24 @@ private fun DrawScope.drawCaptured(
         return
     }
     when (kind) {
-        'P' -> drawSliced(piece, origin, cell, after, angleU + 90f)
-        'Q' -> drawSliced(piece, origin, cell, after, angleU + 90f + side * 35f)
-        'K' -> drawSliced(piece, origin, cell, after, angleU)
-        'N' -> drawCrushed(piece, origin, cell, after)
-        'R' -> drawPierced(piece, origin, cell, after)
-        else -> drawShatter(piece, origin, cell, after, golden = true)
+        'P' -> drawSliced(piece, origin, cell, after, angleU + 90f, sprites)
+        'Q' -> drawSliced(piece, origin, cell, after, angleU + 90f + side * 35f, sprites)
+        'K' -> drawSliced(piece, origin, cell, after, angleU, sprites)
+        'N' -> drawCrushed(piece, origin, cell, after, sprites)
+        'R' -> drawPierced(piece, origin, cell, after, sprites)
+        else -> drawShatter(piece, origin, cell, after, golden = true, sprites = sprites)
     }
 }
 
 // Tranchée : la pièce est coupée en deux le long d'une ligne (angle [cutDeg]) ; les deux moitiés s'écartent, basculent et tombent.
-private fun DrawScope.drawSliced(piece: Char, origin: Offset, cell: Float, after: Float, cutDeg: Float) {
+private fun DrawScope.drawSliced(piece: Char, origin: Offset, cell: Float, after: Float, cutDeg: Float, sprites: Boolean = true) {
     val center = Offset(origin.x + cell / 2f, origin.y + cell / 2f)
     val d = Offset(cos(cutDeg * RAD), sin(cutDeg * RAD))
     val n = Offset(-d.y, d.x)
     val ease = 1f - (1f - after) * (1f - after)
     val fade = 1f - smooth(((after - 0.4f) / 0.6f).coerceIn(0f, 1f))
     val big = cell * 2f
-    for (sign in listOf(1f, -1f)) {
+    for (sign in if (sprites) listOf(1f, -1f) else emptyList()) {
         val halfPlane = Path().apply {
             moveTo(center.x - d.x * big, center.y - d.y * big)
             lineTo(center.x + d.x * big, center.y + d.y * big)
@@ -1340,16 +1438,18 @@ private fun DrawScope.drawSliced(piece: Char, origin: Offset, cell: Float, after
 }
 
 // Écrasée : la pièce s'aplatit sous la masse, une onde de choc court au sol, puis elle vole en éclats.
-private fun DrawScope.drawCrushed(piece: Char, origin: Offset, cell: Float, after: Float) {
+private fun DrawScope.drawCrushed(piece: Char, origin: Offset, cell: Float, after: Float, sprites: Boolean = true) {
     val foot = Offset(origin.x + cell / 2f, origin.y + cell * 0.93f)
     val squash = 0.2f
     if (after < squash) {
         val t = smooth(after / squash)
-        withTransform({ scale(1f + 0.18f * t, 1f - 0.5f * t, pivot = foot) }) {
-            drawWizardPiece(piece, origin, cell)
+        if (sprites) {
+            withTransform({ scale(1f + 0.18f * t, 1f - 0.5f * t, pivot = foot) }) {
+                drawWizardPiece(piece, origin, cell)
+            }
         }
     } else {
-        drawShatter(piece, origin, cell, (after - squash) / (1f - squash))
+        drawShatter(piece, origin, cell, (after - squash) / (1f - squash), sprites = sprites)
     }
     val radius = cell * (0.25f + 0.9f * after)
     drawOval(
@@ -1362,12 +1462,14 @@ private fun DrawScope.drawCrushed(piece: Char, origin: Offset, cell: Float, afte
 }
 
 // Percée : la pièce tressaille, des fissures partent du point d'impact, puis elle vole en éclats.
-private fun DrawScope.drawPierced(piece: Char, origin: Offset, cell: Float, after: Float) {
+private fun DrawScope.drawPierced(piece: Char, origin: Offset, cell: Float, after: Float, sprites: Boolean = true) {
     val crack = 0.14f
     if (after < crack) {
         val center = Offset(origin.x + cell / 2f, origin.y + cell / 2f)
-        withTransform({ translate(sin(after * 140f) * 0.03f * cell, 0f) }) {
-            drawWizardPiece(piece, origin, cell)
+        if (sprites) {
+            withTransform({ translate(sin(after * 140f) * 0.03f * cell, 0f) }) {
+                drawWizardPiece(piece, origin, cell)
+            }
         }
         val color = if (Chess.isWhite(piece)) Color(0xFF2A2D38) else Color(0xFFE6E9F5)
         val length = cell * 0.45f * smooth(after / crack)
@@ -1376,12 +1478,14 @@ private fun DrawScope.drawPierced(piece: Char, origin: Offset, cell: Float, afte
             drawLine(color, center, center + Offset(cos(angle), sin(angle)) * length, strokeWidth = 2.5f, cap = StrokeCap.Round)
         }
     } else {
-        drawShatter(piece, origin, cell, (after - crack) / (1f - crack))
+        drawShatter(piece, origin, cell, (after - crack) / (1f - crack), sprites = sprites)
     }
 }
 
 // La pièce prise éclate : éclair, éclats qui volent et tombent en s'effaçant, poussière, étincelles.
-private fun DrawScope.drawShatter(piece: Char, origin: Offset, cell: Float, after: Float, golden: Boolean = false) {
+private fun DrawScope.drawShatter(
+    piece: Char, origin: Offset, cell: Float, after: Float, golden: Boolean = false, sprites: Boolean = true
+) {
     val center = Offset(origin.x + cell / 2f, origin.y + cell / 2f)
     val flash = (1f - after) * (1f - after)
     val flashRadius = cell * (0.35f + 0.75f * after)
@@ -1398,7 +1502,7 @@ private fun DrawScope.drawShatter(piece: Char, origin: Offset, cell: Float, afte
 
     val ease = 1f - (1f - after) * (1f - after)
     val fade = (1f - smooth(after)).coerceIn(0f, 1f)
-    if (fade > 0.01f) {
+    if (sprites && fade > 0.01f) {
         for (shard in SHARDS) {
             val triangle = Path().apply {
                 moveTo(origin.x + shard.points[0] * cell, origin.y + shard.points[1] * cell)
