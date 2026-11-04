@@ -151,4 +151,83 @@ class CirclesTest {
         assertEquals(2, game.streakOf(0))
         assertEquals(null, game.streakOf(1))
     }
+
+    // --- Niveau difficile : les têtes de mort ---
+
+    @Test
+    fun auNiveauNormalIlNYAJamaisDeTeteDeMort() {
+        assertEquals(0, Circles.skullCount(CirclesLevel.NORMAL, 0))
+        assertEquals(0, Circles.skullCount(CirclesLevel.NORMAL, 500))
+    }
+
+    @Test
+    fun auNiveauDifficileLesTetesDeMortArriventApresQuelquesRonds() {
+        assertEquals(0, Circles.skullCount(CirclesLevel.HARD, 0))
+        assertEquals(0, Circles.skullCount(CirclesLevel.HARD, Circles.SKULLS_FROM_STREAK - 1))
+        assertEquals(1, Circles.skullCount(CirclesLevel.HARD, Circles.SKULLS_FROM_STREAK))
+    }
+
+    @Test
+    fun lesTetesDeMortSontDePlusEnPlusNombreusesMaisPlafonnees() {
+        val second = Circles.SKULLS_FROM_STREAK + Circles.SKULLS_STEP
+        assertEquals(1, Circles.skullCount(CirclesLevel.HARD, second - 1))
+        assertEquals(2, Circles.skullCount(CirclesLevel.HARD, second))
+        assertEquals(Circles.MAX_SKULLS, Circles.skullCount(CirclesLevel.HARD, 1_000))
+    }
+
+    @Test
+    fun toucherUneTeteDeMortSeFaitDansSonRayonSansMarge() {
+        val skull = CirclePoint(100f, 100f)
+        assertTrue(Circles.isSkullHit(100f, 100f, skull, 30f))
+        assertTrue(Circles.isSkullHit(130f, 100f, skull, 30f))
+        assertFalse(Circles.isSkullHit(131f, 100f, skull, 30f))
+    }
+
+    @Test
+    fun lesTetesDeMortRestentDansLaZoneLoinDuRondEtLesUnesDesAutres() {
+        val width = 1_000f
+        val height = 1_600f
+        val maxRadius = 100f
+        val skullRadius = maxRadius * Circles.SKULL_RADIUS_FRACTION
+        val random = Random(42)
+        repeat(300) {
+            val circle = Circles.randomCenter(width, height, maxRadius, random = random)
+            val skulls = Circles.randomSkulls(width, height, circle, maxRadius, skullRadius, Circles.MAX_SKULLS, random)
+            skulls.forEach { skull ->
+                assertTrue(skull.x - skullRadius >= 0f && skull.x + skullRadius <= width)
+                assertTrue(skull.y - skullRadius >= 0f && skull.y + skullRadius <= height)
+                // Jamais de contact avec le rond (à son rayon de départ) : on ne touche pas l'un en visant l'autre.
+                assertTrue(kotlin.math.hypot(skull.x - circle.x, skull.y - circle.y) >= maxRadius + skullRadius)
+            }
+            skulls.forEachIndexed { i, a ->
+                skulls.drop(i + 1).forEach { b ->
+                    assertTrue(kotlin.math.hypot(a.x - b.x, a.y - b.y) >= 2f * skullRadius)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun surUnGrandEcranOnPlaceToutesLesTetesDeMortDemandees() {
+        val skulls = Circles.randomSkulls(1_000f, 1_600f, CirclePoint(500f, 800f), 100f, 80f, 3, Random(7))
+        assertEquals(3, skulls.size)
+    }
+
+    @Test
+    fun pasDeTeteDeMortQuandOnNEnDemandePasOuQueLaZoneEstTropPetite() {
+        val circle = CirclePoint(50f, 50f)
+        assertTrue(Circles.randomSkulls(1_000f, 1_000f, circle, 100f, 80f, 0).isEmpty())
+        assertTrue(Circles.randomSkulls(100f, 100f, circle, 100f, 80f, 3).isEmpty())
+    }
+
+    @Test
+    fun leNiveauSeRetrouveParSonNumeroEtLeRecordEstAPartAuNiveauDifficile() {
+        assertEquals(CirclesLevel.NORMAL, CirclesLevel.fromIndex(0))
+        assertEquals(CirclesLevel.HARD, CirclesLevel.fromIndex(1))
+        // Un numéro qui ne désigne rien (préférence abîmée) redonne le niveau normal.
+        assertEquals(CirclesLevel.NORMAL, CirclesLevel.fromIndex(99))
+        assertEquals(CirclesLevel.NORMAL, CirclesLevel.fromIndex(-1))
+        assertEquals(CIRCLES_ID, CirclesLevel.NORMAL.recordId)
+        assertTrue(CirclesLevel.HARD.recordId != CIRCLES_ID)
+    }
 }

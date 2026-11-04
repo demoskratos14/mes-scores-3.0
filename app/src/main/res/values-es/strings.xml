@@ -2221,6 +2221,13 @@
     <string name="circles_nobody">Nadie ha tocado ni un círculo.</string>
     <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
     <string name="circles_new_game">Nueva partida</string>
+    <string name="circles_level_title">Nivel</string>
+    <string name="circles_level_normal">Normal</string>
+    <string name="circles_level_hard">Difícil</string>
+    <string name="circles_hard_hint">Hay calaveras trampa en la pantalla: si tocas una, la racha termina. Desaparecen junto con el círculo.</string>
+    <string name="circles_skull_hit">¡%1$s ha tocado una calavera! Racha: %2$d.</string>
+    <string name="rules_circles_hard_title">Nivel difícil</string>
+    <string name="rules_circles_hard_body">Las calaveras aparecen a la vez que los círculos y desaparecen con ellos. Tocar una pone fin a la racha, igual que un círculo fallado. Cada vez hay más (hasta 3) a medida que la racha crece, pero no se encogen. El nivel difícil tiene su propio récord, aparte del nivel normal.</string>
     <string name="record_best">Récord: %1$d</string>
     <string name="record_new">¡Nuevo récord: %1$d!</string>
     <string name="game_simon">Simon</string>

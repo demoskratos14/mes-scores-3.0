@@ -2190,6 +2190,13 @@
     <string name="circles_nobody">Nobody touched a single circle.</string>
     <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
     <string name="circles_new_game">New game</string>
+    <string name="circles_level_title">Level</string>
+    <string name="circles_level_normal">Normal</string>
+    <string name="circles_level_hard">Hard</string>
+    <string name="circles_hard_hint">Skulls booby-trap the screen: touch one and your streak ends. They vanish together with the circle.</string>
+    <string name="circles_skull_hit">%1$s touched a skull! Streak: %2$d.</string>
+    <string name="rules_circles_hard_title">Hard level</string>
+    <string name="rules_circles_hard_body">Skulls appear at the same time as the circles and vanish with them. Touching one ends the streak, just like a missed circle. There are more and more of them (up to 3) as the streak grows, but they do not shrink. The hard level has its own record, separate from the normal level.</string>
     <string name="record_best">Record: %1$d</string>
     <string name="record_new">New record: %1$d!</string>
     <string name="game_simon">Simon</string>

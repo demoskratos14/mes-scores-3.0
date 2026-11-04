@@ -2221,6 +2221,13 @@
     <string name="circles_nobody">Ninguém tocou num único círculo.</string>
     <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
     <string name="circles_new_game">Novo jogo</string>
+    <string name="circles_level_title">Nível</string>
+    <string name="circles_level_normal">Normal</string>
+    <string name="circles_level_hard">Difícil</string>
+    <string name="circles_hard_hint">Caveiras armadilha enchem o ecrã: se tocar numa, a sequência termina. Desaparecem com o círculo.</string>
+    <string name="circles_skull_hit">%1$s tocou numa caveira! Sequência: %2$d.</string>
+    <string name="rules_circles_hard_title">Nível difícil</string>
+    <string name="rules_circles_hard_body">As caveiras aparecem ao mesmo tempo que os círculos e desaparecem com eles. Tocar numa põe fim à sequência, tal como um círculo falhado. Há cada vez mais (até 3) à medida que a sequência cresce, mas não encolhem. O nível difícil tem o seu próprio recorde, separado do nível normal.</string>
     <string name="record_best">Recorde: %1$d</string>
     <string name="record_new">Novo recorde: %1$d!</string>
     <string name="game_simon">Simon</string>

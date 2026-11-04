@@ -2237,6 +2237,13 @@
     <string name="circles_nobody">Personne n’a touché un seul rond.</string>
     <string name="circles_rank_entry">%1$d. %2$s : %3$d</string>
     <string name="circles_new_game">Nouvelle partie</string>
+    <string name="circles_level_title">Niveau</string>
+    <string name="circles_level_normal">Normal</string>
+    <string name="circles_level_hard">Difficile</string>
+    <string name="circles_hard_hint">Des têtes de mort piègent l’écran : si tu en touches une, la série s’arrête. Elles disparaissent avec le rond.</string>
+    <string name="circles_skull_hit">%1$s a touché une tête de mort ! Série de %2$d.</string>
+    <string name="rules_circles_hard_title">Niveau difficile</string>
+    <string name="rules_circles_hard_body">Des têtes de mort apparaissent en même temps que les ronds et disparaissent avec eux. En toucher une met fin à la série, comme un rond manqué. Elles sont de plus en plus nombreuses (jusqu’à 3) quand la série s’allonge, mais ne rétrécissent pas. Le record du niveau difficile est à part de celui du niveau normal.</string>
     <string name="record_best">Record : %1$d</string>
     <string name="record_new">Nouveau record : %1$d !</string>
     <string name="game_simon">Simon</string>

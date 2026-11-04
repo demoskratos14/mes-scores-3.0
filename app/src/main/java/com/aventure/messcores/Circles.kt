@@ -7,6 +7,23 @@ import kotlin.random.Random
 /** Identifiant du jeu des Ronds parmi les jeux prédéfinis (écran à part : voir [CirclesScreen]). */
 internal const val CIRCLES_ID = "builtin_circles"
 
+/** Record du niveau difficile : à part de celui du niveau normal, car les deux séries ne se valent pas. */
+internal const val CIRCLES_HARD_ID = "builtin_circles_hard"
+
+/** Le niveau de la séance : au niveau [HARD], des têtes de mort piègent l'écran en plus des ronds. */
+internal enum class CirclesLevel {
+    NORMAL,
+    HARD;
+
+    /** L'identifiant sous lequel le record du niveau est gardé. */
+    val recordId: String get() = if (this == HARD) CIRCLES_HARD_ID else CIRCLES_ID
+
+    companion object {
+        /** Le niveau de numéro [index] ; le niveau normal si le numéro ne désigne rien. */
+        fun fromIndex(index: Int): CirclesLevel = entries.getOrElse(index) { NORMAL }
+    }
+}
+
 /** Un point de l'écran de jeu, en pixels (indépendant de Compose pour pouvoir être testé). */
 internal data class CirclePoint(val x: Float, val y: Float)
 
@@ -37,6 +54,73 @@ internal object Circles {
 
     /** Nombre d'essais pour trouver un emplacement assez éloigné du rond précédent. */
     private const val SPAWN_TRIES = 12
+
+    /** Rayon d'une tête de mort, en part du rayon de départ d'un rond : elle ne rétrécit pas, on la voit toujours en entier. */
+    const val SKULL_RADIUS_FRACTION = 0.8f
+
+    /** Série à partir de laquelle les têtes de mort apparaissent (niveau difficile) : le temps de se mettre dans le jeu. */
+    const val SKULLS_FROM_STREAK = 2
+
+    /** Une tête de mort de plus tous les [SKULLS_STEP] ronds touchés. */
+    const val SKULLS_STEP = 6
+
+    /** Nombre maximal de têtes de mort en même temps : au-delà, l'écran serait trop encombré pour jouer. */
+    const val MAX_SKULLS = 3
+
+    /** Espace minimal laissé entre une tête de mort et le rond ou une autre tête de mort, en part du rayon de départ d'un rond. */
+    private const val SKULL_GAP_RADII = 0.3f
+
+    /** Nombre d'essais pour placer une tête de mort sans qu'elle touche le rond ou une autre tête de mort. */
+    private const val SKULL_TRIES = 20
+
+    /**
+     * Nombre de têtes de mort qui accompagnent le rond qu'on voit apparaître après [streak] ronds touchés : aucune au
+     * niveau normal ou tant que la série est courte, puis une de plus tous les [SKULLS_STEP] ronds, jusqu'à [MAX_SKULLS].
+     */
+    fun skullCount(level: CirclesLevel, streak: Int): Int {
+        if (level != CirclesLevel.HARD || streak < SKULLS_FROM_STREAK) return 0
+        return (1 + (streak - SKULLS_FROM_STREAK) / SKULLS_STEP).coerceAtMost(MAX_SKULLS)
+    }
+
+    /** Vrai si le toucher en ([tapX], [tapY]) atteint la tête de mort [skull] de rayon [skullRadius] : pas de marge, on touche ce qu'on voit. */
+    fun isSkullHit(tapX: Float, tapY: Float, skull: CirclePoint, skullRadius: Float): Boolean =
+        hypot(tapX - skull.x, tapY - skull.y) <= skullRadius
+
+    /**
+     * Tire au hasard l'emplacement de [count] têtes de mort de rayon [skullRadius] dans une zone de [width] × [height]
+     * pixels. Chacune reste entièrement dans la zone et loin du rond (de centre [circle], à son rayon de départ
+     * [maxRadius]) comme des autres têtes de mort : on ne peut jamais toucher l'une en visant l'autre. Si la zone est
+     * trop petite pour en placer autant, on en renvoie moins (voire aucune).
+     */
+    fun randomSkulls(
+        width: Float,
+        height: Float,
+        circle: CirclePoint,
+        maxRadius: Float,
+        skullRadius: Float,
+        count: Int,
+        random: Random = Random.Default
+    ): List<CirclePoint> {
+        val minX = skullRadius
+        val maxX = width - skullRadius
+        val minY = skullRadius
+        val maxY = height - skullRadius
+        if (count <= 0 || maxX <= minX || maxY <= minY) return emptyList()
+        val gap = maxRadius * SKULL_GAP_RADII
+        val placed = mutableListOf<CirclePoint>()
+        for (skull in 0 until count) {
+            for (attempt in 0 until SKULL_TRIES) {
+                val candidate = CirclePoint(random.nextFloat() * (maxX - minX) + minX, random.nextFloat() * (maxY - minY) + minY)
+                val farFromCircle = hypot(candidate.x - circle.x, candidate.y - circle.y) >= maxRadius + skullRadius + gap
+                val farFromSkulls = placed.all { hypot(candidate.x - it.x, candidate.y - it.y) >= 2f * skullRadius + gap }
+                if (farFromCircle && farFromSkulls) {
+                    placed += candidate
+                    break
+                }
+            }
+        }
+        return placed
+    }
 
     /** Durée de vie du rond qu'on voit apparaître après [streak] ronds touchés. */
     fun lifetimeMs(streak: Int): Long =

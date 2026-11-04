@@ -2231,6 +2231,13 @@
     <string name="circles_nobody">Nessuno ha toccato nemmeno un cerchio.</string>
     <string name="circles_rank_entry">%1$d. %2$s: %3$d</string>
     <string name="circles_new_game">Nuova partita</string>
+    <string name="circles_level_title">Livello</string>
+    <string name="circles_level_normal">Normale</string>
+    <string name="circles_level_hard">Difficile</string>
+    <string name="circles_hard_hint">Dei teschi trappola sono sparsi sullo schermo: se ne tocchi uno, la serie finisce. Spariscono insieme al cerchio.</string>
+    <string name="circles_skull_hit">%1$s ha toccato un teschio! Serie: %2$d.</string>
+    <string name="rules_circles_hard_title">Livello difficile</string>
+    <string name="rules_circles_hard_body">I teschi compaiono insieme ai cerchi e scompaiono con loro. Toccarne uno pone fine alla serie, come un cerchio mancato. Sono sempre più numerosi (fino a 3) man mano che la serie si allunga, ma non si rimpiccioliscono. Il livello difficile ha un proprio record, separato da quello del livello normale.</string>
     <string name="record_best">Record: %1$d</string>
     <string name="record_new">Nuovo record: %1$d!</string>
     <string name="game_simon">Simon</string>

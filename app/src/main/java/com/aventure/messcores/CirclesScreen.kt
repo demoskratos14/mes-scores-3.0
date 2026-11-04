@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -19,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,11 +38,16 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -48,6 +55,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 
 // Les étapes de la séance.
 private const val PHASE_READY = 0 // on attend que le joueur courant lance sa série
@@ -76,8 +84,13 @@ internal fun CirclesScreen(players: List<String>) {
     var streaks by rememberSaveable(stateSaver = IntListSaver) { mutableStateOf(listOf<Int>()) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var lastStreak by rememberSaveable { mutableIntStateOf(0) }
-    // Le record n'existe que seul : à plusieurs, on compare les séries de la table.
-    val record = rememberSoloRecord(CIRCLES_ID)
+    // Vrai quand la dernière série s'est arrêtée sur une tête de mort (niveau difficile) et non sur un rond manqué.
+    var lastSkull by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current.applicationContext
+    var levelIndex by rememberSaveable { mutableIntStateOf(CirclesPreferences.load(context)) }
+    val level = CirclesLevel.fromIndex(levelIndex)
+    // Le record n'existe que seul : à plusieurs, on compare les séries de la table. Un par niveau.
+    val record = rememberSoloRecord(level.recordId)
 
     val game = CirclesGame(players = names.size, streaks = streaks)
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
@@ -85,17 +98,29 @@ internal fun CirclesScreen(players: List<String>) {
     when {
         phase == PHASE_PLAYING && !game.isOver -> CirclesPlayfield(
             name = nameOf(game.current),
-            onFinished = { streak ->
+            level = level,
+            onFinished = { streak, hitSkull ->
                 streaks = game.finishRun(streak).streaks
                 lastStreak = streak
+                lastSkull = hitSkull
                 if (names.size == 1) record.submit(streak)
                 phase = PHASE_RUN_OVER
             }
         )
         phase == PHASE_RUN_OVER -> CirclesCard {
+            if (lastSkull) {
+                Text(
+                    text = stringResource(R.string.circles_skull_hit, nameOf((game.current - 1).coerceAtLeast(0)), lastStreak),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
             if (game.isOver) {
                 CirclesResults(game = game, names = names, record = record, onNewGame = {
                     streaks = game.newGame().streaks
+                    lastSkull = false
                     record.clearNew()
                     phase = PHASE_READY
                 })
@@ -122,6 +147,33 @@ internal fun CirclesScreen(players: List<String>) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+            Text(
+                text = stringResource(R.string.circles_level_title),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.semantics { heading() }
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CirclesLevel.entries.forEach { option ->
+                    FilterChip(
+                        selected = option == level,
+                        // Pas de changement de niveau en cours de partie : tous les joueurs jouent le même.
+                        enabled = streaks.isEmpty(),
+                        onClick = {
+                            levelIndex = option.ordinal
+                            CirclesPreferences.save(context, option.ordinal)
+                        },
+                        label = { Text(stringResource(levelName(option))) }
+                    )
+                }
+            }
+            if (level == CirclesLevel.HARD) {
+                Text(
+                    text = stringResource(R.string.circles_hard_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
             if (names.size == 1) SoloRecordLine(record)
             if (streaks.isNotEmpty()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -224,11 +276,15 @@ private fun CirclesResults(game: CirclesGame, names: List<String>, record: SoloR
  * Une série du joueur [name] : un rond apparaît à un endroit tiré au hasard et rétrécit jusqu'à disparaître. Le toucher
  * le remplace aussitôt par un autre, un peu plus rapide ; s'il disparaît avant, la série est finie et [onFinished]
  * reçoit le nombre de ronds touchés. Un toucher à côté d'un rond ne compte pas.
+ *
+ * Au niveau [CirclesLevel.HARD], des têtes de mort (de plus en plus nombreuses) apparaissent en même temps que chaque rond
+ * et disparaissent avec lui : en toucher une arrête aussitôt la série ([onFinished] reçoit alors `true` en second).
  */
 @Composable
-private fun CirclesPlayfield(name: String, onFinished: (Int) -> Unit) {
+private fun CirclesPlayfield(name: String, level: CirclesLevel, onFinished: (streak: Int, hitSkull: Boolean) -> Unit) {
     KeepScreenOn()
     val maxRadius = with(LocalDensity.current) { MAX_RADIUS_DP.dp.toPx() }
+    val skullRadius = maxRadius * Circles.SKULL_RADIUS_FRACTION
 
     var streak by rememberSaveable { mutableIntStateOf(0) }
     var areaWidth by remember { mutableFloatStateOf(0f) }
@@ -238,23 +294,37 @@ private fun CirclesPlayfield(name: String, onFinished: (Int) -> Unit) {
     var spot by remember { mutableStateOf(CirclePoint(0f, 0f)) }
     var radius by remember { mutableFloatStateOf(0f) }
     var active by remember { mutableStateOf(false) }
+    var skulls by remember { mutableStateOf(emptyList<CirclePoint>()) }
+    // Vrai dès que la série est finie sur une tête de mort : l'animation du rond ne doit plus la terminer une seconde fois.
+    var skullHit by remember { mutableStateOf(false) }
     val finished by rememberUpdatedState(onFinished)
 
     LaunchedEffect(circleId, areaWidth, areaHeight) {
         if (areaWidth <= 0f || areaHeight <= 0f) return@LaunchedEffect
-        spot = Circles.randomCenter(areaWidth, areaHeight, maxRadius, previous = spot.takeIf { circleId > 0 })
+        val center = Circles.randomCenter(areaWidth, areaHeight, maxRadius, previous = spot.takeIf { circleId > 0 })
+        spot = center
+        skulls = Circles.randomSkulls(
+            width = areaWidth,
+            height = areaHeight,
+            circle = center,
+            maxRadius = maxRadius,
+            skullRadius = skullRadius,
+            count = Circles.skullCount(level, streak)
+        )
         val lifetime = Circles.lifetimeMs(streak)
         radius = maxRadius
         active = true
         val start = withFrameNanos { it }
         var elapsed = 0L
-        while (Circles.isAlive(elapsed, lifetime)) {
+        while (!skullHit && Circles.isAlive(elapsed, lifetime)) {
             radius = Circles.radiusAt(elapsed, lifetime, maxRadius)
             elapsed = (withFrameNanos { it } - start) / 1_000_000L
         }
-        // Le rond a disparu sans être touché : la série est finie.
+        // Le rond a disparu sans être touché : la série est finie (sauf si une tête de mort l'a déjà finie).
+        if (skullHit) return@LaunchedEffect
         active = false
-        finished(streak)
+        skulls = emptyList()
+        finished(streak, false)
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -282,13 +352,22 @@ private fun CirclesPlayfield(name: String, onFinished: (Int) -> Unit) {
                     areaWidth = it.width.toFloat()
                     areaHeight = it.height.toFloat()
                 }
-                .pointerInput(maxRadius) {
+                .pointerInput(maxRadius, skullRadius) {
                     // Dès le doigt posé : attendre qu'il se lève ferait perdre un temps précieux.
                     detectTapGestures(onPress = { tap ->
-                        if (active && Circles.isHit(tap.x, tap.y, spot.x, spot.y, radius, maxRadius)) {
-                            active = false
-                            streak += 1
-                            circleId += 1
+                        if (active) {
+                            // La tête de mort passe en premier : un piège touché coûte la série, même si le rond est tout près.
+                            if (skulls.any { Circles.isSkullHit(tap.x, tap.y, it, skullRadius) }) {
+                                skullHit = true
+                                active = false
+                                skulls = emptyList()
+                                finished(streak, true)
+                            } else if (Circles.isHit(tap.x, tap.y, spot.x, spot.y, radius, maxRadius)) {
+                                active = false
+                                skulls = emptyList()
+                                streak += 1
+                                circleId += 1
+                            }
                         }
                     })
                 }
@@ -301,8 +380,65 @@ private fun CirclesPlayfield(name: String, onFinished: (Int) -> Unit) {
                     drawCircle(color.copy(alpha = 0.3f), radius = maxRadius, center = middle, style = Stroke(width = 2.dp.toPx()))
                     drawCircle(color, radius = radius, center = middle)
                     drawCircle(Color.White.copy(alpha = 0.85f), radius = radius * 0.4f, center = middle)
+                    skulls.forEach { drawSkull(Offset(it.x, it.y), skullRadius) }
                 }
             }
         }
+    }
+}
+
+/** Le nom du niveau [level] dans la liste de choix. */
+private fun levelName(level: CirclesLevel): Int = when (level) {
+    CirclesLevel.NORMAL -> R.string.circles_level_normal
+    CirclesLevel.HARD -> R.string.circles_level_hard
+}
+
+/**
+ * Une tête de mort de rayon [radius] centrée en [center] : un crâne blanc sur un disque sombre cerclé de rouge, pour se
+ * distinguer d'un rond de couleur sur un fond clair comme sur un fond sombre. On la reconnaît à sa forme, pas à sa couleur.
+ */
+private fun DrawScope.drawSkull(center: Offset, radius: Float) {
+    val dark = Color(0xFF212121)
+    val bone = Color(0xFFF5F5F5)
+    drawCircle(dark, radius = radius, center = center)
+    drawCircle(Color(0xFFD32F2F), radius = radius, center = center, style = Stroke(width = radius * 0.08f))
+    // Le crâne, puis la mâchoire.
+    drawCircle(bone, radius = radius * 0.6f, center = Offset(center.x, center.y - radius * 0.12f))
+    drawRoundRect(
+        color = bone,
+        topLeft = Offset(center.x - radius * 0.33f, center.y + radius * 0.2f),
+        size = Size(radius * 0.66f, radius * 0.5f),
+        cornerRadius = CornerRadius(radius * 0.12f)
+    )
+    // Les orbites, le nez et les dents.
+    drawCircle(dark, radius = radius * 0.16f, center = Offset(center.x - radius * 0.23f, center.y - radius * 0.12f))
+    drawCircle(dark, radius = radius * 0.16f, center = Offset(center.x + radius * 0.23f, center.y - radius * 0.12f))
+    val nose = Path().apply {
+        moveTo(center.x, center.y + radius * 0.02f)
+        lineTo(center.x - radius * 0.08f, center.y + radius * 0.2f)
+        lineTo(center.x + radius * 0.08f, center.y + radius * 0.2f)
+        close()
+    }
+    drawPath(nose, dark)
+    listOf(-0.14f, 0f, 0.14f).forEach { dx ->
+        drawLine(
+            color = dark,
+            start = Offset(center.x + radius * dx, center.y + radius * 0.42f),
+            end = Offset(center.x + radius * dx, center.y + radius * 0.7f),
+            strokeWidth = radius * 0.05f
+        )
+    }
+}
+
+/** Le niveau choisi, gardé d'une séance à l'autre. */
+internal object CirclesPreferences {
+    private const val PREFS = "mes_scores_setup"
+    private const val KEY_LEVEL = "circles_level"
+
+    fun load(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_LEVEL, CirclesLevel.NORMAL.ordinal)
+
+    fun save(context: Context, levelIndex: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putInt(KEY_LEVEL, levelIndex) }
     }
 }
