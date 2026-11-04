@@ -56,6 +56,12 @@ internal object Tetris {
     /** Nombre de fois qu'un déplacement ou une rotation peut relancer ce délai pour une même pièce : sans cela, on la ferait glisser sans fin. */
     const val MAX_LOCK_RESETS = 15
 
+    /** Durée de l'animation d'une ligne complète : elle clignote, puis disparaît. */
+    const val LINE_CLEAR_MS = 360L
+
+    /** Durée d'un clignotement (allumé, puis éteint) : la ligne s'allume et s'éteint deux fois pendant [LINE_CLEAR_MS]. */
+    const val FLASH_MS = 90L
+
     /** Le niveau atteint après [lines] lignes faites. */
     fun levelFor(lines: Int): Int = min(MAX_LEVEL, lines.coerceAtLeast(0) / LINES_PER_LEVEL + 1)
 
@@ -120,12 +126,29 @@ internal class TetrisGame(private val random: Random = Random.Default) {
     var lastCleared = 0
         private set
 
+    /**
+     * Les lignes complètes qui clignotent avant de disparaître (vide hors animation). Pendant ce temps la pièce est posée,
+     * la suivante n'est pas encore arrivée et le joueur ne peut rien faire ; les points ne sont comptés qu'à la fin.
+     */
+    var clearingRows: List<Int> = emptyList()
+        private set
+    private var clearElapsed = 0L
+
     // Temps écoulé depuis la dernière chute d'une case, depuis que la pièce est posée, et nombre de relances de ce délai.
     private var fall = 0L
     private var lockMs = 0L
     private var lockResets = 0
 
     val level: Int get() = Tetris.levelFor(lines)
+
+    /** Vrai pendant l'animation des lignes complètes. */
+    val isClearing: Boolean get() = clearingRows.isNotEmpty()
+
+    /** Vrai quand les lignes qui disparaissent sont « allumées » : l'écran les dessine alors en clair. */
+    val isFlashing: Boolean get() = isClearing && (clearElapsed / Tetris.FLASH_MS) % 2L == 0L
+
+    // Le joueur ne peut agir ni une fois la partie finie, ni pendant l'animation des lignes.
+    private val canAct: Boolean get() = !isOver && !isClearing
 
     init {
         reset()
@@ -141,6 +164,8 @@ internal class TetrisGame(private val random: Random = Random.Default) {
         holdUsed = false
         isOver = false
         lastCleared = 0
+        clearingRows = emptyList()
+        clearElapsed = 0L
         fillQueue()
         spawn(takeNext())
     }
@@ -174,7 +199,7 @@ internal class TetrisGame(private val random: Random = Random.Default) {
      * tourner (par exemple contre un mur). Le carré ne tourne pas. Renvoie vrai si la pièce a tourné.
      */
     fun rotate(clockwise: Boolean = true): Boolean {
-        if (isOver || current == Tetromino.O.ordinal) return false
+        if (!canAct || current == Tetromino.O.ordinal) return false
         val target = (rotation + if (clockwise) 1 else 3) and 3
         for ((dx, dy) in KICKS) {
             if (fits(current, target, x + dx, y + dy)) {
@@ -190,7 +215,7 @@ internal class TetrisGame(private val random: Random = Random.Default) {
 
     /** Descente rapide : la pièce descend d'une case et rapporte 1 point. Renvoie faux si elle est déjà posée. */
     fun softDrop(): Boolean {
-        if (isOver || !fits(current, rotation, x, y + 1)) return false
+        if (!canAct || !fits(current, rotation, x, y + 1)) return false
         y++
         score += 1
         fall = 0L
@@ -199,7 +224,7 @@ internal class TetrisGame(private val random: Random = Random.Default) {
 
     /** Chute directe : la pièce tombe tout de suite jusqu'en bas (2 points par case) et se fige. */
     fun hardDrop() {
-        if (isOver) return
+        if (!canAct) return
         val distance = ghostY() - y
         y += distance
         score += 2 * distance
@@ -211,7 +236,7 @@ internal class TetrisGame(private val random: Random = Random.Default) {
      * Une seule fois par pièce. Renvoie vrai si l'échange a eu lieu.
      */
     fun hold(): Boolean {
-        if (isOver || holdUsed) return false
+        if (!canAct || holdUsed) return false
         val previous = held
         held = current
         holdUsed = true
@@ -225,6 +250,11 @@ internal class TetrisGame(private val random: Random = Random.Default) {
      */
     fun tick(elapsedMs: Long) {
         if (isOver) return
+        if (isClearing) {
+            clearElapsed += elapsedMs
+            if (clearElapsed >= Tetris.LINE_CLEAR_MS) finishClearing()
+            return
+        }
         val interval = Tetris.gravityMs(level)
         fall += elapsedMs
         while (fall >= interval) {
@@ -264,7 +294,7 @@ internal class TetrisGame(private val random: Random = Random.Default) {
     private fun isGrounded(): Boolean = !fits(current, rotation, x, y + 1)
 
     private fun shift(dx: Int): Boolean {
-        if (isOver || !fits(current, rotation, x + dx, y)) return false
+        if (!canAct || !fits(current, rotation, x + dx, y)) return false
         x += dx
         touched()
         return true
@@ -278,16 +308,36 @@ internal class TetrisGame(private val random: Random = Random.Default) {
         }
     }
 
-    /** Fige la pièce en cours dans le plateau, efface les lignes pleines, compte les points puis envoie la pièce suivante. */
+    /**
+     * Fige la pièce en cours dans le plateau. Si des lignes sont complètes, l'animation commence ([clearingRows]) et la
+     * suite attend sa fin ([finishClearing]) ; sinon la pièce suivante arrive tout de suite.
+     */
     private fun lock() {
         for ((col, row) in pieceCells()) board[row * Tetris.COLS + col] = current + 1
+        val full = (0 until Tetris.ROWS).filter { isFull(it) }
+        if (full.isEmpty()) {
+            lastCleared = 0
+            holdUsed = false
+            spawn(takeNext())
+        } else {
+            clearingRows = full
+            clearElapsed = 0L
+        }
+    }
+
+    /** Fin de l'animation : les lignes complètes disparaissent, les points sont comptés et la pièce suivante arrive. */
+    private fun finishClearing() {
         val cleared = clearLines()
         lastCleared = cleared
         score += Tetris.lineClearPoints(cleared, level)
         lines += cleared
+        clearingRows = emptyList()
+        clearElapsed = 0L
         holdUsed = false
         spawn(takeNext())
     }
+
+    private fun isFull(row: Int): Boolean = (0 until Tetris.COLS).all { board[row * Tetris.COLS + it] != 0 }
 
     /** Efface les lignes pleines en faisant descendre celles du dessus. Renvoie le nombre de lignes effacées. */
     private fun clearLines(): Int {
@@ -295,8 +345,7 @@ internal class TetrisGame(private val random: Random = Random.Default) {
         var write = Tetris.ROWS - 1
         var cleared = 0
         for (read in Tetris.ROWS - 1 downTo 0) {
-            val full = (0 until cols).all { board[read * cols + it] != 0 }
-            if (full) {
+            if (isFull(read)) {
                 cleared++
             } else {
                 if (write != read) board.copyInto(board, write * cols, read * cols, read * cols + cols)
@@ -346,16 +395,19 @@ internal class TetrisGame(private val random: Random = Random.Default) {
         add(if (isOver) 1 else 0)
         add(lastCleared)
         add(queue.size)
+        add(clearElapsed.toInt())
+        add(clearingRows.size)
         addAll(queue)
         addAll(board.toList())
+        addAll(clearingRows)
     }
 
     companion object {
         /** Pas de pièce (réserve vide). */
         const val NONE = -1
 
-        private const val SAVE_VERSION = 1
-        private const val SAVE_HEADER = 15
+        private const val SAVE_VERSION = 2
+        private const val SAVE_HEADER = 17
 
         /** Les décalages (colonnes, lignes) essayés l'un après l'autre pour faire tourner une pièce à qui la place manque. */
         private val KICKS = listOf(0 to 0, -1 to 0, 1 to 0, -2 to 0, 2 to 0, 0 to -1, -1 to -1, 1 to -1)
@@ -364,14 +416,18 @@ internal class TetrisGame(private val random: Random = Random.Default) {
         fun restore(data: List<Int>, random: Random = Random.Default): TetrisGame? {
             if (data.size < SAVE_HEADER || data[0] != SAVE_VERSION) return null
             val queueSize = data[14]
-            if (queueSize < 0 || data.size != SAVE_HEADER + queueSize + Tetris.COLS * Tetris.ROWS) return null
+            val clearingCount = data[16]
+            val boardSize = Tetris.COLS * Tetris.ROWS
+            if (queueSize < 0 || clearingCount !in 0..4 || data.size != SAVE_HEADER + queueSize + boardSize + clearingCount) return null
             val kinds = Tetromino.entries.size
             val queued = data.subList(SAVE_HEADER, SAVE_HEADER + queueSize)
-            val cells = data.subList(SAVE_HEADER + queueSize, data.size)
+            val cells = data.subList(SAVE_HEADER + queueSize, SAVE_HEADER + queueSize + boardSize)
+            val clearing = data.subList(SAVE_HEADER + queueSize + boardSize, data.size)
             val valid = data[1] in 0 until kinds && data[2] in 0..3 && data[5] in NONE until kinds &&
                 data[6] in 0..1 && data[7] >= 0 && data[8] >= 0 && data[9] >= 0 && data[10] >= 0 &&
-                data[11] in 0..Tetris.MAX_LOCK_RESETS && data[12] in 0..1 && data[13] in 0..4 &&
-                queued.all { it in 0 until kinds } && cells.all { it in 0..kinds }
+                data[11] in 0..Tetris.MAX_LOCK_RESETS && data[12] in 0..1 && data[13] in 0..4 && data[15] >= 0 &&
+                queued.all { it in 0 until kinds } && cells.all { it in 0..kinds } &&
+                clearing.all { it in 0 until Tetris.ROWS } && clearing.toSet().size == clearing.size
             if (!valid) return null
             val game = TetrisGame(random)
             game.board.indices.forEach { game.board[it] = cells[it] }
@@ -390,9 +446,11 @@ internal class TetrisGame(private val random: Random = Random.Default) {
             game.lockResets = data[11]
             game.isOver = data[12] == 1
             game.lastCleared = data[13]
+            game.clearElapsed = data[15].toLong()
+            game.clearingRows = clearing.toList()
             game.fillQueue()
             // Une pièce qui ne tient pas dans le plateau rendu est un signe de données abîmées.
-            if (!game.isOver && !game.fits(game.current, game.rotation, game.x, game.y)) return null
+            if (!game.isOver && !game.isClearing && !game.fits(game.current, game.rotation, game.x, game.y)) return null
             return game
         }
     }

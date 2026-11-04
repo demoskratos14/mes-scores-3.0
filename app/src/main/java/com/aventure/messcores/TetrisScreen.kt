@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -193,6 +194,7 @@ private fun TetrisCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.Center
@@ -272,7 +274,11 @@ private fun TetrisPlayfield(
 
     val holdLabel = stringResource(R.string.tetris_hold)
 
-    Column(modifier = Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    // La marge de la barre de navigation (boutons ou geste) garde les commandes du bas hors de ses touches.
+    Column(
+        modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -477,7 +483,8 @@ private fun DrawScope.drawBlock(left: Float, top: Float, cell: Float, color: Col
 }
 
 /**
- * Le plateau : sa grille, les cases posées, la pièce « fantôme » (son contour là où elle tombera) puis la pièce en cours.
+ * Le plateau : sa grille, les cases posées (les lignes complètes clignotent avant de disparaître), la pièce « fantôme »
+ * (son contour là où elle tombera) puis la pièce en cours.
  * [revision] n'est là que pour que le dessin se refasse quand elle change.
  */
 private fun DrawScope.drawTetrisBoard(game: TetrisGame, @Suppress("UNUSED_PARAMETER") revision: Int) {
@@ -491,7 +498,14 @@ private fun DrawScope.drawTetrisBoard(game: TetrisGame, @Suppress("UNUSED_PARAME
             if (kind != 0) drawBlock(col * cell, row * cell, cell, PIECE_COLORS[kind - 1])
         }
     }
-    if (game.isOver) return
+    // Les lignes complètes clignotent : allumées, elles sont dessinées en clair par-dessus leurs cases.
+    if (game.isFlashing) {
+        game.clearingRows.forEach { row ->
+            drawRect(Color.White.copy(alpha = 0.9f), Offset(0f, row * cell), Size(size.width, cell))
+        }
+    }
+    // Pendant l'animation, la pièce est déjà posée dans le plateau et la suivante n'est pas arrivée.
+    if (game.isOver || game.isClearing) return
     val color = PIECE_COLORS[game.current]
     val line = cell * 0.08f
     game.ghostCells().forEach { (col, row) ->
