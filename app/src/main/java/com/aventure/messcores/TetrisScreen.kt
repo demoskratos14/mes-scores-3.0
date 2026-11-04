@@ -130,61 +130,65 @@ internal fun TetrisScreen(players: List<String>) {
         phase = TETRIS_PHASE_PLAYING
     }
 
-    when (phase) {
-        TETRIS_PHASE_PLAYING -> TetrisPlayfield(
-            game = game,
-            paused = paused,
-            onPausedChange = { paused = it },
-            onOver = {
-                record.submit(game.score)
-                phase = TETRIS_PHASE_OVER
+    // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (phase) {
+            TETRIS_PHASE_PLAYING -> TetrisPlayfield(
+                game = game,
+                paused = paused,
+                onPausedChange = { paused = it },
+                onOver = {
+                    record.submit(game.score)
+                    phase = TETRIS_PHASE_OVER
+                }
+            )
+            TETRIS_PHASE_OVER -> TetrisCard {
+                Text(
+                    text = stringResource(R.string.tetris_over_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = stringResource(R.string.tetris_score, game.score),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = highlightContent(),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(highlightContainer())
+                        .padding(12.dp)
+                )
+                Text(
+                    text = stringResource(R.string.tetris_stats, game.lines, game.level),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center
+                )
+                SoloRecordLine(record)
+                Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.tetris_play_again))
+                }
             }
-        )
-        TETRIS_PHASE_OVER -> TetrisCard {
-            Text(
-                text = stringResource(R.string.tetris_over_title),
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = stringResource(R.string.tetris_score, game.score),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = highlightContent(),
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(highlightContainer())
-                    .padding(12.dp)
-            )
-            Text(
-                text = stringResource(R.string.tetris_stats, game.lines, game.level),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
-            )
-            SoloRecordLine(record)
-            Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.tetris_play_again))
+            else -> TetrisCard {
+                Text(
+                    text = stringResource(R.string.tetris_ready_title, name),
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = stringResource(R.string.tetris_ready_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                SoloRecordLine(record)
+                Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.tetris_go))
+                }
             }
         }
-        else -> TetrisCard {
-            Text(
-                text = stringResource(R.string.tetris_ready_title, name),
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = stringResource(R.string.tetris_ready_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            SoloRecordLine(record)
-            Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.tetris_go))
-            }
-        }
+        RecordSparkles(record)
     }
 }
 

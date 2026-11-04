@@ -228,41 +228,45 @@ internal fun RhythmScreen(players: List<String>) {
         }
     }
 
-    when (stage) {
-        RhythmStage.MENU -> RhythmMenu(
-            hasSong = songUri != null,
-            songName = songName,
-            difficultyIndex = difficultyIndex,
-            offsetMs = offsetMs,
-            error = error,
-            record = record,
-            onPickSong = { picker.launch(arrayOf("audio/*")) },
-            onDifficulty = { difficultyIndex = it },
-            onOffset = { offsetMs = it.coerceIn(-RhythmPreferences.MAX_OFFSET_MS, RhythmPreferences.MAX_OFFSET_MS) },
-            onPlay = startGame
-        )
-        RhythmStage.ANALYZING -> RhythmAnalyzing(progress = progress, onCancel = backToMenu)
-        RhythmStage.PLAYING -> session?.let { current ->
-            RhythmPlayfield(
-                session = current,
-                colorBlind = colorBlind,
-                onFinished = { stage = RhythmStage.RESULT },
-                onQuit = backToMenu
-            )
-        }
-        RhythmStage.RESULT -> session?.let { current ->
-            // Le score de la partie finie est confronté au record une seule fois (un lancement par partie).
-            LaunchedEffect(current) {
-                if (songId != null) record.submit(current.run.score)
-            }
-            RhythmResult(
-                run = current.run,
+    // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (stage) {
+            RhythmStage.MENU -> RhythmMenu(
+                hasSong = songUri != null,
+                songName = songName,
+                difficultyIndex = difficultyIndex,
+                offsetMs = offsetMs,
+                error = error,
                 record = record,
-                playerName = players.firstOrNull().orEmpty(),
-                onReplay = startGame,
-                onMenu = backToMenu
+                onPickSong = { picker.launch(arrayOf("audio/*")) },
+                onDifficulty = { difficultyIndex = it },
+                onOffset = { offsetMs = it.coerceIn(-RhythmPreferences.MAX_OFFSET_MS, RhythmPreferences.MAX_OFFSET_MS) },
+                onPlay = startGame
             )
+            RhythmStage.ANALYZING -> RhythmAnalyzing(progress = progress, onCancel = backToMenu)
+            RhythmStage.PLAYING -> session?.let { current ->
+                RhythmPlayfield(
+                    session = current,
+                    colorBlind = colorBlind,
+                    onFinished = { stage = RhythmStage.RESULT },
+                    onQuit = backToMenu
+                )
+            }
+            RhythmStage.RESULT -> session?.let { current ->
+                // Le score de la partie finie est confronté au record une seule fois (un lancement par partie).
+                LaunchedEffect(current) {
+                    if (songId != null) record.submit(current.run.score)
+                }
+                RhythmResult(
+                    run = current.run,
+                    record = record,
+                    playerName = players.firstOrNull().orEmpty(),
+                    onReplay = startGame,
+                    onMenu = backToMenu
+                )
+            }
         }
+        RecordSparkles(record)
     }
 }
 

@@ -163,62 +163,66 @@ private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?) {
     val game = SimonGame(players = names.size, scores = scores)
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
 
-    when {
-        phase == PHASE_PLAYING && !game.isOver -> SimonPlayfield(
-            name = nameOf(game.current),
-            onFinished = { score ->
-                scores = game.finishRun(score).scores
-                lastScore = score
-                if (names.size == 1) record.submit(score)
-                phase = PHASE_RUN_OVER
-            }
-        )
-        phase == PHASE_RUN_OVER -> SimonCard {
-            if (game.isOver) {
-                SimonResults(game = game, names = names, record = record, onChangeMode = onChangeMode, onNewGame = {
-                    scores = game.newGame().scores
-                    record.clearNew()
-                    phase = PHASE_READY
-                })
-            } else {
-                Text(
-                    text = stringResource(R.string.simon_run_over, nameOf(game.current - 1), lastScore),
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
-                )
-                Button(onClick = { phase = PHASE_READY }, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.simon_next_player))
+    // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            phase == PHASE_PLAYING && !game.isOver -> SimonPlayfield(
+                name = nameOf(game.current),
+                onFinished = { score ->
+                    scores = game.finishRun(score).scores
+                    lastScore = score
+                    if (names.size == 1) record.submit(score)
+                    phase = PHASE_RUN_OVER
                 }
-            }
-        }
-        else -> SimonCard {
-            Text(
-                text = stringResource(R.string.simon_ready_title, nameOf(game.current)),
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
             )
-            Text(
-                text = stringResource(R.string.simon_ready_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            if (names.size == 1) SoloRecordLine(record)
-            if (scores.isNotEmpty()) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    scores.forEachIndexed { seat, score ->
-                        Text(
-                            text = stringResource(R.string.simon_score_entry, nameOf(seat), score),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+            phase == PHASE_RUN_OVER -> SimonCard {
+                if (game.isOver) {
+                    SimonResults(game = game, names = names, record = record, onChangeMode = onChangeMode, onNewGame = {
+                        scores = game.newGame().scores
+                        record.clearNew()
+                        phase = PHASE_READY
+                    })
+                } else {
+                    Text(
+                        text = stringResource(R.string.simon_run_over, nameOf(game.current - 1), lastScore),
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Center
+                    )
+                    Button(onClick = { phase = PHASE_READY }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.simon_next_player))
                     }
                 }
             }
-            Button(onClick = { phase = PHASE_PLAYING }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.simon_go))
+            else -> SimonCard {
+                Text(
+                    text = stringResource(R.string.simon_ready_title, nameOf(game.current)),
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = stringResource(R.string.simon_ready_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                if (names.size == 1) SoloRecordLine(record)
+                if (scores.isNotEmpty()) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        scores.forEachIndexed { seat, score ->
+                            Text(
+                                text = stringResource(R.string.simon_score_entry, nameOf(seat), score),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                Button(onClick = { phase = PHASE_PLAYING }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.simon_go))
+                }
             }
         }
+        RecordSparkles(record)
     }
 }
 

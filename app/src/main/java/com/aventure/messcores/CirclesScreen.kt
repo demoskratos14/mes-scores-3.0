@@ -95,101 +95,105 @@ internal fun CirclesScreen(players: List<String>) {
     val game = CirclesGame(players = names.size, streaks = streaks)
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
 
-    when {
-        phase == PHASE_PLAYING && !game.isOver -> CirclesPlayfield(
-            name = nameOf(game.current),
-            level = level,
-            onFinished = { streak, hitSkull ->
-                streaks = game.finishRun(streak).streaks
-                lastStreak = streak
-                lastSkull = hitSkull
-                if (names.size == 1) record.submit(streak)
-                phase = PHASE_RUN_OVER
+    // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            phase == PHASE_PLAYING && !game.isOver -> CirclesPlayfield(
+                name = nameOf(game.current),
+                level = level,
+                onFinished = { streak, hitSkull ->
+                    streaks = game.finishRun(streak).streaks
+                    lastStreak = streak
+                    lastSkull = hitSkull
+                    if (names.size == 1) record.submit(streak)
+                    phase = PHASE_RUN_OVER
+                }
+            )
+            phase == PHASE_RUN_OVER -> CirclesCard {
+                if (lastSkull) {
+                    Text(
+                        text = stringResource(R.string.circles_skull_hit, nameOf((game.current - 1).coerceAtLeast(0)), lastStreak),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                if (game.isOver) {
+                    CirclesResults(game = game, names = names, record = record, onNewGame = {
+                        streaks = game.newGame().streaks
+                        lastSkull = false
+                        record.clearNew()
+                        phase = PHASE_READY
+                    })
+                } else {
+                    Text(
+                        text = stringResource(R.string.circles_run_over, nameOf(game.current - 1), lastStreak),
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Center
+                    )
+                    Button(onClick = { phase = PHASE_READY }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.circles_next_player))
+                    }
+                }
             }
-        )
-        phase == PHASE_RUN_OVER -> CirclesCard {
-            if (lastSkull) {
+            else -> CirclesCard {
                 Text(
-                    text = stringResource(R.string.circles_skull_hit, nameOf((game.current - 1).coerceAtLeast(0)), lastStreak),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
-                )
-            }
-            if (game.isOver) {
-                CirclesResults(game = game, names = names, record = record, onNewGame = {
-                    streaks = game.newGame().streaks
-                    lastSkull = false
-                    record.clearNew()
-                    phase = PHASE_READY
-                })
-            } else {
-                Text(
-                    text = stringResource(R.string.circles_run_over, nameOf(game.current - 1), lastStreak),
+                    text = stringResource(R.string.circles_ready_title, nameOf(game.current)),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Button(onClick = { phase = PHASE_READY }, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.circles_next_player))
-                }
-            }
-        }
-        else -> CirclesCard {
-            Text(
-                text = stringResource(R.string.circles_ready_title, nameOf(game.current)),
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = stringResource(R.string.circles_ready_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = stringResource(R.string.circles_level_title),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.semantics { heading() }
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CirclesLevel.entries.forEach { option ->
-                    FilterChip(
-                        selected = option == level,
-                        // Pas de changement de niveau en cours de partie : tous les joueurs jouent le même.
-                        enabled = streaks.isEmpty(),
-                        onClick = {
-                            levelIndex = option.ordinal
-                            CirclesPreferences.save(context, option.ordinal)
-                        },
-                        label = { Text(stringResource(levelName(option))) }
-                    )
-                }
-            }
-            if (level == CirclesLevel.HARD) {
                 Text(
-                    text = stringResource(R.string.circles_hard_hint),
+                    text = stringResource(R.string.circles_ready_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
-            }
-            if (names.size == 1) SoloRecordLine(record)
-            if (streaks.isNotEmpty()) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    streaks.forEachIndexed { seat, streak ->
-                        Text(
-                            text = stringResource(R.string.circles_streak_entry, nameOf(seat), streak),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                Text(
+                    text = stringResource(R.string.circles_level_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.semantics { heading() }
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CirclesLevel.entries.forEach { option ->
+                        FilterChip(
+                            selected = option == level,
+                            // Pas de changement de niveau en cours de partie : tous les joueurs jouent le même.
+                            enabled = streaks.isEmpty(),
+                            onClick = {
+                                levelIndex = option.ordinal
+                                CirclesPreferences.save(context, option.ordinal)
+                            },
+                            label = { Text(stringResource(levelName(option))) }
                         )
                     }
                 }
-            }
-            Button(onClick = { phase = PHASE_PLAYING }, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.circles_go))
+                if (level == CirclesLevel.HARD) {
+                    Text(
+                        text = stringResource(R.string.circles_hard_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                if (names.size == 1) SoloRecordLine(record)
+                if (streaks.isNotEmpty()) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        streaks.forEachIndexed { seat, streak ->
+                            Text(
+                                text = stringResource(R.string.circles_streak_entry, nameOf(seat), streak),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                Button(onClick = { phase = PHASE_PLAYING }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.circles_go))
+                }
             }
         }
+        RecordSparkles(record)
     }
 }
 
