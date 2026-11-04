@@ -688,19 +688,24 @@ private fun ChessBoard(
             modifier = Modifier
                 .widthIn(max = 440.dp)
                 .fillMaxWidth()
-                // Pendant une prise (style sorcier), la caméra incline le plateau, se rapproche de la victime et secoue à l'impact.
+                // Pendant une prise (style sorcier), la caméra incline le plateau, zoome très fort sur l'action (elle suit la
+                // pièce, ou le projectile) et secoue à l'impact : la zone regardée est ramenée au centre de l'écran.
                 .then(
                     if (wizard && fx?.isCapture == true) {
                         Modifier.graphicsLayer {
                             val camera = fx?.let { wizardCamera(it, progress.value, flipped) }
-                            transformOrigin = TransformOrigin(camera?.pivotX ?: 0.5f, camera?.pivotY ?: 0.5f)
+                            // Le plateau est entouré du cadre : la zone regardée (en parts du plateau) est ramenée à celles de la vue entière.
+                            val frame = WIZARD_FRAME_WIDTH.toPx()
+                            val focusX = if (camera != null) (frame + camera.viewX * (size.width - 2f * frame)) / size.width else 0.5f
+                            val focusY = if (camera != null) (frame + camera.viewY * (size.height - 2f * frame)) / size.height else 0.5f
+                            transformOrigin = TransformOrigin(focusX, focusY)
                             cameraDistance = 20f * density
                             rotationX = camera?.tiltDeg ?: 0f
                             rotationY = camera?.orbitDeg ?: 0f
                             scaleX = camera?.zoom ?: 1f
                             scaleY = camera?.zoom ?: 1f
-                            translationX = (camera?.shakeX ?: 0f) * size.width
-                            translationY = (camera?.shakeY ?: 0f) * size.width
+                            translationX = (0.5f - focusX) * size.width + (camera?.shakeX ?: 0f) * size.width
+                            translationY = (0.5f - focusY) * size.height + (camera?.shakeY ?: 0f) * size.width
                         }
                     } else {
                         Modifier
@@ -798,6 +803,7 @@ private fun ChessBoard(
                             scene = capture3d.scene,
                             modifier = Modifier.matchParentSize(),
                             renderScale = WIZARD_3D_RENDER_SCALE,
+                            region = { capture3d.region },
                             update = { capture3d.update(progress.value, flipped) }
                         )
                     }

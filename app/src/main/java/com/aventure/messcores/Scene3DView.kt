@@ -6,8 +6,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.createBitmap
 import java.io.IOException
@@ -66,7 +69,9 @@ internal object WizardModels {
  * Dessine [scene] sur toute la surface de la vue, fond transparent. [update] est appelée avant chaque image : c'est là
  * qu'on place les pièces (`instance.setPose(…)`) et la caméra d'après l'avancement de l'animation. [renderScale] réduit la
  * résolution de calcul (0,5 = quatre fois moins de pixels) pour les téléphones lents ; [supersampling] (1 à 4, 1 par défaut ; 2 pour une image fixe) adoucit
- * les bords en calculant plus grand puis en réduisant.
+ * les bords en calculant plus grand puis en réduisant. [region] (en parts de la vue, de 0 à 1, lue après [update]) est le
+ * rectangle de la vue où l'image calculée est dessinée : par défaut toute la vue ; une caméra qui zoome ne calcule que la zone
+ * regardée et la place là, ce qui garde les pièces nettes en gros plan sans calculer plus de pixels.
  */
 @Composable
 internal fun Scene3DView(
@@ -74,6 +79,7 @@ internal fun Scene3DView(
     modifier: Modifier = Modifier,
     renderScale: Float = 1f,
     supersampling: Int = 1,
+    region: () -> Rect = FULL_VIEW,
     update: (Scene3D) -> Unit = {}
 ) {
     val renderer = remember { Renderer3D() }
@@ -87,13 +93,21 @@ internal fun Scene3DView(
         renderer.render(scene, frame)
         val bitmap = holder.bitmap(w, h)
         bitmap.setPixels(frame.pixels, 0, w, 0, 0, w, h)
-        drawImage(
-            image = bitmap.asImageBitmap(),
-            dstSize = IntSize(size.width.toInt(), size.height.toInt()),
-            filterQuality = FilterQuality.Medium
-        )
+        val target = region()
+        withTransform({
+            translate(target.left * size.width, target.top * size.height)
+            scale(target.width, target.height, pivot = Offset.Zero)
+        }) {
+            drawImage(
+                image = bitmap.asImageBitmap(),
+                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                filterQuality = FilterQuality.Medium
+            )
+        }
     }
 }
+
+private val FULL_VIEW: () -> Rect = { Rect(0f, 0f, 1f, 1f) }
 
 private const val MAX_SIDE = 2048
 

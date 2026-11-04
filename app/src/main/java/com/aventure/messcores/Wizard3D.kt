@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan
@@ -18,9 +19,10 @@ import kotlin.math.sqrt
 
 /**
  * La résolution de calcul de la scène 3D, en part des pixels de l'écran (le rendu est logiciel : 0,75 garde un dessin net tout en
- * restant fluide sur un téléphone modeste ; la caméra de la prise agrandit ensuite le plateau jusqu'à 1,45 fois).
+ * restant fluide sur un téléphone modeste ; en gros plan, la scène ne calcule que la zone regardée par la caméra de la prise,
+ * donc ces pixels servent à une zone bien plus petite et l'image reste nette malgré le zoom).
  */
-internal const val WIZARD_3D_RENDER_SCALE = 0.75f
+internal const val WIZARD_3D_RENDER_SCALE = 0.9f
 
 /** Les points où les effets 2D s'accrochent aux pièces 3D, en cases du plateau (1 = une case, origine : coin haut-gauche). */
 internal class CaptureAnchors(
@@ -57,26 +59,52 @@ internal class Wizard3DCapture private constructor(
     private val weapon = weaponMesh?.let { Instance3D(it, WizardModelCatalog.materialFor(fx.mover)) }
     private val victim = Instance3D(victimMesh, WizardModelCatalog.materialFor(fx.captured))
 
+    private val camera = Camera3D(
+        eyeX = BOARD / 2f, eyeY = BOARD / 2f, eyeZ = CAMERA_DISTANCE,
+        targetX = BOARD / 2f, targetY = BOARD / 2f, targetZ = 0f,
+        fovDegrees = fovFor(BOARD),
+        near = 1f
+    )
+
     /** La scène à donner à `Scene3DView`, dont `update` doit appeler [update]. */
     val scene = Scene3D().also { s3d ->
         s3d.instances.add(victim)
         s3d.instances.add(mover)
         weapon?.let { s3d.instances.add(it) }
-        s3d.camera = Camera3D(
-            eyeX = BOARD / 2f, eyeY = BOARD / 2f, eyeZ = CAMERA_DISTANCE,
-            targetX = BOARD / 2f, targetY = BOARD / 2f, targetZ = 0f,
-            fovDegrees = (2.0 * atan((BOARD / 2f) / CAMERA_DISTANCE.toDouble()) * 180.0 / PI).toFloat(),
-            near = 1f
-        )
+        s3d.camera = camera
     }
 
-    /** Place les pièces pour l'avancement [progress] (de 0 à 1) de la prise. */
+    /**
+     * La zone du plateau que la scène calcule en ce moment, en parts du plateau (0 à 1, origine : coin haut-gauche) : tout le
+     * plateau au repos, une petite zone autour de l'action quand la caméra de la prise zoome. `Scene3DView` dessine l'image
+     * calculée exactement dans ce rectangle (voir son paramètre `region`).
+     */
+    var region: Rect = FULL_BOARD
+        private set
+
+    /** Place les pièces pour l'avancement [progress] (de 0 à 1) de la prise, et la fenêtre de la scène sur ce que regarde la caméra. */
     fun update(progress: Float, flipped: Boolean) {
+        frameCamera(progress, flipped)
         val pose = pose(progress, flipped)
         mover.matrix = pose.mover
         weapon?.let { it.matrix = pose.weapon ?: it.matrix }
         victim.matrix = pose.victim
         victim.visible = pose.victimVisible
+    }
+
+    // La fenêtre de la scène suit la caméra de la prise (voir wizardCamera) : même centre, et une largeur un peu plus grande que
+    // la zone vue (marge pour l'inclinaison et la secousse), pour ne calculer que ce qu'on voit et garder des pièces nettes.
+    private fun frameCamera(progress: Float, flipped: Boolean) {
+        val cam = wizardCamera(fx, progress, flipped)
+        val span = if (cam == null) 1f else (WINDOW_MARGIN / cam.zoom).coerceAtMost(1f)
+        val cx = (cam?.viewX ?: 0.5f).coerceIn(span / 2f, 1f - span / 2f)
+        val cy = (cam?.viewY ?: 0.5f).coerceIn(span / 2f, 1f - span / 2f)
+        camera.eyeX = cx * BOARD
+        camera.targetX = cx * BOARD
+        camera.eyeY = BOARD - cy * BOARD
+        camera.targetY = BOARD - cy * BOARD
+        camera.fovDegrees = fovFor(span * BOARD)
+        region = Rect(cx - span / 2f, cy - span / 2f, cx + span / 2f, cy + span / 2f)
     }
 
     /** Les points d'accroche des effets 2D à l'avancement [progress]. */
@@ -240,6 +268,15 @@ internal class Wizard3DCapture private constructor(
 
         /** Le pied de la pièce, sous le centre de sa case (en cases) : 0,88 depuis le haut de la case, comme les statues 2D. */
         const val FOOT_OFFSET = 0.38f
+
+        /** Part de la zone vue qu'on calcule en plus (la caméra de la prise incline le plateau : on voit un peu plus loin en haut). */
+        private const val WINDOW_MARGIN = 1.4f
+
+        private val FULL_BOARD = Rect(0f, 0f, 1f, 1f)
+
+        /** Le champ (en degrés) pour voir [height] cases de haut à la distance de la caméra. */
+        private fun fovFor(height: Float): Float =
+            (2.0 * atan((height / 2f) / CAMERA_DISTANCE.toDouble()) * 180.0 / PI).toFloat()
 
         private const val DEPTH_PER_ROW = 0.12f
         private const val PROFILE_YAW = 65f

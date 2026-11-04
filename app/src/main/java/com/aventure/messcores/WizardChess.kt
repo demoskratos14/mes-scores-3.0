@@ -812,15 +812,25 @@ internal const val IMPACT = 0.46f
 internal const val FOLLOW_END = 0.62f
 internal const val STEP_END = 0.95f
 
-/** Durée de l'animation d'un coup, en millisecondes : courte pour un déplacement, plus longue pour une prise. */
-internal fun wizardMoveDuration(fx: MoveFx): Int = if (fx.isCapture) 2100 else 280
+/** Durée de l'animation d'un coup, en millisecondes : courte pour un déplacement, plus longue pour une prise (encore plus pour une attaque à distance). */
+internal fun wizardMoveDuration(fx: MoveFx): Int = when {
+    !fx.isCapture -> 280
+    // La tour et le fou tirent de loin : un peu plus de temps pour se rapprocher d'eux puis suivre le projectile.
+    fx.mover.uppercaseChar() == 'R' || fx.mover.uppercaseChar() == 'B' -> 3000
+    else -> 2400
+}
 
 /**
- * La caméra d'une prise : le plateau s'incline en perspective, la caméra se rapproche de la victime et tourne un peu autour,
- * puis une secousse accompagne l'impact. Tout est en parts du plateau, pour que l'écran n'ait qu'à l'appliquer (voir
- * `graphicsLayer` dans ChessScreen) : [tiltDeg] et [orbitDeg] sont des rotations autour des axes horizontal et vertical,
- * [zoom] un grossissement centré sur ([pivotX], [pivotY]) (la case de la victime), [shakeX] et [shakeY] un décalage en part de
- * la largeur du plateau.
+ * La caméra d'une prise : le plateau s'incline en perspective et la caméra se rapproche très fort de l'action, puis une
+ * secousse accompagne l'impact. Tout est en parts du plateau, pour que l'écran n'ait qu'à l'appliquer (voir `graphicsLayer`
+ * dans ChessScreen) :
+ *  - pièce qui frappe de près (pion, cavalier, dame, roi) : la caméra suit la pièce pendant son approche (zoom modéré), puis
+ *    zoome très fort sur le duo pour voir le coup, et reste là jusqu'à la fin du geste ;
+ *  - pièce qui tire de loin (tour, fou) : la caméra se rapproche d'abord très fort de la pièce qui attaque, puis suit le
+ *    projectile jusqu'à la victime, et reste sur elle jusqu'à la fin du geste.
+ * [tiltDeg] et [orbitDeg] sont des rotations autour des axes horizontal et vertical, [zoom] le grossissement, ([viewX], [viewY])
+ * le centre de la zone du plateau qu'on regarde (0 à 1, déjà ramené pour ne jamais sortir du plateau), [shakeX] et [shakeY]
+ * un décalage en part de la largeur du plateau.
  */
 internal class WizardCamera(
     val tiltDeg: Float,
@@ -828,27 +838,43 @@ internal class WizardCamera(
     val zoom: Float,
     val shakeX: Float,
     val shakeY: Float,
-    val pivotX: Float,
-    val pivotY: Float
+    val viewX: Float,
+    val viewY: Float
 )
 
 /**
- * Inclinaison maximale du plateau pendant une prise, en degrés. Si le plateau semble se pencher vers toi au lieu de s'éloigner,
- * il suffit de la passer en négatif.
+ * Inclinaison maximale du plateau pendant une prise, en degrés (atteinte au plus fort zoom). Si le plateau semble se
+ * pencher vers toi au lieu de s'éloigner, il suffit de la passer en négatif.
  */
-internal const val WIZARD_CAMERA_TILT_DEG = 30f
+internal const val WIZARD_CAMERA_TILT_DEG = 22f
 
-/** Rotation maximale de la caméra autour de l'action, en degrés, et grossissement ajouté au plus près de la victime. */
-private const val CAMERA_ORBIT_DEG = 9f
-private const val CAMERA_ZOOM = 0.45f
+/** Rotation maximale de la caméra autour de l'action, en degrés. */
+private const val CAMERA_ORBIT_DEG = 7f
 
-/** La caméra se met en place pendant la première partie de la prise, puis revient à plat sur la fin. */
-private const val CAMERA_IN_END = 0.30f
-private const val CAMERA_OUT_START = 0.72f
+/** Les grossissements : pendant l'approche d'une pièce de mêlée, au plus près (borne haute), et pour une attaque à distance. */
+private const val CAMERA_ZOOM_FOLLOW = 1.5f
+private const val CAMERA_ZOOM_MAX = 3.2f
+private const val CAMERA_ZOOM_RANGED = 3.0f
+
+/** Pour la mêlée : largeur minimale vue (en cases) autour du duo, et marge ajoutée à l'écart entre les deux pièces. */
+private const val CAMERA_MELEE_MIN_VIEW = 2.8f
+private const val CAMERA_MELEE_MARGIN = 1.8f
+
+/** Fin du gros zoom de la mêlée, et départ du projectile (la tour et le fou tirent à la moitié du geste). */
+private const val CAMERA_ZOOM_IN_END = ATTACK_START + 0.08f
+private const val CAMERA_FLIGHT_START = ATTACK_START + 0.55f * (IMPACT - ATTACK_START)
+
+/** La caméra est revenue à plat à cet avancement. */
 private const val CAMERA_OUT_END = 0.98f
 
 /** Durée de la secousse après l'impact (en avancement de 0 à 1). */
 private const val CAMERA_SHAKE_SPAN = 0.14f
+
+/** On vise un peu au-dessus du centre de la case : le corps des pièces est au-dessus de leurs pieds (en cases). */
+private const val CAMERA_FOCUS_LIFT = 0.2f
+
+/** Le grossissement à partir duquel l'inclinaison est complète. */
+private const val CAMERA_FULL_TILT_ZOOM = 3f
 
 /**
  * La caméra de la prise [fx] à l'avancement [progress] (de 0 à 1), ou null pour un simple déplacement (pas de caméra).
@@ -857,27 +883,70 @@ private const val CAMERA_SHAKE_SPAN = 0.14f
 internal fun wizardCamera(fx: MoveFx, progress: Float, flipped: Boolean): WizardCamera? {
     if (!fx.isCapture) return null
     val p = progress.coerceIn(0f, 1f)
-    val settle = smooth((p / CAMERA_IN_END).coerceIn(0f, 1f))
-    val release = smooth(((p - CAMERA_OUT_START) / (CAMERA_OUT_END - CAMERA_OUT_START)).coerceIn(0f, 1f))
-    val k = settle * (1f - release)
+    // Le mouvement est calculé pour des cases de 100 pixels (comme la scène 3D), puis ramené en cases (une case = 1),
+    // depuis le coin haut-gauche du plateau.
+    val m = captureMotionFor(fx, p, 100f, flipped)
+    val start = (wizardSquareOrigin(fx.from, flipped, 100f) + Offset(50f, 50f)) / 100f
+    val target = m.targetCenter / 100f
+    val stopCenter = m.stopCenter / 100f
+    val moverCenter = m.center / 100f
+    val ranged = m.kind == 'R' || m.kind == 'B'
 
-    // Les colonnes et rangées telles qu'on les voit à l'écran.
-    fun column(square: Int): Int = if (flipped) 7 - square % 8 else square % 8
-    fun row(square: Int): Int = if (flipped) 7 - square / 8 else square / 8
-    // La caméra tourne du côté d'où vient le coup.
-    val side = (column(fx.capturedSquare) - column(fx.from)).let { if (it > 0) 1f else if (it < 0) -1f else 0f }
+    // zoomHold / focusHold : ce que la caméra regarde pendant le geste (jusqu'à FOLLOW_END) ; zoomNow / focusNow : sa route jusque-là.
+    val zoomHold: Float
+    val focusHold: Offset
+    val zoomNow: Float
+    val focusNow: Offset
+    if (ranged) {
+        // On se rapproche de la pièce qui tire (un peu du côté de sa cible), puis on suit le projectile jusqu'à la victime.
+        val gap = (target - start).getDistance().coerceAtLeast(1f)
+        val shooter = start + (target - start) * (0.25f / gap)
+        val zoomIn = smooth((p / ATTACK_START).coerceIn(0f, 1f))
+        val flight = ((p - CAMERA_FLIGHT_START) / (IMPACT - CAMERA_FLIGHT_START)).coerceIn(0f, 1f)
+        zoomHold = CAMERA_ZOOM_RANGED
+        focusHold = target
+        zoomNow = lerpFloat(1f, CAMERA_ZOOM_RANGED, zoomIn)
+        focusNow = lerpOffset(shooter, target, flight)
+    } else {
+        // On suit la pièce qui s'approche, puis on zoome très fort sur le duo (le zoom s'adapte à leur écart).
+        val gap = (stopCenter - target).getDistance()
+        val close = (8f / maxOf(CAMERA_MELEE_MIN_VIEW, gap + CAMERA_MELEE_MARGIN)).coerceIn(CAMERA_ZOOM_FOLLOW, CAMERA_ZOOM_MAX)
+        val pair = lerpOffset(stopCenter, target, 0.5f)
+        val approach = smooth((p / ATTACK_START).coerceIn(0f, 1f))
+        val closeIn = smooth(((p - ATTACK_START) / (CAMERA_ZOOM_IN_END - ATTACK_START)).coerceIn(0f, 1f))
+        zoomHold = close
+        focusHold = pair
+        zoomNow = lerpFloat(lerpFloat(1f, CAMERA_ZOOM_FOLLOW, approach), close, closeIn)
+        focusNow = lerpOffset(moverCenter, pair, approach)
+    }
+
+    // Après le geste, la caméra suit la pièce qui prend la place de sa victime, en reculant jusqu'à revenir à plat.
+    val release = smooth(((p - FOLLOW_END) / (CAMERA_OUT_END - FOLLOW_END)).coerceIn(0f, 1f))
+    val baseZoom = if (p < FOLLOW_END) zoomNow else lerpFloat(zoomHold, 1f, release)
+    val focus = (if (p < FOLLOW_END) focusNow else lerpOffset(focusHold, moverCenter, release)) - Offset(0f, CAMERA_FOCUS_LIFT)
 
     // La secousse : un fort coup à l'impact, qui s'éteint vite.
     val since = (p - IMPACT) / CAMERA_SHAKE_SPAN
     val punch = if (since in 0f..1f) (1f - since) * (1f - since) else 0f
+    val zoom = baseZoom * (1f + 0.04f * punch)
+
+    // Le centre de la zone vue ne sort jamais du plateau.
+    val margin = 0.5f / zoom
+    val viewX = (focus.x / 8f).coerceIn(margin, 1f - margin)
+    val viewY = (focus.y / 8f).coerceIn(margin, 1f - margin)
+
+    // L'inclinaison et le tour de caméra grandissent avec le zoom ; elle tourne du côté d'où vient le coup.
+    val k = ((zoom - 1f) / (CAMERA_FULL_TILT_ZOOM - 1f)).coerceIn(0f, 1f)
+    fun column(square: Int): Int = if (flipped) 7 - square % 8 else square % 8
+    val side = (column(fx.capturedSquare) - column(fx.from)).let { if (it > 0) 1f else if (it < 0) -1f else 0f }
     return WizardCamera(
         tiltDeg = WIZARD_CAMERA_TILT_DEG * k,
         orbitDeg = CAMERA_ORBIT_DEG * side * k,
-        zoom = 1f + CAMERA_ZOOM * k + 0.07f * punch,
+        zoom = zoom,
         shakeX = punch * sin(since * 40f) * 0.014f,
         shakeY = punch * cos(since * 47f) * 0.01f,
-        pivotX = (column(fx.capturedSquare) + 0.5f) / 8f,
-        pivotY = (row(fx.capturedSquare) + 0.5f) / 8f
+        viewX = viewX,
+        viewY = viewY
     )
 }
 
