@@ -97,8 +97,8 @@ internal class Wizard3DCapture private constructor(
     private fun frameCamera(progress: Float, flipped: Boolean) {
         val cam = wizardCamera(fx, progress, flipped)
         val span = if (cam == null) 1f else (WINDOW_MARGIN / cam.zoom).coerceAtMost(1f)
-        val cx = (cam?.viewX ?: 0.5f).coerceIn(span / 2f, 1f - span / 2f)
-        val cy = (cam?.viewY ?: 0.5f).coerceIn(span / 2f, 1f - span / 2f)
+        val cx = cam?.viewX ?: 0.5f
+        val cy = cam?.viewY ?: 0.5f
         camera.eyeX = cx * BOARD
         camera.targetX = cx * BOARD
         camera.eyeY = BOARD - cy * BOARD
@@ -123,7 +123,7 @@ internal class Wizard3DCapture private constructor(
         val moverRow = m.center.y / cell + FOOT_OFFSET
         val heading = moverYaw(attackDx, progress, cell)
         val moverMatrix = Mat4.pose(
-            moverX, BOARD - moverRow, depth(moverRow), yaw = heading, scale = SCALE * m.bounce
+            moverX, BOARD - moverRow, depth(moverRow), yaw = heading, scale = scaleOf(fx.mover) * m.bounce
         )
 
         // L'arme suit la pièce, et pivote autour de la main (dans le plan de l'écran) selon le geste de l'animation 2D :
@@ -158,9 +158,10 @@ internal class Wizard3DCapture private constructor(
             )
         } else if (kind == 'P') {
             // Le pion n'a pas d'arme : ses épées surgissent de ses poings, à peu près à mi-hauteur.
+            val grow = scaleOf(fx.mover) / REFERENCE_SCALE
             hooks = CaptureAnchors(
-                pawnHandA = Offset(moverX - 0.07f, moverRow - 0.20f),
-                pawnHandB = Offset(moverX + 0.07f, moverRow - 0.16f)
+                pawnHandA = Offset(moverX - 0.07f * grow, moverRow - 0.20f * grow),
+                pawnHandB = Offset(moverX + 0.07f * grow, moverRow - 0.16f * grow)
             )
         }
 
@@ -213,7 +214,7 @@ internal class Wizard3DCapture private constructor(
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.rotationZ(roll))
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.scaling(squashX, squashY, squashX))
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.rotationY(victimYaw(attackDx, progress, cell)))
-        val s = SCALE * shrink
+        val s = scaleOf(fx.captured) * shrink
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.scaling(s, s, s))
 
         return Wizard3DPose(moverMatrix, weaponMatrix, victimMatrix, visible, hooks)
@@ -263,8 +264,16 @@ internal class Wizard3DCapture private constructor(
         /** Loin devant l'échiquier : la perspective y est presque nulle, les pièces gardent la taille de leur case. */
         const val CAMERA_DISTANCE = 60f
 
-        /** Cases par mètre : le roi (88 mm) fait environ 1,2 case de haut. À régler au goût. */
-        const val SCALE = 14f
+        /** Cases par mètre : le roi (88 mm) fait environ 1,75 case de haut, le pion (32 mm) 0,8. À régler au goût. */
+        const val SCALE = 20f
+
+        /** Le pion est le plus petit : on le grossit en plus, pour qu'il ne paraisse pas minuscule à côté des autres pièces. */
+        private const val PAWN_BOOST = 1.3f
+
+        /** L'échelle d'origine (avant l'agrandissement), à laquelle sont réglés les points d'accroche fixes du pion. */
+        private const val REFERENCE_SCALE = 14f
+
+        private fun scaleOf(piece: Char): Float = if (piece.uppercaseChar() == 'P') SCALE * PAWN_BOOST else SCALE
 
         /** Le pied de la pièce, sous le centre de sa case (en cases) : 0,88 depuis le haut de la case, comme les statues 2D. */
         const val FOOT_OFFSET = 0.38f

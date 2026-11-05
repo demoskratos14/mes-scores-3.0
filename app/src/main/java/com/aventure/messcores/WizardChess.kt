@@ -873,6 +873,9 @@ private const val CAMERA_SHAKE_SPAN = 0.14f
 /** On vise un peu au-dessus du centre de la case : le corps des pièces est au-dessus de leurs pieds (en cases). */
 private const val CAMERA_FOCUS_LIFT = 0.2f
 
+/** Jusqu'où la caméra peut regarder au-dessus du plateau en gros plan, en parts du plateau (pour voir le haut des pièces du fond). */
+private const val CAMERA_TOP_ROOM = 0.1f
+
 /** Le grossissement à partir duquel l'inclinaison est complète. */
 private const val CAMERA_FULL_TILT_ZOOM = 3f
 
@@ -930,13 +933,14 @@ internal fun wizardCamera(fx: MoveFx, progress: Float, flipped: Boolean): Wizard
     val punch = if (since in 0f..1f) (1f - since) * (1f - since) else 0f
     val zoom = baseZoom * (1f + 0.04f * punch)
 
-    // Le centre de la zone vue ne sort jamais du plateau.
-    val margin = 0.5f / zoom
-    val viewX = (focus.x / 8f).coerceIn(margin, 1f - margin)
-    val viewY = (focus.y / 8f).coerceIn(margin, 1f - margin)
-
     // L'inclinaison et le tour de caméra grandissent avec le zoom ; elle tourne du côté d'où vient le coup.
     val k = ((zoom - 1f) / (CAMERA_FULL_TILT_ZOOM - 1f)).coerceIn(0f, 1f)
+
+    // Le centre de la zone vue ne sort pas du plateau, sauf un peu vers le haut en gros plan : les pièces, hautes, dépassent
+    // de leur case et ne doivent pas être coupées sur la rangée du fond.
+    val margin = 0.5f / zoom
+    val viewX = (focus.x / 8f).coerceIn(margin, 1f - margin)
+    val viewY = (focus.y / 8f).coerceIn(margin - CAMERA_TOP_ROOM * k, 1f - margin)
     fun column(square: Int): Int = if (flipped) 7 - square % 8 else square % 8
     val side = (column(fx.capturedSquare) - column(fx.from)).let { if (it > 0) 1f else if (it < 0) -1f else 0f }
     return WizardCamera(

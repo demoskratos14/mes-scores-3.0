@@ -154,7 +154,7 @@ class Wizard3DCaptureTest {
                 for (p in points) {
                     val dx = p.x - x
                     val dy = p.y - y
-                    assertTrue("$piece à $progress : point à ${sqrt(dx * dx + dy * dy)} cases", sqrt(dx * dx + dy * dy) < 2f)
+                    assertTrue("$piece à $progress : point à ${sqrt(dx * dx + dy * dy)} cases", sqrt(dx * dx + dy * dy) < 3f)
                 }
             }
         }

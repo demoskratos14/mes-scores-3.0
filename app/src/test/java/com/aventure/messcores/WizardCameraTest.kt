@@ -69,7 +69,7 @@ class WizardCameraTest {
             val camera = wizardCamera(capture, step / 100f, flipped = false)!!
             val half = 0.5f / camera.zoom
             assertTrue(camera.viewX >= half - 0.0001f && camera.viewX <= 1f - half + 0.0001f)
-            assertTrue(camera.viewY >= half - 0.0001f && camera.viewY <= 1f - half + 0.0001f)
+            assertTrue(camera.viewY >= half - 0.1f - 0.0001f && camera.viewY <= 1f - half + 0.0001f)
         }
     }
 
