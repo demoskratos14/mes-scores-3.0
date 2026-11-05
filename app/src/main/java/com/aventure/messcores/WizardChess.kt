@@ -1075,7 +1075,9 @@ internal class CaptureMotion(
     val kingWind: Float,
     val kingStrike: Float,
     val knightWind: Float,
-    val knightStrike: Float
+    val knightStrike: Float,
+    val queenWind: Float,
+    val queenStrike: Float
 )
 
 /** Le coin haut-gauche de la case [square], en pixels, pour des cases de [cell] pixels ([flipped] : les noirs sont en bas). */
@@ -1091,6 +1093,9 @@ internal fun wizardSquareOrigin(square: Int, flipped: Boolean, cell: Float): Off
  * 2D, scène 3D, caméra) comptent la hauteur en cases de cette taille : une case fait 1 de large et [WIZARD_ROW_PITCH] de haut.
  */
 internal const val WIZARD_ROW_PITCH = 1.2f
+
+/** L'angle d'écran (degrés, sens des aiguilles d'une montre, 0 = vers la droite) de la baguette de la dame au repos : pendante, pointe vers le bas. */
+internal const val QUEEN_WAND_REST_ANGLE = 90f
 
 internal fun captureMotionFor(fx: MoveFx, progress: Float, cell: Float, flipped: Boolean): CaptureMotion =
     captureMotion(
@@ -1143,7 +1148,12 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
 
     // L'arme de la pièce : son angle et sa taille.
     val rig = wizardRig(fx.mover)
-    val restAngle = if (rig != null) atan2(rig.ry, if (flip) -rig.rx else rig.rx) / RAD else 0f
+    // La baguette de la dame n'existe qu'en 3D (sa statue 2D a les bras croisés, donc pas de WeaponRig) : elle pend pointe en bas, comme l'épée du roi.
+    val restAngle = when {
+        rig != null -> atan2(rig.ry, if (flip) -rig.rx else rig.rx) / RAD
+        kind == 'Q' -> QUEEN_WAND_REST_ANGLE
+        else -> 0f
+    }
     var weaponDeg = 0f
     var weaponScale = 1f
     var swingAngle = restAngle
@@ -1151,6 +1161,9 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
     val kingStrike = angleU - side * 5f
     val knightWind = angleU + side * 150f
     val knightStrike = angleU - side * 10f
+    // Un grand revers : levée par-dessus l'épaule, puis balayée au-delà de la victime (170° d'amplitude : jamais exactement un demi-tour, dont le sens serait ambigu).
+    val queenWind = angleU + side * 110f
+    val queenStrike = angleU - side * 60f
     when (kind) {
         'K' -> {
             val (angle, scale) = swingPose(progress, restAngle, kingWind, kingStrike, 1.5f, 1.9f)
@@ -1160,6 +1173,13 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
         }
         'N' -> {
             val (angle, scale) = swingPose(progress, restAngle, knightWind, knightStrike, 1.5f, 1.9f)
+            swingAngle = angle
+            weaponDeg = angle - restAngle
+            weaponScale = scale
+        }
+        'Q' -> {
+            // Sa baguette (en 3D) se lève et balaie l'air autour de ses mains, comme l'épée du roi ; en 2D, [drawCapture] garde la lame conjurée.
+            val (angle, scale) = swingPose(progress, restAngle, queenWind, queenStrike, 1.5f, 1.9f)
             swingAngle = angle
             weaponDeg = angle - restAngle
             weaponScale = scale
@@ -1194,7 +1214,7 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
     return CaptureMotion(
         kind, targetCenter, dx, u, angleU, side, stopCenter, a, b, after, center, moverOrigin, bounce,
         faceRight, flip, unit, rig, restAngle, weaponDeg, weaponScale, swingAngle,
-        kingWind, kingStrike, knightWind, knightStrike
+        kingWind, kingStrike, knightWind, knightStrike, queenWind, queenStrike
     )
 }
 
@@ -1204,7 +1224,8 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
  *  - la tour recule d'un cran et tire un carreau d'arbalète en plein cœur : la victime se fissure et vole en éclats ;
  *  - le cavalier bondit et abat sa masse d'armes : la victime est écrasée, puis brisée ;
  *  - le fou lève sa crosse, qui s'embrase : un éclair d'or frappe la victime, qui se dissout en lumière ;
- *  - la dame dégaine une longue lame et la balaie d'un grand revers : la victime est tranchée en biais ;
+ *  - la dame lève sa baguette et la balaie d'un grand revers : la victime est tranchée en biais (en 2D, sans baguette
+ *    dessinée, elle dégaine à la place une longue lame) ;
  *  - le roi lève son épée à deux mains et l'abat : la victime est fendue en deux, de haut en bas.
  * Puis la pièce rengaine et prend la place de sa victime.
  */
@@ -1236,6 +1257,8 @@ private fun DrawScope.drawCapture(
     val kingStrike = m.kingStrike
     val knightWind = m.knightWind
     val knightStrike = m.knightStrike
+    val queenWind = m.queenWind
+    val queenStrike = m.queenStrike
     // Pièces en 3D : les statues ne sont pas dessinées ici, et les effets s'accrochent aux points fournis (en cases).
     val sprites = anchors == null
     fun at(point: Offset) = Offset(point.x * cell, point.y * cell)
@@ -1289,11 +1312,19 @@ private fun DrawScope.drawCapture(
             drawBlade(pivotA, angleA, length * grow, fadeOut, Color(0xFF8A94A8))
             drawBlade(pivotB, angleB, length * grow, fadeOut, Color(0xFF8A94A8))
         }
-        'Q' -> {
-            // La dame dégaine une longue lame, levée par-dessus l'épaule puis balayée d'un grand revers.
+        'Q' -> if (anchors != null) {
+            // En 3D, la dame frappe avec sa propre baguette (déjà dessinée par la scène) : seule la traînée de son geste est ajoutée ici.
+            val pivot = at(anchors.hand)
+            val radius = anchors.swingRadius * cell
+            if (a >= 0.6f || progress >= IMPACT) {
+                val head = if (progress < IMPACT) swingAngle else queenStrike
+                drawSwingTrail(pivot, radius, head, queenWind, queenStrike, fadeOut)
+            }
+        } else {
+            // Statue 2D (repli si un modèle 3D manque) : elle n'a pas d'arme dessinée, donc elle dégaine une longue lame.
             val grow = if (progress < IMPACT) smooth((a / 0.3f).coerceIn(0f, 1f)) else 1f - smooth(b)
             val length = cell * 0.95f
-            val pivot = if (anchors != null) at(anchors.queenTip) else wizardSpritePoint(moverOrigin, cell, flip, 62f, 56f)
+            val pivot = wizardSpritePoint(moverOrigin, cell, flip, 62f, 56f)
             val wind = angleU + side * 105f
             val end = angleU - side * 75f
             val angle = bladeAngle(progress, wind, end)

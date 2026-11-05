@@ -39,7 +39,7 @@ internal class CaptureAnchors(
     /** Les deux mains du pion, d'où surgissent ses épées conjurées. */
     val pawnHandA: Offset = Offset.Zero,
     val pawnHandB: Offset = Offset.Zero,
-    /** Le bout de la baguette de la dame, d'où surgit sa lame. */
+    /** Le bout de la baguette de la dame (qu'elle balaie pour frapper). */
     val queenTip: Offset = Offset.Zero,
     /** La main du roi ou du cavalier, centre de rotation de son arme, et la portée de l'arme (en cases). */
     val hand: Offset = Offset.Zero,

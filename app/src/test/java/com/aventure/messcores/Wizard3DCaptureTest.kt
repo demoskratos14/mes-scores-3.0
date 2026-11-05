@@ -112,7 +112,7 @@ class Wizard3DCaptureTest {
 
     @Test
     fun laMainResteSurLArmeQuandElleSeLeve() {
-        for (piece in "KNRB") {
+        for (piece in "KQNRB") {
             val f = fx(piece, "b4", "f4", 'p')
             val scene = capture(f)
             val mount = WizardModelCatalog.weaponMount(piece)!!
@@ -133,6 +133,37 @@ class Wizard3DCaptureTest {
         var different = false
         for (i in 0 until 16) if (abs(rest[i] - strike[i]) > 1e-3f) different = true
         assertTrue("l'arme a bougé", different)
+    }
+
+    @Test
+    fun laDameLeveSaBaguetteAvantDeFrapper() {
+        val scene = capture(fx('Q', "b4", "f4", 'p'))
+        // La hauteur de la pointe de la baguette au-dessus des mains (l'axe Y du monde monte).
+        fun tipAboveHand(progress: Float): Float {
+            val pose = scene.pose(progress, false)
+            val hand = transform(pose.mover, WizardModelCatalog.handPoint('Q')!!)
+            val tip = transform(pose.weapon!!, floatArrayOf(0f, 0f, 0f))
+            return tip[1] - hand[1]
+        }
+        assertTrue("au repos, la pointe pend sous les mains", tipAboveHand(0.1f) < -0.5f)
+        assertTrue("armée, la pointe est levée au-dessus des mains", tipAboveHand(0.36f) > 0.5f)
+        assertTrue("puis elle revient pendre", tipAboveHand(0.8f) < -0.5f)
+    }
+
+    @Test
+    fun laBaguetteDeLaDameVaAuBoutDeSonRevers() {
+        // À l'impact, la baguette est au bout de son revers, agrandie ; avant et après le geste, elle est au repos.
+        val f = fx('Q', "b4", "f4", 'p')
+        val m = captureMotionFor(f, 0.46f, 100f, false)
+        assertEquals(QUEEN_WAND_REST_ANGLE, m.restAngle, 1e-3f)
+        assertTrue("la baguette a grandi pour frapper", m.weaponScale > 1.5f)
+        assertEquals(m.queenStrike, m.swingAngle, 1e-2f)
+        // Au repos (avant et après le geste), elle ne pivote plus et reprend sa taille.
+        for (progress in listOf(0f, 0.1f, 0.8f)) {
+            val rest = captureMotionFor(f, progress, 100f, false)
+            assertEquals(0f, rest.weaponDeg, 1e-3f)
+            assertEquals(1f, rest.weaponScale, 1e-3f)
+        }
     }
 
     @Test
