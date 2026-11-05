@@ -459,4 +459,44 @@ class Scene3DTest {
         }
         assertTrue(meanLuma(WizardModelCatalog.MARBLE) > meanLuma(WizardModelCatalog.OBSIDIAN) + 60)
     }
+    // Le pixel du centre de l'image, en gris (0 à 255).
+    private fun Frame3D.centerLuma(): Int {
+        val c = pixels[(height / 2) * width + width / 2]
+        return (((c shr 16) and 0xFF) + ((c shr 8) and 0xFF) + (c and 0xFF)) / 3
+    }
+
+    // Deux triangles l'un derrière l'autre : un noir devant (z = 0) et un blanc 0,3 derrière lui.
+    private fun frontBackScene(whiteBias: Float): Scene3D {
+        val mesh = GlbParser.parse(triangleGlb())
+        val scene = Scene3D()
+        scene.instances.add(Instance3D(mesh, WizardModelCatalog.OBSIDIAN, Mat4.translation(0f, 0f, 0f)))
+        scene.instances.add(
+            Instance3D(mesh, WizardModelCatalog.MARBLE, Mat4.translation(0f, 0f, -0.3f)).also { it.depthBias = whiteBias }
+        )
+        scene.camera = Camera3D(eyeX = 0.3f, eyeY = 0.3f, eyeZ = 2f, targetX = 0.3f, targetY = 0.3f, targetZ = 0f, fovDegrees = 30f)
+        return scene
+    }
+
+    @Test
+    fun sansBiaisLObjetLePlusProcheMasqueCeluiDeDerriere() {
+        assertTrue(render(frontBackScene(0f)).centerLuma() < 100)
+    }
+
+    @Test
+    fun leBiaisDeProfondeurPasseUnObjetDevantUnAutreSansChangerSonImage() {
+        // Le blanc, plus loin, mais rapproché de 1 pour le rangement : il masque le noir (la tête d'une pièce de la rangée du
+        // dessous passe devant le pied de la pièce du dessus), et il garde sa taille : la scène ne bouge pas, seul l'ordre change.
+        val biased = render(frontBackScene(1f))
+        assertTrue(biased.centerLuma() > 150)
+        val plain = render(frontBackScene(0f))
+        assertEquals(plain.pixels.count { (it ushr 24) != 0 }, biased.pixels.count { (it ushr 24) != 0 })
+    }
+
+    @Test
+    fun lePlusBasDesDeuxPiecesDuPlateauAuraitUnBiaisPlusGrand() {
+        val high = Wizard3DCapture.restMatrix('P', 3.5f, 1.5f * WIZARD_ROW_PITCH)
+        val low = Wizard3DCapture.restMatrix('p', 3.5f, 2.5f * WIZARD_ROW_PITCH)
+        // Une rangée plus bas : plus près de la caméra, d'au moins une épaisseur de pièce (1,5 en unités du monde).
+        assertTrue(Wizard3DCapture.depthBias(low) - Wizard3DCapture.depthBias(high) > 1.5f)
+    }
 }

@@ -16,11 +16,12 @@ import kotlin.math.sin
 private fun addPiece(scene: Scene3D, piece: Char, matrix: FloatArray, meshOf: (String) -> Mesh3D?): Boolean {
     val mesh = WizardModelCatalog.pieceModel(piece)?.let(meshOf) ?: return false
     val material = WizardModelCatalog.materialFor(piece)
-    scene.instances.add(Instance3D(mesh, material, matrix))
+    val bias = Wizard3DCapture.depthBias(matrix)
+    scene.instances.add(Instance3D(mesh, material, matrix).also { it.depthBias = bias })
     val weaponModel = WizardModelCatalog.weaponModel(piece) ?: return true
     val weaponMesh = meshOf(weaponModel) ?: return false
     val local = WizardModelCatalog.weaponLocal(piece.uppercaseChar()) ?: return false
-    scene.instances.add(Instance3D(weaponMesh, material, Mat4.multiply(matrix, local)))
+    scene.instances.add(Instance3D(weaponMesh, material, Mat4.multiply(matrix, local)).also { it.depthBias = bias })
     return true
 }
 
@@ -70,6 +71,8 @@ internal class WizardSlide3D private constructor(val fx: MoveFx, private val mov
     fun update(progress: Float, flipped: Boolean) {
         val matrix = pose(progress, flipped)
         mover.matrix = matrix
+        mover.depthBias = Wizard3DCapture.depthBias(matrix)
+        weapon?.depthBias = mover.depthBias
         val local = weaponLocal
         if (weapon != null && local != null) weapon.matrix = Mat4.multiply(matrix, local)
     }

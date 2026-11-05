@@ -93,8 +93,13 @@ internal class Wizard3DCapture private constructor(
         frameCamera(progress, flipped)
         val pose = pose(progress, flipped)
         mover.matrix = pose.mover
-        weapon?.let { it.matrix = pose.weapon ?: it.matrix }
+        mover.depthBias = depthBias(pose.mover)
+        weapon?.let {
+            it.matrix = pose.weapon ?: it.matrix
+            it.depthBias = mover.depthBias
+        }
         victim.matrix = pose.victim
+        victim.depthBias = depthBias(pose.victim)
         victim.visible = pose.victimVisible
     }
 
@@ -341,6 +346,16 @@ internal class Wizard3DCapture private constructor(
 
         /** Plus une pièce est basse à l'écran, plus elle est près de la caméra : elle passe devant celles du dessus. */
         private fun depth(row: Float): Float = (row - BOARD_H / 2f) * DEPTH_PER_ROW
+
+        /**
+         * Le rapprochement de la caméra (pour le seul tampon de profondeur, voir `Instance3D.depthBias`) d'une pièce posée par
+         * [restMatrix] : il grandit avec la profondeur de la pièce, à raison de 1,7 case par rangée, plus que l'épaisseur d'une
+         * pièce. Une pièce d'une rangée plus basse passe ainsi entièrement devant celle de la rangée du dessus, tête comprise
+         * (avec la seule profondeur du modèle, 0,14 par rangée, sa tête passait derrière le pied de la pièce de devant).
+         */
+        fun depthBias(matrix: FloatArray): Float = matrix[14] * (DEPTH_BIAS_PER_ROW / DEPTH_PER_ROW / WIZARD_ROW_PITCH)
+
+        private const val DEPTH_BIAS_PER_ROW = 1.7f
 
         private fun toBoard(p: FloatArray): Offset = Offset(p[0], BOARD_H - p[1])
 

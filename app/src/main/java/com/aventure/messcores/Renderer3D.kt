@@ -108,6 +108,14 @@ internal class Material3D(
 internal class Instance3D(val mesh: Mesh3D, var material: Material3D, var matrix: FloatArray = Mat4.identity()) {
     var visible: Boolean = true
 
+    /**
+     * Rapprochement (en unités du monde) de cet objet de la caméra pour le seul tampon de profondeur : l'image (taille, position,
+     * éclairage) ne change pas, mais l'objet gagne ou perd la priorité sur les autres. C'est ce qui range des pièces proches
+     * les unes devant les autres comme des plans entiers (la tête d'une pièce de la rangée du dessous ne passe plus derrière le
+     * pied d'une pièce de la rangée du dessus, même si leurs volumes se chevauchent en profondeur).
+     */
+    var depthBias: Float = 0f
+
     fun setPose(x: Float, y: Float, z: Float, yaw: Float = 0f, pitch: Float = 0f, roll: Float = 0f, scale: Float = 1f) {
         matrix = Mat4.pose(x, y, z, yaw, pitch, roll, scale)
     }
@@ -303,6 +311,7 @@ internal class Renderer3D {
         val color = frame.hiColor
         val depth = frame.hiDepth
         val table = mat.specularTable
+        val bias = inst.depthBias
 
         // Directions des lumières (vers la lumière) dans le repère de la caméra, et vecteur « demi » de la principale.
         val kx = -0.45f; val ky = 0.75f; val kz = -0.50f
@@ -342,8 +351,13 @@ internal class Renderer3D {
                     if (w0 < -1e-6f || w1 < -1e-6f || w2 < -1e-6f) continue
                     val iz = w0 * iz0 + w1 * iz1 + w2 * iz2
                     val o = row + px
-                    if (iz <= depth[o]) continue
-                    depth[o] = iz
+                    // Profondeur de rangement : celle du point, rapprochée de la caméra de [bias] (1 / distance, comme iz).
+                    val key = if (bias == 0f) iz else {
+                        val dist = 1f / iz - bias
+                        if (dist > 1e-3f) 1f / dist else 1e3f
+                    }
+                    if (key <= depth[o]) continue
+                    depth[o] = key
                     var nx = (w0 * snx[i0] + w1 * snx[i1] + w2 * snx[i2]) / iz
                     var ny = (w0 * sny[i0] + w1 * sny[i1] + w2 * sny[i2]) / iz
                     var nz = (w0 * snz[i0] + w1 * snz[i1] + w2 * snz[i2]) / iz
