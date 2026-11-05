@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import androidx.compose.ui.geometry.Rect
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -165,6 +166,8 @@ class Wizard3DCaptureTest {
         val f = fx('K', "b4", "f4", 'p')
         val scene = capture(f)
         scene.update(0f, false)
+        // L'image du test est carrée et ne couvre que le plateau (la scène voit aussi un bandeau au-dessus) : on la dirige sur le plateau.
+        Wizard3DCapture.aim(scene.scene.camera, Rect(0f, 0f, 1f, 1f))
         val size = 800
         val frame = Frame3D(size, size, 1)
         Renderer3D().render(scene.scene, frame)
