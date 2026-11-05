@@ -148,8 +148,8 @@ internal class Wizard3DCapture private constructor(
                 w = Mat4.multiply(swing, rest)
             }
             weaponMatrix = w
-            // Le bout de l'arme : la pointe (origine du fichier) pour les épées, le haut pour la baguette, la crosse et la masse.
-            val tipLocalY = if (kind == 'K' || kind == 'R') 0f else (weaponMesh?.maxY ?: 0f)
+            // Le bout de l'arme : la pointe (origine du fichier) pour les épées et la baguette (tenue pointe en bas), le haut pour la crosse et la masse.
+            val tipLocalY = if (kind == 'K' || kind == 'R' || kind == 'Q') 0f else (weaponMesh?.maxY ?: 0f)
             val tip = transform(w, 0f, tipLocalY, 0f)
             val reach = sqrt((tip[0] - h[0]) * (tip[0] - h[0]) + (tip[1] - h[1]) * (tip[1] - h[1]))
             hooks = CaptureAnchors(

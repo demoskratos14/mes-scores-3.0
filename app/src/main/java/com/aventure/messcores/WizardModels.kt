@@ -43,14 +43,15 @@ internal object WizardModelCatalog {
      * Où chaque arme se tient (mesuré sur les modèles livrés). Les armes sont des fichiers à part dont l'origine est le bas :
      * la pointe pour les épées (la poignée est en haut), le bout du manche pour la masse, le pied pour la baguette et la crosse.
      *  - roi : l'épée plantée devant lui, pointe en bas, les deux mains sous le pommeau ;
-     *  - reine : la baguette entre ses mains croisées, inclinée vers l'avant (pointe en haut et devant elle) ;
+     *  - reine : la baguette pendant droit devant elle, sans inclinaison : le pommeau (le haut du fichier) est serré dans ses mains
+     *    jointes sans les dépasser, la pointe (le pied du fichier) descend vers le socle, comme l'épée du roi ;
      *  - tour : la courte épée au poing, tendue devant elle (le fichier de la tour regarde vers −Z) ;
      *  - fou : la crosse dressée dans son poing droit (côté +X), le pied à hauteur du socle ;
      *  - cavalier : la masse brandie dans le poing du cavalier (côté −X), la tête levée au-dessus de lui.
      */
     private val MOUNTS = mapOf(
         'K' to WeaponMount(0f, 0.0678f, 0.0090f, -0.00004f, 0.0505f, 0.00164f),
-        'Q' to WeaponMount(0f, 0.0695f, 0.0105f, 0f, 0.0070f, -0.0002f, pitch = 62f),
+        'Q' to WeaponMount(0f, 0.0664f, 0.0120f, 0f, 0.0520f, 0f),
         'R' to WeaponMount(-0.0093f, 0.0606f, -0.0126f, -0.00006f, 0.0186f, 0.0007f, pitch = 110f),
         'B' to WeaponMount(0.0113f, 0.0629f, 0.0050f, 0.00307f, 0.0469f, 0.00003f),
         'N' to WeaponMount(
