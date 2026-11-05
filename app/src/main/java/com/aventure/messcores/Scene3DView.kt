@@ -87,13 +87,13 @@ internal fun Scene3DView(
     Canvas(modifier) {
         if (size.width < 1f || size.height < 1f) return@Canvas
         update(scene)
+        val target = region()
         val w = (size.width * renderScale).toInt().coerceIn(1, MAX_SIDE)
-        val h = (size.height * renderScale).toInt().coerceIn(1, MAX_SIDE)
+        val h = bitmapHeight(w, target, size.width, size.height)
         val frame = holder.frame(w, h, supersampling)
         renderer.render(scene, frame)
         val bitmap = holder.bitmap(w, h)
         bitmap.setPixels(frame.pixels, 0, w, 0, 0, w, h)
-        val target = region()
         withTransform({
             translate(target.left * size.width, target.top * size.height)
             scale(target.width, target.height, pivot = Offset.Zero)
@@ -107,6 +107,56 @@ internal fun Scene3DView(
     }
 }
 
+/**
+ * Dessine [scene] (qui ne bouge pas) sur toute la surface de la vue, fond transparent. L'image n'est calculée que quand
+ * [version] ou la taille de la vue change : le reste du temps, c'est la même image qui est redessinée, sans aucun calcul 3D.
+ * [version] doit changer (au sens de `equals`) chaque fois que la scène change.
+ */
+@Composable
+internal fun StaticScene3DView(
+    scene: Scene3D,
+    version: Any,
+    modifier: Modifier = Modifier,
+    renderScale: Float = 1f,
+    region: Rect = FULL_RECT
+) {
+    val renderer = remember { Renderer3D() }
+    val holder = remember { Scene3DBuffers() }
+    Canvas(modifier) {
+        if (size.width < 1f || size.height < 1f) return@Canvas
+        val w = (size.width * renderScale).toInt().coerceIn(1, MAX_SIDE)
+        val h = bitmapHeight(w, region, size.width, size.height)
+        val bitmap = holder.bitmap(w, h)
+        if (holder.version != version || holder.renderedWidth != w || holder.renderedHeight != h) {
+            val frame = holder.frame(w, h, 1)
+            renderer.render(scene, frame)
+            bitmap.setPixels(frame.pixels, 0, w, 0, 0, w, h)
+            holder.version = version
+            holder.renderedWidth = w
+            holder.renderedHeight = h
+        }
+        withTransform({
+            translate(region.left * size.width, region.top * size.height)
+            scale(region.width, region.height, pivot = Offset.Zero)
+        }) {
+            drawImage(
+                image = bitmap.asImageBitmap(),
+                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                filterQuality = FilterQuality.Medium
+            )
+        }
+    }
+}
+
+// La hauteur de l'image calculée pour la largeur [w] : elle garde les proportions du rectangle [region] de la vue (une zone
+// qui dépasse en haut est plus haute que large), pour qu'un pixel de l'image soit carré à l'écran.
+private fun bitmapHeight(w: Int, region: Rect, viewWidth: Float, viewHeight: Float): Int {
+    val ratio = (region.height * viewHeight) / (region.width * viewWidth).coerceAtLeast(1e-3f)
+    return (w * ratio).toInt().coerceIn(1, MAX_SIDE)
+}
+
+private val FULL_RECT = Rect(0f, 0f, 1f, 1f)
+
 private val FULL_VIEW: () -> Rect = { Rect(0f, 0f, 1f, 1f) }
 
 private const val MAX_SIDE = 2048
@@ -115,6 +165,11 @@ private const val MAX_SIDE = 2048
 private class Scene3DBuffers {
     private var frame: Frame3D? = null
     private var bitmap: Bitmap? = null
+
+    // Pour une image fixe : ce qui est déjà calculé dans le Bitmap (voir StaticScene3DView).
+    var version: Any? = null
+    var renderedWidth: Int = 0
+    var renderedHeight: Int = 0
 
     fun frame(w: Int, h: Int, supersampling: Int): Frame3D {
         val f = frame

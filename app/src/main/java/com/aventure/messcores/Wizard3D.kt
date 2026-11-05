@@ -24,6 +24,13 @@ import kotlin.math.sqrt
  */
 internal const val WIZARD_3D_RENDER_SCALE = 0.9f
 
+/**
+ * La résolution de calcul de l'image fixe de toutes les pièces au repos (voir WizardBoard3D.kt). Elle n'est calculée qu'une fois par
+ * coup, donc on peut la prendre plus fine que celle de l'animation : les pièces restent nettes quand la caméra d'une prise
+ * agrandit le plateau (1,25 fois les pixels de l'écran ; la mémoire de travail grandit avec le carré de ce nombre).
+ */
+internal const val WIZARD_3D_BOARD_RENDER_SCALE = 1.25f
+
 /** Les points où les effets 2D s'accrochent aux pièces 3D, en cases du plateau (1 = une case, origine : coin haut-gauche). */
 internal class CaptureAnchors(
     /** Les deux mains du pion, d'où surgissent ses épées conjurées. */
@@ -59,12 +66,7 @@ internal class Wizard3DCapture private constructor(
     private val weapon = weaponMesh?.let { Instance3D(it, WizardModelCatalog.materialFor(fx.mover)) }
     private val victim = Instance3D(victimMesh, WizardModelCatalog.materialFor(fx.captured))
 
-    private val camera = Camera3D(
-        eyeX = BOARD / 2f, eyeY = BOARD / 2f, eyeZ = CAMERA_DISTANCE,
-        targetX = BOARD / 2f, targetY = BOARD / 2f, targetZ = 0f,
-        fovDegrees = fovFor(BOARD),
-        near = 1f
-    )
+    private val camera = boardCamera()
 
     /** La scène à donner à `Scene3DView`, dont `update` doit appeler [update]. */
     val scene = Scene3D().also { s3d ->
@@ -79,7 +81,7 @@ internal class Wizard3DCapture private constructor(
      * plateau au repos, une petite zone autour de l'action quand la caméra de la prise zoome. `Scene3DView` dessine l'image
      * calculée exactement dans ce rectangle (voir son paramètre `region`).
      */
-    var region: Rect = FULL_BOARD
+    var region: Rect = FULL_REGION
         private set
 
     /** Place les pièces pour l'avancement [progress] (de 0 à 1) de la prise, et la fenêtre de la scène sur ce que regarde la caméra. */
@@ -99,12 +101,9 @@ internal class Wizard3DCapture private constructor(
         val span = if (cam == null) 1f else (WINDOW_MARGIN / cam.zoom).coerceAtMost(1f)
         val cx = cam?.viewX ?: 0.5f
         val cy = cam?.viewY ?: 0.5f
-        camera.eyeX = cx * BOARD
-        camera.targetX = cx * BOARD
-        camera.eyeY = BOARD - cy * BOARD
-        camera.targetY = BOARD - cy * BOARD
-        camera.fovDegrees = fovFor(span * BOARD)
-        region = Rect(cx - span / 2f, cy - span / 2f, cx + span / 2f, cy + span / 2f)
+        // La fenêtre dépasse un peu en haut : les pièces hautes de la rangée du fond dépassent du plateau.
+        region = Rect(cx - span / 2f, cy - span / 2f - TOP_FRACTION, cx + span / 2f, cy + span / 2f)
+        aim(camera, region)
     }
 
     /** Les points d'accroche des effets 2D à l'avancement [progress]. */
@@ -281,7 +280,42 @@ internal class Wizard3DCapture private constructor(
         /** Part de la zone vue qu'on calcule en plus (la caméra de la prise incline le plateau : on voit un peu plus loin en haut). */
         private const val WINDOW_MARGIN = 1.4f
 
-        private val FULL_BOARD = Rect(0f, 0f, 1f, 1f)
+        /** Ce que la scène voit au-dessus du plateau, en cases : les pièces hautes (le roi fait près de 1,8 case) de la rangée du fond y dépassent. */
+        const val TOP_EXTRA = 1f
+
+        private const val TOP_FRACTION = TOP_EXTRA / BOARD
+
+        /** Tout l'échiquier et le bandeau au-dessus, en parts du plateau (0 à 1, origine : coin haut-gauche) : la zone vue au repos. */
+        val FULL_REGION = Rect(0f, -TOP_FRACTION, 1f, 1f)
+
+        /** Dirige [camera] (de face, à l'axe) sur [region] (en parts du plateau) : 1 unité du monde = 1 case de l'écran. */
+        fun aim(camera: Camera3D, region: Rect) {
+            val x = (region.left + region.right) / 2f * BOARD
+            val y = BOARD - (region.top + region.bottom) / 2f * BOARD
+            camera.eyeX = x
+            camera.targetX = x
+            camera.eyeY = y
+            camera.targetY = y
+            camera.eyeZ = CAMERA_DISTANCE
+            camera.targetZ = 0f
+            camera.fovDegrees = fovFor(region.height * BOARD)
+        }
+
+        /** La caméra qui voit tout l'échiquier ([FULL_REGION]), de face (voir le commentaire du fichier). */
+        fun boardCamera(): Camera3D = Camera3D(near = 1f).also { aim(it, FULL_REGION) }
+
+        /**
+         * La matrice d'une pièce [piece] debout au centre ([centerX], [centerY]) d'une case, en cases depuis le coin haut-gauche
+         * de l'écran, avec le regard qu'elle a au repos (c'est aussi celui qu'elle a au début d'une prise) ; [bounce] la gonfle
+         * un peu quand elle se déplace.
+         */
+        fun restMatrix(piece: Char, centerX: Float, centerY: Float, bounce: Float = 1f): FloatArray {
+            val footRow = centerY + FOOT_OFFSET
+            val profile = piece.uppercaseChar() in PROFILE
+            val own = if (Chess.isWhite(piece)) -1f else 1f
+            val yaw = (if (profile) own * PROFILE_YAW else 0f) + WizardModelCatalog.facingYaw(piece)
+            return Mat4.pose(centerX, BOARD - footRow, depth(footRow), yaw = yaw, scale = scaleOf(piece) * bounce)
+        }
 
         /** Le champ (en degrés) pour voir [height] cases de haut à la distance de la caméra. */
         private fun fovFor(height: Float): Float =

@@ -624,6 +624,9 @@ private fun StyleButton(wizard: Boolean, onToggle: () -> Unit) {
     }
 }
 
+/** La marge au-dessus du plateau, en style sorcier : le roi et la dame de la rangée du fond sont plus hauts que leur case. */
+private val WIZARD_TOP_OVERHANG = 32.dp
+
 /**
  * L'échiquier de 8 × 8 cases ; [selected] : la case de la pièce choisie (-1 si aucune), dont les coups sont marqués.
  * [wizard] : le style sorcier (statues de pierre, et animation de chaque coup, avec des éclats quand une pièce est prise).
@@ -681,7 +684,8 @@ private fun ChessBoard(
 
     // Le plateau agrandi par la caméra d'une prise reste découpé à sa place, sans déborder sur le reste de l'écran.
     Box(
-        modifier = Modifier.fillMaxWidth().then(if (wizard) Modifier.clipToBounds() else Modifier),
+        // En style sorcier, une marge au-dessus du plateau laisse dépasser la tête des pièces hautes de la rangée du fond.
+        modifier = Modifier.fillMaxWidth().then(if (wizard) Modifier.clipToBounds().padding(top = WIZARD_TOP_OVERHANG) else Modifier),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -724,6 +728,18 @@ private fun ChessBoard(
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                 val cell = maxWidth / 8
                 val fontSize = with(LocalDensity.current) { (cell * 0.8f).toSp() }
+                // Style sorcier : toutes les pièces sont en 3D (une seule image calculée à chaque coup, voir WizardBoard3D.kt) ;
+                // sans les modèles, les statues 2D prennent le relais.
+                val restScene = remember(models3d) {
+                    if (models3d) WizardBoard3D { WizardModels.mesh(assets, it) } else null
+                }
+                val board3d = if (wizard && restScene != null) {
+                    remember(restScene, game.position.board, animatedSquare, flipped) {
+                        restScene.setBoard(game.position.board, animatedSquare, flipped)
+                    }
+                } else {
+                    false
+                }
                 Column {
                     for (displayRow in 0 until 8) {
                         Row(modifier = Modifier.fillMaxWidth()) {
@@ -769,7 +785,7 @@ private fun ChessBoard(
                                         .clickable(enabled = enabled, role = Role.Button) { onTap(square) },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    if (piece != '.' && square != animatedSquare) ChessPiece(piece, fontSize, wizard)
+                                    if (piece != '.' && square != animatedSquare && !board3d) ChessPiece(piece, fontSize, wizard)
                                     if (square in targets) {
                                         if (piece == '.') {
                                             Box(
@@ -791,6 +807,16 @@ private fun ChessBoard(
                         }
                     }
                 }
+                // Les pièces au repos, en 3D, par-dessus les cases (sans gêner les touches).
+                if (board3d && restScene != null) {
+                    StaticScene3DView(
+                        scene = restScene.scene,
+                        version = Triple(game.position.board, animatedSquare, flipped),
+                        modifier = Modifier.matchParentSize(),
+                        renderScale = WIZARD_3D_BOARD_RENDER_SCALE,
+                        region = Wizard3DCapture.FULL_REGION
+                    )
+                }
                 // Le coup en cours d'animation, dessiné par-dessus les cases (sans gêner les touches).
                 // Pour une prise, la pièce qui prend et sa victime sont en 3D (sous les effets) quand leurs modèles sont chargés.
                 val playing = fx
@@ -807,8 +833,23 @@ private fun ChessBoard(
                             update = { capture3d.update(progress.value, flipped) }
                         )
                     }
-                    Canvas(modifier = Modifier.matchParentSize()) {
-                        drawMoveFx(playing, progress.value, flipped, capture3d?.anchors(progress.value, flipped))
+                    // Un coup sans prise : la pièce glisse aussi en 3D (sinon, la statue 2D glisse dans drawMoveFx).
+                    val slide3d = remember(playing, models3d) {
+                        if (models3d) WizardSlide3D.create(playing) { WizardModels.mesh(assets, it) } else null
+                    }
+                    if (slide3d != null) {
+                        Scene3DView(
+                            scene = slide3d.scene,
+                            modifier = Modifier.matchParentSize(),
+                            renderScale = WIZARD_3D_RENDER_SCALE,
+                            region = { Wizard3DCapture.FULL_REGION },
+                            update = { slide3d.update(progress.value, flipped) }
+                        )
+                    }
+                    if (playing.isCapture || slide3d == null) {
+                        Canvas(modifier = Modifier.matchParentSize()) {
+                            drawMoveFx(playing, progress.value, flipped, capture3d?.anchors(progress.value, flipped))
+                        }
                     }
                 }
             }
