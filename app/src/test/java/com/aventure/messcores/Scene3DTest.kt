@@ -292,7 +292,7 @@ class Scene3DTest {
 
     @Test
     fun lesPiecesRegardentDansLeSensDeLeurFichier() {
-        for (p in "NnRrPp") assertEquals(when (p.uppercaseChar()) { 'N' -> -90f; 'P' -> 90f; else -> 180f }, WizardModelCatalog.facingYaw(p), 0f)
+        for (p in "NnRrPp") assertEquals(if (p.uppercaseChar() == 'N') -90f else 180f, WizardModelCatalog.facingYaw(p), 0f)
         for (p in "KQBkqb") assertEquals(0f, WizardModelCatalog.facingYaw(p), 0f)
     }
 
@@ -498,5 +498,18 @@ class Scene3DTest {
         val low = Wizard3DCapture.restMatrix('p', 3.5f, 2.5f * WIZARD_ROW_PITCH)
         // Une rangée plus bas : plus près de la caméra, d'au moins une épaisseur de pièce (1,5 en unités du monde).
         assertTrue(Wizard3DCapture.depthBias(low) - Wizard3DCapture.depthBias(high) > 1.5f)
+    }
+    @Test
+    fun lesPiecesDuCampQuiJoueTournentLeDosEtLesAutresFontFace() {
+        for (p in "KQBNRPkqbnrp") {
+            val front = Wizard3DCapture.restYaw(p, whiteToMove = !Chess.isWhite(p)) // son camp attend
+            val away = Wizard3DCapture.restYaw(p, whiteToMove = Chess.isWhite(p)) // son camp joue
+            assertEquals("$p sans consigne", front, Wizard3DCapture.restYaw(p), 0f)
+            // Le regard (direction du lacet) du camp qui joue est l'opposé de celui du camp qui attend, en miroir de l'écran.
+            val f = Math.toRadians(front.toDouble())
+            val a = Math.toRadians(away.toDouble())
+            assertEquals("$p : droite/gauche gardée", Math.sin(f), Math.sin(a), 1e-4)
+            assertEquals("$p : devant/derrière inversé", Math.cos(f), -Math.cos(a), 1e-4)
+        }
     }
 }

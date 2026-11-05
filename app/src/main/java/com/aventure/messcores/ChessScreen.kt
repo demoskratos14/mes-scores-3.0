@@ -736,8 +736,8 @@ private fun ChessBoard(
                     if (models3d) WizardBoard3D { WizardModels.mesh(assets, it) } else null
                 }
                 val board3d = if (wizard && restScene != null) {
-                    remember(restScene, game.position.board, animatedSquare, flipped) {
-                        restScene.setBoard(game.position.board, animatedSquare, flipped)
+                    remember(restScene, game.position.board, animatedSquare, flipped, game.position.whiteToMove) {
+                        restScene.setBoard(game.position.board, animatedSquare, flipped, game.position.whiteToMove)
                     }
                 } else {
                     false
@@ -835,7 +835,7 @@ private fun ChessBoard(
                 if (board3d && restScene != null) {
                     StaticScene3DView(
                         scene = restScene.scene,
-                        version = Triple(game.position.board, animatedSquare, flipped),
+                        version = listOf(game.position.board, animatedSquare, flipped, game.position.whiteToMove),
                         modifier = Modifier.matchParentSize(),
                         renderScale = WIZARD_3D_BOARD_RENDER_SCALE,
                         region = Wizard3DCapture.FULL_REGION
@@ -846,7 +846,7 @@ private fun ChessBoard(
                 val playing = fx
                 if (playing != null) {
                     val capture3d = remember(playing, models3d) {
-                        if (models3d) Wizard3DCapture.create(playing) { WizardModels.mesh(assets, it) } else null
+                        if (models3d) Wizard3DCapture.create(playing, game.position.whiteToMove) { WizardModels.mesh(assets, it) } else null
                     }
                     if (capture3d != null) {
                         Scene3DView(
@@ -859,7 +859,7 @@ private fun ChessBoard(
                     }
                     // Un coup sans prise : la pièce glisse aussi en 3D (sinon, la statue 2D glisse dans drawMoveFx).
                     val slide3d = remember(playing, models3d) {
-                        if (models3d) WizardSlide3D.create(playing) { WizardModels.mesh(assets, it) } else null
+                        if (models3d) WizardSlide3D.create(playing, game.position.whiteToMove) { WizardModels.mesh(assets, it) } else null
                     }
                     if (slide3d != null) {
                         Scene3DView(
