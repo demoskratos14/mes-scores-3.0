@@ -26,7 +26,10 @@ private fun addPiece(scene: Scene3D, piece: Char, matrix: FloatArray, meshOf: (S
 
 /** Les pièces au repos de l'échiquier, dans une scène qui voit tout le plateau (voir [Wizard3DCapture.boardCamera]). */
 internal class WizardBoard3D(private val meshOf: (String) -> Mesh3D?) {
-    val scene = Scene3D().also { it.camera = Wizard3DCapture.boardCamera() }
+    val scene = Scene3D().also {
+        it.camera = Wizard3DCapture.boardCamera()
+        it.outline = WIZARD_3D_OUTLINE
+    }
 
     /**
      * Place les pièces de [board] (les 64 cases, `.` pour une case vide) sauf celle de la case [skip] (-1 : aucune), que
@@ -41,7 +44,7 @@ internal class WizardBoard3D(private val meshOf: (String) -> Mesh3D?) {
             if (piece == '.' || square == skip) continue
             val col = if (flipped) 7 - square % 8 else square % 8
             val row = if (flipped) 7 - square / 8 else square / 8
-            val matrix = Wizard3DCapture.restMatrix(piece, col + 0.5f, row + 0.5f)
+            val matrix = Wizard3DCapture.restMatrix(piece, col + 0.5f, (row + 0.5f) * WIZARD_ROW_PITCH)
             if (!addPiece(scene, piece, matrix, meshOf)) {
                 scene.instances.clear()
                 return false
@@ -58,6 +61,7 @@ internal class WizardSlide3D private constructor(val fx: MoveFx, private val mov
     /** La scène à donner à `Scene3DView`, dont `update` doit appeler [update]. */
     val scene = Scene3D().also { s3d ->
         s3d.camera = Wizard3DCapture.boardCamera()
+        s3d.outline = WIZARD_3D_OUTLINE
         s3d.instances.add(mover)
         weapon?.let { s3d.instances.add(it) }
     }
@@ -73,7 +77,7 @@ internal class WizardSlide3D private constructor(val fx: MoveFx, private val mov
     /** La matrice de la pièce à l'avancement [progress] : pas d'effet de bord, donc testable. */
     fun pose(progress: Float, flipped: Boolean): FloatArray {
         fun column(square: Int): Float = (if (flipped) 7 - square % 8 else square % 8) + 0.5f
-        fun row(square: Int): Float = (if (flipped) 7 - square / 8 else square / 8) + 0.5f
+        fun row(square: Int): Float = ((if (flipped) 7 - square / 8 else square / 8) + 0.5f) * WIZARD_ROW_PITCH
         val slide = smooth(progress.coerceIn(0f, 1f))
         val x = column(fx.from) + (column(fx.to) - column(fx.from)) * slide
         val y = row(fx.from) + (row(fx.to) - row(fx.from)) * slide

@@ -104,8 +104,8 @@ internal object WizardModelCatalog {
     /** Marbre blanc, un peu brillant. */
     val MARBLE = Material3D(0.93f, 0.92f, 0.88f, specular = 0.35f, shininess = 48f)
 
-    /** Obsidienne : presque noire, très brillante. */
-    val OBSIDIAN = Material3D(0.11f, 0.11f, 0.15f, specular = 0.95f, shininess = 90f)
+    /** Obsidienne : sombre et brillante, mais assez claire (gris bleuté) pour qu'on voie les détails sculptés. */
+    val OBSIDIAN = Material3D(0.27f, 0.28f, 0.36f, specular = 0.85f, shininess = 70f)
 
     /** La matière du camp de [piece] (majuscule = blanc, comme dans [Chess]) : marbre pour les blancs, obsidienne pour les noirs. */
     fun materialFor(piece: Char): Material3D = if (Chess.isWhite(piece)) MARBLE else OBSIDIAN

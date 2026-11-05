@@ -147,6 +147,9 @@ internal class Scene3D {
     val instances = ArrayList<Instance3D>()
     var camera = Camera3D()
     var lighting = Lighting3D()
+
+    /** Largeur, en pixels de l'image, du liseré qui détache chaque pièce de ce qui est derrière elle (0 : aucun). */
+    var outline: Int = 0
 }
 
 /** L'image rendue : [pixels] (ARGB non prémultiplié, ligne par ligne) est prêt à être copié dans un Bitmap. */
@@ -210,7 +213,39 @@ internal class Renderer3D {
             projectVertices(inst, cam, rx, ry, rz, ux, uy, uz, fx, fy, fz, cx, cy, focal)
             rasterize(inst, scene.lighting, frame, w, h)
         }
+        if (scene.outline > 0) outline(frame, scene.outline * frame.supersampling)
         downsample(frame)
+    }
+
+    // Un liseré là où un pixel est nettement devant ce qui l'entoure (le vide, ou une pièce plus loin) : clair sur ce qui est
+    // sombre, sombre sur ce qui est clair. Les pièces se détachent ainsi les unes des autres et du plateau, même noir sur noir.
+    private fun outline(frame: Frame3D, width: Int) {
+        val w = frame.hiWidth
+        val h = frame.hiHeight
+        val color = frame.hiColor
+        val depth = frame.hiDepth
+        for (y in 0 until h) {
+            for (x in 0 until w) {
+                val o = y * w + x
+                val iz = depth[o]
+                if (iz <= 0f) continue
+                val limit = iz * (1f - OUTLINE_DEPTH_STEP)
+                val edge = (x >= width && depth[o - width] < limit) ||
+                    (x + width < w && depth[o + width] < limit) ||
+                    (y >= width && depth[o - width * w] < limit) ||
+                    (y + width < h && depth[o + width * w] < limit)
+                if (!edge) continue
+                val c = color[o]
+                val r = (c shr 16) and 0xFF
+                val g = (c shr 8) and 0xFF
+                val b = c and 0xFF
+                val dark = (r * 30 + g * 59 + b * 11) / 100 < OUTLINE_SPLIT
+                val nr = if (dark) r + ((255 - r) * OUTLINE_LIGHTEN).toInt() else (r * OUTLINE_DARKEN).toInt()
+                val ng = if (dark) g + ((255 - g) * OUTLINE_LIGHTEN).toInt() else (g * OUTLINE_DARKEN).toInt()
+                val nb = if (dark) b + ((255 - b) * OUTLINE_LIGHTEN).toInt() else (b * OUTLINE_DARKEN).toInt()
+                color[o] = (0xFF shl 24) or (nr shl 16) or (ng shl 8) or nb
+            }
+        }
     }
 
     private fun projectVertices(
@@ -372,5 +407,17 @@ internal class Renderer3D {
                 ((alpha shl 24) or ((r / covered) shl 16) or ((g / covered) shl 8) or (b / covered))
             }
         }
+    }
+
+    private companion object {
+        /** Écart de profondeur (part de la distance à la caméra) à partir duquel un pixel est « devant » son voisin : environ 0,1 case. */
+        const val OUTLINE_DEPTH_STEP = 0.0015f
+
+        /** Au-dessous de cette luminosité (0 à 255), le pixel est sombre : son liseré est clair ; sinon il est foncé. */
+        const val OUTLINE_SPLIT = 110
+
+        /** Part de blanc ajoutée au liseré d'un pixel sombre, et part de couleur gardée pour celui d'un pixel clair. */
+        const val OUTLINE_LIGHTEN = 0.5f
+        const val OUTLINE_DARKEN = 0.5f
     }
 }

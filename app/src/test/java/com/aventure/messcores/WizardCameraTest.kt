@@ -57,10 +57,10 @@ class WizardCameraTest {
         // Case 45 : rangée 5, colonne 5 ; la victime est dans la zone vue, plateau normal ou retourné.
         val camera = wizardCamera(capture, 0.4f, flipped = false)!!
         assertEquals(5.5f, camera.viewX * 8f, 4f / camera.zoom)
-        assertEquals(5.5f, camera.viewY * 8f, 4f / camera.zoom)
+        assertEquals(5.5f, camera.viewY * 8f / WIZARD_ROW_PITCH, 4f / camera.zoom)
         val flipped = wizardCamera(capture, 0.4f, flipped = true)!!
         assertEquals(2.5f, flipped.viewX * 8f, 4f / flipped.zoom)
-        assertEquals(2.5f, flipped.viewY * 8f, 4f / flipped.zoom)
+        assertEquals(2.5f, flipped.viewY * 8f / WIZARD_ROW_PITCH, 4f / flipped.zoom)
     }
 
     @Test

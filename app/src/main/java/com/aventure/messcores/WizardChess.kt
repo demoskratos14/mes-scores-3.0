@@ -889,7 +889,7 @@ internal fun wizardCamera(fx: MoveFx, progress: Float, flipped: Boolean): Wizard
     // Le mouvement est calculé pour des cases de 100 pixels (comme la scène 3D), puis ramené en cases (une case = 1),
     // depuis le coin haut-gauche du plateau.
     val m = captureMotionFor(fx, p, 100f, flipped)
-    val start = (wizardSquareOrigin(fx.from, flipped, 100f) + Offset(50f, 50f)) / 100f
+    val start = (wizardSquareOrigin(fx.from, flipped, 100f) + Offset(50f, 50f * WIZARD_ROW_PITCH)) / 100f
     val target = m.targetCenter / 100f
     val stopCenter = m.stopCenter / 100f
     val moverCenter = m.center / 100f
@@ -940,7 +940,7 @@ internal fun wizardCamera(fx: MoveFx, progress: Float, flipped: Boolean): Wizard
     // de leur case et ne doivent pas être coupées sur la rangée du fond.
     val margin = 0.5f / zoom
     val viewX = (focus.x / 8f).coerceIn(margin, 1f - margin)
-    val viewY = (focus.y / 8f).coerceIn(margin - CAMERA_TOP_ROOM * k, 1f - margin)
+    val viewY = (focus.y / (8f * WIZARD_ROW_PITCH)).coerceIn(margin - CAMERA_TOP_ROOM * k, 1f - margin)
     fun column(square: Int): Int = if (flipped) 7 - square % 8 else square % 8
     val side = (column(fx.capturedSquare) - column(fx.from)).let { if (it > 0) 1f else if (it < 0) -1f else 0f }
     return WizardCamera(
@@ -1039,7 +1039,7 @@ internal fun DrawScope.drawMoveFx(fx: MoveFx, progress: Float, flipped: Boolean,
     val slide = smooth(progress.coerceIn(0f, 1f))
     val position = Offset(from.x + (to.x - from.x) * slide, from.y + (to.y - from.y) * slide)
     val bounce = 1f + 0.1f * sin(PI.toFloat() * slide)
-    val center = Offset(position.x + cell / 2f, position.y + cell / 2f)
+    val center = Offset(position.x + cell / 2f, position.y + cell * WIZARD_ROW_PITCH / 2f)
     withTransform({ scale(bounce, bounce, pivot = center) }) {
         drawWizardPiece(fx.mover, position, cell)
     }
@@ -1082,8 +1082,15 @@ internal class CaptureMotion(
 internal fun wizardSquareOrigin(square: Int, flipped: Boolean, cell: Float): Offset {
     val row = square / 8
     val col = square % 8
-    return Offset((if (flipped) 7 - col else col) * cell, (if (flipped) 7 - row else row) * cell)
+    return Offset((if (flipped) 7 - col else col) * cell, (if (flipped) 7 - row else row) * cell * WIZARD_ROW_PITCH)
 }
+
+/**
+ * Les cases du style sorcier sont un peu plus hautes que larges (cette part de leur largeur) : les rangées sont plus écartées
+ * et les pièces, vues de face et hautes, se chevauchent moins. Toutes les positions « en cases » du style sorcier (animation
+ * 2D, scène 3D, caméra) comptent la hauteur en cases de cette taille : une case fait 1 de large et [WIZARD_ROW_PITCH] de haut.
+ */
+internal const val WIZARD_ROW_PITCH = 1.2f
 
 internal fun captureMotionFor(fx: MoveFx, progress: Float, cell: Float, flipped: Boolean): CaptureMotion =
     captureMotion(
@@ -1094,7 +1101,7 @@ internal fun captureMotionFor(fx: MoveFx, progress: Float, cell: Float, flipped:
 
 internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offset, to: Offset, targetOrigin: Offset): CaptureMotion {
     val kind = fx.mover.uppercaseChar()
-    val half = Offset(cell / 2f, cell / 2f)
+    val half = Offset(cell / 2f, cell * WIZARD_ROW_PITCH / 2f)
     val fromCenter = from + half
     val toCenter = to + half
     val targetCenter = targetOrigin + half
@@ -1451,7 +1458,7 @@ private fun DrawScope.drawCaptured(
     if (progress < IMPACT) {
         if (sprites) drawWizardPiece(piece, origin, cell)
         if (kind == 'B' && a > 0.55f) {
-            val center = Offset(origin.x + cell / 2f, origin.y + cell / 2f)
+            val center = Offset(origin.x + cell / 2f, origin.y + cell * WIZARD_ROW_PITCH / 2f)
             val glow = smooth(((a - 0.55f) / 0.45f).coerceIn(0f, 1f))
             drawCircle(
                 Brush.radialGradient(listOf(Color(0xCCFFF2B0), Color(0x00FFF2B0)), center, cell * 0.6f),
@@ -1474,7 +1481,7 @@ private fun DrawScope.drawCaptured(
 
 // Tranchée : la pièce est coupée en deux le long d'une ligne (angle [cutDeg]) ; les deux moitiés s'écartent, basculent et tombent.
 private fun DrawScope.drawSliced(piece: Char, origin: Offset, cell: Float, after: Float, cutDeg: Float, sprites: Boolean = true) {
-    val center = Offset(origin.x + cell / 2f, origin.y + cell / 2f)
+    val center = Offset(origin.x + cell / 2f, origin.y + cell * WIZARD_ROW_PITCH / 2f)
     val d = Offset(cos(cutDeg * RAD), sin(cutDeg * RAD))
     val n = Offset(-d.y, d.x)
     val ease = 1f - (1f - after) * (1f - after)
@@ -1512,7 +1519,7 @@ private fun DrawScope.drawSliced(piece: Char, origin: Offset, cell: Float, after
 
 // Écrasée : la pièce s'aplatit sous la masse, une onde de choc court au sol, puis elle vole en éclats.
 private fun DrawScope.drawCrushed(piece: Char, origin: Offset, cell: Float, after: Float, sprites: Boolean = true) {
-    val foot = Offset(origin.x + cell / 2f, origin.y + cell * 0.93f)
+    val foot = Offset(origin.x + cell / 2f, origin.y + cell * WIZARD_ROW_PITCH * 0.93f)
     val squash = 0.2f
     if (after < squash) {
         val t = smooth(after / squash)
@@ -1538,7 +1545,7 @@ private fun DrawScope.drawCrushed(piece: Char, origin: Offset, cell: Float, afte
 private fun DrawScope.drawPierced(piece: Char, origin: Offset, cell: Float, after: Float, sprites: Boolean = true) {
     val crack = 0.14f
     if (after < crack) {
-        val center = Offset(origin.x + cell / 2f, origin.y + cell / 2f)
+        val center = Offset(origin.x + cell / 2f, origin.y + cell * WIZARD_ROW_PITCH / 2f)
         if (sprites) {
             withTransform({ translate(sin(after * 140f) * 0.03f * cell, 0f) }) {
                 drawWizardPiece(piece, origin, cell)
@@ -1559,7 +1566,7 @@ private fun DrawScope.drawPierced(piece: Char, origin: Offset, cell: Float, afte
 private fun DrawScope.drawShatter(
     piece: Char, origin: Offset, cell: Float, after: Float, golden: Boolean = false, sprites: Boolean = true
 ) {
-    val center = Offset(origin.x + cell / 2f, origin.y + cell / 2f)
+    val center = Offset(origin.x + cell / 2f, origin.y + cell * WIZARD_ROW_PITCH / 2f)
     val flash = (1f - after) * (1f - after)
     val flashRadius = cell * (0.35f + 0.75f * after)
     drawCircle(

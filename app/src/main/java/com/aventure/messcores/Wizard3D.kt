@@ -12,7 +12,7 @@ import kotlin.math.sqrt
  * Les pièces 3D du style « sorcier » dans l'animation d'une prise (voir WizardModels.kt pour les modèles, Renderer3D.kt pour
  * le moteur). La scène recouvre l'échiquier : la caméra est placée loin devant, à l'axe, avec un champ si étroit que 1 unité
  * du monde = 1 case de l'écran. Un point (x, y) du plateau, en cases depuis son coin haut-gauche, est donc le point
- * (x, 8 − y) du monde, à la profondeur 0 : les pièces 3D tombent pile là où les statues 2D seraient dessinées, et suivent le
+ * (x, 8 × pas − y) du monde (le pas des rangées : voir WIZARD_ROW_PITCH), à la profondeur 0 : les pièces 3D tombent pile là où les statues 2D seraient dessinées, et suivent le
  * même mouvement (voir [captureMotion]). Seules la pièce qui prend et sa victime sont en 3D ; le reste de la prise (éclairs,
  * éclats, traînées de l'arme, lames conjurées) reste dessiné en 2D par-dessus, accroché aux points de [CaptureAnchors].
  */
@@ -30,6 +30,9 @@ internal const val WIZARD_3D_RENDER_SCALE = 0.9f
  * agrandit le plateau (1,25 fois les pixels de l'écran ; la mémoire de travail grandit avec le carré de ce nombre).
  */
 internal const val WIZARD_3D_BOARD_RENDER_SCALE = 1.25f
+
+/** Largeur (en pixels de l'image calculée) du liseré qui détache les pièces : clair sur les pièces sombres, sombre sur les claires. 0 : aucun. */
+internal const val WIZARD_3D_OUTLINE = 2
 
 /** Les points où les effets 2D s'accrochent aux pièces 3D, en cases du plateau (1 = une case, origine : coin haut-gauche). */
 internal class CaptureAnchors(
@@ -74,6 +77,7 @@ internal class Wizard3DCapture private constructor(
         s3d.instances.add(mover)
         weapon?.let { s3d.instances.add(it) }
         s3d.camera = camera
+        s3d.outline = WIZARD_3D_OUTLINE
     }
 
     /**
@@ -122,7 +126,7 @@ internal class Wizard3DCapture private constructor(
         val moverRow = m.center.y / cell + FOOT_OFFSET
         val heading = moverYaw(attackDx, progress, cell)
         val moverMatrix = Mat4.pose(
-            moverX, BOARD - moverRow, depth(moverRow), yaw = heading, scale = scaleOf(fx.mover) * m.bounce
+            moverX, BOARD_H - moverRow, depth(moverRow), yaw = heading, scale = scaleOf(fx.mover) * m.bounce
         )
 
         // L'arme suit la pièce, et pivote autour de la main (dans le plan de l'écran) selon le geste de l'animation 2D :
@@ -209,7 +213,7 @@ internal class Wizard3DCapture private constructor(
             }
         }
         if (shrink < 0.02f) visible = false
-        var victimMatrix = Mat4.translation(victimX + shiftX, BOARD - victimRow + rise, depth(victimRow))
+        var victimMatrix = Mat4.translation(victimX + shiftX, BOARD_H - victimRow + rise, depth(victimRow))
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.rotationZ(roll))
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.scaling(squashX, squashY, squashX))
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.rotationY(victimYaw(attackDx, progress, cell)))
@@ -260,6 +264,9 @@ internal class Wizard3DCapture private constructor(
         /** Les huit cases du plateau, et donc la hauteur du monde visible : 1 unité = 1 case. */
         const val BOARD = 8f
 
+        /** La hauteur du plateau en unités du monde (cases de largeur) : les rangées sont plus écartées que les colonnes ([WIZARD_ROW_PITCH]). */
+        const val BOARD_H = BOARD * WIZARD_ROW_PITCH
+
         /** Loin devant l'échiquier : la perspective y est presque nulle, les pièces gardent la taille de leur case. */
         const val CAMERA_DISTANCE = 60f
 
@@ -275,7 +282,7 @@ internal class Wizard3DCapture private constructor(
         private fun scaleOf(piece: Char): Float = if (piece.uppercaseChar() == 'P') SCALE * PAWN_BOOST else SCALE
 
         /** Le pied de la pièce, sous le centre de sa case (en cases) : 0,88 depuis le haut de la case, comme les statues 2D. */
-        const val FOOT_OFFSET = 0.38f
+        const val FOOT_OFFSET = 0.45f
 
         /** Part de la zone vue qu'on calcule en plus (la caméra de la prise incline le plateau : on voit un peu plus loin en haut). */
         private const val WINDOW_MARGIN = 1.4f
@@ -283,7 +290,7 @@ internal class Wizard3DCapture private constructor(
         /** Ce que la scène voit au-dessus du plateau, en cases : les pièces hautes (le roi fait près de 1,8 case) de la rangée du fond y dépassent. */
         const val TOP_EXTRA = 1f
 
-        private const val TOP_FRACTION = TOP_EXTRA / BOARD
+        private const val TOP_FRACTION = TOP_EXTRA / BOARD_H
 
         /** Tout l'échiquier et le bandeau au-dessus, en parts du plateau (0 à 1, origine : coin haut-gauche) : la zone vue au repos. */
         val FULL_REGION = Rect(0f, -TOP_FRACTION, 1f, 1f)
@@ -291,14 +298,14 @@ internal class Wizard3DCapture private constructor(
         /** Dirige [camera] (de face, à l'axe) sur [region] (en parts du plateau) : 1 unité du monde = 1 case de l'écran. */
         fun aim(camera: Camera3D, region: Rect) {
             val x = (region.left + region.right) / 2f * BOARD
-            val y = BOARD - (region.top + region.bottom) / 2f * BOARD
+            val y = BOARD_H - (region.top + region.bottom) / 2f * BOARD_H
             camera.eyeX = x
             camera.targetX = x
             camera.eyeY = y
             camera.targetY = y
             camera.eyeZ = CAMERA_DISTANCE
             camera.targetZ = 0f
-            camera.fovDegrees = fovFor(region.height * BOARD)
+            camera.fovDegrees = fovFor(region.height * BOARD_H)
         }
 
         /** La caméra qui voit tout l'échiquier ([FULL_REGION]), de face (voir le commentaire du fichier). */
@@ -314,7 +321,7 @@ internal class Wizard3DCapture private constructor(
             val profile = piece.uppercaseChar() in PROFILE
             val own = if (Chess.isWhite(piece)) -1f else 1f
             val yaw = (if (profile) own * PROFILE_YAW else 0f) + WizardModelCatalog.facingYaw(piece)
-            return Mat4.pose(centerX, BOARD - footRow, depth(footRow), yaw = yaw, scale = scaleOf(piece) * bounce)
+            return Mat4.pose(centerX, BOARD_H - footRow, depth(footRow), yaw = yaw, scale = scaleOf(piece) * bounce)
         }
 
         /** Le champ (en degrés) pour voir [height] cases de haut à la distance de la caméra. */
@@ -333,9 +340,9 @@ internal class Wizard3DCapture private constructor(
         private val PROFILE = setOf('P', 'N', 'R')
 
         /** Plus une pièce est basse à l'écran, plus elle est près de la caméra : elle passe devant celles du dessus. */
-        private fun depth(row: Float): Float = (row - BOARD / 2f) * DEPTH_PER_ROW
+        private fun depth(row: Float): Float = (row - BOARD_H / 2f) * DEPTH_PER_ROW
 
-        private fun toBoard(p: FloatArray): Offset = Offset(p[0], BOARD - p[1])
+        private fun toBoard(p: FloatArray): Offset = Offset(p[0], BOARD_H - p[1])
 
         private fun transform(m: FloatArray, x: Float, y: Float, z: Float): FloatArray = floatArrayOf(
             m[0] * x + m[4] * y + m[8] * z + m[12],

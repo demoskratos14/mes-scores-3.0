@@ -54,6 +54,8 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -775,7 +777,7 @@ private fun ChessBoard(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .aspectRatio(1f)
+                                        .aspectRatio(if (wizard) 1f / WIZARD_ROW_PITCH else 1f)
                                         .background(squareColor)
                                         .drawBehind { if (wizard) drawWizardTile(square, dark, highlight) }
                                         .semantics {
@@ -803,6 +805,28 @@ private fun ChessBoard(
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+                // Une ombre douce sous chaque pièce au repos : on voit où elle se pose. L'ombre de la pièce animée reparaît avec le coup suivant.
+                if (board3d) {
+                    Canvas(modifier = Modifier.matchParentSize()) {
+                        val cellWidth = size.width / 8f
+                        val cellHeight = size.height / 8f
+                        for (square in 0 until 64) {
+                            val piece = game.position.board[square]
+                            if (piece == '.' || square == animatedSquare) continue
+                            val col = if (flipped) 7 - square % 8 else square % 8
+                            val row = if (flipped) 7 - square / 8 else square / 8
+                            val foot = Offset((col + 0.5f) * cellWidth, (row + 0.5f) * cellHeight + Wizard3DCapture.FOOT_OFFSET * cellWidth)
+                            val radius = cellWidth * (if (piece.uppercaseChar() == 'P') 0.34f else 0.42f)
+                            withTransform({ scale(1f, 0.4f, pivot = foot) }) {
+                                drawCircle(
+                                    brush = Brush.radialGradient(listOf(Color(0xAA000000), Color(0x00000000)), foot, radius),
+                                    radius = radius,
+                                    center = foot
+                                )
                             }
                         }
                     }

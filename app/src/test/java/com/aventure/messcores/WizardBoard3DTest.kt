@@ -68,7 +68,7 @@ class WizardBoard3DTest {
             board.setBoard(".".repeat(sq("e2")) + "P" + ".".repeat(63 - sq("e2")), -1, flipped)
             val m = board.scene.instances.single().matrix
             assertEquals(centre.first, m[12], 0.001f)
-            assertEquals(Wizard3DCapture.BOARD - (centre.second + Wizard3DCapture.FOOT_OFFSET), m[13], 0.001f)
+            assertEquals(Wizard3DCapture.BOARD_H - (centre.second * WIZARD_ROW_PITCH + Wizard3DCapture.FOOT_OFFSET), m[13], 0.001f)
         }
     }
 
@@ -76,7 +76,7 @@ class WizardBoard3DTest {
     fun lesPiecesAuReposSontLesMemesQueAuDebutDUnePrise() {
         val fx = MoveFx(sq("e4"), sq("e5"), 'N', 'p', sq("e5"))
         val capture = Wizard3DCapture.create(fx) { mesh(it) }!!
-        val rest = Wizard3DCapture.restMatrix('N', 4.5f, 4.5f)
+        val rest = Wizard3DCapture.restMatrix('N', 4.5f, 4.5f * WIZARD_ROW_PITCH)
         val begin = capture.pose(0f, false).mover
         for (i in 12..14) assertEquals(rest[i], begin[i], 0.001f)
     }
@@ -95,8 +95,8 @@ class WizardBoard3DTest {
         val end = slide.pose(1f, false)
         assertEquals(4.5f, start[12], 0.001f)
         assertEquals(4.5f, end[12], 0.001f)
-        // Deux cases vers le haut de l'écran : le monde monte de 2 (l'axe Y du monde va vers le haut).
-        assertEquals(2f, end[13] - start[13], 0.001f)
+        // Deux rangées vers le haut de l'écran : le monde monte de 2 pas de rangée (l'axe Y du monde va vers le haut).
+        assertEquals(2f * WIZARD_ROW_PITCH, end[13] - start[13], 0.001f)
         // En route, la pièce est entre les deux.
         val middle = slide.pose(0.5f, false)
         assertTrue(middle[13] > start[13] && middle[13] < end[13])

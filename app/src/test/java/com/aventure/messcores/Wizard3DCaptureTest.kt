@@ -34,7 +34,7 @@ class Wizard3DCaptureTest {
         (if (flipped) 7 - square % 8 else square % 8) + 0.5f
 
     private fun footWorldY(square: Int, flipped: Boolean = false): Float =
-        Wizard3DCapture.BOARD - ((if (flipped) 7 - square / 8 else square / 8) + 0.5f + Wizard3DCapture.FOOT_OFFSET)
+        Wizard3DCapture.BOARD_H - (((if (flipped) 7 - square / 8 else square / 8) + 0.5f) * WIZARD_ROW_PITCH + Wizard3DCapture.FOOT_OFFSET)
 
     private fun transform(m: FloatArray, p: FloatArray) = floatArrayOf(
         m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12],
@@ -144,7 +144,7 @@ class Wizard3DCaptureTest {
                 val pose = scene.pose(progress, false)
                 val a = pose.anchors
                 val x = pose.mover[12]
-                val y = Wizard3DCapture.BOARD - pose.mover[13]
+                val y = Wizard3DCapture.BOARD_H - pose.mover[13]
                 val points = when (piece) {
                     'K', 'N' -> listOf(a.hand)
                     'Q' -> listOf(a.queenTip)
@@ -168,12 +168,14 @@ class Wizard3DCaptureTest {
         scene.update(0f, false)
         // L'image du test est carrée et ne couvre que le plateau (la scène voit aussi un bandeau au-dessus) : on la dirige sur le plateau.
         Wizard3DCapture.aim(scene.scene.camera, Rect(0f, 0f, 1f, 1f))
+        // Les rangées sont plus écartées que les colonnes : l'image est plus haute que large dans la même proportion.
         val size = 800
-        val frame = Frame3D(size, size, 1)
+        val height = (size * WIZARD_ROW_PITCH).toInt()
+        val frame = Frame3D(size, height, 1)
         Renderer3D().render(scene.scene, frame)
         fun opaqueInColumn(col: Int): Int {
             var count = 0
-            for (y in 0 until size) for (x in col * 100 until (col + 1) * 100) {
+            for (y in 0 until height) for (x in col * 100 until (col + 1) * 100) {
                 if (frame.pixels[y * size + x] ushr 24 != 0) count++
             }
             return count
@@ -202,7 +204,7 @@ class Wizard3DCaptureTest {
         // Retourné, la case a8 passe en bas à droite.
         val flipped = wizardSquareOrigin(0, true, 100f)
         assertEquals(700f, flipped.x, 1e-3f)
-        assertEquals(700f, flipped.y, 1e-3f)
+        assertEquals(700f * WIZARD_ROW_PITCH, flipped.y, 1e-3f)
         // La case 17 est à la rangée 2, colonne 1.
         val other = wizardSquareOrigin(17, false, 100f)
         assertEquals(100f, other.x, 1e-3f)
