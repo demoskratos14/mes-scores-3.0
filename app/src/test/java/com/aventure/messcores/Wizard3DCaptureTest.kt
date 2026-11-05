@@ -208,6 +208,6 @@ class Wizard3DCaptureTest {
         // La case 17 est à la rangée 2, colonne 1.
         val other = wizardSquareOrigin(17, false, 100f)
         assertEquals(100f, other.x, 1e-3f)
-        assertEquals(200f, other.y, 1e-3f)
+        assertEquals(200f * WIZARD_ROW_PITCH, other.y, 1e-3f)
     }
 }
