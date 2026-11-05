@@ -261,9 +261,11 @@ class Scene3DTest {
         fun hand(p: Char) = WizardModelCatalog.handPoint(p)!!
         // Roi : épée plantée, la pointe 5 cm sous les mains.
         assertTrue(lowest(heldWeaponVertices('K'), 1) < hand('K')[1] - 0.045f)
-        // Reine : la baguette part vers l'avant (+Z) et vers le haut.
-        assertTrue(highest(heldWeaponVertices('Q'), 2) > hand('Q')[2] + 0.03f)
-        assertTrue(highest(heldWeaponVertices('Q'), 1) > hand('Q')[1] + 0.015f)
+        // Reine : la baguette pend droit devant elle, sans inclinaison : la pointe descend ~5 cm sous les mains jointes,
+        // et le pommeau est serré dans les mains sans les dépasser (ni vers le haut, ni vers l'avant).
+        assertTrue(lowest(heldWeaponVertices('Q'), 1) < hand('Q')[1] - 0.04f)
+        assertTrue(highest(heldWeaponVertices('Q'), 1) < hand('Q')[1] + 0.01f)
+        assertTrue(highest(heldWeaponVertices('Q'), 2) < hand('Q')[2] + 0.01f)
         // Tour : l'épée est tendue devant elle (−Z).
         assertTrue(lowest(heldWeaponVertices('R'), 2) < hand('R')[2] - 0.012f)
         // Fou : la crosse est dressée, sa volute au-dessus du poing.
