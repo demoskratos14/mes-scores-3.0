@@ -292,7 +292,7 @@ class Scene3DTest {
 
     @Test
     fun lesPiecesRegardentDansLeSensDeLeurFichier() {
-        for (p in "NnRrPp") assertEquals(if (p.uppercaseChar() == 'N') -90f else 180f, WizardModelCatalog.facingYaw(p), 0f)
+        for (p in "NnRrPp") assertEquals(when (p.uppercaseChar()) { 'N' -> -90f; 'P' -> 90f; else -> 180f }, WizardModelCatalog.facingYaw(p), 0f)
         for (p in "KQBkqb") assertEquals(0f, WizardModelCatalog.facingYaw(p), 0f)
     }
 

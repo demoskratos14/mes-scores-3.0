@@ -98,7 +98,10 @@ internal object WizardModelCatalog {
      */
     fun facingYaw(piece: Char): Float = when (piece.uppercaseChar()) {
         'N' -> -90f
-        'R', 'P' -> 180f
+        'R' -> 180f
+        // Le pion regarde vers −Z dans son fichier (180° pour le mettre de face), puis on le tourne de 90° de plus (vers la gauche
+        // de l'écran) : sur l'échiquier, vu de profil à 65°, il fait ainsi face à l'ennemi (les noirs vers les blancs, les blancs vers les noirs).
+        'P' -> 90f
         else -> 0f
     }
 
