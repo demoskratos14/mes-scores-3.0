@@ -13,8 +13,9 @@ import kotlin.math.sqrt
  * le moteur). La scène recouvre l'échiquier : la caméra est placée loin devant, à l'axe, avec un champ si étroit que 1 unité
  * du monde = 1 case de l'écran. Un point (x, y) du plateau, en cases depuis son coin haut-gauche, est donc le point
  * (x, 8 × pas − y) du monde (le pas des rangées : voir WIZARD_ROW_PITCH), à la profondeur 0 : les pièces 3D tombent pile là où les statues 2D seraient dessinées, et suivent le
- * même mouvement (voir [captureMotion]). Seules la pièce qui prend et sa victime sont en 3D ; le reste de la prise (éclairs,
- * éclats, traînées de l'arme, lames conjurées) reste dessiné en 2D par-dessus, accroché aux points de [CaptureAnchors].
+ * même mouvement (voir [captureMotion]). Seules la pièce qui prend, son arme et sa victime sont en 3D ; le reste de la prise (éclairs,
+ * éclats, traînées de l'arme) reste dessiné en 2D par-dessus, accroché aux points de [CaptureAnchors]. Toutes les pièces frappent avec
+ * l'arme qu'elles tiennent (le pion avec sa courte épée) ; seule la statue 2D du repli conjure des lames.
  */
 
 /**
@@ -36,12 +37,9 @@ internal const val WIZARD_3D_OUTLINE = 2
 
 /** Les points où les effets 2D s'accrochent aux pièces 3D, en cases du plateau (1 = une case, origine : coin haut-gauche). */
 internal class CaptureAnchors(
-    /** Les deux mains du pion, d'où surgissent ses épées conjurées. */
-    val pawnHandA: Offset = Offset.Zero,
-    val pawnHandB: Offset = Offset.Zero,
     /** Le bout de la baguette de la dame (qu'elle balaie pour frapper). */
     val queenTip: Offset = Offset.Zero,
-    /** La main du roi ou du cavalier, centre de rotation de son arme, et la portée de l'arme (en cases). */
+    /** La main du pion, du roi ou du cavalier, centre de rotation de son arme, et la portée de l'arme (en cases). */
     val hand: Offset = Offset.Zero,
     val swingRadius: Float = 0f,
     /** Le bout de l'épée de la tour, d'où part le carreau. */
@@ -154,8 +152,8 @@ internal class Wizard3DCapture private constructor(
                 w = Mat4.multiply(swing, rest)
             }
             weaponMatrix = w
-            // Le bout de l'arme : la pointe (origine du fichier) pour les épées et la baguette (tenue pointe en bas), le haut pour la crosse et la masse.
-            val tipLocalY = if (kind == 'K' || kind == 'R' || kind == 'Q') 0f else (weaponMesh?.maxY ?: 0f)
+            // Le bout de l'arme : la pointe (origine du fichier) pour les épées et la baguette, le haut pour la crosse et la masse.
+            val tipLocalY = if (kind == 'K' || kind == 'R' || kind == 'Q' || kind == 'P') 0f else (weaponMesh?.maxY ?: 0f)
             val tip = transform(w, 0f, tipLocalY, 0f)
             val reach = sqrt((tip[0] - h[0]) * (tip[0] - h[0]) + (tip[1] - h[1]) * (tip[1] - h[1]))
             hooks = CaptureAnchors(
@@ -164,13 +162,6 @@ internal class Wizard3DCapture private constructor(
                 swingRadius = (reach * 0.9f).coerceAtLeast(MIN_SWING_RADIUS),
                 muzzle = toBoard(tip),
                 bishopHead = toBoard(tip)
-            )
-        } else if (kind == 'P') {
-            // Le pion n'a pas d'arme : ses épées surgissent de ses poings, à peu près à mi-hauteur.
-            val grow = scaleOf(fx.mover) / REFERENCE_SCALE
-            hooks = CaptureAnchors(
-                pawnHandA = Offset(moverX - 0.07f * grow, moverRow - 0.20f * grow),
-                pawnHandB = Offset(moverX + 0.07f * grow, moverRow - 0.16f * grow)
             )
         }
 
@@ -280,9 +271,6 @@ internal class Wizard3DCapture private constructor(
 
         /** Le pion est le plus petit : on le grossit en plus, pour qu'il ne paraisse pas minuscule à côté des autres pièces. */
         private const val PAWN_BOOST = 1.3f
-
-        /** L'échelle d'origine (avant l'agrandissement), à laquelle sont réglés les points d'accroche fixes du pion. */
-        private const val REFERENCE_SCALE = 14f
 
         private fun scaleOf(piece: Char): Float = if (piece.uppercaseChar() == 'P') SCALE * PAWN_BOOST else SCALE
 

@@ -25,20 +25,20 @@ class WizardBoard3DTest {
     private val start = "rnbqkbnr" + "pppppppp" + ".".repeat(32) + "PPPPPPPP" + "RNBQKBNR"
 
     @Test
-    fun laPositionDeDepartPlaceLesTrenteDeuxPiecesEtSesSeizeArmes() {
+    fun laPositionDeDepartPlaceLesTrenteDeuxPiecesEtSesTrenteDeuxArmes() {
         val board = WizardBoard3D { mesh(it) }
         assertTrue(board.setBoard(start, -1, flipped = false))
-        // Le pion n'a pas d'arme : 32 pièces et 16 armes (cavaliers, tours, fous, dames et rois).
-        assertEquals(48, board.scene.instances.size)
+        // Chaque pièce tient son arme, pions compris : 32 pièces et 32 armes.
+        assertEquals(64, board.scene.instances.size)
     }
 
     @Test
     fun laCaseAnimeeEstLaisseeVide() {
         val board = WizardBoard3D { mesh(it) }
         assertTrue(board.setBoard(start, sq("e2"), flipped = false))
-        assertEquals(47, board.scene.instances.size)
+        assertEquals(62, board.scene.instances.size)
         assertTrue(board.setBoard(start, sq("e1"), flipped = false))
-        assertEquals(46, board.scene.instances.size)
+        assertEquals(62, board.scene.instances.size)
     }
 
     @Test

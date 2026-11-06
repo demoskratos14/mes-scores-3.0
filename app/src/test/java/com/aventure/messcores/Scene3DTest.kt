@@ -223,7 +223,7 @@ class Scene3DTest {
 
     @Test
     fun laPoigneeDeChaqueArmeTombeSurLaMainDeSaPiece() {
-        for (p in "KQRBN") {
+        for (p in "KQRBNP") {
             val mount = WizardModelCatalog.weaponMount(p)!!
             val hand = WizardModelCatalog.handPoint(p)!!
             // Au repos comme quand l'arme pivote autour de la main (levée, abattue…), le point de prise ne quitte pas la main.
@@ -240,7 +240,7 @@ class Scene3DTest {
     @Test
     fun laMainEstSurLeCorpsDeLaPiece() {
         // La main (le poing) est à moins de 3 mm d'un sommet du modèle de la pièce : l'arme n'est pas dans le vide.
-        for (p in "KQRBN") {
+        for (p in "KQRBNP") {
             val piece = loadAsset(WizardModelCatalog.pieceModel(p)!!)
             val h = WizardModelCatalog.handPoint(p)!!
             var best = Float.MAX_VALUE
@@ -272,6 +272,9 @@ class Scene3DTest {
         assertTrue(highest(heldWeaponVertices('B'), 1) > hand('B')[1] + 0.015f)
         // Cavalier : la tête de la masse est levée au-dessus du poing.
         assertTrue(highest(heldWeaponVertices('N'), 1) > hand('N')[1] + 0.01f)
+        // Pion : la courte épée est tenue pointe en l'air devant lui (la pointe monte d'au moins 1,5 cm au-dessus des mains, sans les dépasser vers l'avant).
+        assertTrue(highest(heldWeaponVertices('P'), 1) > hand('P')[1] + 0.015f)
+        assertTrue(lowest(heldWeaponVertices('P'), 2) > hand('P')[2] - 0.004f)
     }
 
     // ---------- Catalogue ----------
@@ -284,7 +287,9 @@ class Scene3DTest {
         assertNull(WizardModelCatalog.pieceModel('.'))
         assertEquals("weapon_queen_wand", WizardModelCatalog.weaponModel('q'))
         assertEquals("weapon_rook_sword", WizardModelCatalog.weaponModel('R'))
-        assertNull("le pion n'a pas d'arme", WizardModelCatalog.weaponModel('P'))
+        // Le pion manie la même courte épée que la tour (un seul fichier pour les deux).
+        assertEquals("weapon_rook_sword", WizardModelCatalog.weaponModel('P'))
+        assertEquals("weapon_rook_sword", WizardModelCatalog.weaponModel('p'))
         assertEquals("wizard3d/pawn.glb", WizardModelCatalog.assetPath("pawn"))
         // Les six pièces de l'échiquier ont toutes un modèle.
         for (p in "KQRBNPkqrbnp") assertNotNull(WizardModelCatalog.pieceModel(p))

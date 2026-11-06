@@ -25,18 +25,19 @@ internal object WizardModelCatalog {
         'K' to "king", 'Q' to "queen", 'R' to "rook", 'B' to "bishop", 'N' to "knight", 'P' to "pawn"
     )
 
+    // Le pion manie, comme la tour, la courte épée « weapon_rook_sword » : un seul fichier pour les deux.
     private val WEAPONS = mapOf(
         'K' to "weapon_king_sword", 'Q' to "weapon_queen_wand", 'R' to "weapon_rook_sword",
-        'B' to "weapon_bishop_staff", 'N' to "weapon_knight_mace"
+        'B' to "weapon_bishop_staff", 'N' to "weapon_knight_mace", 'P' to "weapon_rook_sword"
     )
 
-    /** Tous les fichiers livrés (sans l'extension .glb) : les six pièces puis les cinq armes. */
-    val allModels: List<String> = PIECES.values.toList() + WEAPONS.values.toList()
+    /** Tous les fichiers livrés (sans l'extension .glb) : les six pièces puis les cinq armes (le pion et la tour partagent la leur). */
+    val allModels: List<String> = (PIECES.values + WEAPONS.values).distinct()
 
     /** Le modèle de la pièce [piece] (lettre de l'échiquier, majuscule ou minuscule), ou null si ce n'est pas une pièce. */
     fun pieceModel(piece: Char): String? = PIECES[piece.uppercaseChar()]
 
-    /** L'arme de la pièce [piece] (le pion n'en a pas), ou null. */
+    /** L'arme de la pièce [piece], ou null si ce n'est pas une pièce. */
     fun weaponModel(piece: Char): String? = WEAPONS[piece.uppercaseChar()]
 
     /**
@@ -46,6 +47,7 @@ internal object WizardModelCatalog {
      *  - reine : la baguette pendant droit devant elle, sans inclinaison : le pommeau (le haut du fichier) est serré dans ses mains
      *    jointes sans les dépasser, la pointe (le pied du fichier) descend vers le socle, comme l'épée du roi ;
      *  - tour : la courte épée au poing, tendue devant elle (le fichier de la tour regarde vers −Z) ;
+     *  - pion : la courte épée de la tour, tenue pointe en l'air dans ses mains croisées, devant lui (il est de profil, agenouillé) ;
      *  - fou : la crosse dressée dans son poing droit (côté +X), le pied à hauteur du socle ;
      *  - cavalier : la masse brandie dans le poing du cavalier (côté −X), la tête levée au-dessus de lui.
      */
@@ -54,20 +56,22 @@ internal object WizardModelCatalog {
         'Q' to WeaponMount(0f, 0.0664f, 0.0120f, 0f, 0.0520f, 0f),
         'R' to WeaponMount(-0.0093f, 0.0606f, -0.0126f, -0.00006f, 0.0186f, 0.0007f, pitch = 110f),
         'B' to WeaponMount(0.0113f, 0.0629f, 0.0050f, 0.00307f, 0.0469f, 0.00003f),
+        // Pion : la main est à 0,8 mm du modèle ; tangage 180° : la lame (de la poignée vers l'origine du fichier) monte droit, dans le plan de l'écran.
+        'P' to WeaponMount(0f, 0.0175f, -0.0120f, -0.00006f, 0.0186f, 0.0007f, pitch = 180f),
         'N' to WeaponMount(
             -0.0010f, 0.0600f, 0.0070f, 0.00545f, 0.00222f, -0.00217f,
             yaw = -3.2f, pitch = -9.4f, roll = -29.4f
         )
     )
 
-    /** Le montage de l'arme de la pièce [piece] (le pion n'en a pas), ou null. */
+    /** Le montage de l'arme de la pièce [piece], ou null si ce n'est pas une pièce. */
     fun weaponMount(piece: Char): WeaponMount? = MOUNTS[piece.uppercaseChar()]
 
-    /** Le point de la main qui tient l'arme, dans le repère du fichier de la pièce (x, y, z), ou null pour un pion. */
+    /** Le point de la main qui tient l'arme, dans le repère du fichier de la pièce (x, y, z), ou null si ce n'est pas une pièce. */
     fun handPoint(piece: Char): FloatArray? = weaponMount(piece)?.let { floatArrayOf(it.handX, it.handY, it.handZ) }
 
     /**
-     * La matrice qui place l'arme de [piece] dans la main de la pièce, dans le repère de la pièce (ou null pour un pion).
+     * La matrice qui place l'arme de [piece] dans la main de la pièce, dans le repère de la pièce (ou null si ce n'est pas une pièce).
      * Pour dessiner l'arme avec la pièce : `weapon.matrix = Mat4.multiply(pièce.matrix, WizardModelCatalog.weaponLocal(p)!!)`
      * (l'arme suit alors la pièce quand elle avance, tourne ou grandit).
      *

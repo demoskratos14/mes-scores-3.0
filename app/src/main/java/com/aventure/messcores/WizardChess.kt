@@ -29,7 +29,8 @@ import kotlin.random.Random
  * de marbre blanc et noir, et une animation quand une pièce en prend une autre (la pièce prise se brise en éclats). Le style est
  * purement visuel : il ne change rien aux règles ni à ce qui voyage entre les deux téléphones, chaque joueur choisit
  * donc le sien. Les pièces sont dessinées en vectoriel (tracés dans un carré de 100 × 100), sans aucune image.
- * Quand une pièce en prend une autre, elle s'en prend avec son arme, à sa façon (voir [drawMoveFx]).
+ * Quand une pièce en prend une autre, elle s'en prend avec son arme, à sa façon (voir [drawMoveFx]) : en 3D, chaque pièce
+ * (le pion compris) frappe avec l'arme qu'elle tient dans la main.
  */
 
 /** Mémorise le style choisi (classique ou sorcier), pour le retrouver au prochain lancement. */
@@ -1077,7 +1078,9 @@ internal class CaptureMotion(
     val knightWind: Float,
     val knightStrike: Float,
     val queenWind: Float,
-    val queenStrike: Float
+    val queenStrike: Float,
+    val pawnWind: Float,
+    val pawnStrike: Float
 )
 
 /** Le coin haut-gauche de la case [square], en pixels, pour des cases de [cell] pixels ([flipped] : les noirs sont en bas). */
@@ -1096,6 +1099,9 @@ internal const val WIZARD_ROW_PITCH = 1.2f
 
 /** L'angle d'écran (degrés, sens des aiguilles d'une montre, 0 = vers la droite) de la baguette de la dame au repos : pendante, pointe vers le bas. */
 internal const val QUEEN_WAND_REST_ANGLE = 90f
+
+/** L'angle d'écran de l'épée du pion au repos : tenue à deux mains devant lui, pointe en l'air (en 3D ; la statue 2D n'a pas d'épée). */
+internal const val PAWN_SWORD_REST_ANGLE = -90f
 
 internal fun captureMotionFor(fx: MoveFx, progress: Float, cell: Float, flipped: Boolean): CaptureMotion =
     captureMotion(
@@ -1152,6 +1158,7 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
     val restAngle = when {
         rig != null -> atan2(rig.ry, if (flip) -rig.rx else rig.rx) / RAD
         kind == 'Q' -> QUEEN_WAND_REST_ANGLE
+        kind == 'P' -> PAWN_SWORD_REST_ANGLE
         else -> 0f
     }
     var weaponDeg = 0f
@@ -1164,7 +1171,16 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
     // Un grand revers : levée par-dessus l'épaule, puis balayée au-delà de la victime (170° d'amplitude : jamais exactement un demi-tour, dont le sens serait ambigu).
     val queenWind = angleU + side * 110f
     val queenStrike = angleU - side * 60f
+    // Le pion lève son épée par-dessus l'épaule puis l'abat sur sa victime, comme le roi mais d'un geste plus court.
+    val pawnWind = angleU + side * 115f
+    val pawnStrike = angleU - side * 5f
     when (kind) {
+        'P' -> {
+            val (angle, scale) = swingPose(progress, restAngle, pawnWind, pawnStrike, 1.35f, 1.7f)
+            swingAngle = angle
+            weaponDeg = angle - restAngle
+            weaponScale = scale
+        }
         'K' -> {
             val (angle, scale) = swingPose(progress, restAngle, kingWind, kingStrike, 1.5f, 1.9f)
             swingAngle = angle
@@ -1214,13 +1230,13 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
     return CaptureMotion(
         kind, targetCenter, dx, u, angleU, side, stopCenter, a, b, after, center, moverOrigin, bounce,
         faceRight, flip, unit, rig, restAngle, weaponDeg, weaponScale, swingAngle,
-        kingWind, kingStrike, knightWind, knightStrike, queenWind, queenStrike
+        kingWind, kingStrike, knightWind, knightStrike, queenWind, queenStrike, pawnWind, pawnStrike
     )
 }
 
 /**
  * Une prise. Chaque pièce se sert de son arme :
- *  - le pion fait surgir deux épées courtes qu'il croise sur sa victime, coupée en deux ;
+ *  - le pion brandit sa courte épée puis l'abat sur sa victime, coupée en deux (la statue 2D, sans épée, en conjure deux) ;
  *  - la tour recule d'un cran et tire un carreau d'arbalète en plein cœur : la victime se fissure et vole en éclats ;
  *  - le cavalier bondit et abat sa masse d'armes : la victime est écrasée, puis brisée ;
  *  - le fou lève sa crosse, qui s'embrase : un éclair d'or frappe la victime, qui se dissout en lumière ;
@@ -1259,6 +1275,8 @@ private fun DrawScope.drawCapture(
     val knightStrike = m.knightStrike
     val queenWind = m.queenWind
     val queenStrike = m.queenStrike
+    val pawnWind = m.pawnWind
+    val pawnStrike = m.pawnStrike
     // Pièces en 3D : les statues ne sont pas dessinées ici, et les effets s'accrochent aux points fournis (en cases).
     val sprites = anchors == null
     fun at(point: Offset) = Offset(point.x * cell, point.y * cell)
@@ -1291,12 +1309,20 @@ private fun DrawScope.drawCapture(
     val fadeOut = if (progress < IMPACT) 1f else 1f - smooth(b)
 
     when (kind) {
-        'P' -> {
-            // Deux épées courtes surgissent des mains du pion et se croisent sur la victime.
+        'P' -> if (anchors != null) {
+            // En 3D, le pion frappe avec sa propre épée (déjà dessinée par la scène) : seule la traînée de son geste est ajoutée ici.
+            val pivot = at(anchors.hand)
+            val radius = anchors.swingRadius * cell
+            if (a >= 0.6f || progress >= IMPACT) {
+                val head = if (progress < IMPACT) swingAngle else pawnStrike
+                drawSwingTrail(pivot, radius, head, pawnWind, pawnStrike, fadeOut)
+            }
+        } else {
+            // Statue 2D (repli si un modèle 3D manque) : elle n'a pas d'épée dessinée, deux épées courtes surgissent donc de ses mains et se croisent sur la victime.
             val grow = if (progress < IMPACT) smooth((a / 0.25f).coerceIn(0f, 1f)) else 1f - smooth(b)
             val length = cell * 0.62f
-            val pivotA = if (anchors != null) at(anchors.pawnHandA) else wizardSpritePoint(moverOrigin, cell, flip, 38f, 56f)
-            val pivotB = if (anchors != null) at(anchors.pawnHandB) else wizardSpritePoint(moverOrigin, cell, flip, 46f, 62f)
+            val pivotA = wizardSpritePoint(moverOrigin, cell, flip, 38f, 56f)
+            val pivotB = wizardSpritePoint(moverOrigin, cell, flip, 46f, 62f)
             val windA = angleU + side * 80f
             val endA = angleU - side * 30f
             val windB = angleU - side * 80f

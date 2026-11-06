@@ -52,7 +52,7 @@ internal object WizardModels {
         return Instance3D(mesh, WizardModelCatalog.materialFor(piece))
     }
 
-    /** L'arme de la pièce [piece] (même matière que la pièce), ou null pour un pion ou si le fichier manque. */
+    /** L'arme de la pièce [piece] (même matière que la pièce), ou null si le fichier manque. */
     fun weaponInstance(assets: AssetManager, piece: Char): Instance3D? {
         val model = WizardModelCatalog.weaponModel(piece) ?: return null
         val mesh = mesh(assets, model) ?: return null

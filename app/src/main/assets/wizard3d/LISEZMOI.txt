@@ -10,6 +10,6 @@ Les pièces ont été simplifiées (de 65 000 - 120 000 triangles à 4 500 - 10 
 séparés, à placer dans la main de la pièce (l'origine est le bas de l'arme).
 
   king, queen, rook, bishop, knight, pawn    les six pièces
-  weapon_king_sword     épée du roi          weapon_rook_sword    épée de la tour
+  weapon_king_sword     épée du roi          weapon_rook_sword    épée de la tour (aussi celle du pion)
   weapon_knight_mace    masse du cavalier    weapon_queen_wand    baguette de la reine
   weapon_bishop_staff   crosse du fou

@@ -53,14 +53,13 @@ class Wizard3DCaptureTest {
         assertNull(Wizard3DCapture.create(fx('K', "e4", "e5", 'p')) { null })
         // Seule l'arme manque : la scène n'est pas faite non plus (une pièce sans son arme serait étrange).
         assertNull(Wizard3DCapture.create(fx('K', "e4", "e5", 'p')) { if (it.startsWith("weapon")) null else mesh(it) })
-        // Le pion n'a pas d'arme : son modèle seul suffit.
-        assertNotNull(Wizard3DCapture.create(fx('P', "e4", "d5", 'n')) { if (it.startsWith("weapon")) null else mesh(it) })
+        // Le pion aussi a son arme : sans elle, la prise reste en 2D.
+        assertNull(Wizard3DCapture.create(fx('P', "e4", "d5", 'n')) { if (it.startsWith("weapon")) null else mesh(it) })
     }
 
     @Test
-    fun lePionNAPasDArmeEtLesAutresEnOnt() {
-        assertNull(capture(fx('P', "e4", "d5", 'n')).pose(0.3f, false).weapon)
-        for (piece in "KQRBN") {
+    fun chaquePieceALaSienneEnPrise() {
+        for (piece in "KQRBNP") {
             assertNotNull("arme de $piece", capture(fx(piece, "b4", "f4", 'p')).pose(0.3f, false).weapon)
         }
     }
@@ -112,7 +111,7 @@ class Wizard3DCaptureTest {
 
     @Test
     fun laMainResteSurLArmeQuandElleSeLeve() {
-        for (piece in "KQNRB") {
+        for (piece in "KQNRBP") {
             val f = fx(piece, "b4", "f4", 'p')
             val scene = capture(f)
             val mount = WizardModelCatalog.weaponMount(piece)!!
@@ -151,6 +150,29 @@ class Wizard3DCaptureTest {
     }
 
     @Test
+    fun lePionLeveEtAbatSonEpee() {
+        // Au repos l'épée pointe en l'air ; armée, elle part en arrière par-dessus l'épaule ; à l'impact elle est au bout de son geste, agrandie.
+        val f = fx('P', "e4", "f5", 'n')
+        val rest = captureMotionFor(f, 0.1f, 100f, false)
+        assertEquals(PAWN_SWORD_REST_ANGLE, rest.restAngle, 1e-3f)
+        assertEquals(0f, rest.weaponDeg, 1e-3f)
+        val strike = captureMotionFor(f, 0.46f, 100f, false)
+        assertEquals(strike.pawnStrike, strike.swingAngle, 1e-2f)
+        assertTrue("l'épée a grandi pour frapper", strike.weaponScale > 1.5f)
+        // Après le geste elle reprend sa place et sa taille.
+        val after = captureMotionFor(f, 0.8f, 100f, false)
+        assertEquals(0f, after.weaponDeg, 1e-3f)
+        assertEquals(1f, after.weaponScale, 1e-3f)
+        // Côté 3D : la matrice de l'arme change entre le repos et l'impact.
+        val scene = capture(f)
+        val a = scene.pose(0.1f, false).weapon!!
+        val b = scene.pose(0.44f, false).weapon!!
+        var different = false
+        for (i in 0 until 16) if (abs(a[i] - b[i]) > 1e-3f) different = true
+        assertTrue("l'arme a bougé", different)
+    }
+
+    @Test
     fun laBaguetteDeLaDameVaAuBoutDeSonRevers() {
         // À l'impact, la baguette est au bout de son revers, agrandie ; avant et après le geste, elle est au repos.
         val f = fx('Q', "b4", "f4", 'p')
@@ -177,11 +199,10 @@ class Wizard3DCaptureTest {
                 val x = pose.mover[12]
                 val y = Wizard3DCapture.BOARD_H - pose.mover[13]
                 val points = when (piece) {
-                    'K', 'N' -> listOf(a.hand)
+                    'K', 'N', 'P' -> listOf(a.hand)
                     'Q' -> listOf(a.queenTip)
                     'R' -> listOf(a.muzzle)
-                    'B' -> listOf(a.bishopHead)
-                    else -> listOf(a.pawnHandA, a.pawnHandB)
+                    else -> listOf(a.bishopHead)
                 }
                 for (p in points) {
                     val dx = p.x - x
