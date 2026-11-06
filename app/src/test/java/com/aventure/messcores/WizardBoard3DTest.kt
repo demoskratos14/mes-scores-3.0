@@ -66,7 +66,9 @@ class WizardBoard3DTest {
         val expected = listOf(false to (4.5f to 6.5f), true to (3.5f to 1.5f))
         for ((flipped, centre) in expected) {
             board.setBoard(".".repeat(sq("e2")) + "P" + ".".repeat(63 - sq("e2")), -1, flipped)
-            val m = board.scene.instances.single().matrix
+            // Le pion et son épée : la pièce est ajoutée en premier.
+            assertEquals(2, board.scene.instances.size)
+            val m = board.scene.instances.first().matrix
             assertEquals(centre.first, m[12], 0.001f)
             assertEquals(Wizard3DCapture.BOARD_H - (centre.second * WIZARD_ROW_PITCH + Wizard3DCapture.FOOT_OFFSET), m[13], 0.001f)
         }
