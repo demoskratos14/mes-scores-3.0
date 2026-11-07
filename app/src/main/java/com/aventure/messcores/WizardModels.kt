@@ -46,7 +46,8 @@ internal object WizardModelCatalog {
      *  - roi : l'épée plantée devant lui, pointe en bas, les deux mains sous le pommeau ;
      *  - reine : la baguette pendant droit devant elle, sans inclinaison : le pommeau (le haut du fichier) est serré dans ses mains
      *    jointes sans les dépasser, la pointe (le pied du fichier) descend vers le socle, comme l'épée du roi ;
-     *  - tour : la courte épée au poing, tendue devant elle (le fichier de la tour regarde vers −Z) ;
+     *  - tour : la courte épée au poing, tenue en travers du corps, la pointe vers le bouclier (le soldat regarde vers −X dans son fichier,
+     *    sa main droite est à −Z et son bouclier à +Z : la pointe de l'épée part donc vers +Z, pitch = −90°) ;
      *  - pion : la courte épée de la tour, tenue pointe en l'air dans ses mains croisées, devant lui (il est de profil, agenouillé) ;
      *  - fou : la crosse dressée dans son poing droit (côté +X), le pied à hauteur du socle ;
      *  - cavalier : la masse brandie dans le poing du cavalier (côté −X), la tête levée au-dessus de lui.
@@ -54,7 +55,7 @@ internal object WizardModelCatalog {
     private val MOUNTS = mapOf(
         'K' to WeaponMount(0f, 0.0678f, 0.0090f, -0.00004f, 0.0505f, 0.00164f),
         'Q' to WeaponMount(0f, 0.0664f, 0.0120f, 0f, 0.0520f, 0f),
-        'R' to WeaponMount(-0.0093f, 0.0606f, -0.0126f, -0.00006f, 0.0186f, 0.0007f, pitch = 110f),
+        'R' to WeaponMount(-0.0093f, 0.0606f, -0.0126f, -0.00006f, 0.0186f, 0.0007f, pitch = -90f),
         'B' to WeaponMount(0.0113f, 0.0629f, 0.0050f, 0.00307f, 0.0469f, 0.00003f),
         // Pion : la main est à 0,8 mm du modèle ; tangage 180° : la lame (de la poignée vers l'origine du fichier) monte droit, dans le plan de l'écran.
         'P' to WeaponMount(0f, 0.0175f, -0.0120f, -0.00006f, 0.0186f, 0.0007f, pitch = 180f),
@@ -95,14 +96,15 @@ internal object WizardModelCatalog {
 
     /**
      * Le lacet (en degrés, autour de Y) à ajouter pour que la pièce regarde vers +Z, comme le roi, la reine et le fou le
-     * font déjà dans leur fichier. Le cavalier est dessiné de profil, tourné vers +X (−90°) ; la tour et le pion
-     * regardent vers −Z dans leur fichier (bras tendu et visage de ce côté, bouclier dans le dos) : 180°. Pour viser une
+     * font déjà dans leur fichier. Le cavalier est dessiné de profil, tourné vers +X (−90°) ; la tour
+     * regarde vers −X dans son fichier (torse de profil par rapport à son bras armé et à son bouclier) : 90° ; le pion regarde vers −Z : 180°. Pour viser une
      * direction, on ajoute ce décalage au lacet voulu : `Mat4.pose(…, yaw = cap + facingYaw(pièce))`. Le montage des
      * armes ([weaponLocal]) est dans le repère du fichier : il ne dépend pas de ce décalage.
      */
     fun facingYaw(piece: Char): Float = when (piece.uppercaseChar()) {
         'N' -> -90f
-        'R', 'P' -> 180f
+        'R' -> 90f
+        'P' -> 180f
         else -> 0f
     }
 
