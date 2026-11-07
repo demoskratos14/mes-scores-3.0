@@ -266,8 +266,8 @@ class Scene3DTest {
         assertTrue(lowest(heldWeaponVertices('Q'), 1) < hand('Q')[1] - 0.04f)
         assertTrue(highest(heldWeaponVertices('Q'), 1) < hand('Q')[1] + 0.01f)
         assertTrue(highest(heldWeaponVertices('Q'), 2) < hand('Q')[2] + 0.01f)
-        // Tour : l'épée est tendue devant elle (−Z).
-        assertTrue(lowest(heldWeaponVertices('R'), 2) < hand('R')[2] - 0.012f)
+        // Tour : l'épée est tenue en travers du corps, la pointe vers le bouclier (+Z), à plus de 1,2 cm de la main.
+        assertTrue(highest(heldWeaponVertices('R'), 2) > hand('R')[2] + 0.012f)
         // Fou : la crosse est dressée, sa volute au-dessus du poing.
         assertTrue(highest(heldWeaponVertices('B'), 1) > hand('B')[1] + 0.015f)
         // Cavalier : la tête de la masse est levée au-dessus du poing.
@@ -297,7 +297,10 @@ class Scene3DTest {
 
     @Test
     fun lesPiecesRegardentDansLeSensDeLeurFichier() {
-        for (p in "NnRrPp") assertEquals(if (p.uppercaseChar() == 'N') -90f else 180f, WizardModelCatalog.facingYaw(p), 0f)
+        for (p in "NnRrPp") {
+            val expected = when (p.uppercaseChar()) { 'N' -> -90f; 'R' -> 90f; else -> 180f }
+            assertEquals("$p", expected, WizardModelCatalog.facingYaw(p), 0f)
+        }
         for (p in "KQBkqb") assertEquals(0f, WizardModelCatalog.facingYaw(p), 0f)
     }
 
