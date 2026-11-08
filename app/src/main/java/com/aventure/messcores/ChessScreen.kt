@@ -48,7 +48,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.draw.clipToBounds
@@ -648,6 +650,10 @@ private fun StyleButton(wizard: Boolean, onToggle: () -> Unit) {
 /** La marge au-dessus du plateau, en style sorcier : le roi et la dame de la rangée du fond sont plus hauts que leur case. */
 private val WIZARD_TOP_OVERHANG = 32.dp
 
+/** La résolution de calcul de la 3D du mode explorer, en part des pixels de l'écran : fine au repos, réduite pendant un geste. */
+private const val EXPLORE_RENDER_SCALE = 0.85f
+private const val EXPLORE_MOVING_RENDER_SCALE = 0.4f
+
 /**
  * L'échiquier de 8 × 8 cases ; [selected] : la case de la pièce choisie (-1 si aucune), dont les coups sont marqués.
  * [wizard] : le style sorcier (statues de pierre, et animation de chaque coup, avec des éclats quand une pièce est prise).
@@ -686,6 +692,18 @@ private fun ChessBoard(
             models3d = true
         }
     }
+    // Mode explorer : tout l'échiquier (cases, cadre et pièces) en vraie 3D, vu par la caméra de [view] (voir WizardExplore3D.kt).
+    // Sans les modèles, le plateau 2D reste affiché.
+    val exploreScene = remember(models3d) {
+        if (models3d) ExploreBoard3D { WizardModels.mesh(assets, it) } else null
+    }
+    val explore3d = if (explore && wizard && exploreScene != null) {
+        remember(exploreScene, game.position.board, flipped, last, checked) {
+            exploreScene.setBoard(game.position.board, last?.from ?: -1, last?.to ?: -1, checked, flipped)
+        }
+    } else {
+        false
+    }
     var previousBoard by remember { mutableStateOf(game.position.board) }
     var previousCount by remember { mutableIntStateOf(game.moves.size) }
     LaunchedEffect(game.moves.size, wizard) {
@@ -710,218 +728,219 @@ private fun ChessBoard(
 
     // Le plateau agrandi par la caméra d'une prise reste découpé à sa place, sans déborder sur le reste de l'écran.
     Box(
-        // En style sorcier, une marge au-dessus du plateau laisse dépasser la tête des pièces hautes de la rangée du fond.
         modifier = Modifier
             .fillMaxWidth()
             .then(if (wizard) Modifier.clipToBounds() else Modifier)
             // Mode explorer : les doigts pilotent la caméra, rien n'arrive plus aux cases (voir ChessExplore.kt).
-            .then(if (explore) Modifier.exploreGestures(view) else Modifier)
-            .then(if (wizard) Modifier.padding(top = WIZARD_TOP_OVERHANG) else Modifier),
+            .then(if (explore) Modifier.exploreGestures(view) else Modifier),
         contentAlignment = Alignment.Center
     ) {
         Box(
+            // En style sorcier, une marge au-dessus du plateau laisse dépasser la tête des pièces hautes de la rangée du fond.
+            // En mode explorer (3D), le plateau 2D garde sa place (et donc la taille de la zone) mais ne se voit plus.
             modifier = Modifier
-                .widthIn(max = 440.dp)
                 .fillMaxWidth()
-                // Mode explorer : zoom, déplacement et rotation du plateau entier (pièces 3D comprises).
-                .then(
-                    if (explore) {
-                        Modifier.graphicsLayer {
-                            cameraDistance = 14f * density
-                            scaleX = view.zoom
-                            scaleY = view.zoom
-                            translationX = view.panX
-                            translationY = view.panY
-                            rotationX = view.tilt
-                            rotationY = view.orbit
-                        }
-                    } else {
-                        Modifier
-                    }
-                )
-                // Pendant une prise (style sorcier), la caméra incline le plateau, zoome très fort sur l'action (elle suit la
-                // pièce, ou le projectile) et secoue à l'impact : la zone regardée est ramenée au centre de l'écran.
-                .then(
-                    if (wizard && !explore && fx?.isCapture == true) {
-                        Modifier.graphicsLayer {
-                            val camera = fx?.let { wizardCamera(it, progress.value, flipped) }
-                            // Le plateau est entouré du cadre : la zone regardée (en parts du plateau) est ramenée à celles de la vue entière.
-                            val frame = WIZARD_FRAME_WIDTH.toPx()
-                            val focusX = if (camera != null) (frame + camera.viewX * (size.width - 2f * frame)) / size.width else 0.5f
-                            val focusY = if (camera != null) (frame + camera.viewY * (size.height - 2f * frame)) / size.height else 0.5f
-                            transformOrigin = TransformOrigin(focusX, focusY)
-                            cameraDistance = 20f * density
-                            rotationX = camera?.tiltDeg ?: 0f
-                            rotationY = camera?.orbitDeg ?: 0f
-                            scaleX = camera?.zoom ?: 1f
-                            scaleY = camera?.zoom ?: 1f
-                            translationX = (0.5f - focusX) * size.width + (camera?.shakeX ?: 0f) * size.width
-                            translationY = (0.5f - focusY) * size.height + (camera?.shakeY ?: 0f) * size.width
-                        }
-                    } else {
-                        Modifier
-                    }
-                )
-                .then(
-                    if (wizard) {
-                        Modifier
-                            .drawBehind { drawWizardFrame(WIZARD_FRAME_WIDTH.toPx()) }
-                            .padding(WIZARD_FRAME_WIDTH)
-                    } else {
-                        Modifier
-                    }
-                )
+                .then(if (wizard) Modifier.padding(top = WIZARD_TOP_OVERHANG) else Modifier)
+                .then(if (explore3d) Modifier.alpha(0f) else Modifier),
+            contentAlignment = Alignment.Center
         ) {
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val cell = maxWidth / 8
-                val fontSize = with(LocalDensity.current) { (cell * 0.8f).toSp() }
-                // Style sorcier : toutes les pièces sont en 3D (une seule image calculée à chaque coup, voir WizardBoard3D.kt) ;
-                // sans les modèles, les statues 2D prennent le relais.
-                val restScene = remember(models3d) {
-                    if (models3d) WizardBoard3D { WizardModels.mesh(assets, it) } else null
-                }
-                val board3d = if (wizard && restScene != null) {
-                    remember(restScene, game.position.board, animatedSquare, flipped) {
-                        restScene.setBoard(game.position.board, animatedSquare, flipped, whiteAtBottom = !flipped)
+            Box(
+                modifier = Modifier
+                    .widthIn(max = 440.dp)
+                    .fillMaxWidth()
+                    // Pendant une prise (style sorcier), la caméra incline le plateau, zoome très fort sur l'action (elle suit la
+                    // pièce, ou le projectile) et secoue à l'impact : la zone regardée est ramenée au centre de l'écran.
+                    .then(
+                        if (wizard && !explore && fx?.isCapture == true) {
+                            Modifier.graphicsLayer {
+                                val camera = fx?.let { wizardCamera(it, progress.value, flipped) }
+                                // Le plateau est entouré du cadre : la zone regardée (en parts du plateau) est ramenée à celles de la vue entière.
+                                val frame = WIZARD_FRAME_WIDTH.toPx()
+                                val focusX = if (camera != null) (frame + camera.viewX * (size.width - 2f * frame)) / size.width else 0.5f
+                                val focusY = if (camera != null) (frame + camera.viewY * (size.height - 2f * frame)) / size.height else 0.5f
+                                transformOrigin = TransformOrigin(focusX, focusY)
+                                cameraDistance = 20f * density
+                                rotationX = camera?.tiltDeg ?: 0f
+                                rotationY = camera?.orbitDeg ?: 0f
+                                scaleX = camera?.zoom ?: 1f
+                                scaleY = camera?.zoom ?: 1f
+                                translationX = (0.5f - focusX) * size.width + (camera?.shakeX ?: 0f) * size.width
+                                translationY = (0.5f - focusY) * size.height + (camera?.shakeY ?: 0f) * size.width
+                            }
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .then(
+                        if (wizard) {
+                            Modifier
+                                .drawBehind { drawWizardFrame(WIZARD_FRAME_WIDTH.toPx()) }
+                                .padding(WIZARD_FRAME_WIDTH)
+                        } else {
+                            Modifier
+                        }
+                    )
+            ) {
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    val cell = maxWidth / 8
+                    val fontSize = with(LocalDensity.current) { (cell * 0.8f).toSp() }
+                    // Style sorcier : toutes les pièces sont en 3D (une seule image calculée à chaque coup, voir WizardBoard3D.kt) ;
+                    // sans les modèles, les statues 2D prennent le relais.
+                    val restScene = remember(models3d) {
+                        if (models3d) WizardBoard3D { WizardModels.mesh(assets, it) } else null
                     }
-                } else {
-                    false
-                }
-                Column {
-                    for (displayRow in 0 until 8) {
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            for (displayCol in 0 until 8) {
-                                val row = if (flipped) 7 - displayRow else displayRow
-                                val col = if (flipped) 7 - displayCol else displayCol
-                                val square = row * 8 + col
-                                val piece = game.position.board[square]
-                                val dark = (row + col) % 2 != 0
-                                val highlight = when {
-                                    square == selected -> SELECTED_SQUARE
-                                    square == checked -> CHECK_SQUARE
-                                    last != null && (square == last.from || square == last.to) -> LAST_MOVE_SQUARE
-                                    else -> null
-                                }
-                                val squareColor = when {
-                                    wizard -> if (dark) WIZARD_DARK_TILE else WIZARD_LIGHT_TILE
-                                    highlight != null -> highlight
-                                    dark -> DARK_SQUARE
-                                    else -> LIGHT_SQUARE
-                                }
-                                val name = Chess.squareName(square)
-                                val description = if (piece == '.') {
-                                    stringResource(R.string.chess_square_empty, name)
-                                } else {
-                                    stringResource(R.string.chess_square_piece, name, stringResource(pieceNameRes(piece)))
-                                }
-                                val state = when {
-                                    square == selected -> selectedText
-                                    square in targets -> targetText
-                                    else -> null
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .aspectRatio(if (wizard) 1f / WIZARD_ROW_PITCH else 1f)
-                                        .background(squareColor)
-                                        .drawBehind { if (wizard) drawWizardTile(square, dark, highlight) }
-                                        .semantics {
-                                            contentDescription = description
-                                            if (state != null) stateDescription = state
-                                        }
-                                        .clickable(enabled = tapsEnabled, role = Role.Button) { onTap(square) },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (piece != '.' && square != animatedSquare && !board3d) ChessPiece(piece, fontSize, wizard)
-                                    if (square in targets) {
-                                        if (piece == '.') {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize(0.3f)
-                                                    .clip(CircleShape)
-                                                    .background(Color(0x66000000))
-                                            )
-                                        } else {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .border(3.dp, Color(0x88000000), CircleShape)
-                                            )
+                    val board3d = if (wizard && restScene != null) {
+                        remember(restScene, game.position.board, animatedSquare, flipped) {
+                            restScene.setBoard(game.position.board, animatedSquare, flipped, whiteAtBottom = !flipped)
+                        }
+                    } else {
+                        false
+                    }
+                    Column {
+                        for (displayRow in 0 until 8) {
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                for (displayCol in 0 until 8) {
+                                    val row = if (flipped) 7 - displayRow else displayRow
+                                    val col = if (flipped) 7 - displayCol else displayCol
+                                    val square = row * 8 + col
+                                    val piece = game.position.board[square]
+                                    val dark = (row + col) % 2 != 0
+                                    val highlight = when {
+                                        square == selected -> SELECTED_SQUARE
+                                        square == checked -> CHECK_SQUARE
+                                        last != null && (square == last.from || square == last.to) -> LAST_MOVE_SQUARE
+                                        else -> null
+                                    }
+                                    val squareColor = when {
+                                        wizard -> if (dark) WIZARD_DARK_TILE else WIZARD_LIGHT_TILE
+                                        highlight != null -> highlight
+                                        dark -> DARK_SQUARE
+                                        else -> LIGHT_SQUARE
+                                    }
+                                    val name = Chess.squareName(square)
+                                    val description = if (piece == '.') {
+                                        stringResource(R.string.chess_square_empty, name)
+                                    } else {
+                                        stringResource(R.string.chess_square_piece, name, stringResource(pieceNameRes(piece)))
+                                    }
+                                    val state = when {
+                                        square == selected -> selectedText
+                                        square in targets -> targetText
+                                        else -> null
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .aspectRatio(if (wizard) 1f / WIZARD_ROW_PITCH else 1f)
+                                            .background(squareColor)
+                                            .drawBehind { if (wizard) drawWizardTile(square, dark, highlight) }
+                                            .semantics {
+                                                contentDescription = description
+                                                if (state != null) stateDescription = state
+                                            }
+                                            .clickable(enabled = tapsEnabled, role = Role.Button) { onTap(square) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (piece != '.' && square != animatedSquare && !board3d) ChessPiece(piece, fontSize, wizard)
+                                        if (square in targets) {
+                                            if (piece == '.') {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize(0.3f)
+                                                        .clip(CircleShape)
+                                                        .background(Color(0x66000000))
+                                                )
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .border(3.dp, Color(0x88000000), CircleShape)
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                // Une ombre douce sous chaque pièce au repos : on voit où elle se pose. L'ombre de la pièce animée reparaît avec le coup suivant.
-                if (board3d) {
-                    Canvas(modifier = Modifier.matchParentSize()) {
-                        val cellWidth = size.width / 8f
-                        val cellHeight = size.height / 8f
-                        for (square in 0 until 64) {
-                            val piece = game.position.board[square]
-                            if (piece == '.' || square == animatedSquare) continue
-                            val col = if (flipped) 7 - square % 8 else square % 8
-                            val row = if (flipped) 7 - square / 8 else square / 8
-                            val foot = Offset((col + 0.5f) * cellWidth, (row + 0.5f) * cellHeight + Wizard3DCapture.FOOT_OFFSET * cellWidth)
-                            val radius = cellWidth * (if (piece.uppercaseChar() == 'P') 0.34f else 0.42f)
-                            withTransform({ scale(1f, 0.4f, pivot = foot) }) {
-                                drawCircle(
-                                    brush = Brush.radialGradient(listOf(Color(0xAA000000), Color(0x00000000)), foot, radius),
-                                    radius = radius,
-                                    center = foot
-                                )
+                    // Une ombre douce sous chaque pièce au repos : on voit où elle se pose. L'ombre de la pièce animée reparaît avec le coup suivant.
+                    if (board3d) {
+                        Canvas(modifier = Modifier.matchParentSize()) {
+                            val cellWidth = size.width / 8f
+                            val cellHeight = size.height / 8f
+                            for (square in 0 until 64) {
+                                val piece = game.position.board[square]
+                                if (piece == '.' || square == animatedSquare) continue
+                                val col = if (flipped) 7 - square % 8 else square % 8
+                                val row = if (flipped) 7 - square / 8 else square / 8
+                                val foot = Offset((col + 0.5f) * cellWidth, (row + 0.5f) * cellHeight + Wizard3DCapture.FOOT_OFFSET * cellWidth)
+                                val radius = cellWidth * (if (piece.uppercaseChar() == 'P') 0.34f else 0.42f)
+                                withTransform({ scale(1f, 0.4f, pivot = foot) }) {
+                                    drawCircle(
+                                        brush = Brush.radialGradient(listOf(Color(0xAA000000), Color(0x00000000)), foot, radius),
+                                        radius = radius,
+                                        center = foot
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    // Les pièces au repos, en 3D, par-dessus les cases (sans gêner les touches).
+                    if (board3d && restScene != null) {
+                        StaticScene3DView(
+                            scene = restScene.scene,
+                            version = listOf(game.position.board, animatedSquare, flipped),
+                            modifier = Modifier.matchParentSize(),
+                            renderScale = WIZARD_3D_BOARD_RENDER_SCALE,
+                            region = Wizard3DCapture.FULL_REGION
+                        )
+                    }
+                    // Le coup en cours d'animation, dessiné par-dessus les cases (sans gêner les touches).
+                    // Pour une prise, la pièce qui prend et sa victime sont en 3D (sous les effets) quand leurs modèles sont chargés.
+                    val playing = fx
+                    if (playing != null) {
+                        val capture3d = remember(playing, models3d, flipped) {
+                            if (models3d) Wizard3DCapture.create(playing, whiteAtBottom = !flipped) { WizardModels.mesh(assets, it) } else null
+                        }
+                        if (capture3d != null) {
+                            Scene3DView(
+                                scene = capture3d.scene,
+                                modifier = Modifier.matchParentSize(),
+                                renderScale = WIZARD_3D_RENDER_SCALE,
+                                region = { capture3d.region },
+                                update = { capture3d.update(progress.value, flipped) }
+                            )
+                        }
+                        // Un coup sans prise : la pièce glisse aussi en 3D (sinon, la statue 2D glisse dans drawMoveFx).
+                        val slide3d = remember(playing, models3d, flipped) {
+                            if (models3d) WizardSlide3D.create(playing, whiteAtBottom = !flipped) { WizardModels.mesh(assets, it) } else null
+                        }
+                        if (slide3d != null) {
+                            Scene3DView(
+                                scene = slide3d.scene,
+                                modifier = Modifier.matchParentSize(),
+                                renderScale = WIZARD_3D_RENDER_SCALE,
+                                region = { Wizard3DCapture.FULL_REGION },
+                                update = { slide3d.update(progress.value, flipped) }
+                            )
+                        }
+                        if (playing.isCapture || slide3d == null) {
+                            Canvas(modifier = Modifier.matchParentSize()) {
+                                drawMoveFx(playing, progress.value, flipped, capture3d?.anchors(progress.value, flipped))
                             }
                         }
                     }
                 }
-                // Les pièces au repos, en 3D, par-dessus les cases (sans gêner les touches).
-                if (board3d && restScene != null) {
-                    StaticScene3DView(
-                        scene = restScene.scene,
-                        version = listOf(game.position.board, animatedSquare, flipped),
-                        modifier = Modifier.matchParentSize(),
-                        renderScale = WIZARD_3D_BOARD_RENDER_SCALE,
-                        region = Wizard3DCapture.FULL_REGION
-                    )
-                }
-                // Le coup en cours d'animation, dessiné par-dessus les cases (sans gêner les touches).
-                // Pour une prise, la pièce qui prend et sa victime sont en 3D (sous les effets) quand leurs modèles sont chargés.
-                val playing = fx
-                if (playing != null) {
-                    val capture3d = remember(playing, models3d, flipped) {
-                        if (models3d) Wizard3DCapture.create(playing, whiteAtBottom = !flipped) { WizardModels.mesh(assets, it) } else null
-                    }
-                    if (capture3d != null) {
-                        Scene3DView(
-                            scene = capture3d.scene,
-                            modifier = Modifier.matchParentSize(),
-                            renderScale = WIZARD_3D_RENDER_SCALE,
-                            region = { capture3d.region },
-                            update = { capture3d.update(progress.value, flipped) }
-                        )
-                    }
-                    // Un coup sans prise : la pièce glisse aussi en 3D (sinon, la statue 2D glisse dans drawMoveFx).
-                    val slide3d = remember(playing, models3d, flipped) {
-                        if (models3d) WizardSlide3D.create(playing, whiteAtBottom = !flipped) { WizardModels.mesh(assets, it) } else null
-                    }
-                    if (slide3d != null) {
-                        Scene3DView(
-                            scene = slide3d.scene,
-                            modifier = Modifier.matchParentSize(),
-                            renderScale = WIZARD_3D_RENDER_SCALE,
-                            region = { Wizard3DCapture.FULL_REGION },
-                            update = { slide3d.update(progress.value, flipped) }
-                        )
-                    }
-                    if (playing.isCapture || slide3d == null) {
-                        Canvas(modifier = Modifier.matchParentSize()) {
-                            drawMoveFx(playing, progress.value, flipped, capture3d?.anchors(progress.value, flipped))
-                        }
-                    }
-                }
             }
+        }
+        // Le plateau 3D, par-dessus : la caméra de [view] tourne autour. L'image se calcule plus petite pendant un geste.
+        if (explore3d && exploreScene != null) {
+            Scene3DView(
+                scene = exploreScene.scene,
+                modifier = Modifier.matchParentSize().onSizeChanged { view.aspect = it.width.toFloat() / it.height.coerceAtLeast(1) },
+                renderScale = if (view.moving) EXPLORE_MOVING_RENDER_SCALE else EXPLORE_RENDER_SCALE,
+                update = { exploreScene.aim(view) }
+            )
         }
     }
 }

@@ -158,6 +158,13 @@ internal class Scene3D {
 
     /** Largeur, en pixels de l'image, du liseré qui détache chaque pièce de ce qui est derrière elle (0 : aucun). */
     var outline: Int = 0
+
+    /**
+     * Écart de profondeur (part de la distance à la caméra) à partir duquel un pixel est « devant » son voisin pour le liseré.
+     * Le défaut convient à une vue de face ; une vue très inclinée sur un plan (le plateau vu d'en haut) le dépasse d'une
+     * dalle à l'autre : on le relève pour que le liseré ne marque que le contour des pièces.
+     */
+    var outlineDepthStep: Float = 0.0015f
 }
 
 /** L'image rendue : [pixels] (ARGB non prémultiplié, ligne par ligne) est prêt à être copié dans un Bitmap. */
@@ -221,13 +228,13 @@ internal class Renderer3D {
             projectVertices(inst, cam, rx, ry, rz, ux, uy, uz, fx, fy, fz, cx, cy, focal)
             rasterize(inst, scene.lighting, frame, w, h)
         }
-        if (scene.outline > 0) outline(frame, scene.outline * frame.supersampling)
+        if (scene.outline > 0) outline(frame, scene.outline * frame.supersampling, scene.outlineDepthStep)
         downsample(frame)
     }
 
     // Un liseré là où un pixel est nettement devant ce qui l'entoure (le vide, ou une pièce plus loin) : clair sur ce qui est
     // sombre, sombre sur ce qui est clair. Les pièces se détachent ainsi les unes des autres et du plateau, même noir sur noir.
-    private fun outline(frame: Frame3D, width: Int) {
+    private fun outline(frame: Frame3D, width: Int, depthStep: Float) {
         val w = frame.hiWidth
         val h = frame.hiHeight
         val color = frame.hiColor
@@ -237,7 +244,7 @@ internal class Renderer3D {
                 val o = y * w + x
                 val iz = depth[o]
                 if (iz <= 0f) continue
-                val limit = iz * (1f - OUTLINE_DEPTH_STEP)
+                val limit = iz * (1f - depthStep)
                 val edge = (x >= width && depth[o - width] < limit) ||
                     (x + width < w && depth[o + width] < limit) ||
                     (y >= width && depth[o - width * w] < limit) ||
@@ -424,9 +431,6 @@ internal class Renderer3D {
     }
 
     private companion object {
-        /** Écart de profondeur (part de la distance à la caméra) à partir duquel un pixel est « devant » son voisin : environ 0,1 case. */
-        const val OUTLINE_DEPTH_STEP = 0.0015f
-
         /** Au-dessous de cette luminosité (0 à 255), le pixel est sombre : son liseré est clair ; sinon il est foncé. */
         const val OUTLINE_SPLIT = 110
 
