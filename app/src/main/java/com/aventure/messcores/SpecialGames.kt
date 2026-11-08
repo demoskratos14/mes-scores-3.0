@@ -359,6 +359,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Casse-briques : écran à part (voir BreakoutScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = BREAKOUT_ID,
+        name = context.getString(R.string.game_breakout),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Gomoku : écran à part (voir DuoGameScreen), à deux joueurs ; le mode de score n'est pas utilisé.
     GameRules(
         id = GOMOKU_ID,

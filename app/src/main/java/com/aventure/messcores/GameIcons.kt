@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -126,6 +126,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             SIMON_ID -> drawSimon()
             RHYTHM_ID -> drawRhythm()
             TETRIS_ID -> drawTetris()
+            BREAKOUT_ID -> drawBreakout()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -302,6 +303,35 @@ private fun DrawScope.drawTetris() {
     block(0, 4, purple)
     block(1, 4, purple)
     block(2, 4, purple)
+}
+
+private fun DrawScope.drawBreakout() {
+    paper(Color(0xFF0B1E2B))
+    val s = size.minDimension
+    // Trois rangées de briques arc-en-ciel en haut, une balle chromée et la raquette aux embouts rouges en bas.
+    val colors = listOf(Color(0xFFE53935), Color(0xFFFDD835), Color(0xFF1E88E5))
+    val brickW = s * 0.2f
+    val brickH = s * 0.1f
+    val left = s * 0.5f - brickW * 2f
+    val corner = CornerRadius(brickH * 0.2f)
+    colors.forEachIndexed { row, color ->
+        for (col in 0 until 4) {
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(left + col * brickW + s * 0.01f, s * 0.16f + row * brickH + s * 0.01f),
+                size = Size(brickW - s * 0.02f, brickH - s * 0.02f),
+                cornerRadius = corner
+            )
+        }
+    }
+    drawCircle(Color(0xFFE3E9ED), s * 0.055f, Offset(s * 0.58f, s * 0.6f))
+    val paddleW = s * 0.36f
+    val paddleH = s * 0.07f
+    val paddleLeft = s * 0.5f - paddleW / 2f
+    val paddleTop = s * 0.8f
+    drawRoundRect(Color(0xFFAAB6BE), Offset(paddleLeft, paddleTop), Size(paddleW, paddleH), CornerRadius(paddleH * 0.4f))
+    drawRoundRect(Color(0xFFD32F2F), Offset(paddleLeft, paddleTop), Size(paddleW * 0.16f, paddleH), CornerRadius(paddleH * 0.4f))
+    drawRoundRect(Color(0xFFD32F2F), Offset(paddleLeft + paddleW * 0.84f, paddleTop), Size(paddleW * 0.16f, paddleH), CornerRadius(paddleH * 0.4f))
 }
 
 private fun DrawScope.drawRhythm() {

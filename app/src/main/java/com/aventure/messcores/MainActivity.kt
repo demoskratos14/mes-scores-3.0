@@ -118,6 +118,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     SIMON_ID to "simon",
     RHYTHM_ID to "rhythm",
     TETRIS_ID to "tetris",
+    BREAKOUT_ID to "breakout",
     DRAUGHTS_ID to "draughts",
     OTHELLO_ID to "othello",
     CHESS_ID to "chess"
@@ -125,7 +126,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
 
 /** Écrans de jeux jouables sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "battleship", "morpion", "connect4", "nim", "reflex", "circles", "simon", "rhythm", "tetris",
+    "battleship", "morpion", "connect4", "nim", "reflex", "circles", "simon", "rhythm", "tetris", "breakout",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -523,6 +524,9 @@ fun ScoreApp(
             }
             composable("tetris") {
                 TetrisScreen(players = pendingPlayerNames)
+            }
+            composable("breakout") {
+                BreakoutScreen(players = pendingPlayerNames)
             }
             composable("shareReflex") {
                 ShareScreen(
