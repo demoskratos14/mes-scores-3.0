@@ -644,7 +644,7 @@
     <string name="rules_yaniv_3_title">Scoring</string>
     <string name="rules_yaniv_3_body">After a “Yaniv”, everyone counts their cards. If nobody has as many points or fewer than the player who called, they score 0 and the others score the total of their hand. If another player has as many or fewer (“Assaf”), the player who called scores the total of their hand plus 30 points, and the player with the fewest scores 0. Depending on the rules, a score of exactly 100 or 200 is halved.</string>
     <string name="rules_yaniv_4_title">In the app</string>
-    <string name="rules_yaniv_4_body">At the end of each round, enter in each player’s column the points scored. If a player reaches exactly 100 or 200 points and your rule halves it, fix their cell by hand.</string>
+    <string name="rules_yaniv_4_body">The app runs the game: it deals (5 cards each, jokers included), checks every discard (single card, pair, set or run), handles drawing, “Yaniv” and “Assaf”, and writes the points into the score table. Pass the phone around: the hand only appears after “Show my hand”. Halving a score of exactly 100 or 200 is not applied.</string>
     <string name="rules_barbu_1_title">Goal</string>
     <string name="rules_barbu_1_body">A trick-taking game with penalties (most often for 4 players, with 52 cards). Each player, when it is their turn to deal, chooses one contract out of seven, once each. The highest total wins at the end of the game (there is no automatic end).</string>
     <string name="rules_barbu_2_title">The contracts</string>
@@ -2267,4 +2267,21 @@
     <string name="simon_turns_winner">%1$s wins: last one standing!</string>
     <string name="simon_turns_reached">Longest sequence repeated: %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
+    <string name="yaniv_joker">Joker</string>
+    <string name="yaniv_joker_face">★</string>
+    <string name="yaniv_discard_title">Last discard</string>
+    <string name="yaniv_discarded_title">Discarded cards</string>
+    <string name="yaniv_hand_points">Your hand: %1$d points</string>
+    <string name="yaniv_hint">Tap the cards to discard: a single card, a pair, a set or a run of at least 3 cards of the same suit (a joker stands for any card). You will draw next.</string>
+    <string name="yaniv_discard">Discard</string>
+    <string name="yaniv_call">Call Yaniv (%1$d points)</string>
+    <string name="yaniv_draw_hint">Now draw: tap the stock, or a card from the last discard (any card; only the first or last one if it is a run).</string>
+    <string name="yaniv_select_first">Tap the cards to discard first.</string>
+    <string name="yaniv_not_valid">These cards cannot be discarded together: a single card, a pair or set of the same rank, or a run of at least 3 cards of the same suit.</string>
+    <string name="yaniv_not_drawable">You can only take the first or the last card of a run.</string>
+    <string name="yaniv_stock_empty">Nothing left to draw: take a card from the last discard.</string>
+    <string name="yaniv_hands_title">Hands at the end of the round</string>
+    <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
+    <string name="yaniv_round_won">%1$s calls Yaniv with %2$d points and scores 0!</string>
+    <string name="yaniv_round_assaf">%1$s calls Yaniv, but %2$s has as many points or fewer: Assaf! %1$s gets a 30-point penalty.</string>
 </resources>

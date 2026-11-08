@@ -32,6 +32,17 @@ private val FRENCH_CARD_IMAGES = intArrayOf(
 @DrawableRes
 internal fun frenchCardImage(card: Int): Int = FRENCH_CARD_IMAGES[card.coerceIn(0, FrenchCards.DECK - 1)]
 
+/**
+ * Les deux jokers du paquet de 54 cartes (Yaniv), dans l'ordre de [YanivScoring.isJoker] : le noir (carte 52) puis le rouge
+ * (carte 53), res/drawable-nodpi/fr_card_joker_black.webp et fr_card_joker_red.webp.
+ */
+private val JOKER_IMAGES = intArrayOf(R.drawable.fr_card_joker_black, R.drawable.fr_card_joker_red)
+
+/** L'image de la carte [card] du paquet de 54 cartes : une des 52 cartes, ou un joker (52 et 53). */
+@DrawableRes
+internal fun yanivCardImage(card: Int): Int =
+    if (YanivScoring.isJoker(card)) JOKER_IMAGES[(card - FrenchCards.DECK).coerceIn(0, JOKER_IMAGES.size - 1)] else frenchCardImage(card)
+
 /** Largeur / hauteur des images des cartes. */
 internal const val FRENCH_CARD_RATIO = 192f / 279f
 

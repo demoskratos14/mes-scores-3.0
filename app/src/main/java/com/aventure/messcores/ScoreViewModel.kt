@@ -142,6 +142,17 @@ class ScoreViewModel : ViewModel() {
         return HeartsRound(players.size, startRound = roundsPlayed() + 1).also { heartsRound = it }
     }
 
+    // La partie de Yaniv en cours : même principe que le Huit américain (mains, pioche, défausses, tour).
+    private var yanivRound: YanivRound? = null
+
+    /** La partie de Yaniv ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun yanivRound(): YanivRound {
+        val current = yanivRound
+        if (current != null && current.playerCount == players.size) return current
+        val played = roundsPlayed()
+        return YanivRound(players.size, startPlayer = played % players.size.coerceAtLeast(1), startRound = played + 1).also { yanivRound = it }
+    }
+
     // La partie de Qwixx en cours (plateau de chaque joueur, tour en cours). Elle vit ici pour la même raison ; une partie
     // reprise ou rouverte repart d'une partie neuve.
     private var qwixxRound: QwixxRound? = null
@@ -257,6 +268,7 @@ class ScoreViewModel : ViewModel() {
         huitRound = null
         unoRound = null
         heartsRound = null
+        yanivRound = null
         qwixxRound = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
@@ -292,6 +304,7 @@ class ScoreViewModel : ViewModel() {
             huitRound = null
             unoRound = null
             heartsRound = null
+            yanivRound = null
             qwixxRound = null
         }
         currentSaveId = saved.id
@@ -315,7 +328,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la partie ouverte contient au moins un score saisi (donc qu'il y a quelque chose à perdre). */
     fun hasProgress(): Boolean {
         if (!gameActive || players.isEmpty()) return false
-        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true
+        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || yanivRound?.inProgress == true
     }
 
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
@@ -329,6 +342,7 @@ class ScoreViewModel : ViewModel() {
         huitRound = null
         unoRound = null
         heartsRound = null
+        yanivRound = null
         qwixxRound = null
         currentSaveId = null
         savedBaseline = null

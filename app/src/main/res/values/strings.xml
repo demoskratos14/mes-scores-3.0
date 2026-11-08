@@ -742,7 +742,7 @@
     <string name="rules_yaniv_3_title">Les points</string>
     <string name="rules_yaniv_3_body">Après un « Yaniv », chacun compte ses cartes. Si personne n\'a autant de points ou moins que le joueur qui a annoncé, il marque 0 et les autres marquent le total de leur main. Si un autre joueur en a autant ou moins (« Assaf »), le joueur qui a annoncé marque le total de sa main plus 30 points, et celui qui a le moins marque 0. Selon les règles, un score pile à 100 ou 200 est réduit de moitié.</string>
     <string name="rules_yaniv_4_title">Dans l\'appli</string>
-    <string name="rules_yaniv_4_body">À la fin de chaque manche, saisis dans la colonne de chaque joueur les points marqués. Si un joueur atteint pile 100 ou 200 points et que ta règle le réduit de moitié, corrige sa case à la main.</string>
+    <string name="rules_yaniv_4_body">L’appli joue la partie : elle distribue (5 cartes chacun, jokers compris), vérifie chaque défausse (carte seule, paire, brelan ou suite), fait piocher, gère « Yaniv » et « Assaf » et inscrit les points au tableau des scores. On se passe le téléphone : la main n’apparaît qu’après « Voir ma main ». La réduction de moitié d’un score pile à 100 ou 200 n’est pas appliquée.</string>
     <string name="rules_barbu_1_title">But du jeu</string>
     <string name="rules_barbu_1_body">Jeu de plis à pénalités (le plus souvent à 4 joueurs, avec 52 cartes). Chaque joueur, quand c\'est à lui de donner, choisit un contrat parmi sept, une seule fois chacun. Le total le plus élevé gagne à la fin de la partie (il n\'y a pas de fin automatique).</string>
     <string name="rules_barbu_2_title">Les contrats</string>
@@ -2314,4 +2314,21 @@
     <string name="simon_turns_winner">%1$s gagne : dernier en jeu !</string>
     <string name="simon_turns_reached">Plus longue suite reproduite : %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
+    <string name="yaniv_joker">Joker</string>
+    <string name="yaniv_joker_face">★</string>
+    <string name="yaniv_discard_title">Dernière défausse</string>
+    <string name="yaniv_discarded_title">Cartes défaussées</string>
+    <string name="yaniv_hand_points">Ta main : %1$d points</string>
+    <string name="yaniv_hint">Touche les cartes à défausser : une carte, une paire, un brelan ou une suite d’au moins 3 cartes de la même couleur (le joker remplace n’importe quelle carte). Tu piocheras ensuite.</string>
+    <string name="yaniv_discard">Défausser</string>
+    <string name="yaniv_call">Annoncer Yaniv (%1$d points)</string>
+    <string name="yaniv_draw_hint">Pioche maintenant : touche la pioche, ou une carte de la dernière défausse (n’importe laquelle ; seulement la première ou la dernière si c’est une suite).</string>
+    <string name="yaniv_select_first">Touche d’abord les cartes à défausser.</string>
+    <string name="yaniv_not_valid">Ces cartes ne peuvent pas être défaussées ensemble : une carte seule, une paire ou un brelan de même valeur, ou une suite d’au moins 3 cartes de la même couleur.</string>
+    <string name="yaniv_not_drawable">On ne peut reprendre que la première ou la dernière carte d’une suite.</string>
+    <string name="yaniv_stock_empty">Plus rien à piocher : reprends une carte de la dernière défausse.</string>
+    <string name="yaniv_hands_title">Mains en fin de manche</string>
+    <string name="yaniv_hand_line">%1$s : %2$s (%3$d)</string>
+    <string name="yaniv_round_won">%1$s annonce Yaniv avec %2$d points et marque 0 !</string>
+    <string name="yaniv_round_assaf">%1$s annonce Yaniv, mais %2$s a autant de points ou moins : Assaf ! %1$s prend 30 points de pénalité.</string>
 </resources>

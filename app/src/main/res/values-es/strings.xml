@@ -644,7 +644,7 @@
     <string name="rules_yaniv_3_title">Puntuación</string>
     <string name="rules_yaniv_3_body">Tras un “Yaniv”, todos cuentan sus cartas. Si nadie tiene los mismos puntos o menos que el jugador que ha cantado, este anota 0 y los demás anotan el total de su mano. Si otro jugador tiene los mismos o menos (“Assaf”), el jugador que ha cantado anota el total de su mano más 30 puntos, y el jugador con menos anota 0. Según las reglas, una puntuación de exactamente 100 o 200 se divide por la mitad.</string>
     <string name="rules_yaniv_4_title">En la aplicación</string>
-    <string name="rules_yaniv_4_body">Al final de cada ronda, introduce en la columna de cada jugador los puntos conseguidos. Si un jugador llega exactamente a 100 o 200 puntos y tu regla lo divide por la mitad, corrige su casilla a mano.</string>
+    <string name="rules_yaniv_4_body">La app dirige la partida: reparte (5 cartas cada uno, con comodines), comprueba cada descarte (carta sola, pareja, trío o escalera), hace robar, gestiona «Yaniv» y «Assaf» y apunta los puntos en la tabla. Se pasa el teléfono: la mano solo aparece después de «Ver mi mano». No se aplica la reducción a la mitad de una puntuación exacta de 100 o 200.</string>
     <string name="rules_barbu_1_title">Objetivo</string>
     <string name="rules_barbu_1_body">Un juego de bazas con penalizaciones (casi siempre para 4 jugadores, con 52 cartas). Cada jugador, cuando le toca repartir, elige un contrato de entre siete, una vez cada uno. Gana el total más alto al final de la partida (no hay un final automático).</string>
     <string name="rules_barbu_2_title">Los contratos</string>
@@ -2298,4 +2298,21 @@
     <string name="simon_turns_winner">¡%1$s gana: último en juego!</string>
     <string name="simon_turns_reached">Secuencia más larga repetida: %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
+    <string name="yaniv_joker">Comodín</string>
+    <string name="yaniv_joker_face">★</string>
+    <string name="yaniv_discard_title">Último descarte</string>
+    <string name="yaniv_discarded_title">Cartas descartadas</string>
+    <string name="yaniv_hand_points">Tu mano: %1$d puntos</string>
+    <string name="yaniv_hint">Toca las cartas que quieres descartar: una carta, una pareja, un trío o una escalera de al menos 3 cartas del mismo palo (el comodín sustituye a cualquier carta). Después robarás.</string>
+    <string name="yaniv_discard">Descartar</string>
+    <string name="yaniv_call">Anunciar Yaniv (%1$d puntos)</string>
+    <string name="yaniv_draw_hint">Ahora roba: toca el mazo o una carta del último descarte (cualquiera; solo la primera o la última si es una escalera).</string>
+    <string name="yaniv_select_first">Toca primero las cartas que quieres descartar.</string>
+    <string name="yaniv_not_valid">Estas cartas no se pueden descartar juntas: una carta sola, una pareja o un trío del mismo valor, o una escalera de al menos 3 cartas del mismo palo.</string>
+    <string name="yaniv_not_drawable">Solo se puede coger la primera o la última carta de una escalera.</string>
+    <string name="yaniv_stock_empty">No queda nada que robar: coge una carta del último descarte.</string>
+    <string name="yaniv_hands_title">Manos al final de la ronda</string>
+    <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
+    <string name="yaniv_round_won">¡%1$s anuncia Yaniv con %2$d puntos y anota 0!</string>
+    <string name="yaniv_round_assaf">%1$s anuncia Yaniv, pero %2$s tiene los mismos puntos o menos: ¡Assaf! %1$s recibe 30 puntos de penalización.</string>
 </resources>

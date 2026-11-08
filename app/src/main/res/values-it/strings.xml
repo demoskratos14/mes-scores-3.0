@@ -737,7 +737,7 @@
     <string name="rules_yaniv_3_title">I punti</string>
     <string name="rules_yaniv_3_body">Dopo uno « Yaniv », ognuno conta le sue carte. Se nessuno ha tanti punti quanto il giocatore che ha annunciato o meno, lui segna 0 e gli altri segnano il totale della loro mano. Se un altro giocatore ne ha tanti o meno (« Assaf »), il giocatore che ha annunciato segna il totale della sua mano più 30 punti, e chi ne ha meno segna 0. A seconda delle regole, un punteggio esattamente a 100 o 200 viene dimezzato.</string>
     <string name="rules_yaniv_4_title">Nell\'app</string>
-    <string name="rules_yaniv_4_body">Alla fine di ogni round, inserisci nella colonna di ciascun giocatore i punti segnati. Se un giocatore raggiunge esattamente 100 o 200 punti e la tua regola lo dimezza, correggi la sua casella a mano.</string>
+    <string name="rules_yaniv_4_body">L’app conduce la partita: distribuisce (5 carte a testa, jolly compresi), controlla ogni scarto (carta singola, coppia, tris o scala), fa pescare, gestisce «Yaniv» e «Assaf» e scrive i punti nella tabella. Ci si passa il telefono: la mano compare solo dopo «Vedi la mia mano». La riduzione a metà di un punteggio esatto di 100 o 200 non è applicata.</string>
     <string name="rules_barbu_1_title">Obiettivo del gioco</string>
     <string name="rules_barbu_1_body">Gioco di prese a penalità (più spesso in 4 giocatori, con 52 carte). Ogni giocatore, quando tocca a lui dare le carte, sceglie un contratto fra sette, una sola volta ciascuno. Vince il totale più alto alla fine della partita (non c\'è una fine automatica).</string>
     <string name="rules_barbu_2_title">I contratti</string>
@@ -2308,4 +2308,21 @@
     <string name="simon_turns_winner">%1$s vince: ultimo in gioco!</string>
     <string name="simon_turns_reached">Sequenza più lunga riprodotta: %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
+    <string name="yaniv_joker">Jolly</string>
+    <string name="yaniv_joker_face">★</string>
+    <string name="yaniv_discard_title">Ultimo scarto</string>
+    <string name="yaniv_discarded_title">Carte scartate</string>
+    <string name="yaniv_hand_points">La tua mano: %1$d punti</string>
+    <string name="yaniv_hint">Tocca le carte da scartare: una carta, una coppia, un tris o una scala di almeno 3 carte dello stesso seme (il jolly sostituisce qualsiasi carta). Poi pescherai.</string>
+    <string name="yaniv_discard">Scarta</string>
+    <string name="yaniv_call">Annuncia Yaniv (%1$d punti)</string>
+    <string name="yaniv_draw_hint">Ora pesca: tocca il mazzo o una carta dell’ultimo scarto (una qualsiasi; solo la prima o l’ultima se è una scala).</string>
+    <string name="yaniv_select_first">Tocca prima le carte da scartare.</string>
+    <string name="yaniv_not_valid">Queste carte non si possono scartare insieme: una carta singola, una coppia o un tris dello stesso valore, o una scala di almeno 3 carte dello stesso seme.</string>
+    <string name="yaniv_not_drawable">Si può riprendere solo la prima o l’ultima carta di una scala.</string>
+    <string name="yaniv_stock_empty">Non c’è più niente da pescare: riprendi una carta dall’ultimo scarto.</string>
+    <string name="yaniv_hands_title">Mani a fine round</string>
+    <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
+    <string name="yaniv_round_won">%1$s annuncia Yaniv con %2$d punti e segna 0!</string>
+    <string name="yaniv_round_assaf">%1$s annuncia Yaniv, ma %2$s ha altrettanti punti o meno: Assaf! %1$s prende 30 punti di penalità.</string>
 </resources>

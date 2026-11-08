@@ -644,7 +644,7 @@
     <string name="rules_yaniv_3_title">Pontuação</string>
     <string name="rules_yaniv_3_body">Depois de um “Yaniv”, todos contam as suas cartas. Se ninguém tiver tantos pontos ou menos do que o jogador que o disse, este marca 0 e os outros marcam o total da sua mão. Se outro jogador tiver tantos ou menos (“Assaf”), o jogador que disse Yaniv marca o total da sua mão mais 30 pontos, e o jogador com menos marca 0. Consoante as regras, uma pontuação de exatamente 100 ou 200 é reduzida a metade.</string>
     <string name="rules_yaniv_4_title">Na aplicação</string>
-    <string name="rules_yaniv_4_body">No fim de cada ronda, introduz na coluna de cada jogador os pontos feitos. Se um jogador chegar exatamente aos 100 ou 200 pontos e a tua regra o reduzir a metade, corrige a sua célula à mão.</string>
+    <string name="rules_yaniv_4_body">A app conduz o jogo: distribui (5 cartas cada, com jokers), verifica cada descarte (carta sozinha, par, trio ou sequência), faz comprar, trata de «Yaniv» e «Assaf» e regista os pontos na tabela. Passa-se o telemóvel: a mão só aparece depois de «Ver a minha mão». A redução a metade de uma pontuação exata de 100 ou 200 não é aplicada.</string>
     <string name="rules_barbu_1_title">Objetivo</string>
     <string name="rules_barbu_1_body">Um jogo de vazas com penalizações (mais frequentemente para 4 jogadores, com 52 cartas). Cada jogador, quando é a sua vez de dar as cartas, escolhe um contrato entre sete, uma vez cada. Ganha o total mais alto no fim da partida (não há fim automático).</string>
     <string name="rules_barbu_2_title">Os contratos</string>
@@ -2298,4 +2298,21 @@
     <string name="simon_turns_winner">%1$s ganha: último em jogo!</string>
     <string name="simon_turns_reached">Sequência mais longa repetida: %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
+    <string name="yaniv_joker">Joker</string>
+    <string name="yaniv_joker_face">★</string>
+    <string name="yaniv_discard_title">Último descarte</string>
+    <string name="yaniv_discarded_title">Cartas descartadas</string>
+    <string name="yaniv_hand_points">A tua mão: %1$d pontos</string>
+    <string name="yaniv_hint">Toca nas cartas a descartar: uma carta, um par, um trio ou uma sequência de pelo menos 3 cartas do mesmo naipe (o joker substitui qualquer carta). Depois compras.</string>
+    <string name="yaniv_discard">Descartar</string>
+    <string name="yaniv_call">Anunciar Yaniv (%1$d pontos)</string>
+    <string name="yaniv_draw_hint">Agora compra: toca no baralho ou numa carta do último descarte (qualquer uma; só a primeira ou a última se for uma sequência).</string>
+    <string name="yaniv_select_first">Toca primeiro nas cartas a descartar.</string>
+    <string name="yaniv_not_valid">Estas cartas não podem ser descartadas juntas: uma carta sozinha, um par ou um trio do mesmo valor, ou uma sequência de pelo menos 3 cartas do mesmo naipe.</string>
+    <string name="yaniv_not_drawable">Só se pode apanhar a primeira ou a última carta de uma sequência.</string>
+    <string name="yaniv_stock_empty">Já não há nada para comprar: apanha uma carta do último descarte.</string>
+    <string name="yaniv_hands_title">Mãos no fim da ronda</string>
+    <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
+    <string name="yaniv_round_won">%1$s anuncia Yaniv com %2$d pontos e marca 0!</string>
+    <string name="yaniv_round_assaf">%1$s anuncia Yaniv, mas %2$s tem os mesmos pontos ou menos: Assaf! %1$s leva 30 pontos de penalização.</string>
 </resources>
