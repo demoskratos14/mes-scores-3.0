@@ -2186,7 +2186,7 @@
     <string name="rules_breakout_2_title">La pelota y la pala</string>
     <string name="rules_breakout_2_body">La pelota rebota en las paredes, el techo, los ladrillos y la pala. Según dónde toque la pala, sale más o menos de lado: recta desde el centro, en diagonal cerca del borde. Tienes tres vidas: una pelota que pasa por debajo de la pala cuesta una.</string>
     <string name="rules_breakout_3_title">Puntos y niveles</string>
-    <string name="rules_breakout_3_body">Cada ladrillo roto da puntos: 10 los de abajo, hasta 70 los de arriba, multiplicados por el nivel. En cada nivel la pelota gana velocidad.</string>
+    <string name="rules_breakout_3_body">Cada ladrillo roto da puntos: 10 los de la fila de abajo, 10 más por cada fila hacia arriba, todo multiplicado por el nivel. En cada nivel el campo gana una columna de ladrillos (y filas en proporción): hay más ladrillos que romper, la pala y la pelota parecen más pequeñas y la pelota va más rápido. El campo deja de ensancharse a las 16 columnas, pero la pelota sigue acelerando.</string>
     <string name="rules_breakout_4_title">En la app</string>
     <string name="rules_breakout_4_body">Juego en solitario: desliza el dedo para mover la pala y toca la pantalla para lanzar la pelota. La partida se pausa cuando sales de la app y se guarda tu mejor puntuación.</string>
     <string name="breakout_ready_title">Le toca a %1$s</string>

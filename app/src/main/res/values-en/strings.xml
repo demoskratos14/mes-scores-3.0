@@ -2156,7 +2156,7 @@
     <string name="rules_breakout_2_title">The ball and the paddle</string>
     <string name="rules_breakout_2_body">The ball bounces off the walls, the ceiling, the bricks and the paddle. Depending on where it hits the paddle, it leaves more or less sideways: straight up from the centre, at an angle near the edge. You have three lives: a ball that gets past the paddle costs one.</string>
     <string name="rules_breakout_3_title">Points and levels</string>
-    <string name="rules_breakout_3_body">Each brick you break scores points: 10 for the bottom ones up to 70 for the top ones, multiplied by the level. The ball gets faster with every level.</string>
+    <string name="rules_breakout_3_body">Each brick you break scores points: 10 for the bottom row, 10 more for each row going up, all multiplied by the level. With every level the field gains a column of bricks (and rows in proportion): there are more bricks to break, the paddle and the ball look smaller and the ball goes faster. The field stops widening at 16 columns, but the ball keeps speeding up.</string>
     <string name="rules_breakout_4_title">In the app</string>
     <string name="rules_breakout_4_body">Solo game: slide your finger to move the paddle and tap the screen to launch the ball. The game pauses when you leave the app, and your best score is kept.</string>
     <string name="breakout_ready_title">%1$s to play</string>

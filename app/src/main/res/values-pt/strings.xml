@@ -2186,7 +2186,7 @@
     <string name="rules_breakout_2_title">A bola e a raquete</string>
     <string name="rules_breakout_2_body">A bola ressalta nas paredes, no teto, nos tijolos e na raquete. Consoante o sítio onde toca na raquete, sai mais ou menos de lado: a direito a partir do centro, na diagonal perto da borda. Tens três vidas: uma bola que passa por baixo da raquete custa uma.</string>
     <string name="rules_breakout_3_title">Pontos e níveis</string>
-    <string name="rules_breakout_3_body">Cada tijolo partido dá pontos: 10 os de baixo, até 70 os de cima, multiplicados pelo nível. A cada nível a bola ganha velocidade.</string>
+    <string name="rules_breakout_3_body">Cada tijolo partido dá pontos: 10 os da fila de baixo, mais 10 por cada fila a subir, tudo multiplicado pelo nível. A cada nível o campo ganha uma coluna de tijolos (e filas em proporção): há mais tijolos para partir, a raquete e a bola parecem mais pequenas e a bola vai mais depressa. O campo deixa de alargar às 16 colunas, mas a bola continua a acelerar.</string>
     <string name="rules_breakout_4_title">Na app</string>
     <string name="rules_breakout_4_body">Jogo a solo: desliza o dedo para mover a raquete e toca no ecrã para lançar a bola. O jogo fica em pausa quando sais da app e a tua melhor pontuação é guardada.</string>
     <string name="breakout_ready_title">Vez de %1$s</string>

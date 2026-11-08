@@ -301,7 +301,8 @@ private fun BreakoutPlayfield(
         }
 
         BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            // Une unité du terrain en dp : la plus grande qui laisse tenir tout le terrain (8 × 13 unités).
+            // Le cadre garde toujours les proportions du terrain du niveau 1 (8 × 13 unités) : les terrains plus larges des niveaux
+            // suivants sont mis à l'échelle pour y tenir, et leurs briques, leur raquette et leur balle rapetissent.
             val unit = maxOf(minOf(maxWidth / Breakout.WIDTH, maxHeight / Breakout.HEIGHT), 0.dp)
             Box(
                 modifier = Modifier
@@ -322,7 +323,7 @@ private fun BreakoutPlayfield(
                     .pointerInput(Unit) {
                         awaitEachGesture {
                             awaitFirstDown()
-                            val pixelsPerUnit = size.width / Breakout.WIDTH
+                            val pixelsPerUnit = size.width / game.width
                             var travelled = 0f
                             var pressed = true
                             while (pressed) {
@@ -387,26 +388,30 @@ private fun BreakoutPlayfield(
  * briques, la raquette et la balle. [revision] n'est là que pour que le dessin se refasse quand elle change.
  */
 private fun DrawScope.drawBreakoutField(game: BreakoutGame, @Suppress("UNUSED_PARAMETER") revision: Int) {
-    val u = size.width / Breakout.WIDTH
+    // Pixels par unité du terrain du niveau en cours : plus le terrain est large, plus tout rapetisse. Les étoiles, elles, ne bougent pas.
+    val u = size.width / game.width
+    val baseUnit = size.width / Breakout.WIDTH
 
     // L'espace : un dégradé sombre et quelques étoiles.
     drawRect(Brush.verticalGradient(listOf(Color(0xFF050B16), Color(0xFF0B1E2B), Color(0xFF0F2F36))))
     STARS.forEach { (fx, fy, radius) ->
-        drawCircle(Color.White.copy(alpha = 0.35f + radius * 8f), radius * u, Offset(fx * size.width, fy * size.height))
+        drawCircle(Color.White.copy(alpha = 0.35f + radius * 8f), radius * baseUnit, Offset(fx * size.width, fy * size.height))
     }
 
     // Les briques : chaque rangée a sa couleur, et un biseau donne du relief (clair en haut, sombre en bas).
     val path = Path()
-    for (row in 0 until Breakout.ROWS) {
-        for (col in 0 until Breakout.COLS) {
+    val rows = game.rows
+    for (row in 0 until rows) {
+        for (col in 0 until game.cols) {
             if (!game.hasBrick(col, row)) continue
             drawBevelBrick(
                 path = path,
                 left = col * Breakout.BRICK_W * u,
-                top = (Breakout.BRICKS_TOP + row * Breakout.BRICK_H) * u,
+                top = (game.bricksTop + row * Breakout.BRICK_H) * u,
                 width = Breakout.BRICK_W * u,
                 height = Breakout.BRICK_H * u,
-                color = BRICK_COLORS[row % BRICK_COLORS.size]
+                // Les sept couleurs de l'arc-en-ciel se répartissent sur toutes les rangées, quel que soit leur nombre.
+                color = BRICK_COLORS[row * BRICK_COLORS.size / rows]
             )
         }
     }
@@ -415,7 +420,7 @@ private fun DrawScope.drawBreakoutField(game: BreakoutGame, @Suppress("UNUSED_PA
     val paddleW = Breakout.PADDLE_W * u
     val paddleH = Breakout.PADDLE_H * u
     val paddleLeft = (game.paddleX - Breakout.PADDLE_W / 2f) * u
-    val paddleTop = Breakout.PADDLE_TOP * u
+    val paddleTop = game.paddleTop * u
     drawOval(
         brush = Brush.radialGradient(
             listOf(Color(0x5500E5FF), Color.Transparent),

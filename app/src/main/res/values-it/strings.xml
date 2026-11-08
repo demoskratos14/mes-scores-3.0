@@ -2196,7 +2196,7 @@
     <string name="rules_breakout_2_title">La palla e la racchetta</string>
     <string name="rules_breakout_2_body">La palla rimbalza sulle pareti, sul soffitto, sui mattoni e sulla racchetta. A seconda di dove tocca la racchetta, riparte più o meno di lato: dritta dal centro, in diagonale vicino al bordo. Hai tre vite: una palla che passa sotto la racchetta ne costa una.</string>
     <string name="rules_breakout_3_title">Punti e livelli</string>
-    <string name="rules_breakout_3_body">Ogni mattone rotto dà punti: 10 per quelli in basso, fino a 70 per quelli in alto, moltiplicati per il livello. A ogni livello la palla diventa più veloce.</string>
+    <string name="rules_breakout_3_body">Ogni mattone rotto dà punti: 10 per la riga in basso, 10 in più per ogni riga salendo, il tutto moltiplicato per il livello. A ogni livello il campo guadagna una colonna di mattoni (e righe in proporzione): ci sono più mattoni da rompere, la racchetta e la palla sembrano più piccole e la palla va più veloce. Il campo smette di allargarsi a 16 colonne, ma la palla continua ad accelerare.</string>
     <string name="rules_breakout_4_title">Nell’app</string>
     <string name="rules_breakout_4_body">Gioco in solitaria: fai scorrere il dito per spostare la racchetta e tocca lo schermo per lanciare la palla. La partita va in pausa quando esci dall’app e il tuo punteggio migliore viene salvato.</string>
     <string name="breakout_ready_title">Tocca a %1$s</string>

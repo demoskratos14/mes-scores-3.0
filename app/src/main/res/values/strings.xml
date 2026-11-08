@@ -2202,7 +2202,7 @@
     <string name="rules_breakout_2_title">La balle et la raquette</string>
     <string name="rules_breakout_2_body">La balle rebondit sur les murs, le plafond, les briques et la raquette. Selon l’endroit où elle touche la raquette, elle repart plus ou moins de côté : au centre tout droit, près du bord en biais. Tu as trois vies : une balle qui passe sous la raquette en coûte une.</string>
     <string name="rules_breakout_3_title">Points et niveaux</string>
-    <string name="rules_breakout_3_body">Chaque brique cassée rapporte des points : 10 pour celles du bas, jusqu’à 70 pour celles du haut, multipliés par le niveau. À chaque niveau, la balle gagne en vitesse.</string>
+    <string name="rules_breakout_3_body">Chaque brique cassée rapporte des points : 10 pour celles de la rangée du bas, 10 de plus à chaque rangée en montant, le tout multiplié par le niveau. À chaque niveau, le terrain gagne une colonne de briques (et des rangées en proportion) : il y a plus de briques à casser, la raquette et la balle paraissent plus petites et la balle va plus vite. Le terrain cesse de s’élargir à 16 colonnes, mais la balle continue d’accélérer.</string>
     <string name="rules_breakout_4_title">Dans l’appli</string>
     <string name="rules_breakout_4_body">Jeu en solo : glisse le doigt pour déplacer la raquette et touche l’écran pour lancer la balle. La partie se met en pause quand tu quittes l’appli, et ton meilleur score est gardé.</string>
     <string name="breakout_ready_title">À %1$s de jouer</string>
