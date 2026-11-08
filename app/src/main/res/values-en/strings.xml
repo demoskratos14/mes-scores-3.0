@@ -1960,6 +1960,8 @@
     <string name="chess_flip">Flip the board</string>
     <string name="chess_style_to_wizard">Switch to wizard style</string>
     <string name="chess_style_to_classic">Switch to classic style</string>
+    <string name="chess_explore_on">Explore the board (zoom, rotate, move)</string>
+    <string name="chess_explore_off">Stop exploring the board</string>
     <string name="chess_online_button">Play on separate phones</string>
     <string name="chess_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
     <string name="chess_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>

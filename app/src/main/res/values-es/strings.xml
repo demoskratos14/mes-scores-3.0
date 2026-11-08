@@ -1988,6 +1988,8 @@
     <string name="chess_flip">Girar el tablero</string>
     <string name="chess_style_to_wizard">Cambiar al estilo mago</string>
     <string name="chess_style_to_classic">Cambiar al estilo clásico</string>
+    <string name="chess_explore_on">Explorar el tablero (zoom, giro, desplazamiento)</string>
+    <string name="chess_explore_off">Dejar de explorar el tablero</string>
     <string name="chess_online_button">Jugar cada uno en su teléfono</string>
     <string name="chess_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="chess_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
