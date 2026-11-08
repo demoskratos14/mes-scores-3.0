@@ -144,6 +144,33 @@ class ExploreBoard3DTest {
         assertTrue(pixels.any { (it ushr 24) != 0 })
     }
 
+    @Test
+    fun lesDallesSontVeineesCommeDuMarbre() {
+        val board = ExploreBoard3D { mesh(it) }
+        assertTrue(board.setBoard(empty, -1, -1, -1, flipped = false))
+        val view = BoardView().also { it.pitch = 88f; it.distance = 7f }
+        val pixels = render(board, view, 240, 300)
+        // Au centre de l'image : une dalle claire unie ne donnerait que quelques valeurs ; le marbre en donne beaucoup, dont des veines grises.
+        val centre = pixels.filter { (it ushr 24) != 0 && luminance(it) > 60 }.map { luminance(it) }
+        assertTrue("assez de tons différents : ${centre.toSet().size}", centre.toSet().size > 40)
+        val veins = centre.count { it in 90..170 }
+        assertTrue("des veines (tons moyens) : $veins", veins > 100)
+    }
+
+    @Test
+    fun leMotifDeMarbreEstStableEtBorne() {
+        val a = FloatArray(3)
+        val b = FloatArray(3)
+        for (i in 0 until 200) {
+            val u = i * 0.37f - 3f
+            val v = i * 0.53f + 1f
+            MarbleField.sample(u, v, a)
+            MarbleField.sample(u, v, b)
+            assertEquals(a[0], b[0], 0f)
+            assertTrue(a[0] in 0f..1.5f && a[1] in 0f..1f && a[2] in -1.2f..1.2f)
+        }
+    }
+
     private fun render(board: ExploreBoard3D, view: BoardView, width: Int, height: Int): IntArray {
         view.aspect = width.toFloat() / height
         board.aim(view)

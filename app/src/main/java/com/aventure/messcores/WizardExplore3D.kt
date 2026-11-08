@@ -5,7 +5,7 @@ import kotlin.math.atan
 import kotlin.math.min
 
 /*
- * Le plateau sorcier en vraie 3D, pour le mode explorer (voir ChessExplore.kt). Au repos, l'échiquier est dessiné en 2D (les
+ * Le plateau sorcier en vraie 3D, pour le mode explorer (voir ChessExplore.kt), en marbre (voir Marble3D.kt). Au repos, l'échiquier est dessiné en 2D (les
  * cases) avec les pièces 3D posées par-dessus, vues de face (voir WizardBoard3D.kt) ; une caméra qui tourne autour du plateau
  * ne peut pas se contenter de cela. Ici, tout est dans la scène : les dalles, le cadre et les pièces, sur un plateau horizontal.
  *
@@ -127,11 +127,28 @@ internal class ExploreBoard3D(private val meshOf: (String) -> Mesh3D?) {
         private const val TRIM_HEIGHT = 0.06f
         private const val TRIM_WIDTH = 0.12f
 
-        private val LIGHT_TILE_MATERIAL = Material3D(0.89f, 0.92f, 0.95f, specular = 0.30f, shininess = 40f)
-        private val DARK_TILE_MATERIAL = Material3D(0.13f, 0.15f, 0.20f, specular = 0.55f, shininess = 55f)
-        private val LAST_MOVE_MATERIAL = Material3D(0.56f, 0.60f, 0.26f, specular = 0.25f, shininess = 40f)
-        private val CHECK_MATERIAL = Material3D(0.80f, 0.26f, 0.26f, specular = 0.25f, shininess = 40f)
-        private val FRAME_MATERIAL = Material3D(0.16f, 0.17f, 0.22f, specular = 0.60f, shininess = 60f)
+        // Le marbre : des dalles blanches (type Carrare, veines grises) et noires (type Nero Marquina, veines argentées), un cadre
+        // de marbre bleu nuit, et des dalles de dernier coup et d'échec teintées dans leur couleur. Polies : brillance nette.
+        private val LIGHT_TILE_MATERIAL = Material3D(
+            0.92f, 0.91f, 0.89f, specular = 0.45f, shininess = 70f,
+            marble = MarbleStyle(0.50f, 0.52f, 0.58f, veinStrength = 0.60f, haze = 0.22f, cloud = 0.06f)
+        )
+        private val DARK_TILE_MATERIAL = Material3D(
+            0.10f, 0.12f, 0.17f, specular = 0.65f, shininess = 80f,
+            marble = MarbleStyle(0.86f, 0.88f, 0.95f, veinStrength = 0.62f, haze = 0.20f, cloud = 0.25f)
+        )
+        private val LAST_MOVE_MATERIAL = Material3D(
+            0.56f, 0.60f, 0.26f, specular = 0.45f, shininess = 70f,
+            marble = MarbleStyle(0.86f, 0.90f, 0.52f, veinStrength = 0.55f, haze = 0.14f, cloud = 0.08f)
+        )
+        private val CHECK_MATERIAL = Material3D(
+            0.80f, 0.26f, 0.26f, specular = 0.45f, shininess = 70f,
+            marble = MarbleStyle(0.98f, 0.66f, 0.62f, veinStrength = 0.55f, haze = 0.14f, cloud = 0.08f)
+        )
+        private val FRAME_MATERIAL = Material3D(
+            0.13f, 0.15f, 0.24f, specular = 0.70f, shininess = 80f,
+            marble = MarbleStyle(0.62f, 0.68f, 0.88f, veinStrength = 0.50f, haze = 0.10f, cloud = 0.20f)
+        )
         private val TRIM_MATERIAL = Material3D(0.74f, 0.77f, 0.84f, specular = 0.90f, shininess = 70f)
     }
 }

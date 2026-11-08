@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -91,14 +92,18 @@ internal object Mat4 {
     private const val RAD = (PI / 180.0).toFloat()
 }
 
-/** Matière : couleur de base (0 à 1), force et finesse de la brillance, et lueur propre (0 = aucune). */
+/**
+ * Matière : couleur de base (0 à 1), force et finesse de la brillance, et lueur propre (0 = aucune). Avec un [marble], la couleur
+ * de base est veinée comme du marbre (voir Marble3D.kt) ; le maillage doit alors être posé sans transformation.
+ */
 internal class Material3D(
     val r: Float,
     val g: Float,
     val b: Float,
     val specular: Float = 0.25f,
     val shininess: Float = 40f,
-    val emissive: Float = 0f
+    val emissive: Float = 0f,
+    val marble: MarbleStyle? = null
 ) {
     // Brillance précalculée : (n·h)^finesse pour n·h de 0 à 1 par pas de 1/127.
     internal val specularTable = FloatArray(128) { (it / 127f).toDouble().pow(shininess.toDouble()).toFloat() }
@@ -319,6 +324,9 @@ internal class Renderer3D {
         val depth = frame.hiDepth
         val table = mat.specularTable
         val bias = inst.depthBias
+        val marble = mat.marble
+        val pos = mesh.positions
+        val tex = if (marble != null) FloatArray(3) else null
 
         // Directions des lumières (vers la lumière) dans le repère de la caméra, et vecteur « demi » de la principale.
         val kx = -0.45f; val ky = 0.75f; val kz = -0.50f
@@ -347,6 +355,29 @@ internal class Renderer3D {
             val maxY = min(h - 1, floorInt(max(y0, max(y1, y2))))
             if (minX > maxX || minY > maxY) continue
             val invArea = 1f / area
+            // Marbre : le motif suit la face (dessus : x et z ; côtés : l'horizontale et y), divisé par la profondeur pour
+            // l'interpoler sans déformation de perspective.
+            var tu0 = 0f; var tu1 = 0f; var tu2 = 0f; var tv0 = 0f; var tv1 = 0f; var tv2 = 0f
+            if (marble != null) {
+                val a0 = i0 * 3; val a1 = i1 * 3; val a2 = i2 * 3
+                val e1x = pos[a1] - pos[a0]; val e1y = pos[a1 + 1] - pos[a0 + 1]; val e1z = pos[a1 + 2] - pos[a0 + 2]
+                val e2x = pos[a2] - pos[a0]; val e2y = pos[a2 + 1] - pos[a0 + 1]; val e2z = pos[a2 + 2] - pos[a0 + 2]
+                val gx = abs(e1y * e2z - e1z * e2y)
+                val gy = abs(e1z * e2x - e1x * e2z)
+                val gz = abs(e1x * e2y - e1y * e2x)
+                // 0 : (x, z) ; 1 : (z, y) ; 2 : (x, y)
+                val axis = if (gy >= gx && gy >= gz) 0 else if (gx >= gz) 1 else 2
+                for (k in 0 until 3) {
+                    val o = (if (k == 0) a0 else if (k == 1) a1 else a2)
+                    val pu = when (axis) { 0 -> pos[o]; 1 -> pos[o + 2]; else -> pos[o] }
+                    val pv = when (axis) { 0 -> pos[o + 2]; 1 -> pos[o + 1]; else -> pos[o + 1] }
+                    when (k) {
+                        0 -> { tu0 = pu * iz0; tv0 = pv * iz0 }
+                        1 -> { tu1 = pu * iz1; tv1 = pv * iz1 }
+                        else -> { tu2 = pu * iz2; tv2 = pv * iz2 }
+                    }
+                }
+            }
             for (py in minY..maxY) {
                 val fy = py + 0.5f
                 val row = py * w
@@ -382,9 +413,24 @@ internal class Renderer3D {
                         val nh = max(0f, nx * hx + ny * hy + nz * hz)
                         spec = table[(nh * 127f).toInt()] * mat.specular * light.key
                     }
-                    val r = mat.r * lit + spec + rimTerm * 0.70f
-                    val g = mat.g * lit + spec + rimTerm * 0.80f
-                    val b = mat.b * lit + spec + rimTerm * 1.00f
+                    var baseR = mat.r
+                    var baseG = mat.g
+                    var baseB = mat.b
+                    if (marble != null && tex != null) {
+                        MarbleField.sample(
+                            (w0 * tu0 + w1 * tu1 + w2 * tu2) / iz,
+                            (w0 * tv0 + w1 * tv1 + w2 * tv2) / iz,
+                            tex
+                        )
+                        val tone = 1f + marble.cloud * tex[2]
+                        val k = min(1f, tex[0] * marble.veinStrength + tex[1] * marble.haze)
+                        baseR = mat.r * tone * (1f - k) + marble.veinR * k
+                        baseG = mat.g * tone * (1f - k) + marble.veinG * k
+                        baseB = mat.b * tone * (1f - k) + marble.veinB * k
+                    }
+                    val r = baseR * lit + spec + rimTerm * 0.70f
+                    val g = baseG * lit + spec + rimTerm * 0.80f
+                    val b = baseB * lit + spec + rimTerm * 1.00f
                     color[o] = (0xFF shl 24) or (to255(r) shl 16) or (to255(g) shl 8) or to255(b)
                 }
             }
