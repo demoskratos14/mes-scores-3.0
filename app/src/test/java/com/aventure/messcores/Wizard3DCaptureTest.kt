@@ -262,4 +262,70 @@ class Wizard3DCaptureTest {
         assertEquals(100f, other.x, 1e-3f)
         assertEquals(200f * WIZARD_ROW_PITCH, other.y, 1e-3f)
     }
+
+    // Vrai si les segments [a, b] et [c, d] se coupent, vus de face (plan X, Y de l'écran).
+    private fun cross(a: FloatArray, b: FloatArray, c: FloatArray, d: FloatArray): Boolean {
+        fun side(p: FloatArray, q: FloatArray, r: FloatArray) = (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+        return side(a, b, c) * side(a, b, d) < 0f && side(c, d, a) * side(c, d, b) < 0f
+    }
+
+    @Test
+    fun lePionAUneEpeeDansChaquePoingEtLesAutresPiecesUneSeule() {
+        assertNotNull(capture(fx('P', "e4", "f5", 'n')).pose(0.1f, false).offWeapon)
+        for (mover in "KQNRB") assertNull("$mover", capture(fx(mover, "b4", "f4", 'p')).pose(0.1f, false).offWeapon)
+    }
+
+    @Test
+    fun chaqueEpeeDuPionResteDansSonPoing() {
+        val scene = capture(fx('P', "e4", "f5", 'n'))
+        val a = WizardModelCatalog.weaponMount('P')!!
+        val b = WizardModelCatalog.offHandMount('P')!!
+        assertTrue("les deux poings sont de part et d'autre", WizardModelCatalog.handPoint('P')!![0] < WizardModelCatalog.offHandPoint('P')!![0])
+        for (progress in listOf(0.1f, 0.3f, 0.44f, 0.5f, 0.6f)) {
+            val pose = scene.pose(progress, false)
+            val handA = transform(pose.mover, WizardModelCatalog.handPoint('P')!!)
+            val handB = transform(pose.mover, WizardModelCatalog.offHandPoint('P')!!)
+            val gripA = transform(pose.weapon!!, floatArrayOf(a.gripX, a.gripY, a.gripZ))
+            val gripB = transform(pose.offWeapon!!, floatArrayOf(b.gripX, b.gripY, b.gripZ))
+            for (i in 0..2) {
+                assertEquals("poing 1 à $progress, axe $i", handA[i], gripA[i], 1e-3f)
+                assertEquals("poing 2 à $progress, axe $i", handB[i], gripB[i], 1e-3f)
+            }
+        }
+    }
+
+    @Test
+    fun lesDeuxEpeesDuPionSeCroisentEnCiseauxALImpact() {
+        val length = mesh("weapon_rook_sword")!!.maxY
+        for ((from, to) in listOf("e4" to "f5", "e4" to "d5", "e4" to "e5")) {
+            for (flipped in listOf(false, true)) {
+                val pose = capture(fx('P', from, to, 'n')).pose(IMPACT, flipped)
+                val tipA = transform(pose.weapon!!, floatArrayOf(0f, 0f, 0f))
+                val hiltA = transform(pose.weapon!!, floatArrayOf(0f, length, 0f))
+                val tipB = transform(pose.offWeapon!!, floatArrayOf(0f, 0f, 0f))
+                val hiltB = transform(pose.offWeapon!!, floatArrayOf(0f, length, 0f))
+                assertTrue("$from-$to (retourné : $flipped) : les lames se croisent", cross(tipA, hiltA, tipB, hiltB))
+            }
+        }
+    }
+
+    @Test
+    fun lesDeuxEpeesDuPionMontentCoteACoteAuRepos() {
+        // Au repos, les deux lames pointent en l'air, parallèles : pas de ciseaux avant le geste.
+        val pose = capture(fx('P', "e4", "f5", 'n')).pose(0.1f, false)
+        val length = mesh("weapon_rook_sword")!!.maxY
+        val dirA = transform(pose.weapon!!, floatArrayOf(0f, length, 0f)).zip(transform(pose.weapon!!, floatArrayOf(0f, 0f, 0f))) { t, b -> t - b }
+        val dirB = transform(pose.offWeapon!!, floatArrayOf(0f, length, 0f)).zip(transform(pose.offWeapon!!, floatArrayOf(0f, 0f, 0f))) { t, b -> t - b }
+        for (i in 0..2) assertEquals("axe $i", dirA[i], dirB[i], 1e-4f)
+    }
+
+    @Test
+    fun lesDeuxTraineesDuPionPartentDeSesDeuxPoings() {
+        val scene = capture(fx('P', "e4", "f5", 'n'))
+        val anchors = scene.pose(0.44f, false).anchors
+        val scissors = anchors.scissors
+        assertNotNull(scissors)
+        assertTrue("les deux poings sont distincts", abs(anchors.hand.x - scissors!!.handB.x) > 0.05f)
+        assertNull(capture(fx('K', "b4", "f4", 'p')).pose(0.44f, false).anchors.scissors)
+    }
 }

@@ -238,6 +238,28 @@ class Scene3DTest {
     }
 
     @Test
+    fun lAutrePoingDuPionEstSurSonCorpsEtSonEpeeSurLeSien() {
+        val piece = loadAsset(WizardModelCatalog.pieceModel('P')!!)
+        val h = WizardModelCatalog.offHandPoint('P')!!
+        var best = Float.MAX_VALUE
+        for (i in piece.positions.indices step 3) {
+            val dx = piece.positions[i] - h[0]
+            val dy = piece.positions[i + 1] - h[1]
+            val dz = piece.positions[i + 2] - h[2]
+            best = minOf(best, Math.sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat())
+        }
+        assertTrue("l'autre poing est à $best m du corps", best < 0.003f)
+        val mount = WizardModelCatalog.offHandMount('P')!!
+        for (swing in listOf(0f, 40f, -75f, 160f)) {
+            val m = WizardModelCatalog.offHandLocal('P', swingYaw = swing / 2, swingPitch = swing, swingRoll = -swing / 3)!!
+            val g = transform(m, mount.gripX, mount.gripY, mount.gripZ)
+            for (i in 0..2) assertEquals("axe $i ($swing°)", h[i], g[i], 1e-5f)
+        }
+        // Les autres pièces n'ont qu'une arme.
+        for (p in "KQRBN") assertNull("$p", WizardModelCatalog.offHandMount(p))
+    }
+
+    @Test
     fun laMainEstSurLeCorpsDeLaPiece() {
         // La main (le poing) est à moins de 3 mm d'un sommet du modèle de la pièce : l'arme n'est pas dans le vide.
         for (p in "KQRBNP") {
