@@ -29,14 +29,15 @@ class ExploreBoard3DTest {
     fun laPositionDeDepartPlaceLePlateauEtLesSoixanteQuatrePiecesEtArmes() {
         val board = ExploreBoard3D { mesh(it) }
         assertTrue(board.setBoard(start, -1, -1, -1, flipped = false))
-        assertEquals(boardMeshes + 64, board.scene.instances.size)
+        // 32 pièces ; 16 pions à deux épées, 16 autres pièces à une arme : 32 + 16 × 2 + 16.
+        assertEquals(boardMeshes + 80, board.scene.instances.size)
     }
 
     @Test
     fun leDernierCoupEtLEchecAjoutentLeurCouleurDeDalle() {
         val board = ExploreBoard3D { mesh(it) }
         assertTrue(board.setBoard(start, sq("e2"), sq("e4"), sq("e1"), flipped = false))
-        assertEquals(boardMeshes + 2 + 64, board.scene.instances.size)
+        assertEquals(boardMeshes + 2 + 80, board.scene.instances.size)
     }
 
     @Test
@@ -55,12 +56,31 @@ class ExploreBoard3DTest {
         val expected = listOf(false to (4.5f to 6.5f), true to (3.5f to 1.5f))
         for ((flipped, centre) in expected) {
             board.setBoard(".".repeat(sq("e2")) + "P" + ".".repeat(63 - sq("e2")), -1, -1, -1, flipped)
-            // Après le plateau : le pion, puis son épée.
-            assertEquals(boardMeshes + 2, board.scene.instances.size)
+            // Après le plateau : le pion, puis ses deux épées.
+            assertEquals(boardMeshes + 3, board.scene.instances.size)
             val pawn = board.scene.instances[boardMeshes].matrix
             assertEquals(centre.first, pawn[12], 1e-4f)
             assertEquals(0f, pawn[13], 1e-4f)
             assertEquals(centre.second, pawn[14], 1e-4f)
+        }
+    }
+
+    @Test
+    fun lePionTientSesDeuxEpeesLeLongDesFlancsLameVersLArriere() {
+        val board = ExploreBoard3D { mesh(it) }
+        // Blanc en bas (il regarde vers le haut de l'écran, Z décroissant) puis noir en haut (il regarde vers le bas) : dans les deux cas,
+        // la lame couchée sur son flanc part vers l'arrière, presque à l'horizontale. La lame va de la pointe (origine du fichier) vers le haut du fichier.
+        for ((piece, backZ) in listOf('P' to 1f, 'p' to -1f)) {
+            val square = sq(if (piece == 'P') "e2" else "e7")
+            board.setBoard(".".repeat(square) + piece + ".".repeat(63 - square), -1, -1, -1, flipped = false)
+            for (sword in 1..2) {
+                val m = board.scene.instances[boardMeshes + sword].matrix
+                val len = Math.sqrt((m[4] * m[4] + m[5] * m[5] + m[6] * m[6]).toDouble()).toFloat()
+                val dirY = -m[5] / len
+                val dirZ = -m[6] / len
+                assertTrue("$piece épée $sword : lame vers l'arrière (z=$dirZ)", dirZ * backZ > 0.95f)
+                assertTrue("$piece épée $sword : lame presque horizontale (y=$dirY)", dirY in 0f..0.2f)
+            }
         }
     }
 
