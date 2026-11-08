@@ -171,6 +171,22 @@ class ExploreBoard3DTest {
         }
     }
 
+    @Test
+    fun laTourPresenteSonBouclierAL_Ennemi() {
+        val board = ExploreBoard3D { mesh(it) }
+        // Le bouclier est du côté +Z dans le fichier de la tour : son image dans le monde (colonne Z de la matrice) doit viser
+        // l'ennemi, vers le haut de l'écran (Z décroissant) pour les blancs du bas, vers le bas (Z croissant) pour les noirs du haut.
+        for (flipped in listOf(false, true)) {
+            for ((piece, square) in listOf('R' to sq("a1"), 'r' to sq("a8"))) {
+                board.setBoard(".".repeat(square) + piece + ".".repeat(63 - square), -1, -1, -1, flipped)
+                val shieldZ = board.scene.instances[boardMeshes].matrix[10]
+                val whiteAtBottom = !flipped
+                val enemyUp = Chess.isWhite(piece) == whiteAtBottom
+                assertTrue("$piece flipped=$flipped : bouclier en z=$shieldZ", if (enemyUp) shieldZ < 0f else shieldZ > 0f)
+            }
+        }
+    }
+
     private fun render(board: ExploreBoard3D, view: BoardView, width: Int, height: Int): IntArray {
         view.aspect = width.toFloat() / height
         board.aim(view)
