@@ -2271,10 +2271,10 @@
     <string name="yaniv_joker_face">★</string>
     <string name="yaniv_discard_title">Last discard</string>
     <string name="yaniv_discarded_title">Discarded cards</string>
-    <string name="yaniv_hand_points">Your hand: %1$d points</string>
+    <string name="yaniv_hand_points" tools:ignore="PluralsCandidate">Your hand: %1$d points</string>
     <string name="yaniv_hint">Tap the cards to discard: a single card, a pair, a set or a run of at least 3 cards of the same suit (a joker stands for any card). You will draw next.</string>
     <string name="yaniv_discard">Discard</string>
-    <string name="yaniv_call">Call Yaniv (%1$d points)</string>
+    <string name="yaniv_call" tools:ignore="PluralsCandidate">Call Yaniv (%1$d points)</string>
     <string name="yaniv_draw_hint">Now draw: tap the stock, or a card from the last discard (any card; only the first or last one if it is a run).</string>
     <string name="yaniv_select_first">Tap the cards to discard first.</string>
     <string name="yaniv_not_valid">These cards cannot be discarded together: a single card, a pair or set of the same rank, or a run of at least 3 cards of the same suit.</string>
@@ -2282,6 +2282,6 @@
     <string name="yaniv_stock_empty">Nothing left to draw: take a card from the last discard.</string>
     <string name="yaniv_hands_title">Hands at the end of the round</string>
     <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
-    <string name="yaniv_round_won">%1$s calls Yaniv with %2$d points and scores 0!</string>
+    <string name="yaniv_round_won" tools:ignore="PluralsCandidate">%1$s calls Yaniv with %2$d points and scores 0!</string>
     <string name="yaniv_round_assaf">%1$s calls Yaniv, but %2$s has as many points or fewer: Assaf! %1$s gets a 30-point penalty.</string>
 </resources>
