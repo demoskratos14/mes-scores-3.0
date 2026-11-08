@@ -508,10 +508,10 @@ class Scene3DTest {
         assertTrue(Wizard3DCapture.depthBias(low) - Wizard3DCapture.depthBias(high) > 1.5f)
     }
     @Test
-    fun lesPiecesDuCampQuiJoueTournentLeDosEtLesAutresFontFace() {
+    fun lesPiecesDuBasDeLEcranTournentLeDosEtCellesDuHautFontFace() {
         for (p in "KQBNRPkqbnrp") {
-            val front = Wizard3DCapture.restYaw(p, whiteToMove = !Chess.isWhite(p)) // son camp attend
-            val away = Wizard3DCapture.restYaw(p, whiteToMove = Chess.isWhite(p)) // son camp joue
+            val front = Wizard3DCapture.restYaw(p, whiteAtBottom = !Chess.isWhite(p)) // il est en haut de l'écran
+            val away = Wizard3DCapture.restYaw(p, whiteAtBottom = Chess.isWhite(p)) // il est en bas de l'écran
             assertEquals("$p sans consigne", front, Wizard3DCapture.restYaw(p), 0f)
             // Le regard (direction du lacet) du camp qui joue est l'opposé de celui du camp qui attend, en miroir de l'écran.
             val f = Math.toRadians(front.toDouble())
