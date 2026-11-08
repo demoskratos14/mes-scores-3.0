@@ -94,10 +94,15 @@ internal class ExploreBoard3D(private val meshOf: (String) -> Mesh3D?) {
     private fun addPiece(piece: Char, x: Float, z: Float, whiteAtBottom: Boolean): Boolean {
         val mesh = WizardModelCatalog.pieceModel(piece)?.let(meshOf) ?: return false
         val material = WizardModelCatalog.materialFor(piece)
-        val restYaw = Wizard3DCapture.restYaw(piece, whiteAtBottom) + WizardModelCatalog.facingYaw(piece)
+        val facing = WizardModelCatalog.facingYaw(piece)
+        val restYaw = Wizard3DCapture.restYaw(piece, whiteAtBottom) + facing
         // La tour est de profil : son bouclier (côté +Z dans son fichier) doit regarder l'ennemi, son épée rester derrière. Le lacet
         // de repos 2D la tourne dans l'autre sens ; ici, on le prend en miroir par rapport à l'axe des rangées (180° − lacet).
-        val yaw = if (piece.uppercaseChar() == 'R') 180f - restYaw else restYaw
+        // Ce lacet est calculé avec les blancs en bas ; plateau retourné, c'est l'ennemi qui change de côté : nouveau miroir.
+        val yaw = if (piece.uppercaseChar() == 'R') {
+            val upright = 180f - (Wizard3DCapture.restYaw(piece, true) + facing)
+            if (whiteAtBottom) upright else 180f - upright
+        } else restYaw
         val scale = if (piece.uppercaseChar() == 'P') Wizard3DCapture.SCALE * PAWN_BOOST else Wizard3DCapture.SCALE
         val matrix = Mat4.pose(x, 0f, z, yaw = yaw, scale = scale)
         scene.instances.add(Instance3D(mesh, material, matrix))
