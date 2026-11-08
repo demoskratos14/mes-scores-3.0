@@ -2,6 +2,8 @@ package com.aventure.messcores
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -51,6 +53,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
@@ -86,6 +89,16 @@ private val BRICK_COLORS = listOf(
 private val STARS: List<Triple<Float, Float, Float>> = Random(2024).let { random ->
     List(48) { Triple(random.nextFloat(), random.nextFloat(), 0.02f + random.nextFloat() * 0.035f) }
 }
+
+/** Le pinceau des lettres des capsules : une lettre blanche en gras, centrée sur le point où on la dessine. */
+private val CAPSULE_LETTER_PAINT = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    color = android.graphics.Color.WHITE
+    textAlign = Paint.Align.CENTER
+    typeface = Typeface.DEFAULT_BOLD
+}
+
+private val GOOD_CAPSULE_COLORS = listOf(Color(0xFF66BB6A), Color(0xFF2E7D32), Color(0xFF1B5E20))
+private val BAD_CAPSULE_COLORS = listOf(Color(0xFFEF5350), Color(0xFFC62828), Color(0xFF7F1414))
 
 /** Garde la partie quand l'écran tourne : son état est rangé dans une liste d'entiers (voir [BreakoutGame.save]). */
 private val BreakoutGameSaver = listSaver<BreakoutGame, Int>(
@@ -243,7 +256,7 @@ private fun BreakoutPlayfield(
     var score by remember { mutableIntStateOf(game.score) }
     var lives by remember { mutableIntStateOf(game.lives) }
     var level by remember { mutableIntStateOf(game.level) }
-    var waiting by remember { mutableStateOf(game.attached) }
+    var waiting by remember { mutableStateOf(game.hasStuckBall) }
     val finished by rememberUpdatedState(onOver)
     val isPaused by rememberUpdatedState(paused)
 
@@ -252,7 +265,7 @@ private fun BreakoutPlayfield(
         score = game.score
         lives = game.lives
         level = game.level
-        waiting = game.attached
+        waiting = game.hasStuckBall
     }
 
     LaunchedEffect(paused) {
@@ -417,9 +430,9 @@ private fun DrawScope.drawBreakoutField(game: BreakoutGame, @Suppress("UNUSED_PA
     }
 
     // La raquette : une barre de métal aux embouts rouges, avec une lueur dessous.
-    val paddleW = Breakout.PADDLE_W * u
+    val paddleW = game.paddleWidth * u
     val paddleH = Breakout.PADDLE_H * u
-    val paddleLeft = (game.paddleX - Breakout.PADDLE_W / 2f) * u
+    val paddleLeft = (game.paddleX - game.paddleWidth / 2f) * u
     val paddleTop = game.paddleTop * u
     drawOval(
         brush = Brush.radialGradient(
@@ -454,18 +467,95 @@ private fun DrawScope.drawBreakoutField(game: BreakoutGame, @Suppress("UNUSED_PA
         )
     }
 
-    // La balle : une bille chromée avec son reflet.
+    // Les canons du laser, aux deux bouts de la raquette.
+    if (game.hasLaser) {
+        val cannonW = paddleW * 0.07f
+        for (x in listOf(paddleLeft + paddleW * 0.08f, paddleLeft + paddleW * 0.92f - cannonW)) {
+            drawRoundRect(
+                color = Color(0xFFFFD54F),
+                topLeft = Offset(x, paddleTop - paddleH * 0.7f),
+                size = Size(cannonW, paddleH * 0.8f),
+                cornerRadius = CornerRadius(cannonW * 0.3f)
+            )
+        }
+    }
+
+    // Les tirs de laser.
+    for (bolt in game.laserBolts) {
+        drawLine(
+            color = Color(0xFFFFEE58),
+            start = Offset(bolt.x * u, bolt.y * u),
+            end = Offset(bolt.x * u, (bolt.y + LASER_BOLT_LENGTH) * u),
+            strokeWidth = maxOf(2f, 0.08f * u)
+        )
+    }
+
+    // Les capsules qui tombent.
+    for (capsule in game.fallingCapsules) {
+        drawCapsule(capsule.bonus, capsule.x * u, capsule.y * u, Breakout.CAPSULE_W * u, Breakout.CAPSULE_H * u)
+    }
+
+    // Les balles : des billes chromées avec leur reflet ; incandescentes quand elles traversent les briques.
     val radius = Breakout.BALL_RADIUS * u
-    val center = Offset(game.ballX * u, game.ballY * u)
-    drawCircle(
-        brush = Brush.radialGradient(
-            listOf(Color.White, Color(0xFFC9D2D8), Color(0xFF5F6B73)),
-            center = Offset(center.x - radius * 0.35f, center.y - radius * 0.35f),
-            radius = radius * 1.5f
-        ),
-        radius = radius,
-        center = center
+    for (ball in game.allBalls) {
+        val center = Offset(ball.x * u, ball.y * u)
+        if (game.isPiercing) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    listOf(Color(0xAAFF6D00), Color.Transparent),
+                    center = center,
+                    radius = radius * 3f
+                ),
+                radius = radius * 3f,
+                center = center
+            )
+        }
+        val shades = if (game.isPiercing) {
+            listOf(Color(0xFFFFF8E1), Color(0xFFFFB300), Color(0xFFE64A19))
+        } else {
+            listOf(Color.White, Color(0xFFC9D2D8), Color(0xFF5F6B73))
+        }
+        drawCircle(
+            brush = Brush.radialGradient(
+                shades,
+                center = Offset(center.x - radius * 0.35f, center.y - radius * 0.35f),
+                radius = radius * 1.5f
+            ),
+            radius = radius,
+            center = center
+        )
+    }
+
+    // Les effets en cours : une petite capsule avec sa lettre, et une barre qui se vide avec le temps.
+    val chipW = baseUnit * 0.6f
+    val chipH = baseUnit * 0.3f
+    game.activeEffects.forEachIndexed { index, (bonus, remaining) ->
+        val cx = baseUnit * 0.15f + chipW / 2f + index * (chipW + baseUnit * 0.1f)
+        val cy = baseUnit * 0.1f + chipH / 2f
+        drawCapsule(bonus, cx, cy, chipW, chipH)
+        drawRect(
+            color = Color.White.copy(alpha = 0.8f),
+            topLeft = Offset(cx - chipW / 2f, cy + chipH / 2f + baseUnit * 0.03f),
+            size = Size(chipW * remaining.coerceIn(0f, 1f), baseUnit * 0.04f)
+        )
+    }
+}
+
+/** Longueur d'un tir de laser, en unités du terrain. */
+private const val LASER_BOLT_LENGTH = 0.35f
+
+/** Une capsule centrée en ([cx], [cy]) : verte pour un bonus, rouge pour un malus, avec sa lettre. */
+private fun DrawScope.drawCapsule(bonus: BreakoutBonus, cx: Float, cy: Float, w: Float, h: Float) {
+    val colors = if (bonus.good) GOOD_CAPSULE_COLORS else BAD_CAPSULE_COLORS
+    drawRoundRect(
+        brush = Brush.verticalGradient(colors, startY = cy - h / 2f, endY = cy + h / 2f),
+        topLeft = Offset(cx - w / 2f, cy - h / 2f),
+        size = Size(w, h),
+        cornerRadius = CornerRadius(h / 2f)
     )
+    val paint = CAPSULE_LETTER_PAINT
+    paint.textSize = h * 0.8f
+    drawContext.canvas.nativeCanvas.drawText(bonus.letter.toString(), cx, cy - (paint.ascent() + paint.descent()) / 2f, paint)
 }
 
 /** Une brique biseautée : un cadre en quatre trapèzes (haut clair, bas sombre, côtés intermédiaires) autour d'un cœur uni. */

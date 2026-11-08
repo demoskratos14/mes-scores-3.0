@@ -26,12 +26,13 @@ class BreakoutTest {
         lives: Int = Breakout.LIVES,
         level: Int = 1,
         attached: Boolean = false,
-        bricks: List<Int> = List(Breakout.bricksFor(level)) { 1 }
+        bricks: List<Int> = List(Breakout.bricksFor(level)) { 1 },
+        extra: List<Int> = emptyList()
     ): BreakoutGame {
         val data = listOf(
             0, lives, level, 0, if (attached) 1 else 0,
             paddleX.toBits(), ballX.toBits(), ballY.toBits(), vx.toBits(), vy.toBits()
-        ) + bricks
+        ) + bricks + extra
         return BreakoutGame.restore(data, Random(1))!!
     }
 
@@ -349,17 +350,17 @@ class BreakoutTest {
 
     private fun neighbours(cells: IntArray, cols: Int, rows: Int, col: Int, row: Int): Int {
         var n = 0
-        if (col > 0 && cells[row * cols + col - 1] == 1) n++
-        if (col < cols - 1 && cells[row * cols + col + 1] == 1) n++
-        if (row > 0 && cells[(row - 1) * cols + col] == 1) n++
-        if (row < rows - 1 && cells[(row + 1) * cols + col] == 1) n++
+        if (col > 0 && cells[row * cols + col - 1] != 0) n++
+        if (col < cols - 1 && cells[row * cols + col + 1] != 0) n++
+        if (row > 0 && cells[(row - 1) * cols + col] != 0) n++
+        if (row < rows - 1 && cells[(row + 1) * cols + col] != 0) n++
         return n
     }
 
     @Test
     fun leNiveauUnEstToujoursLaGrillePleine() {
         repeat(20) { seed ->
-            assertTrue(Breakout.layoutFor(1, Random(seed)).all { it == 1 })
+            assertTrue(Breakout.layoutFor(1, Random(seed)).all { it != 0 })
         }
         assertEquals(all, newGame(5).bricksLeft)
     }
@@ -380,7 +381,7 @@ class BreakoutTest {
             val rows = Breakout.rowsFor(level)
             val cells = Breakout.layoutFor(level, Random(seed))
             for (row in 0 until rows) for (col in 0 until cols) {
-                if (cells[row * cols + col] == 1) {
+                if (cells[row * cols + col] != 0) {
                     assertTrue("niveau $level, graine $seed : brique seule en ($col, $row)", neighbours(cells, cols, rows, col, row) >= 1)
                 }
             }
@@ -405,7 +406,7 @@ class BreakoutTest {
             val cols = Breakout.colsFor(level)
             val rows = Breakout.rowsFor(level)
             val cells = Breakout.layoutFor(level, Random(seed))
-            val lowestRow = (0 until rows).last { row -> (0 until cols).any { cells[row * cols + it] == 1 } }
+            val lowestRow = (0 until rows).last { row -> (0 until cols).any { cells[row * cols + it] != 0 } }
             val bottom = Breakout.bricksTopFor(level) + (lowestRow + 1) * Breakout.BRICK_H
             // Il reste toujours plus de la moitié de la hauteur du terrain sous les briques, pour avoir le temps de renvoyer la balle.
             assertTrue("niveau $level", Breakout.paddleTopFor(level) - bottom > Breakout.heightFor(level) / 2f)
@@ -416,7 +417,7 @@ class BreakoutTest {
     fun uneDispositionNeSeVideJamaisAuPointDEtreTropMaigre() {
         for (level in 2..17) for (seed in 0 until 50) {
             val cells = Breakout.layoutFor(level, Random(seed))
-            assertTrue(cells.count { it == 1 } >= cells.size * 0.45)
+            assertTrue(cells.count { it != 0 } >= cells.size * 0.45)
         }
     }
 
@@ -433,6 +434,361 @@ class BreakoutTest {
         assertEquals(game.bricksLeft, copy.bricksLeft)
     }
 
+    // --- Les capsules, bonus et malus ---
+
+    /** La suite d'une sauvegarde : les temps des effets, le décalage de la balle principale, d'autres balles (x, y, vx, vy) et des capsules. */
+    private fun extras(
+        expand: Int = 0,
+        shrink: Int = 0,
+        pierce: Int = 0,
+        laser: Int = 0,
+        magnet: Int = 0,
+        fast: Int = 0,
+        balls: List<List<Float>> = emptyList(),
+        capsules: List<Triple<Float, Float, BreakoutBonus>> = emptyList()
+    ): List<Int> = listOf(expand, shrink, pierce, laser, magnet, fast, 0f.toBits(), balls.size) +
+        balls.flatMap { b -> b.map { it.toBits() } + listOf(0, 0f.toBits()) } +
+        listOf(capsules.size) +
+        capsules.flatMap { listOf(it.first.toBits(), it.second.toBits(), it.third.ordinal) }
+
+    /** Des briques où seules les cases données (colonne, rangée) existent ; une valeur autre que 1 est un code de capsule. */
+    private fun bricksAt(vararg cells: Triple<Int, Int, Int>): List<Int> {
+        val list = MutableList(all) { 0 }
+        for ((col, row, code) in cells) list[row * Breakout.COLS + col] = code
+        return list
+    }
+
+    private fun code(bonus: BreakoutBonus) = Breakout.CAPSULE_BASE + bonus.ordinal
+
+    /** Une partie où une capsule de [bonus] est à la hauteur de la raquette (au centre), la balle attendant dessus. */
+    private fun withCapsuleOnPaddle(bonus: BreakoutBonus, ballVy: Float = 0f, attached: Boolean = true): BreakoutGame {
+        val game = state(
+            ballX = 2f, ballY = if (attached) Breakout.PADDLE_TOP - Breakout.BALL_RADIUS else 8f, vx = 0f, vy = ballVy,
+            attached = attached,
+            extra = extras(capsules = listOf(Triple(4f, Breakout.PADDLE_TOP - 0.5f, bonus)))
+        )
+        game.tick(100)
+        return game
+    }
+
+    @Test
+    fun lesBonusOntChacunUneLettreDifferente() {
+        assertEquals(setOf('L', 'P', 'E', 'C', 'M', 'R', 'V'), BreakoutBonus.entries.map { it.letter }.toSet())
+        assertEquals(setOf(BreakoutBonus.SHRINK, BreakoutBonus.FAST), BreakoutBonus.entries.filter { !it.good }.toSet())
+    }
+
+    @Test
+    fun letirageDesBonusLesDonneTousEtMoinsDeMalus() {
+        val random = Random(11)
+        val drawn = List(4000) { Breakout.pickBonus(random) }
+        assertEquals(BreakoutBonus.entries.toSet(), drawn.toSet())
+        assertTrue(drawn.count { !it.good } < drawn.count { it.good })
+    }
+
+    @Test
+    fun desBriquesCachentUneCapsuleACHaqueNiveau() {
+        for (level in 1..4) {
+            val hidden = (0 until 20).sumOf { seed -> Breakout.layoutFor(level, Random(seed)).count { it >= Breakout.CAPSULE_BASE } }
+            assertTrue("niveau $level", hidden > 0)
+            for (seed in 0 until 20) {
+                for (cell in Breakout.layoutFor(level, Random(seed))) {
+                    assertTrue(cell == 0 || cell == 1 || cell - Breakout.CAPSULE_BASE in BreakoutBonus.entries.indices)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun casserUneBriqueACapsuleLibereLaCapsule() {
+        val bricks = bricksAt(Triple(3, 6, code(BreakoutBonus.EXPAND)), Triple(0, 0, 1))
+        val game = state(ballX = 3.5f, ballY = 5.2f, vx = 0f, vy = -7f, bricks = bricks)
+        assertTrue(game.fallingCapsules.isEmpty())
+        game.tick(100)
+        assertFalse(game.hasBrick(3, 6))
+        assertEquals(1, game.fallingCapsules.size)
+        assertEquals(BreakoutBonus.EXPAND, game.fallingCapsules[0].bonus)
+        assertEquals(3.5f, game.fallingCapsules[0].x, 0.0001f)
+        // Elle tombe.
+        val y = game.fallingCapsules[0].y
+        game.tick(100)
+        assertTrue(game.fallingCapsules[0].y > y)
+    }
+
+    @Test
+    fun uneBriqueOrdinaireNeLibereRien() {
+        val game = state(ballX = 3.5f, ballY = 5.2f, vx = 0f, vy = -7f, bricks = bricksAt(Triple(3, 6, 1), Triple(0, 0, 1)))
+        game.tick(100)
+        assertFalse(game.hasBrick(3, 6))
+        assertTrue(game.fallingCapsules.isEmpty())
+    }
+
+    @Test
+    fun uneCapsuleQuiPasseSousLaRaquetteEstPerdueSansEffet() {
+        val game = state(
+            ballX = 2f, ballY = Breakout.PADDLE_TOP - Breakout.BALL_RADIUS, vx = 0f, vy = 0f, attached = true,
+            extra = extras(capsules = listOf(Triple(7f, Breakout.HEIGHT - 0.1f, BreakoutBonus.LASER)))
+        )
+        game.tick(300)
+        assertTrue(game.fallingCapsules.isEmpty())
+        assertFalse(game.hasLaser)
+    }
+
+    @Test
+    fun laCapsuleAgrandissementAllongeLaRaquette() {
+        val game = withCapsuleOnPaddle(BreakoutBonus.EXPAND)
+        assertTrue(game.fallingCapsules.isEmpty())
+        assertEquals(Breakout.PADDLE_W * Breakout.EXPAND_FACTOR, game.paddleWidth, 0.0001f)
+        // La raquette plus longue va aussi plus près des bords.
+        game.movePaddleTo(0f)
+        assertEquals(game.paddleWidth / 2f, game.paddleX, 0.0001f)
+    }
+
+    @Test
+    fun laCapsuleRetrecissementRaccourcitLaRaquetteEtRemplaceLAgrandissement() {
+        val game = state(
+            ballX = 2f, ballY = Breakout.PADDLE_TOP - Breakout.BALL_RADIUS, vx = 0f, vy = 0f, attached = true,
+            extra = extras(expand = 5000, capsules = listOf(Triple(4f, Breakout.PADDLE_TOP - 0.5f, BreakoutBonus.SHRINK)))
+        )
+        assertEquals(Breakout.PADDLE_W * Breakout.EXPAND_FACTOR, game.paddleWidth, 0.0001f)
+        game.tick(100)
+        assertEquals(Breakout.PADDLE_W * Breakout.SHRINK_FACTOR, game.paddleWidth, 0.0001f)
+        assertEquals(0, game.expandMs)
+    }
+
+    @Test
+    fun uneRaquetteRetrecieRatePlusLesBallesDeCote() {
+        // Même balle, même place : la raquette normale la renvoie, la raquette rétrécie la laisse passer.
+        fun fall(shrink: Int): Boolean {
+            val game = state(
+                ballX = 4.7f, ballY = Breakout.PADDLE_TOP - 0.5f, vx = 0f, vy = 7f, paddleX = 4f,
+                extra = extras(shrink = shrink)
+            )
+            game.tick(100)
+            return game.ballVy < 0f
+        }
+        assertTrue(fall(shrink = 0))
+        assertFalse(fall(shrink = 5000))
+    }
+
+    @Test
+    fun lEffetFinitAuBoutDeSonTemps() {
+        val game = state(
+            ballX = 2f, ballY = Breakout.PADDLE_TOP - Breakout.BALL_RADIUS, vx = 0f, vy = 0f, attached = true,
+            extra = extras(expand = 150, pierce = 150)
+        )
+        assertTrue(game.isPiercing)
+        game.tick(100)
+        assertTrue(game.isPiercing)
+        game.tick(100)
+        assertFalse(game.isPiercing)
+        assertEquals(Breakout.PADDLE_W, game.paddleWidth, 0.0001f)
+        assertTrue(game.activeEffects.isEmpty())
+    }
+
+    @Test
+    fun laBallePerforanteTraverseLesBriquesSansRebondir() {
+        val bricks = bricksAt(Triple(3, 6, 1), Triple(3, 5, 1), Triple(0, 0, 1))
+        val pierce = state(ballX = 3.5f, ballY = 5.2f, vx = 0f, vy = -7f, bricks = bricks, extra = extras(pierce = 5000))
+        pierce.tick(150)
+        assertFalse(pierce.hasBrick(3, 6))
+        assertFalse(pierce.hasBrick(3, 5))
+        assertTrue(pierce.ballVy < 0f)
+        // Sans le bonus, la balle casse une brique et repart vers le bas.
+        val normal = state(ballX = 3.5f, ballY = 5.2f, vx = 0f, vy = -7f, bricks = bricks)
+        normal.tick(150)
+        assertTrue(normal.hasBrick(3, 5))
+        assertTrue(normal.ballVy > 0f)
+    }
+
+    @Test
+    fun lAimantColleLaBalleALaRaquettePuLaLanceSelonOuElleEstColleeEtLaVise() {
+        val game = state(
+            ballX = 4.5f, ballY = Breakout.PADDLE_TOP - 0.5f, vx = 0f, vy = 7f, paddleX = 4f,
+            extra = extras(magnet = 5000)
+        )
+        game.tick(100)
+        assertTrue(game.attached)
+        assertTrue(game.hasStuckBall)
+        assertEquals(0f, game.ballVy, 0f)
+        // Elle suit la raquette, au même endroit dessus.
+        game.movePaddleTo(6f)
+        assertEquals(6.5f, game.ballX, 0.001f)
+        game.launch()
+        assertFalse(game.attached)
+        assertTrue(game.ballVy < 0f)
+        // Collée à droite du centre, elle part vers la droite.
+        assertTrue(game.ballVx > 0f)
+        assertEquals(Breakout.speedFor(1), hypot(game.ballVx, game.ballVy), 0.01f)
+    }
+
+    @Test
+    fun sansAimantLaBalleRebondit() {
+        val game = state(ballX = 4.5f, ballY = Breakout.PADDLE_TOP - 0.5f, vx = 0f, vy = 7f, paddleX = 4f)
+        game.tick(100)
+        assertFalse(game.hasStuckBall)
+        assertTrue(game.ballVy < 0f)
+    }
+
+    @Test
+    fun laMultiBalleTripleLesBalles() {
+        val game = withCapsuleOnPaddle(BreakoutBonus.MULTI, ballVy = -5f, attached = false)
+        assertEquals(3, game.allBalls.size)
+        val speeds = game.allBalls.map { hypot(it.vx, it.vy) }
+        assertTrue(speeds.all { abs(it - speeds[0]) < 0.01f })
+        // Les balles partent dans trois directions différentes.
+        assertEquals(3, game.allBalls.map { (it.vx * 100f).toInt() }.toSet().size)
+    }
+
+    @Test
+    fun laMultiBalleNeDepassePasLeNombreMaximalDeBalles() {
+        val game = state(
+            ballX = 2f, ballY = 8f, vx = 0f, vy = -5f,
+            extra = extras(
+                balls = List(Breakout.MAX_BALLS - 1) { listOf(1f + it * 0.5f, 8f, 0f, -3f) },
+                capsules = listOf(Triple(4f, Breakout.PADDLE_TOP - 0.5f, BreakoutBonus.MULTI))
+            )
+        )
+        assertEquals(Breakout.MAX_BALLS, game.allBalls.size)
+        game.tick(100)
+        assertEquals(Breakout.MAX_BALLS, game.allBalls.size)
+    }
+
+    @Test
+    fun laPartieContinueTantQuIlResteUneBalle() {
+        val game = state(
+            ballX = 1f, ballY = Breakout.HEIGHT - 0.5f, vx = 0f, vy = 7f, paddleX = 6f,
+            extra = extras(balls = listOf(listOf(4f, 8f, 0f, -3f)))
+        )
+        assertEquals(2, game.allBalls.size)
+        game.tick(400)
+        assertEquals(1, game.allBalls.size)
+        assertEquals(Breakout.LIVES, game.lives)
+        assertFalse(game.isOver)
+        assertFalse(game.attached)
+    }
+
+    @Test
+    fun perdreLaDerniereBalleCouteUneVieEtEffaceLesEffets() {
+        val game = state(
+            ballX = 1f, ballY = Breakout.HEIGHT - 0.5f, vx = 0f, vy = 7f, paddleX = 6f,
+            extra = extras(
+                laser = 5000, expand = 5000, magnet = 5000,
+                capsules = listOf(Triple(7f, 3f, BreakoutBonus.PIERCE))
+            )
+        )
+        game.tick(400)
+        assertEquals(Breakout.LIVES - 1, game.lives)
+        assertTrue(game.attached)
+        assertEquals(1, game.allBalls.size)
+        assertFalse(game.hasLaser)
+        assertFalse(game.hasCatch)
+        assertEquals(Breakout.PADDLE_W, game.paddleWidth, 0.0001f)
+        assertTrue(game.fallingCapsules.isEmpty())
+    }
+
+    @Test
+    fun laCapsuleAccelerationAccelereLesBallesPuisLaVitesseRevient() {
+        val game = withCapsuleOnPaddle(BreakoutBonus.FAST, ballVy = -5f, attached = false)
+        assertTrue(game.fastMs > 0)
+        assertEquals(Breakout.speedFor(1) * Breakout.FAST_FACTOR, hypot(game.ballVx, game.ballVy), 0.01f)
+        // Fin de l'effet : la balle reprend la vitesse du niveau, dans la même direction.
+        val ending = state(
+            ballX = 2f, ballY = 8f, vx = 0f, vy = -9.8f, extra = extras(fast = 50)
+        )
+        ending.tick(100)
+        assertEquals(Breakout.speedFor(1), hypot(ending.ballVx, ending.ballVy), 0.01f)
+    }
+
+    @Test
+    fun leLaserCasseLesBriquesEnTirantDepuisLaRaquette() {
+        val bricks = bricksAt(Triple(3, 6, 1), Triple(0, 0, 1))
+        val game = state(
+            ballX = 2f, ballY = Breakout.PADDLE_TOP - Breakout.BALL_RADIUS, vx = 0f, vy = 0f, attached = true,
+            bricks = bricks, extra = extras(laser = 5000)
+        )
+        game.tick(16)
+        assertEquals(2, game.laserBolts.size)
+        repeat(40) { game.tick(16) }
+        assertFalse(game.hasBrick(3, 6))
+        assertTrue(game.hasBrick(0, 0))
+        assertEquals(Breakout.brickPoints(6, 1), game.score)
+    }
+
+    @Test
+    fun leLaserLibereLesCapsulesDesBriquesCassees() {
+        val bricks = bricksAt(Triple(3, 6, code(BreakoutBonus.CATCH)), Triple(0, 0, 1))
+        val game = state(
+            ballX = 2f, ballY = Breakout.PADDLE_TOP - Breakout.BALL_RADIUS, vx = 0f, vy = 0f, attached = true,
+            bricks = bricks, extra = extras(laser = 5000)
+        )
+        repeat(32) { game.tick(16) }
+        assertFalse(game.hasBrick(3, 6))
+        assertTrue(game.fallingCapsules.any { it.bonus == BreakoutBonus.CATCH })
+    }
+
+    @Test
+    fun lePassageAuNiveauSuivantEffaceCapsulesEtEffets() {
+        val game = state(
+            ballX = 3.5f, ballY = 5.2f, vx = 0f, vy = -7f, bricks = bricksAt(Triple(3, 6, 1)),
+            extra = extras(laser = 5000, pierce = 5000, capsules = listOf(Triple(7f, 3f, BreakoutBonus.EXPAND)))
+        )
+        game.tick(100)
+        assertEquals(2, game.level)
+        assertTrue(game.fallingCapsules.isEmpty())
+        assertTrue(game.laserBolts.isEmpty())
+        assertTrue(game.activeEffects.isEmpty())
+        assertEquals(1, game.allBalls.size)
+        assertTrue(game.attached)
+    }
+
+    @Test
+    fun lesEffetsLesBallesEtLesCapsulesSeSauvegardent() {
+        val game = state(
+            ballX = 2f, ballY = 8f, vx = 1f, vy = -5f,
+            extra = extras(
+                expand = 3000, laser = 4000, magnet = 500,
+                balls = listOf(listOf(4f, 8f, 1f, -3f)),
+                capsules = listOf(Triple(2f, 3f, BreakoutBonus.PIERCE))
+            )
+        )
+        val copy = BreakoutGame.restore(game.save())
+        assertNotNull(copy)
+        assertEquals(game.save(), copy!!.save())
+        assertEquals(3000, copy.expandMs)
+        assertEquals(4000, copy.laserMs)
+        assertEquals(500, copy.catchMs)
+        assertEquals(2, copy.allBalls.size)
+        assertEquals(1, copy.fallingCapsules.size)
+        assertEquals(BreakoutBonus.PIERCE, copy.fallingCapsules[0].bonus)
+    }
+
+    @Test
+    fun uneAncienneSauvegardeSansEffetsSeRestaure() {
+        val data = listOf(0, 3, 1, 0, 0, 4f.toBits(), 4f.toBits(), 8f.toBits(), 0f.toBits(), (-5f).toBits()) + List(all) { 1 }
+        val game = BreakoutGame.restore(data)
+        assertNotNull(game)
+        assertEquals(all, game!!.bricksLeft)
+        assertEquals(1, game.allBalls.size)
+        assertTrue(game.activeEffects.isEmpty())
+    }
+
+    @Test
+    fun desEffetsOuDesCapsulesAbimesFontRefuserLaSauvegarde() {
+        val game = state(
+            ballX = 2f, ballY = 8f, vx = 1f, vy = -5f,
+            extra = extras(capsules = listOf(Triple(2f, 3f, BreakoutBonus.PIERCE)))
+        )
+        val good = game.save()
+        val base = 10 + all
+        assertNotNull(BreakoutGame.restore(good))
+        // Un effet plus long que possible, trop de balles, une capsule inconnue, ou des données en trop.
+        assertNull(BreakoutGame.restore(good.toMutableList().also { it[base] = Breakout.EXPAND_MS + 1 }))
+        assertNull(BreakoutGame.restore(good.toMutableList().also { it[base + 7] = Breakout.MAX_BALLS }))
+        assertNull(BreakoutGame.restore(good.toMutableList().also { it[good.size - 1] = 99 }))
+        assertNull(BreakoutGame.restore(good + listOf(5)))
+        assertNull(BreakoutGame.restore(good.dropLast(1)))
+    }
+
     // --- Une vraie partie ---
 
     @Test
@@ -444,10 +800,12 @@ class BreakoutTest {
             game.movePaddleTo(game.ballX)
             if (game.attached) game.launch()
             game.tick(16)
-            assertTrue(game.ballX in 0f..game.width)
-            assertTrue(game.ballY in 0f..game.height + 1f)
-            assertTrue(game.ballX.isFinite() && game.ballY.isFinite())
-            assertTrue(abs(hypot(game.ballVx, game.ballVy)) <= Breakout.MAX_UNITS_SPEED + 0.01f)
+            for (b in game.allBalls) {
+                assertTrue(b.x in 0f..game.width)
+                assertTrue(b.y in 0f..game.height + 1f)
+                assertTrue(b.x.isFinite() && b.y.isFinite())
+            }
+            assertTrue(abs(hypot(game.ballVx, game.ballVy)) <= Breakout.MAX_UNITS_SPEED * Breakout.FAST_FACTOR + 0.01f)
             frames++
         }
         assertTrue("des briques ont été cassées", game.score > 0)
