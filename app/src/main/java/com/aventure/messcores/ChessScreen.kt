@@ -149,6 +149,8 @@ private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: ()
     var flipped by rememberSaveable { mutableStateOf(false) }
     var showResign by rememberSaveable { mutableStateOf(false) }
     var showDraw by rememberSaveable { mutableStateOf(false) }
+    // Le mode explorer (l'œil de la ligne du tour, style sorcier) : voir ChessExplore.kt.
+    var explore by rememberSaveable { mutableStateOf(false) }
     // La pendule : l'instant où le joueur actuel a commencé à réfléchir (l'horloge continue quand l'écran tourne).
     var turnStart by rememberSaveable { mutableLongStateOf(0L) }
     val now = rememberClockNow(match.clockRunning)
@@ -175,7 +177,10 @@ private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: ()
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Text(
+        ChessTurnLine(
+            showEye = wizard,
+            explore = explore && wizard,
+            onToggleExplore = { explore = !explore },
             text = when {
                 result == null -> stringResource(
                     if (game.inCheck) R.string.chess_turn_check else R.string.chess_turn,
@@ -204,6 +209,7 @@ private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: ()
             enabled = !match.isOver,
             flipped = flipped,
             wizard = wizard,
+            explore = explore && wizard,
             onMove = { move ->
                 val t = SystemClock.elapsedRealtime()
                 match.play(move, match.currentSeat, t - turnStart)?.let {
@@ -323,6 +329,7 @@ private fun OnlineChess(online: ChessOnline, wizard: Boolean, onToggleStyle: () 
     }
 
     var showResign by rememberSaveable { mutableStateOf(false) }
+    var explore by rememberSaveable { mutableStateOf(false) }
 
     val match = online.match
     val now = rememberClockNow(match.clockRunning)
@@ -348,7 +355,10 @@ private fun OnlineChess(online: ChessOnline, wizard: Boolean, onToggleStyle: () 
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Text(
+        ChessTurnLine(
+            showEye = wizard,
+            explore = explore && wizard,
+            onToggleExplore = { explore = !explore },
             text = when {
                 result == null && online.myTurn -> stringResource(
                     if (game.inCheck) R.string.chess_online_your_turn_check else R.string.chess_online_your_turn,
@@ -378,6 +388,7 @@ private fun OnlineChess(online: ChessOnline, wizard: Boolean, onToggleStyle: () 
             enabled = online.myTurn,
             flipped = !online.playsWhite,
             wizard = wizard,
+            explore = explore && wizard,
             onMove = online::play
         )
         if (result != null) {
@@ -518,7 +529,14 @@ private val PROMOTION_CHOICES = listOf(
  * [flipped] : les noirs sont en bas.
  */
 @Composable
-private fun ChessPlayArea(game: ChessGame, enabled: Boolean, flipped: Boolean, wizard: Boolean, onMove: (ChessMove) -> Unit) {
+private fun ChessPlayArea(
+    game: ChessGame,
+    enabled: Boolean,
+    flipped: Boolean,
+    wizard: Boolean,
+    explore: Boolean,
+    onMove: (ChessMove) -> Unit
+) {
     // Une sélection ne survit pas à un coup joué.
     var selected by rememberSaveable(game.moves.size) { mutableIntStateOf(-1) }
     var promotionFrom by rememberSaveable(game.moves.size) { mutableIntStateOf(-1) }
@@ -556,6 +574,7 @@ private fun ChessPlayArea(game: ChessGame, enabled: Boolean, flipped: Boolean, w
         selected = if (enabled) selected else -1,
         enabled = enabled,
         wizard = wizard,
+        explore = explore,
         onTap = ::tap
     )
 
@@ -640,8 +659,13 @@ private fun ChessBoard(
     selected: Int,
     enabled: Boolean,
     wizard: Boolean,
+    explore: Boolean,
     onTap: (Int) -> Unit
 ) {
+    // La vue du mode explorer (zoom, déplacement, rotation) ; elle revient à plat quand l'œil se ferme.
+    val view = remember { BoardView() }
+    LaunchedEffect(explore) { if (!explore) view.reset() }
+    val tapsEnabled = enabled && !explore
     val targets = if (selected >= 0) game.legalMoves.filter { it.from == selected }.map { it.to }.toSet() else emptySet()
     val checked = if (game.inCheck) game.position.board.indexOf(if (game.position.whiteToMove) 'K' else 'k') else -1
     val last = game.lastMove
@@ -687,17 +711,38 @@ private fun ChessBoard(
     // Le plateau agrandi par la caméra d'une prise reste découpé à sa place, sans déborder sur le reste de l'écran.
     Box(
         // En style sorcier, une marge au-dessus du plateau laisse dépasser la tête des pièces hautes de la rangée du fond.
-        modifier = Modifier.fillMaxWidth().then(if (wizard) Modifier.clipToBounds().padding(top = WIZARD_TOP_OVERHANG) else Modifier),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (wizard) Modifier.clipToBounds() else Modifier)
+            // Mode explorer : les doigts pilotent la caméra, rien n'arrive plus aux cases (voir ChessExplore.kt).
+            .then(if (explore) Modifier.exploreGestures(view) else Modifier)
+            .then(if (wizard) Modifier.padding(top = WIZARD_TOP_OVERHANG) else Modifier),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .widthIn(max = 440.dp)
                 .fillMaxWidth()
+                // Mode explorer : zoom, déplacement et rotation du plateau entier (pièces 3D comprises).
+                .then(
+                    if (explore) {
+                        Modifier.graphicsLayer {
+                            cameraDistance = 14f * density
+                            scaleX = view.zoom
+                            scaleY = view.zoom
+                            translationX = view.panX
+                            translationY = view.panY
+                            rotationX = view.tilt
+                            rotationY = view.orbit
+                        }
+                    } else {
+                        Modifier
+                    }
+                )
                 // Pendant une prise (style sorcier), la caméra incline le plateau, zoome très fort sur l'action (elle suit la
                 // pièce, ou le projectile) et secoue à l'impact : la zone regardée est ramenée au centre de l'écran.
                 .then(
-                    if (wizard && fx?.isCapture == true) {
+                    if (wizard && !explore && fx?.isCapture == true) {
                         Modifier.graphicsLayer {
                             val camera = fx?.let { wizardCamera(it, progress.value, flipped) }
                             // Le plateau est entouré du cadre : la zone regardée (en parts du plateau) est ramenée à celles de la vue entière.
@@ -784,7 +829,7 @@ private fun ChessBoard(
                                             contentDescription = description
                                             if (state != null) stateDescription = state
                                         }
-                                        .clickable(enabled = enabled, role = Role.Button) { onTap(square) },
+                                        .clickable(enabled = tapsEnabled, role = Role.Button) { onTap(square) },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (piece != '.' && square != animatedSquare && !board3d) ChessPiece(piece, fontSize, wizard)
