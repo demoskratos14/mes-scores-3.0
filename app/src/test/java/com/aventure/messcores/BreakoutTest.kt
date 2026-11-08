@@ -229,7 +229,9 @@ class BreakoutTest {
         val game = state(ballX = 3.5f, ballY = bottom + 0.4f, vx = 0f, vy = -7f, lives = 2, bricks = bricks)
         game.tick(100)
         assertEquals(2, game.level)
-        assertEquals(Breakout.bricksFor(2), game.bricksLeft)
+        // Le niveau 2 a sa disposition au hasard : au plus une grille pleine, et de quoi jouer.
+        assertTrue(game.bricksLeft in 1..Breakout.bricksFor(2))
+        assertEquals(game.bricksLeft, (0 until game.rows).sumOf { r -> (0 until game.cols).count { c -> game.hasBrick(c, r) } })
         assertEquals(9, game.cols)
         assertEquals(game.width / 2f, game.paddleX, 0.0001f)
         assertEquals(2, game.lives)
@@ -341,6 +343,94 @@ class BreakoutTest {
         game.tick(100)
         assertFalse(game.hasBrick(8, 7))
         assertEquals(Breakout.brickPoints(7, 2, 8), game.score)
+    }
+
+    // --- Des niveaux disposés au hasard ---
+
+    private fun neighbours(cells: IntArray, cols: Int, rows: Int, col: Int, row: Int): Int {
+        var n = 0
+        if (col > 0 && cells[row * cols + col - 1] == 1) n++
+        if (col < cols - 1 && cells[row * cols + col + 1] == 1) n++
+        if (row > 0 && cells[(row - 1) * cols + col] == 1) n++
+        if (row < rows - 1 && cells[(row + 1) * cols + col] == 1) n++
+        return n
+    }
+
+    @Test
+    fun leNiveauUnEstToujoursLaGrillePleine() {
+        repeat(20) { seed ->
+            assertTrue(Breakout.layoutFor(1, Random(seed)).all { it == 1 })
+        }
+        assertEquals(all, newGame(5).bricksLeft)
+    }
+
+    @Test
+    fun auNiveauDeuxEtAuDelaLesBriquesSontDisposeesAuHasard() {
+        for (level in 2..17) {
+            val layouts = (0 until 10).map { Breakout.layoutFor(level, Random(it)).toList() }.toSet()
+            assertTrue("niveau $level : les dispositions diffèrent", layouts.size > 1)
+            for (layout in layouts) assertEquals(Breakout.bricksFor(level), layout.size)
+        }
+    }
+
+    @Test
+    fun aucuneBriqueNEstSeuleDansLeVide() {
+        for (level in 2..17) for (seed in 0 until 50) {
+            val cols = Breakout.colsFor(level)
+            val rows = Breakout.rowsFor(level)
+            val cells = Breakout.layoutFor(level, Random(seed))
+            for (row in 0 until rows) for (col in 0 until cols) {
+                if (cells[row * cols + col] == 1) {
+                    assertTrue("niveau $level, graine $seed : brique seule en ($col, $row)", neighbours(cells, cols, rows, col, row) >= 1)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun retirerLesBriquesSeulesLaisseLesPaires() {
+        // Une brique seule (0, 0), une paire (2, 0)-(3, 0), une brique seule en diagonale (1, 1)... et (0, 2) seule.
+        val cells = intArrayOf(
+            1, 0, 1, 1,
+            0, 1, 0, 0,
+            1, 0, 0, 0
+        )
+        Breakout.removeLoneBricks(cells, 4, 3)
+        assertEquals(listOf(0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0), cells.toList())
+    }
+
+    @Test
+    fun lesBriquesNeDescendentJamaisTropBasParRapportALaRaquette() {
+        for (level in 1..17) for (seed in 0 until 20) {
+            val cols = Breakout.colsFor(level)
+            val rows = Breakout.rowsFor(level)
+            val cells = Breakout.layoutFor(level, Random(seed))
+            val lowestRow = (0 until rows).last { row -> (0 until cols).any { cells[row * cols + it] == 1 } }
+            val bottom = Breakout.bricksTopFor(level) + (lowestRow + 1) * Breakout.BRICK_H
+            // Il reste toujours plus de la moitié de la hauteur du terrain sous les briques, pour avoir le temps de renvoyer la balle.
+            assertTrue("niveau $level", Breakout.paddleTopFor(level) - bottom > Breakout.heightFor(level) / 2f)
+        }
+    }
+
+    @Test
+    fun uneDispositionNeSeVideJamaisAuPointDEtreTropMaigre() {
+        for (level in 2..17) for (seed in 0 until 50) {
+            val cells = Breakout.layoutFor(level, Random(seed))
+            assertTrue(cells.count { it == 1 } >= cells.size * 0.45)
+        }
+    }
+
+    @Test
+    fun lePassageAuNiveauSuivantDisposeLesBriquesAuHasardEtLesSauvegarde() {
+        val bottom = Breakout.BRICKS_TOP + Breakout.ROWS * Breakout.BRICK_H
+        val bricks = List(all) { if (it == (Breakout.ROWS - 1) * Breakout.COLS + 3) 1 else 0 }
+        val game = state(ballX = 3.5f, ballY = bottom + 0.4f, vx = 0f, vy = -7f, bricks = bricks)
+        game.tick(100)
+        assertEquals(2, game.level)
+        val copy = BreakoutGame.restore(game.save())
+        assertNotNull(copy)
+        assertEquals(game.save(), copy!!.save())
+        assertEquals(game.bricksLeft, copy.bricksLeft)
     }
 
     // --- Une vraie partie ---
