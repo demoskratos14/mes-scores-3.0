@@ -14,7 +14,8 @@ import kotlin.math.sqrt
  * le moteur). La scène recouvre l'échiquier : la caméra est placée loin devant, à l'axe, avec un champ si étroit que 1 unité
  * du monde = 1 case de l'écran. Un point (x, y) du plateau, en cases depuis son coin haut-gauche, est donc le point
  * (x, 8 × pas − y) du monde (le pas des rangées : voir WIZARD_ROW_PITCH), à la profondeur 0 : les pièces 3D tombent pile là où les statues 2D seraient dessinées, et suivent le
- * même mouvement (voir [captureMotion]). Seules la pièce qui prend, son arme et sa victime sont en 3D ; le reste de la prise (éclairs,
+ * même mouvement (voir [captureMotion]). Seules la pièce qui prend, son arme, sa victime et ses débris (gravats ou poussière, voir
+ * Wizard3DDebris.kt) sont en 3D ; le reste de la prise (éclairs,
  * éclats, traînées de l'arme) reste dessiné en 2D par-dessus, accroché aux points de [CaptureAnchors]. Toutes les pièces frappent avec
  * l'arme qu'elles tiennent (le pion avec ses deux courtes épées, qui se referment en ciseaux sur sa victime) ; seule la statue 2D du repli conjure des lames.
  */
@@ -75,7 +76,9 @@ internal class Wizard3DPose(
     val victimVisible: Boolean,
     val anchors: CaptureAnchors,
     /** La seconde épée du pion (celle de son autre poing) : les deux lames se referment en ciseaux sur la victime. Null pour les autres pièces. */
-    val offWeapon: FloatArray? = null
+    val offWeapon: FloatArray? = null,
+    /** Les gravats (ou la poussière) de la victime écroulée, un par débris, dans l'ordre des instances de la scène (voir Wizard3DDebris.kt). */
+    val debris: List<DebrisPose> = emptyList()
 )
 
 internal class Wizard3DCapture private constructor(
@@ -93,11 +96,22 @@ internal class Wizard3DCapture private constructor(
         Instance3D(weaponMesh, WizardModelCatalog.materialFor(fx.mover))
     } else null
 
+    // Ce qu'il reste de la victime : des gravats, ou de la poussière quand c'est le fou qui frappe (voir Wizard3DDebris.kt).
+    private val debris = Wizard3DDebris(
+        seed = fx.capturedSquare * 31 + fx.captured.code,
+        dust = fx.mover.uppercaseChar() == 'B',
+        bodyHeight = victimMesh.maxY * scaleOf(fx.captured),
+        crumbleAfter = crumbleAfter(fx.mover),
+        base = WizardModelCatalog.materialFor(fx.captured)
+    )
+    private val debrisInstances = debris.instances()
+
     private val camera = boardCamera()
 
     /** La scène à donner à `Scene3DView`, dont `update` doit appeler [update]. */
     val scene = Scene3D().also { s3d ->
         s3d.instances.add(victim)
+        s3d.instances.addAll(debrisInstances)
         s3d.instances.add(mover)
         weapon?.let { s3d.instances.add(it) }
         offWeapon?.let { s3d.instances.add(it) }
@@ -130,6 +144,12 @@ internal class Wizard3DCapture private constructor(
         victim.matrix = pose.victim
         victim.depthBias = depthBias(pose.victim)
         victim.visible = pose.victimVisible
+        for ((i, d) in pose.debris.withIndex()) {
+            val instance = debrisInstances[i]
+            instance.matrix = d.matrix
+            instance.visible = d.visible
+            instance.depthBias = victim.depthBias
+        }
     }
 
     // La fenêtre de la scène suit la caméra de la prise (voir wizardCamera) : même centre, et une largeur un peu plus grande que
@@ -200,14 +220,14 @@ internal class Wizard3DCapture private constructor(
         val after = m.after
         when (kind) {
             'P', 'Q', 'K' -> {
-                // Tranchée : elle bascule en s'écartant du coup, puis s'efface.
+                // Tranchée : elle bascule en s'écartant du coup, puis s'écroule en gravats (le corps s'amenuise pendant que le tas se forme).
                 val ease = 1f - (1f - after) * (1f - after)
                 roll = m.side * 80f * ease
                 shiftX = -m.side * 0.3f * ease
-                shrink = 1f - smooth(((after - 0.45f) / 0.55f).coerceIn(0f, 1f))
+                shrink = 1f - smooth(((after - CRUMBLE_SLICED) / 0.45f).coerceIn(0f, 1f))
             }
             'N' -> {
-                // Écrasée : elle s'aplatit sous la masse, puis ne reste que l'onde de choc et les éclats 2D.
+                // Écrasée : elle s'aplatit sous la masse, puis s'écroule en gravats (et les éclats 2D).
                 if (after < CRUSH_END) {
                     val t = smooth(after / CRUSH_END)
                     squashX = 1f + 0.18f * t
@@ -217,11 +237,11 @@ internal class Wizard3DCapture private constructor(
                 }
             }
             'R' -> {
-                // Percée : elle tressaille, puis les fissures 2D la font éclater.
+                // Percée : elle tressaille, puis éclate en gravats (avec les fissures 2D).
                 if (after < PIERCE_END) shiftX = sin(after * 140f) * 0.03f else visible = false
             }
             else -> {
-                // Dissoute en lumière : elle rétrécit en s'élevant.
+                // Foudroyée par le fou : elle rétrécit en s'élevant, et part en poussière.
                 if (after < DISSOLVE_END) {
                     val t = after / DISSOLVE_END
                     shrink = 1f - smooth(t)
@@ -239,7 +259,15 @@ internal class Wizard3DCapture private constructor(
         val s = scaleOf(fx.captured) * shrink
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.scaling(s, s, s))
 
-        return Wizard3DPose(moverMatrix, weaponMatrix, victimMatrix, visible, hooks, ms.offWeapon)
+        // Les débris tombent là où la victime se tenait, poussés à l'opposé de l'attaquant.
+        val push = when {
+            attackDx > cell * 0.15f -> 1f
+            attackDx < -cell * 0.15f -> -1f
+            else -> 0f
+        }
+        val debrisPoses = debris.poses(progress, victimX, BOARD_H - victimRow, depth(victimRow), push)
+
+        return Wizard3DPose(moverMatrix, weaponMatrix, victimMatrix, visible, hooks, ms.offWeapon, debrisPoses)
     }
 
     private class MoverState(
@@ -382,6 +410,13 @@ internal class Wizard3DCapture private constructor(
         /** Le pion est le plus petit : on le grossit en plus, pour qu'il ne paraisse pas minuscule à côté des autres pièces. */
         private const val PAWN_BOOST = 1.3f
 
+        private fun crumbleAfter(mover: Char): Float = when (mover.uppercaseChar()) {
+            'N' -> CRUSH_END - 0.03f
+            'R' -> PIERCE_END
+            'B' -> 0.05f
+            else -> CRUMBLE_SLICED
+        }
+
         private fun scaleOf(piece: Char): Float = if (piece.uppercaseChar() == 'P') SCALE * PAWN_BOOST else SCALE
 
         /** Le pied de la pièce, sous le centre de sa case (en cases) : 0,88 depuis le haut de la case, comme les statues 2D. */
@@ -440,6 +475,9 @@ internal class Wizard3DCapture private constructor(
         private const val SCISSOR_AIM_FRACTION = 0.45f
         private const val SCISSOR_AIM_HEIGHT = 0.5f
         private const val FRONT_YAW = 40f
+        // Le moment où la statue s'écroule en débris (part de la fin du coup) : tranchée, un peu après avoir basculé ; écrasée et percée,
+        // dès que le coup a fini son œuvre ; foudroyée par le fou, presque tout de suite (le nuage de poussière se forme pendant qu'elle se dissout).
+        private const val CRUMBLE_SLICED = 0.3f
         private const val CRUSH_END = 0.2f
         private const val PIERCE_END = 0.14f
         private const val DISSOLVE_END = 0.3f
