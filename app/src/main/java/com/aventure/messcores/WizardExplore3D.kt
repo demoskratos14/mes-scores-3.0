@@ -108,8 +108,9 @@ internal class ExploreBoard3D(private val meshOf: (String) -> Mesh3D?) {
         scene.instances.add(Instance3D(mesh, material, matrix))
         val weaponModel = WizardModelCatalog.weaponModel(piece) ?: return true
         val weaponMesh = meshOf(weaponModel) ?: return false
-        val local = WizardModelCatalog.weaponLocal(piece.uppercaseChar()) ?: return false
-        scene.instances.add(Instance3D(weaponMesh, material, Mat4.multiply(matrix, local)))
+        // Une arme par main : le pion en tient deux, couchées le long de ses flancs.
+        val locals = WizardModelCatalog.restWeaponLocals(piece) ?: return false
+        for (local in locals) scene.instances.add(Instance3D(weaponMesh, material, Mat4.multiply(matrix, local)))
         return true
     }
 

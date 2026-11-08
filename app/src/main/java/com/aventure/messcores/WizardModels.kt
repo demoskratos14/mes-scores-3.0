@@ -71,6 +71,23 @@ internal object WizardModelCatalog {
         'P' to WeaponMount(0.0041f, 0.0185f, -0.0130f, -0.00006f, 0.0186f, 0.0007f, pitch = 180f)
     )
 
+    // Au repos (mode explorer), le pion tient ses deux épées couchées le long de ses flancs, exactement sur celles que son modèle
+    // porte déjà : poignée au poing (mesuré sur pawn.glb), lame vers l'arrière (+Z dans le fichier : il regarde vers −Z), à peine
+    // relevée. Les montages de l'animation de prise (MOUNTS, OFF_HAND_MOUNTS : lames dressées) ne changent pas.
+    private val FLANK_MOUNTS = mapOf(
+        'P' to listOf(
+            WeaponMount(-0.00713f, 0.01939f, -0.00704f, -0.00006f, 0.0186f, 0.0007f, yaw = 2.9f, pitch = -96f),
+            WeaponMount(0.00714f, 0.01744f, -0.00746f, -0.00006f, 0.0186f, 0.0007f, yaw = -2f, pitch = -98f)
+        )
+    )
+
+    /**
+     * Les matrices (repère de la pièce) de toutes les armes de [piece] au repos, une par arme : celles de [weaponLocal] pour toutes les
+     * pièces sauf le pion, dont les deux épées longent le corps. Null si ce n'est pas une pièce armée.
+     */
+    fun restWeaponLocals(piece: Char): List<FloatArray>? =
+        FLANK_MOUNTS[piece.uppercaseChar()]?.map { localOf(it, 0f, 0f, 0f) } ?: weaponLocal(piece)?.let { listOf(it) }
+
     /** Le montage de l'arme de la pièce [piece], ou null si ce n'est pas une pièce. */
     fun weaponMount(piece: Char): WeaponMount? = MOUNTS[piece.uppercaseChar()]
 
