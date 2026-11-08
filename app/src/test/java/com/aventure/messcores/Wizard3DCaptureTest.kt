@@ -110,6 +110,35 @@ class Wizard3DCaptureTest {
     }
 
     @Test
+    fun laVictimeSEcrouleEnGravatsPuisLesGravatsDisparaissentQuandLAutrePrendSaPlace() {
+        // Le cavalier écrase le pion : rien avant l'impact, puis un tas de gravats posé sur la case, qui s'efface quand le cavalier arrive.
+        val knight = capture(fx('N', "b4", "f4", 'p'))
+        assertTrue("rien avant l'impact", knight.pose(0.40f, false).debris.none { it.visible })
+        val during = knight.pose(0.70f, false)
+        assertTrue("des gravats une fois écroulée", during.debris.count { it.visible } >= 10)
+        for (d in during.debris.filter { it.visible }) {
+            assertTrue("sur sa case (x)", abs(d.matrix[12] - during.victim[12]) < 1.5f)
+            assertTrue("pas sous le sol", d.matrix[13] >= during.victim[13] - 0.05f)
+        }
+        assertTrue("plus rien quand l'autre a pris sa place", knight.pose(1f, false).debris.none { it.visible })
+        // Chaque prise a les siens : le pion tranche, la tour perce.
+        for (mover in "KQRP") {
+            val pose = capture(fx(mover, "b4", "f4", 'p')).pose(0.78f, false)
+            assertTrue("$mover : des gravats", pose.debris.any { it.visible })
+        }
+    }
+
+    @Test
+    fun laVictimeDuFouPartEnPoussiereEtNonEnGravats() {
+        val bishop = capture(fx('B', "b4", "f4", 'p'))
+        val rubble = capture(fx('N', "b4", "f4", 'p'))
+        val dust = bishop.pose(0.60f, false).debris
+        assertTrue("un nuage de grains, plus nombreux que des blocs", dust.size > rubble.pose(0.60f, false).debris.size)
+        assertTrue("la poussière est née", dust.any { it.visible })
+        assertTrue("elle se dissipe à la fin", bishop.pose(1f, false).debris.none { it.visible })
+    }
+
+    @Test
     fun laMainResteSurLArmeQuandElleSeLeve() {
         for (piece in "KQNRBP") {
             val f = fx(piece, "b4", "f4", 'p')
