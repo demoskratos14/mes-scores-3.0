@@ -96,12 +96,12 @@ internal class ExploreBoard3D(private val meshOf: (String) -> Mesh3D?) {
         val material = WizardModelCatalog.materialFor(piece)
         val facing = WizardModelCatalog.facingYaw(piece)
         val restYaw = Wizard3DCapture.restYaw(piece, whiteAtBottom) + facing
-        // La tour est de profil : son bouclier (côté +Z dans son fichier) doit regarder l'ennemi, son épée rester derrière. Le lacet
-        // de repos 2D la tourne dans l'autre sens ; ici, on le prend en miroir par rapport à l'axe des rangées (180° − lacet).
-        // Ce lacet est calculé avec les blancs en bas ; plateau retourné, c'est l'ennemi qui change de côté : nouveau miroir.
+        // La tour est de profil : son bouclier (côté +Z dans son fichier) doit toujours regarder l'ennemi, quelle que soit sa couleur.
+        // En bas de l'écran (ses pièces « s'éloignent ») on la voit de dos, bouclier vers le haut ; en haut, c'est le même lacet en
+        // miroir par rapport à l'axe des rangées (180° − lacet) : vue de face, bouclier vers le bas.
         val yaw = if (piece.uppercaseChar() == 'R') {
-            val upright = 180f - (Wizard3DCapture.restYaw(piece, true) + facing)
-            if (whiteAtBottom) upright else 180f - upright
+            val top = 180f - (Wizard3DCapture.restYaw('r', true) + facing)
+            if (Chess.isWhite(piece) == whiteAtBottom) 180f - top else top
         } else restYaw
         val scale = if (piece.uppercaseChar() == 'P') Wizard3DCapture.SCALE * PAWN_BOOST else Wizard3DCapture.SCALE
         val matrix = Mat4.pose(x, 0f, z, yaw = yaw, scale = scale)
