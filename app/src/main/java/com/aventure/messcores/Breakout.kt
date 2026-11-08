@@ -84,8 +84,58 @@ internal object Breakout {
     /** Nombre de rangées de briques au niveau [level] : elles suivent l'échelle du terrain, pour garder la même allure. */
     fun rowsFor(level: Int): Int = Math.round(ROWS * scaleFor(level))
 
-    /** Nombre de briques à casser au niveau [level]. */
+    /**
+     * Nombre de cases de la grille de briques au niveau [level]. Dès le niveau 2 toutes les cases ne sont pas remplies
+     * (voir [layoutFor]) : c'est le nombre maximal de briques, et la taille des sauvegardes.
+     */
     fun bricksFor(level: Int): Int = colsFor(level) * rowsFor(level)
+
+    /** Part des cases tirées au sort pour porter une brique, dès le niveau 2. */
+    private const val FILL_CHANCE = 0.75f
+
+    /** Part minimale de la grille qui doit rester remplie, une fois les briques isolées retirées. */
+    private const val MIN_FILL = 0.45f
+
+    /** Nombre d'essais avant de se rabattre sur la grille pleine. */
+    private const val LAYOUT_TRIES = 30
+
+    /**
+     * La disposition des briques au niveau [level], rangée par rangée (1 : brique, 0 : vide), de taille [bricksFor].
+     *
+     * Le niveau 1 est la grille pleine. Dès le niveau 2, les briques sont tirées au hasard pour que chaque niveau ait
+     * son allure, avec deux garanties :
+     * - aucune brique n'est seule dans le vide : chacune touche une autre brique par un côté (gauche, droite, dessus
+     *   ou dessous) ;
+     * - aucune n'est posée trop bas : elles restent dans la grille, dont le bas est toujours très loin au-dessus de la
+     *   raquette (voir [rowsFor], [bricksTopFor] et [paddleTopFor]).
+     */
+    fun layoutFor(level: Int, random: Random): IntArray {
+        val cols = colsFor(level)
+        val rows = rowsFor(level)
+        val full = IntArray(cols * rows) { 1 }
+        if (level <= 1) return full
+        repeat(LAYOUT_TRIES) {
+            val cells = IntArray(cols * rows) { if (random.nextFloat() < FILL_CHANCE) 1 else 0 }
+            removeLoneBricks(cells, cols, rows)
+            if (cells.count { it == 1 } >= MIN_FILL * cells.size) return cells
+        }
+        return full
+    }
+
+    /** Retire les briques sans aucune voisine par un côté. Retirer une brique seule n'en isole pas d'autre : un seul passage suffit. */
+    internal fun removeLoneBricks(cells: IntArray, cols: Int, rows: Int) {
+        for (row in 0 until rows) {
+            for (col in 0 until cols) {
+                if (cells[row * cols + col] == 0) continue
+                val hasNeighbour =
+                    (col > 0 && cells[row * cols + col - 1] == 1) ||
+                        (col < cols - 1 && cells[row * cols + col + 1] == 1) ||
+                        (row > 0 && cells[(row - 1) * cols + col] == 1) ||
+                        (row < rows - 1 && cells[(row + 1) * cols + col] == 1)
+                if (!hasNeighbour) cells[row * cols + col] = 0
+            }
+        }
+    }
 
     fun widthFor(level: Int): Float = colsFor(level).toFloat()
     fun heightFor(level: Int): Float = HEIGHT * scaleFor(level)
@@ -327,7 +377,7 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
         ballVx = if (ballVx >= 0f) vx else -vx
     }
 
-    /** Le niveau suivant : un terrain plus large, plus de briques et une balle plus rapide. */
+    /** Le niveau suivant : un terrain plus large, plus de briques (disposées au hasard) et une balle plus rapide. */
     private fun nextLevel() {
         level++
         paddleX = width / 2f
@@ -335,10 +385,10 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
         serve()
     }
 
-    /** Remplit le terrain du niveau en cours de briques. */
+    /** Dispose les briques du niveau en cours : la grille pleine au niveau 1, au hasard ensuite (voir [Breakout.layoutFor]). */
     private fun fillBricks() {
-        bricks = IntArray(cols * rows) { 1 }
-        bricksLeft = bricks.size
+        bricks = Breakout.layoutFor(level, random)
+        bricksLeft = bricks.count { it == 1 }
     }
 
     /** La balle revient sur la raquette, immobile. */
