@@ -48,7 +48,8 @@ internal object WizardModelCatalog {
      *    jointes sans les dépasser, la pointe (le pied du fichier) descend vers le socle, comme l'épée du roi ;
      *  - tour : la courte épée au poing, tenue en travers du corps, la pointe vers le bouclier (le soldat regarde vers −X dans son fichier,
      *    sa main droite est à −Z et son bouclier à +Z : la pointe de l'épée part donc vers +Z, pitch = −90°) ;
-     *  - pion : la courte épée de la tour, tenue pointe en l'air dans ses mains croisées, devant lui (il est de profil, agenouillé) ;
+     *  - pion : deux courtes épées (celle de la tour), une dans chaque poing (les mains croisées devant lui, agenouillé), pointe en l'air ;
+     *    celle du poing gauche (−X) est l'arme du montage, celle du poing droit (+X) est l'arme de la seconde main ([offHandMount]) ;
      *  - fou : la crosse dressée dans son poing droit (côté +X), le pied à hauteur du socle ;
      *  - cavalier : la masse brandie dans le poing du cavalier (côté −X), la tête levée au-dessus de lui.
      */
@@ -58,15 +59,30 @@ internal object WizardModelCatalog {
         'R' to WeaponMount(-0.0093f, 0.0606f, -0.0126f, -0.00006f, 0.0186f, 0.0007f, pitch = -90f),
         'B' to WeaponMount(0.0113f, 0.0629f, 0.0050f, 0.00307f, 0.0469f, 0.00003f),
         // Pion : la main est à 0,8 mm du modèle ; tangage 180° : la lame (de la poignée vers l'origine du fichier) monte droit, dans le plan de l'écran.
-        'P' to WeaponMount(0f, 0.0175f, -0.0120f, -0.00006f, 0.0186f, 0.0007f, pitch = 180f),
+        'P' to WeaponMount(-0.0038f, 0.0180f, -0.0130f, -0.00006f, 0.0186f, 0.0007f, pitch = 180f),
         'N' to WeaponMount(
             -0.0010f, 0.0600f, 0.0070f, 0.00545f, 0.00222f, -0.00217f,
             yaw = -3.2f, pitch = -9.4f, roll = -29.4f
         )
     )
 
+    // La seconde arme, tenue dans l'autre main : seul le pion en a une (deux épées pour cisailler sa victime).
+    private val OFF_HAND_MOUNTS = mapOf(
+        'P' to WeaponMount(0.0041f, 0.0185f, -0.0130f, -0.00006f, 0.0186f, 0.0007f, pitch = 180f)
+    )
+
     /** Le montage de l'arme de la pièce [piece], ou null si ce n'est pas une pièce. */
     fun weaponMount(piece: Char): WeaponMount? = MOUNTS[piece.uppercaseChar()]
+
+    /** Le montage de la seconde arme (dans l'autre main) de [piece], ou null si elle n'en a pas (tout sauf le pion). */
+    fun offHandMount(piece: Char): WeaponMount? = OFF_HAND_MOUNTS[piece.uppercaseChar()]
+
+    /** Le point de l'autre main, dans le repère du fichier de la pièce, ou null si elle n'a pas de seconde arme. */
+    fun offHandPoint(piece: Char): FloatArray? = offHandMount(piece)?.let { floatArrayOf(it.handX, it.handY, it.handZ) }
+
+    /** Comme [weaponLocal], pour la seconde arme (celle de l'autre main). */
+    fun offHandLocal(piece: Char, swingYaw: Float = 0f, swingPitch: Float = 0f, swingRoll: Float = 0f): FloatArray? =
+        offHandMount(piece)?.let { localOf(it, swingYaw, swingPitch, swingRoll) }
 
     /** Le point de la main qui tient l'arme, dans le repère du fichier de la pièce (x, y, z), ou null si ce n'est pas une pièce. */
     fun handPoint(piece: Char): FloatArray? = weaponMount(piece)?.let { floatArrayOf(it.handX, it.handY, it.handZ) }
@@ -81,6 +97,10 @@ internal object WizardModelCatalog {
      */
     fun weaponLocal(piece: Char, swingYaw: Float = 0f, swingPitch: Float = 0f, swingRoll: Float = 0f): FloatArray? {
         val m = weaponMount(piece) ?: return null
+        return localOf(m, swingYaw, swingPitch, swingRoll)
+    }
+
+    private fun localOf(m: WeaponMount, swingYaw: Float, swingPitch: Float, swingRoll: Float): FloatArray {
         var out = Mat4.translation(m.handX, m.handY, m.handZ)
         out = Mat4.multiply(out, Mat4.rotationY(swingYaw))
         out = Mat4.multiply(out, Mat4.rotationX(swingPitch))

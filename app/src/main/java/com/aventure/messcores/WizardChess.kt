@@ -983,7 +983,7 @@ private fun rotateAround(pivot: Offset, point: Offset, degrees: Float): Offset {
  * L'angle (absolu, en degrés) et l'échelle d'une arme qui frappe : du repos [rest] elle se lève jusqu'à [windup]
  * (en grandissant jusqu'à [s1]), puis le coup part jusqu'à [strike] ([s2]), puis elle revient au repos.
  */
-private fun swingPose(
+internal fun swingPose(
     progress: Float, rest: Float, windup: Float, strike: Float, s1: Float, s2: Float
 ): Pair<Float, Float> {
     val a = ((progress - ATTACK_START) / (IMPACT - ATTACK_START)).coerceIn(0f, 1f)
@@ -1236,7 +1236,8 @@ internal fun captureMotion(fx: MoveFx, progress: Float, cell: Float, from: Offse
 
 /**
  * Une prise. Chaque pièce se sert de son arme :
- *  - le pion brandit sa courte épée puis l'abat sur sa victime, coupée en deux (la statue 2D, sans épée, en conjure deux) ;
+ *  - le pion, une courte épée dans chaque poing, les ouvre puis les referme en ciseaux sur sa victime, coupée en deux (la statue
+ *    2D, sans épée, en conjure deux) ;
  *  - la tour recule d'un cran et tire un carreau d'arbalète en plein cœur : la victime se fissure et vole en éclats ;
  *  - le cavalier bondit et abat sa masse d'armes : la victime est écrasée, puis brisée ;
  *  - le fou lève sa crosse, qui s'embrase : un éclair d'or frappe la victime, qui se dissout en lumière ;
@@ -1310,12 +1311,20 @@ private fun DrawScope.drawCapture(
 
     when (kind) {
         'P' -> if (anchors != null) {
-            // En 3D, le pion frappe avec sa propre épée (déjà dessinée par la scène) : seule la traînée de son geste est ajoutée ici.
+            // En 3D, le pion frappe avec ses deux épées (déjà dessinées par la scène) : seules les traînées de leurs gestes sont ajoutées ici.
             val pivot = at(anchors.hand)
             val radius = anchors.swingRadius * cell
+            val scissors = anchors.scissors
             if (a >= 0.6f || progress >= IMPACT) {
-                val head = if (progress < IMPACT) swingAngle else pawnStrike
-                drawSwingTrail(pivot, radius, head, pawnWind, pawnStrike, fadeOut)
+                if (scissors != null) {
+                    val headA = if (progress < IMPACT) scissors.headA else scissors.strikeA
+                    val headB = if (progress < IMPACT) scissors.headB else scissors.strikeB
+                    drawSwingTrail(pivot, radius, headA, scissors.windA, scissors.strikeA, fadeOut)
+                    drawSwingTrail(at(scissors.handB), scissors.swingRadiusB * cell, headB, scissors.windB, scissors.strikeB, fadeOut)
+                } else {
+                    val head = if (progress < IMPACT) swingAngle else pawnStrike
+                    drawSwingTrail(pivot, radius, head, pawnWind, pawnStrike, fadeOut)
+                }
             }
         } else {
             // Statue 2D (repli si un modèle 3D manque) : elle n'a pas d'épée dessinée, deux épées courtes surgissent donc de ses mains et se croisent sur la victime.

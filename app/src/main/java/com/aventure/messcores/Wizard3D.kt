@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Rect
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan
+import kotlin.math.atan2
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -15,7 +16,7 @@ import kotlin.math.sqrt
  * (x, 8 × pas − y) du monde (le pas des rangées : voir WIZARD_ROW_PITCH), à la profondeur 0 : les pièces 3D tombent pile là où les statues 2D seraient dessinées, et suivent le
  * même mouvement (voir [captureMotion]). Seules la pièce qui prend, son arme et sa victime sont en 3D ; le reste de la prise (éclairs,
  * éclats, traînées de l'arme) reste dessiné en 2D par-dessus, accroché aux points de [CaptureAnchors]. Toutes les pièces frappent avec
- * l'arme qu'elles tiennent (le pion avec sa courte épée) ; seule la statue 2D du repli conjure des lames.
+ * l'arme qu'elles tiennent (le pion avec ses deux courtes épées, qui se referment en ciseaux sur sa victime) ; seule la statue 2D du repli conjure des lames.
  */
 
 /**
@@ -45,7 +46,25 @@ internal class CaptureAnchors(
     /** Le bout de l'épée de la tour, d'où part le carreau. */
     val muzzle: Offset = Offset.Zero,
     /** Le sommet de la crosse du fou, d'où part l'éclair. */
-    val bishopHead: Offset = Offset.Zero
+    val bishopHead: Offset = Offset.Zero,
+    /** Le pion : sa seconde épée (dans son autre poing). Null pour les autres pièces. */
+    val scissors: ScissorsHook? = null
+)
+
+/**
+ * Les deux épées du pion : [hand][CaptureAnchors.hand] et [CaptureAnchors.swingRadius] sont celles de la première, [handB] et
+ * [swingRadiusB] celles de la seconde. Les angles sont ceux d'écran (degrés, sens horaire, 0 = vers la droite) : lame levée
+ * ([windA], [windB]), lame au moment du coup ([strikeA], [strikeB]) et lame en ce moment ([headA], [headB]).
+ */
+internal class ScissorsHook(
+    val handB: Offset,
+    val swingRadiusB: Float,
+    val windA: Float,
+    val strikeA: Float,
+    val headA: Float,
+    val windB: Float,
+    val strikeB: Float,
+    val headB: Float
 )
 
 /** Une image de la prise : les matrices des deux pièces (et de l'arme), la victime et les points d'accroche des effets. */
@@ -54,7 +73,9 @@ internal class Wizard3DPose(
     val weapon: FloatArray?,
     val victim: FloatArray,
     val victimVisible: Boolean,
-    val anchors: CaptureAnchors
+    val anchors: CaptureAnchors,
+    /** La seconde épée du pion (celle de son autre poing) : les deux lames se referment en ciseaux sur la victime. Null pour les autres pièces. */
+    val offWeapon: FloatArray? = null
 )
 
 internal class Wizard3DCapture private constructor(
@@ -67,6 +88,10 @@ internal class Wizard3DCapture private constructor(
     private val mover = Instance3D(moverMesh, WizardModelCatalog.materialFor(fx.mover))
     private val weapon = weaponMesh?.let { Instance3D(it, WizardModelCatalog.materialFor(fx.mover)) }
     private val victim = Instance3D(victimMesh, WizardModelCatalog.materialFor(fx.captured))
+    // Le pion tient une épée dans chaque poing (la même courte épée) et cisaille sa victime avec les deux.
+    private val offWeapon = if (weaponMesh != null && WizardModelCatalog.offHandMount(fx.mover) != null) {
+        Instance3D(weaponMesh, WizardModelCatalog.materialFor(fx.mover))
+    } else null
 
     private val camera = boardCamera()
 
@@ -75,6 +100,7 @@ internal class Wizard3DCapture private constructor(
         s3d.instances.add(victim)
         s3d.instances.add(mover)
         weapon?.let { s3d.instances.add(it) }
+        offWeapon?.let { s3d.instances.add(it) }
         s3d.camera = camera
         s3d.outline = WIZARD_3D_OUTLINE
     }
@@ -95,6 +121,10 @@ internal class Wizard3DCapture private constructor(
         mover.depthBias = depthBias(pose.mover)
         weapon?.let {
             it.matrix = pose.weapon ?: it.matrix
+            it.depthBias = mover.depthBias
+        }
+        offWeapon?.let {
+            it.matrix = pose.offWeapon ?: it.matrix
             it.depthBias = mover.depthBias
         }
         victim.matrix = pose.victim
@@ -120,48 +150,40 @@ internal class Wizard3DCapture private constructor(
     /** Où sont les pièces à l'avancement [progress] ([flipped] : les noirs sont en bas) : pas d'effet de bord, donc testable. */
     fun pose(progress: Float, flipped: Boolean): Wizard3DPose {
         val cell = 100f
-        val m = captureMotionFor(fx, progress, cell, flipped)
+        val ms = moverState(progress, flipped)
+        val m = ms.motion
         val kind = m.kind
         // Le sens de l'attaque (vers la droite si la victime est à droite de la case de départ) ne change pas pendant la prise.
-        val attackDx = m.targetCenter.x - (wizardSquareOrigin(fx.from, flipped, cell).x + cell / 2f)
-
-        // ----- La pièce qui prend -----
-        val moverX = m.center.x / cell
-        val moverRow = m.center.y / cell + FOOT_OFFSET
-        val heading = moverYaw(attackDx, progress, cell)
-        val moverMatrix = Mat4.pose(
-            moverX, BOARD_H - moverRow, depth(moverRow), yaw = heading, scale = scaleOf(fx.mover) * m.bounce
-        )
-
-        // L'arme suit la pièce, et pivote autour de la main (dans le plan de l'écran) selon le geste de l'animation 2D :
-        // un angle d'écran positif tourne dans le sens des aiguilles d'une montre, donc un roulis négatif autour de Z.
-        var weaponMatrix: FloatArray? = null
+        val attackDx = ms.attackDx
+        val moverMatrix = ms.matrix
+        val weaponMatrix = ms.weapon
         var hooks = CaptureAnchors()
-        val local = WizardModelCatalog.weaponLocal(kind)
-        val hand = WizardModelCatalog.handPoint(kind)
-        if (local != null && hand != null) {
-            val rest = Mat4.multiply(moverMatrix, local)
-            val h = transform(moverMatrix, hand[0], hand[1], hand[2])
-            var w = rest
-            if (m.weaponDeg != 0f || m.weaponScale != 1f) {
-                val s = m.weaponScale
-                var swing = Mat4.translation(h[0], h[1], h[2])
-                swing = Mat4.multiply(swing, Mat4.rotationZ(-m.weaponDeg))
-                swing = Mat4.multiply(swing, Mat4.scaling(s, s, s))
-                swing = Mat4.multiply(swing, Mat4.translation(-h[0], -h[1], -h[2]))
-                w = Mat4.multiply(swing, rest)
-            }
-            weaponMatrix = w
+        val h = ms.hand
+        if (weaponMatrix != null && h != null) {
             // Le bout de l'arme : la pointe (origine du fichier) pour les épées et la baguette, le haut pour la crosse et la masse.
             val tipLocalY = if (kind == 'K' || kind == 'R' || kind == 'Q' || kind == 'P') 0f else (weaponMesh?.maxY ?: 0f)
-            val tip = transform(w, 0f, tipLocalY, 0f)
+            val tip = transform(weaponMatrix, 0f, tipLocalY, 0f)
             val reach = sqrt((tip[0] - h[0]) * (tip[0] - h[0]) + (tip[1] - h[1]) * (tip[1] - h[1]))
+            var scissors: ScissorsHook? = null
+            val offMatrix = ms.offWeapon
+            val hB = ms.offHand
+            val angles = ms.scissors
+            if (offMatrix != null && hB != null && angles != null) {
+                val tipB = transform(offMatrix, 0f, 0f, 0f)
+                val reachB = sqrt((tipB[0] - hB[0]) * (tipB[0] - hB[0]) + (tipB[1] - hB[1]) * (tipB[1] - hB[1]))
+                scissors = ScissorsHook(
+                    handB = toBoard(hB), swingRadiusB = (reachB * 0.9f).coerceAtLeast(MIN_SWING_RADIUS),
+                    windA = angles[0], strikeA = angles[1], headA = angles[2],
+                    windB = angles[3], strikeB = angles[4], headB = angles[5]
+                )
+            }
             hooks = CaptureAnchors(
                 queenTip = toBoard(tip),
                 hand = toBoard(h),
                 swingRadius = (reach * 0.9f).coerceAtLeast(MIN_SWING_RADIUS),
                 muzzle = toBoard(tip),
-                bishopHead = toBoard(tip)
+                bishopHead = toBoard(tip),
+                scissors = scissors
             )
         }
 
@@ -217,7 +239,91 @@ internal class Wizard3DCapture private constructor(
         val s = scaleOf(fx.captured) * shrink
         victimMatrix = Mat4.multiply(victimMatrix, Mat4.scaling(s, s, s))
 
-        return Wizard3DPose(moverMatrix, weaponMatrix, victimMatrix, visible, hooks)
+        return Wizard3DPose(moverMatrix, weaponMatrix, victimMatrix, visible, hooks, ms.offWeapon)
+    }
+
+    private class MoverState(
+        val motion: CaptureMotion,
+        val attackDx: Float,
+        val matrix: FloatArray,
+        val weapon: FloatArray?,
+        val hand: FloatArray?,
+        // Le pion : sa seconde épée, son poing, et les angles d'écran (degrés, sens horaire) de ses deux lames.
+        val offWeapon: FloatArray? = null,
+        val offHand: FloatArray? = null,
+        val scissors: FloatArray? = null
+    )
+
+    private fun moverMatrixFor(m: CaptureMotion, attackDx: Float, progress: Float): FloatArray {
+        val cell = 100f
+        val moverX = m.center.x / cell
+        val moverRow = m.center.y / cell + FOOT_OFFSET
+        val heading = moverYaw(attackDx, progress, cell)
+        return Mat4.pose(moverX, BOARD_H - moverRow, depth(moverRow), yaw = heading, scale = scaleOf(fx.mover) * m.bounce)
+    }
+
+    // Une arme tenue au poing [hand] (repère du monde) : elle suit la pièce, et pivote autour de la main (dans le plan de l'écran) :
+    // un angle d'écran positif tourne dans le sens des aiguilles d'une montre, donc un roulis négatif autour de Z.
+    private fun swungWeapon(matrix: FloatArray, local: FloatArray, hand: FloatArray, deg: Float, scale: Float): FloatArray {
+        val rest = Mat4.multiply(matrix, local)
+        if (deg == 0f && scale == 1f) return rest
+        var swing = Mat4.translation(hand[0], hand[1], hand[2])
+        swing = Mat4.multiply(swing, Mat4.rotationZ(-deg))
+        swing = Mat4.multiply(swing, Mat4.scaling(scale, scale, scale))
+        swing = Mat4.multiply(swing, Mat4.translation(-hand[0], -hand[1], -hand[2]))
+        return Mat4.multiply(swing, rest)
+    }
+
+    // La pièce qui prend et son (ses) arme(s) à l'avancement [progress].
+    private fun moverState(progress: Float, flipped: Boolean): MoverState {
+        val cell = 100f
+        val m = captureMotionFor(fx, progress, cell, flipped)
+        val attackDx = m.targetCenter.x - (wizardSquareOrigin(fx.from, flipped, cell).x + cell / 2f)
+        val matrix = moverMatrixFor(m, attackDx, progress)
+        val local = WizardModelCatalog.weaponLocal(m.kind)
+        val hand = WizardModelCatalog.handPoint(m.kind)
+        if (local == null || hand == null) return MoverState(m, attackDx, matrix, null, null)
+        val h = transform(matrix, hand[0], hand[1], hand[2])
+
+        val offLocal = WizardModelCatalog.offHandLocal(m.kind)
+        val offPoint = WizardModelCatalog.offHandPoint(m.kind)
+        if (offLocal == null || offPoint == null) {
+            return MoverState(m, attackDx, matrix, swungWeapon(matrix, local, h, m.weaponDeg, m.weaponScale), h)
+        }
+        // Le pion : une épée dans chaque poing. Au repos, les lames montent côte à côte ; pour frapper, elles s'ouvrent (levées de
+        // part et d'autre) puis se referment en ciseaux, chacune visant le même point devant la victime : les lames se croisent.
+        val hB = transform(matrix, offPoint[0], offPoint[1], offPoint[2])
+        val strikes = scissorStrikes(flipped)
+        val rest = m.restAngle
+        val (angleA, scaleA) = swingPose(progress, rest, strikes[0] - SCISSOR_OPEN_DEG, strikes[0], SCISSOR_WIND_SCALE, SCISSOR_STRIKE_SCALE)
+        val (angleB, scaleB) = swingPose(progress, rest, strikes[1] + SCISSOR_OPEN_DEG, strikes[1], SCISSOR_WIND_SCALE, SCISSOR_STRIKE_SCALE)
+        return MoverState(
+            m, attackDx, matrix,
+            swungWeapon(matrix, local, h, angleA - rest, scaleA), h,
+            swungWeapon(matrix, offLocal, hB, angleB - rest, scaleB), hB,
+            floatArrayOf(strikes[0] - SCISSOR_OPEN_DEG, strikes[0], angleA, strikes[1] + SCISSOR_OPEN_DEG, strikes[1], angleB)
+        )
+    }
+
+    // Les angles d'écran (degrés, sens horaire, 0 = vers la droite) des deux lames du pion à l'impact : chaque lame vise, depuis son
+    // poing, le même point, entre le pion et le corps de sa victime. Elles s'y croisent, et leurs pointes dépassent vers la victime.
+    private fun scissorStrikes(flipped: Boolean): FloatArray {
+        val cell = 100f
+        val m = captureMotionFor(fx, IMPACT, cell, flipped)
+        val attackDx = m.targetCenter.x - (wizardSquareOrigin(fx.from, flipped, cell).x + cell / 2f)
+        val matrix = moverMatrixFor(m, attackDx, IMPACT)
+        val a = WizardModelCatalog.handPoint(m.kind)!!
+        val b = WizardModelCatalog.offHandPoint(m.kind)!!
+        val hA = transform(matrix, a[0], a[1], a[2])
+        val hB = transform(matrix, b[0], b[1], b[2])
+        val targetX = m.targetCenter.x / cell
+        val targetY = BOARD_H - (m.targetCenter.y / cell + FOOT_OFFSET) + SCISSOR_AIM_HEIGHT
+        val midX = (hA[0] + hB[0]) / 2f
+        val midY = (hA[1] + hB[1]) / 2f
+        val aimX = midX + (targetX - midX) * SCISSOR_AIM_FRACTION
+        val aimY = midY + (targetY - midY) * SCISSOR_AIM_FRACTION
+        fun angleFrom(h: FloatArray): Float = Math.toDegrees(atan2((h[1] - aimY).toDouble(), (aimX - h[0]).toDouble())).toFloat()
+        return floatArrayOf(angleFrom(hA), angleFrom(hB))
     }
 
     // Le lacet de la pièce qui prend : son regard habituel (les blanches regardent à gauche, les noires à droite, pour celles dessinées
@@ -325,6 +431,14 @@ internal class Wizard3DCapture private constructor(
 
         private const val DEPTH_PER_ROW = 0.12f
         private const val PROFILE_YAW = 65f
+
+        // Les ciseaux du pion : les lames s'ouvrent de 75° de part et d'autre de leur angle de frappe, grandissent un peu, puis se
+        // referment sur un point situé aux 45 % du chemin vers la victime, à mi-hauteur de son corps (en cases).
+        private const val SCISSOR_OPEN_DEG = 75f
+        private const val SCISSOR_WIND_SCALE = 1.35f
+        private const val SCISSOR_STRIKE_SCALE = 1.9f
+        private const val SCISSOR_AIM_FRACTION = 0.45f
+        private const val SCISSOR_AIM_HEIGHT = 0.5f
         private const val FRONT_YAW = 40f
         private const val CRUSH_END = 0.2f
         private const val PIERCE_END = 0.14f

@@ -60,9 +60,12 @@ internal class WizardSlide3D private constructor(
     val fx: MoveFx,
     private val mover: Instance3D,
     private val weapon: Instance3D?,
-    private val whiteAtBottom: Boolean? = null
+    private val whiteAtBottom: Boolean? = null,
+    // Le pion tient une seconde épée, dans son autre poing.
+    private val offWeapon: Instance3D? = null
 ) {
     private val weaponLocal = WizardModelCatalog.weaponLocal(fx.mover.uppercaseChar())
+    private val offWeaponLocal = WizardModelCatalog.offHandLocal(fx.mover.uppercaseChar())
 
     /** La scène à donner à `Scene3DView`, dont `update` doit appeler [update]. */
     val scene = Scene3D().also { s3d ->
@@ -70,6 +73,7 @@ internal class WizardSlide3D private constructor(
         s3d.outline = WIZARD_3D_OUTLINE
         s3d.instances.add(mover)
         weapon?.let { s3d.instances.add(it) }
+        offWeapon?.let { s3d.instances.add(it) }
     }
 
     /** Place la pièce pour l'avancement [progress] (de 0 à 1) du coup. */
@@ -80,6 +84,9 @@ internal class WizardSlide3D private constructor(
         weapon?.depthBias = mover.depthBias
         val local = weaponLocal
         if (weapon != null && local != null) weapon.matrix = Mat4.multiply(matrix, local)
+        offWeapon?.depthBias = mover.depthBias
+        val offLocal = offWeaponLocal
+        if (offWeapon != null && offLocal != null) offWeapon.matrix = Mat4.multiply(matrix, offLocal)
     }
 
     /** La matrice de la pièce à l'avancement [progress] : pas d'effet de bord, donc testable. */
@@ -102,7 +109,8 @@ internal class WizardSlide3D private constructor(
             val weaponModel = WizardModelCatalog.weaponModel(fx.mover)
             val weaponMesh = weaponModel?.let(meshOf)
             if (weaponModel != null && weaponMesh == null) return null
-            return WizardSlide3D(fx, Instance3D(mesh, material), weaponMesh?.let { Instance3D(it, material) }, whiteAtBottom)
+            val offWeapon = if (weaponMesh != null && WizardModelCatalog.offHandMount(fx.mover) != null) Instance3D(weaponMesh, material) else null
+            return WizardSlide3D(fx, Instance3D(mesh, material), weaponMesh?.let { Instance3D(it, material) }, whiteAtBottom, offWeapon)
         }
     }
 }
