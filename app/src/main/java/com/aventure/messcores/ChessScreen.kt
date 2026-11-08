@@ -736,8 +736,8 @@ private fun ChessBoard(
                     if (models3d) WizardBoard3D { WizardModels.mesh(assets, it) } else null
                 }
                 val board3d = if (wizard && restScene != null) {
-                    remember(restScene, game.position.board, animatedSquare, flipped, game.position.whiteToMove) {
-                        restScene.setBoard(game.position.board, animatedSquare, flipped, game.position.whiteToMove)
+                    remember(restScene, game.position.board, animatedSquare, flipped) {
+                        restScene.setBoard(game.position.board, animatedSquare, flipped, whiteAtBottom = !flipped)
                     }
                 } else {
                     false
@@ -835,7 +835,7 @@ private fun ChessBoard(
                 if (board3d && restScene != null) {
                     StaticScene3DView(
                         scene = restScene.scene,
-                        version = listOf(game.position.board, animatedSquare, flipped, game.position.whiteToMove),
+                        version = listOf(game.position.board, animatedSquare, flipped),
                         modifier = Modifier.matchParentSize(),
                         renderScale = WIZARD_3D_BOARD_RENDER_SCALE,
                         region = Wizard3DCapture.FULL_REGION
@@ -845,8 +845,8 @@ private fun ChessBoard(
                 // Pour une prise, la pièce qui prend et sa victime sont en 3D (sous les effets) quand leurs modèles sont chargés.
                 val playing = fx
                 if (playing != null) {
-                    val capture3d = remember(playing, models3d) {
-                        if (models3d) Wizard3DCapture.create(playing, game.position.whiteToMove) { WizardModels.mesh(assets, it) } else null
+                    val capture3d = remember(playing, models3d, flipped) {
+                        if (models3d) Wizard3DCapture.create(playing, whiteAtBottom = !flipped) { WizardModels.mesh(assets, it) } else null
                     }
                     if (capture3d != null) {
                         Scene3DView(
@@ -858,8 +858,8 @@ private fun ChessBoard(
                         )
                     }
                     // Un coup sans prise : la pièce glisse aussi en 3D (sinon, la statue 2D glisse dans drawMoveFx).
-                    val slide3d = remember(playing, models3d) {
-                        if (models3d) WizardSlide3D.create(playing, game.position.whiteToMove) { WizardModels.mesh(assets, it) } else null
+                    val slide3d = remember(playing, models3d, flipped) {
+                        if (models3d) WizardSlide3D.create(playing, whiteAtBottom = !flipped) { WizardModels.mesh(assets, it) } else null
                     }
                     if (slide3d != null) {
                         Scene3DView(

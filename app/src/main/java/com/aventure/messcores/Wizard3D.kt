@@ -62,7 +62,7 @@ internal class Wizard3DCapture private constructor(
     moverMesh: Mesh3D,
     private val weaponMesh: Mesh3D?,
     victimMesh: Mesh3D,
-    private val whiteToMove: Boolean? = null
+    private val whiteAtBottom: Boolean? = null
 ) {
     private val mover = Instance3D(moverMesh, WizardModelCatalog.materialFor(fx.mover))
     private val weapon = weaponMesh?.let { Instance3D(it, WizardModelCatalog.materialFor(fx.mover)) }
@@ -227,10 +227,10 @@ internal class Wizard3DCapture private constructor(
         val own = if (Chess.isWhite(fx.mover)) -1f else 1f
         val sideways = abs(attackDx) > cell * 0.15f
         val sign = if (sideways) (if (attackDx > 0f) 1f else -1f) else own
-        val defaultYaw = restYaw(fx.mover, whiteToMove)
+        val defaultYaw = restYaw(fx.mover, whiteAtBottom)
         val attackYaw = when {
-            profile -> sign * PROFILE_YAW
-            sideways -> sign * FRONT_YAW
+            profile -> awayMirror(fx.mover, sign * PROFILE_YAW)
+            sideways -> awayMirror(fx.mover, sign * FRONT_YAW)
             else -> defaultYaw
         }
         val turn = smooth((progress / ATTACK_START).coerceIn(0f, 1f)) *
@@ -238,16 +238,20 @@ internal class Wizard3DCapture private constructor(
         return defaultYaw + (attackYaw - defaultYaw) * turn + facingOffset(fx.mover)
     }
 
+    // Une pièce du bas de l'écran tourne le dos à l'écran : son lacet est le miroir (180° − lacet) de celui d'une pièce du haut.
+    private fun awayMirror(piece: Char, yaw: Float): Float =
+        if (whiteAtBottom != null && Chess.isWhite(piece) == whiteAtBottom) 180f - yaw else yaw
+
     // La victime, elle, se tourne vers celui qui l'attaque (si le coup vient de côté).
     private fun victimYaw(attackDx: Float, progress: Float, cell: Float): Float {
         val profile = fx.captured.uppercaseChar() in PROFILE
         val sideways = abs(attackDx) > cell * 0.15f
         val toward = if (attackDx > 0f) -1f else 1f
-        val defaultYaw = restYaw(fx.captured, whiteToMove)
+        val defaultYaw = restYaw(fx.captured, whiteAtBottom)
         val attackYaw = when {
             !sideways -> defaultYaw
-            profile -> toward * PROFILE_YAW
-            else -> toward * FRONT_YAW
+            profile -> awayMirror(fx.captured, toward * PROFILE_YAW)
+            else -> awayMirror(fx.captured, toward * FRONT_YAW)
         }
         val t = smooth((progress / ATTACK_START).coerceIn(0f, 1f))
         return defaultYaw + (attackYaw - defaultYaw) * t + facingOffset(fx.captured)
@@ -309,9 +313,9 @@ internal class Wizard3DCapture private constructor(
          * de l'écran, avec le regard qu'elle a au repos (c'est aussi celui qu'elle a au début d'une prise) ; [bounce] la gonfle
          * un peu quand elle se déplace.
          */
-        fun restMatrix(piece: Char, centerX: Float, centerY: Float, bounce: Float = 1f, whiteToMove: Boolean? = null): FloatArray {
+        fun restMatrix(piece: Char, centerX: Float, centerY: Float, bounce: Float = 1f, whiteAtBottom: Boolean? = null): FloatArray {
             val footRow = centerY + FOOT_OFFSET
-            val yaw = restYaw(piece, whiteToMove) + WizardModelCatalog.facingYaw(piece)
+            val yaw = restYaw(piece, whiteAtBottom) + WizardModelCatalog.facingYaw(piece)
             return Mat4.pose(centerX, BOARD_H - footRow, depth(footRow), yaw = yaw, scale = scaleOf(piece) * bounce)
         }
 
@@ -327,20 +331,20 @@ internal class Wizard3DCapture private constructor(
         private const val DISSOLVE_END = 0.3f
         private const val MIN_SWING_RADIUS = 0.3f
 
-        // Les pièces de profil dans leur dessin 2D.
-        private val PROFILE = setOf('P', 'N', 'R')
+        // Les pièces de profil dans leur dessin 2D (le pion, lui, regarde droit vers l'ennemi).
+        private val PROFILE = setOf('N', 'R')
 
         /**
-         * Le lacet de repos d'une pièce, avant [WizardModelCatalog.facingYaw]. Comme devant un vrai échiquier, les pièces du camp
-         * qui joue ([whiteToMove] : les blancs ou les noirs ; null : on ne s'en soucie pas) tournent le dos à l'écran, face à
-         * l'ennemi, et celles du camp qui attend font face à l'écran, donc au joueur. Les pièces de profil gardent leur
+         * Le lacet de repos d'une pièce, avant [WizardModelCatalog.facingYaw]. Les pièces du bas de l'écran
+         * ([whiteAtBottom] : les blancs sont en bas, sinon ce sont les noirs ; null : on ne s'en soucie pas) tournent le dos à l'écran,
+         * face à l'ennemi, et celles du haut font face à l'écran. Ce sens ne change donc que lorsqu'on retourne l'échiquier. Les pièces de profil gardent leur
          * inclinaison (65°) du même côté de l'écran, vues de face ou de dos.
          */
-        fun restYaw(piece: Char, whiteToMove: Boolean? = null): Float {
+        fun restYaw(piece: Char, whiteAtBottom: Boolean? = null): Float {
             val profile = piece.uppercaseChar() in PROFILE
             val own = if (Chess.isWhite(piece)) -1f else 1f
             val front = if (profile) own * PROFILE_YAW else 0f
-            val away = whiteToMove != null && Chess.isWhite(piece) == whiteToMove
+            val away = whiteAtBottom != null && Chess.isWhite(piece) == whiteAtBottom
             return if (!away) front else 180f - front
         }
 
@@ -369,14 +373,14 @@ internal class Wizard3DCapture private constructor(
          * La scène d'une prise [fx], ou null si un modèle manque ou est illisible : l'écran garde alors ses statues 2D.
          * [meshOf] donne le maillage d'un modèle du catalogue (voir [WizardModels.mesh]).
          */
-        fun create(fx: MoveFx, whiteToMove: Boolean? = null, meshOf: (String) -> Mesh3D?): Wizard3DCapture? {
+        fun create(fx: MoveFx, whiteAtBottom: Boolean? = null, meshOf: (String) -> Mesh3D?): Wizard3DCapture? {
             if (!fx.isCapture) return null
             val moverMesh = WizardModelCatalog.pieceModel(fx.mover)?.let(meshOf) ?: return null
             val victimMesh = WizardModelCatalog.pieceModel(fx.captured)?.let(meshOf) ?: return null
             val weaponModel = WizardModelCatalog.weaponModel(fx.mover)
             val weaponMesh = weaponModel?.let(meshOf)
             if (weaponModel != null && weaponMesh == null) return null
-            return Wizard3DCapture(fx, moverMesh, weaponMesh, victimMesh, whiteToMove)
+            return Wizard3DCapture(fx, moverMesh, weaponMesh, victimMesh, whiteAtBottom)
         }
     }
 }

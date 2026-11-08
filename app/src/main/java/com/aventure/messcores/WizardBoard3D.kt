@@ -37,7 +37,7 @@ internal class WizardBoard3D(private val meshOf: (String) -> Mesh3D?) {
      * l'animation dessine à part. [flipped] : les noirs sont en bas. Rend false (et laisse la scène vide) si un modèle manque :
      * l'écran garde alors ses statues 2D.
      */
-    fun setBoard(board: String, skip: Int, flipped: Boolean, whiteToMove: Boolean? = null): Boolean {
+    fun setBoard(board: String, skip: Int, flipped: Boolean, whiteAtBottom: Boolean? = null): Boolean {
         scene.instances.clear()
         if (board.length < 64) return false
         for (square in 0 until 64) {
@@ -45,7 +45,7 @@ internal class WizardBoard3D(private val meshOf: (String) -> Mesh3D?) {
             if (piece == '.' || square == skip) continue
             val col = if (flipped) 7 - square % 8 else square % 8
             val row = if (flipped) 7 - square / 8 else square / 8
-            val matrix = Wizard3DCapture.restMatrix(piece, col + 0.5f, (row + 0.5f) * WIZARD_ROW_PITCH, whiteToMove = whiteToMove)
+            val matrix = Wizard3DCapture.restMatrix(piece, col + 0.5f, (row + 0.5f) * WIZARD_ROW_PITCH, whiteAtBottom = whiteAtBottom)
             if (!addPiece(scene, piece, matrix, meshOf)) {
                 scene.instances.clear()
                 return false
@@ -60,7 +60,7 @@ internal class WizardSlide3D private constructor(
     val fx: MoveFx,
     private val mover: Instance3D,
     private val weapon: Instance3D?,
-    private val whiteToMove: Boolean? = null
+    private val whiteAtBottom: Boolean? = null
 ) {
     private val weaponLocal = WizardModelCatalog.weaponLocal(fx.mover.uppercaseChar())
 
@@ -90,19 +90,19 @@ internal class WizardSlide3D private constructor(
         val x = column(fx.from) + (column(fx.to) - column(fx.from)) * slide
         val y = row(fx.from) + (row(fx.to) - row(fx.from)) * slide
         val bounce = 1f + 0.1f * sin(PI.toFloat() * slide)
-        return Wizard3DCapture.restMatrix(fx.mover, x, y, bounce, whiteToMove)
+        return Wizard3DCapture.restMatrix(fx.mover, x, y, bounce, whiteAtBottom)
     }
 
     companion object {
         /** La scène du coup [fx], ou null pour une prise (voir [Wizard3DCapture]) ou si un modèle manque. */
-        fun create(fx: MoveFx, whiteToMove: Boolean? = null, meshOf: (String) -> Mesh3D?): WizardSlide3D? {
+        fun create(fx: MoveFx, whiteAtBottom: Boolean? = null, meshOf: (String) -> Mesh3D?): WizardSlide3D? {
             if (fx.isCapture) return null
             val mesh = WizardModelCatalog.pieceModel(fx.mover)?.let(meshOf) ?: return null
             val material = WizardModelCatalog.materialFor(fx.mover)
             val weaponModel = WizardModelCatalog.weaponModel(fx.mover)
             val weaponMesh = weaponModel?.let(meshOf)
             if (weaponModel != null && weaponMesh == null) return null
-            return WizardSlide3D(fx, Instance3D(mesh, material), weaponMesh?.let { Instance3D(it, material) }, whiteToMove)
+            return WizardSlide3D(fx, Instance3D(mesh, material), weaponMesh?.let { Instance3D(it, material) }, whiteAtBottom)
         }
     }
 }
