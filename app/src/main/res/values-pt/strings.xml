@@ -2205,6 +2205,31 @@
     <string name="breakout_tap_to_launch">Toca para lançar</string>
     <string name="breakout_launch">Lançar a bola</string>
     <string name="breakout_field">Campo: desliza o dedo para mover a raquete, toca para lançar a bola</string>
+    <string name="game_xonix">Xonix</string>
+    <string name="rules_xonix_1_title">Objetivo</string>
+    <string name="rules_xonix_1_body" formatted="false">Conquista o tabuleiro: sai da terra firme que o rodeia, traça um caminho no mar e volta à terra. A parte do mar cortada do lado onde não há nenhuma bola passa a ser terra. Conquista 75% do mar para passar ao nível seguinte.</string>
+    <string name="rules_xonix_2_title">Os perigos</string>
+    <string name="rules_xonix_2_body">As bolas vermelhas ressaltam no mar: se uma tocar no teu rasto enquanto o traças, perdes uma vida. Também perdes uma vida se cruzares o teu próprio rasto. A partir do nível 3, umas minas deslizam pela terra firme: se te cruzares com uma, mesmo em terra, perdes uma vida.</string>
+    <string name="rules_xonix_3_title">Pontos e níveis</string>
+    <string name="rules_xonix_3_body">Cada casa conquistada vale 10 pontos, multiplicados pelo nível, e por 2, 3 ou 5 quando tomas muitas de uma vez (10, 30 ou 60 casas). Acabar um nível dá um bónus, maior com o nível e as vidas que restam. Em cada nível há mais bolas e andam mais depressa. Tens 3 vidas.</string>
+    <string name="rules_xonix_4_title">Na app</string>
+    <string name="rules_xonix_4_body">Jogo a solo: desliza o dedo pelo tabuleiro, ou usa as setas, para dar a direção. Avanças sozinho; em terra, toca no tabuleiro para parar. No mar não podes inverter a marcha. O jogo fica em pausa quando sais da app, e a tua melhor pontuação fica guardada.</string>
+    <string name="xonix_ready_title">Vez de %1$s</string>
+    <string name="xonix_ready_hint" formatted="false">Traça caminhos no mar para conquistar 75% do tabuleiro sem seres atingido pelas bolas.</string>
+    <string name="xonix_go">Vamos a isso!</string>
+    <string name="xonix_score">Pontos: %1$d</string>
+    <string name="xonix_stats">Nível: %1$d, conquistado: %2$d%%, vidas: %3$d</string>
+    <string name="xonix_over_stats">Nível: %1$d, conquistado: %2$d%%</string>
+    <string name="xonix_level_clear">Nível concluído!</string>
+    <string name="xonix_pause">Pausa</string>
+    <string name="xonix_paused_title">Jogo em pausa</string>
+    <string name="xonix_resume">Retomar</string>
+    <string name="xonix_over_title">Fim de jogo</string>
+    <string name="xonix_play_again">Jogar de novo</string>
+    <string name="xonix_up">Cima</string>
+    <string name="xonix_down">Baixo</string>
+    <string name="xonix_left">Esquerda</string>
+    <string name="xonix_right">Direita</string>
     <string name="rhythm_song_label">Música: %1$s</string>
     <string name="rhythm_no_song">Nenhuma música escolhida</string>
     <string name="rhythm_change_song">Mudar de música</string>

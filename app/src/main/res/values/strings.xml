@@ -2221,6 +2221,31 @@
     <string name="breakout_tap_to_launch">Touche pour lancer</string>
     <string name="breakout_launch">Lancer la balle</string>
     <string name="breakout_field">Terrain : glisse le doigt pour déplacer la raquette, touche pour lancer la balle</string>
+    <string name="game_xonix">Xonix</string>
+    <string name="rules_xonix_1_title">But du jeu</string>
+    <string name="rules_xonix_1_body" formatted="false">Conquérir le plateau : pars de la terre ferme qui le borde, trace un chemin dans la mer et reviens sur la terre. La partie de la mer coupée du côté où il n’y a aucune bille devient de la terre. Conquiers 75 % de la mer pour passer au niveau suivant.</string>
+    <string name="rules_xonix_2_title">Les dangers</string>
+    <string name="rules_xonix_2_body">Les billes rouges rebondissent dans la mer : si l’une d’elles touche ton tracé en cours, tu perds une vie. Tu perds aussi une vie si tu recoupes ton propre tracé. À partir du niveau 3, des mines glissent sur la terre ferme : si tu en croises une, même sur la terre, tu perds une vie.</string>
+    <string name="rules_xonix_3_title">Points et niveaux</string>
+    <string name="rules_xonix_3_body">Chaque case conquise rapporte 10 points, multipliés par le niveau, et par 2, 3 ou 5 quand tu en prends beaucoup d’un coup (10, 30 ou 60 cases). Finir un niveau donne un bonus, plus gros avec le niveau et les vies qui restent. À chaque niveau, il y a plus de billes et elles vont plus vite. Tu as 3 vies.</string>
+    <string name="rules_xonix_4_title">Dans l’appli</string>
+    <string name="rules_xonix_4_body">Jeu en solo : glisse le doigt sur le plateau, ou utilise les flèches, pour donner la direction. Tu avances tout seul ; sur la terre, touche le plateau pour t’arrêter. Dans la mer, tu ne peux pas faire demi-tour. La partie se met en pause quand tu quittes l’appli, et ton meilleur score est gardé.</string>
+    <string name="xonix_ready_title">À %1$s de jouer</string>
+    <string name="xonix_ready_hint" formatted="false">Trace des chemins dans la mer pour conquérir 75 % du plateau, sans te faire toucher par les billes.</string>
+    <string name="xonix_go">C’est parti !</string>
+    <string name="xonix_score">Score : %1$d</string>
+    <string name="xonix_stats">Niveau : %1$d, conquis : %2$d %%, vies : %3$d</string>
+    <string name="xonix_over_stats">Niveau : %1$d, conquis : %2$d %%</string>
+    <string name="xonix_level_clear">Niveau terminé !</string>
+    <string name="xonix_pause">Pause</string>
+    <string name="xonix_paused_title">Partie en pause</string>
+    <string name="xonix_resume">Reprendre</string>
+    <string name="xonix_over_title">Partie terminée</string>
+    <string name="xonix_play_again">Rejouer</string>
+    <string name="xonix_up">Haut</string>
+    <string name="xonix_down">Bas</string>
+    <string name="xonix_left">Gauche</string>
+    <string name="xonix_right">Droite</string>
     <string name="rhythm_song_label">Chanson : %1$s</string>
     <string name="rhythm_no_song">Aucune chanson choisie</string>
     <string name="rhythm_change_song">Changer de chanson</string>

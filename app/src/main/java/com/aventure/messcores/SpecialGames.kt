@@ -369,6 +369,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Xonix : écran à part (voir XonixScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = XONIX_ID,
+        name = context.getString(R.string.game_xonix),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Gomoku : écran à part (voir DuoGameScreen), à deux joueurs ; le mode de score n'est pas utilisé.
     GameRules(
         id = GOMOKU_ID,

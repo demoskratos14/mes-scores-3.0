@@ -2175,6 +2175,31 @@
     <string name="breakout_tap_to_launch">Tap to launch</string>
     <string name="breakout_launch">Launch the ball</string>
     <string name="breakout_field">Playfield: slide your finger to move the paddle, tap to launch the ball</string>
+    <string name="game_xonix">Xonix</string>
+    <string name="rules_xonix_1_title">Goal</string>
+    <string name="rules_xonix_1_body" formatted="false">Conquer the board: leave the land that borders it, draw a path through the sea and return to land. The part of the sea you cut off on the side with no ball in it turns into land. Conquer 75% of the sea to reach the next level.</string>
+    <string name="rules_xonix_2_title">The dangers</string>
+    <string name="rules_xonix_2_body">The red balls bounce around in the sea: if one touches your trail while you are drawing it, you lose a life. You also lose a life if you cross your own trail. From level 3, mines slide along the land: if you run into one, even on land, you lose a life.</string>
+    <string name="rules_xonix_3_title">Points and levels</string>
+    <string name="rules_xonix_3_body">Each square you conquer scores 10 points, multiplied by the level, and by 2, 3 or 5 when you take a lot at once (10, 30 or 60 squares). Finishing a level gives a bonus, bigger with the level and the lives you have left. Each level has more balls and they move faster. You have 3 lives.</string>
+    <string name="rules_xonix_4_title">In the app</string>
+    <string name="rules_xonix_4_body">Solo game: swipe on the board, or use the arrows, to set the direction. You keep moving on your own; on land, tap the board to stop. You cannot turn back while you are in the sea. The game pauses when you leave the app, and your best score is kept.</string>
+    <string name="xonix_ready_title">%1$s to play</string>
+    <string name="xonix_ready_hint" formatted="false">Draw paths through the sea to conquer 75% of the board without being hit by the balls.</string>
+    <string name="xonix_go">Let’s go!</string>
+    <string name="xonix_score">Score: %1$d</string>
+    <string name="xonix_stats">Level: %1$d, conquered: %2$d%%, lives: %3$d</string>
+    <string name="xonix_over_stats">Level: %1$d, conquered: %2$d%%</string>
+    <string name="xonix_level_clear">Level cleared!</string>
+    <string name="xonix_pause">Pause</string>
+    <string name="xonix_paused_title">Game paused</string>
+    <string name="xonix_resume">Resume</string>
+    <string name="xonix_over_title">Game over</string>
+    <string name="xonix_play_again">Play again</string>
+    <string name="xonix_up">Up</string>
+    <string name="xonix_down">Down</string>
+    <string name="xonix_left">Left</string>
+    <string name="xonix_right">Right</string>
     <string name="rhythm_song_label">Song: %1$s</string>
     <string name="rhythm_no_song">No song chosen</string>
     <string name="rhythm_change_song">Change song</string>

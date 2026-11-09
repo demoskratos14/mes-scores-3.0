@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, XONIX_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -127,6 +127,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             RHYTHM_ID -> drawRhythm()
             TETRIS_ID -> drawTetris()
             BREAKOUT_ID -> drawBreakout()
+            XONIX_ID -> drawXonix()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -332,6 +333,30 @@ private fun DrawScope.drawBreakout() {
     drawRoundRect(Color(0xFFAAB6BE), Offset(paddleLeft, paddleTop), Size(paddleW, paddleH), CornerRadius(paddleH * 0.4f))
     drawRoundRect(Color(0xFFD32F2F), Offset(paddleLeft, paddleTop), Size(paddleW * 0.16f, paddleH), CornerRadius(paddleH * 0.4f))
     drawRoundRect(Color(0xFFD32F2F), Offset(paddleLeft + paddleW * 0.84f, paddleTop), Size(paddleW * 0.16f, paddleH), CornerRadius(paddleH * 0.4f))
+}
+
+private fun DrawScope.drawXonix() {
+    paper(Color(0xFF0D2B52))
+    val s = size.minDimension
+    // Un cadre de terre ferme autour de la mer, un tracé jaune qui en part et tourne, le joueur au départ et une bille rouge.
+    val land = Color(0xFF4E9F5B)
+    val frame = s * 0.1f
+    val band = s * 0.12f
+    val inner = s - 2f * frame
+    drawRect(land, Offset(frame, frame), Size(inner, band))
+    drawRect(land, Offset(frame, s - frame - band), Size(inner, band))
+    drawRect(land, Offset(frame, frame), Size(band, inner))
+    drawRect(land, Offset(s - frame - band, frame), Size(band, inner))
+    val trail = Color(0xFFFFD54F)
+    val line = s * 0.07f
+    val trailX = s * 0.36f
+    val trailBottom = s * 0.62f
+    drawLine(trail, Offset(trailX, frame + band), Offset(trailX, trailBottom), strokeWidth = line)
+    drawLine(trail, Offset(trailX - line / 2f, trailBottom), Offset(frame + band, trailBottom), strokeWidth = line)
+    val player = s * 0.11f
+    drawRect(Color.White, Offset(trailX - player / 2f, frame + band - player / 2f), Size(player, player))
+    drawCircle(Color.White, s * 0.1f, Offset(s * 0.66f, s * 0.42f))
+    drawCircle(Color(0xFFE53935), s * 0.075f, Offset(s * 0.66f, s * 0.42f))
 }
 
 private fun DrawScope.drawRhythm() {

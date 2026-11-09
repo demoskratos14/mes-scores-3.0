@@ -2215,6 +2215,31 @@
     <string name="breakout_tap_to_launch">Tocca per lanciare</string>
     <string name="breakout_launch">Lancia la palla</string>
     <string name="breakout_field">Campo: fai scorrere il dito per spostare la racchetta, tocca per lanciare la palla</string>
+    <string name="game_xonix">Xonix</string>
+    <string name="rules_xonix_1_title">Obiettivo</string>
+    <string name="rules_xonix_1_body" formatted="false">Conquista il campo: parti dalla terraferma che lo circonda, traccia un percorso nel mare e torna sulla terra. La parte di mare tagliata dal lato in cui non c’è nessuna palla diventa terra. Conquista il 75% del mare per passare al livello successivo.</string>
+    <string name="rules_xonix_2_title">I pericoli</string>
+    <string name="rules_xonix_2_body">Le palle rosse rimbalzano nel mare: se una tocca la tua scia mentre la tracci, perdi una vita. Perdi una vita anche se incroci la tua stessa scia. Dal livello 3, delle mine scivolano sulla terraferma: se ne incontri una, anche sulla terra, perdi una vita.</string>
+    <string name="rules_xonix_3_title">Punti e livelli</string>
+    <string name="rules_xonix_3_body">Ogni casella conquistata vale 10 punti, moltiplicati per il livello, e per 2, 3 o 5 quando ne prendi molte in una volta (10, 30 o 60 caselle). Finire un livello dà un bonus, più alto con il livello e le vite rimaste. A ogni livello ci sono più palle e vanno più veloci. Hai 3 vite.</string>
+    <string name="rules_xonix_4_title">Nell’app</string>
+    <string name="rules_xonix_4_body">Gioco in solitario: scorri il dito sul campo, o usa le frecce, per dare la direzione. Avanzi da solo; sulla terra, tocca il campo per fermarti. In mare non puoi invertire la marcia. La partita va in pausa quando esci dall’app e il tuo miglior punteggio viene conservato.</string>
+    <string name="xonix_ready_title">Tocca a %1$s</string>
+    <string name="xonix_ready_hint" formatted="false">Traccia percorsi nel mare per conquistare il 75% del campo senza farti colpire dalle palle.</string>
+    <string name="xonix_go">Si parte!</string>
+    <string name="xonix_score">Punteggio: %1$d</string>
+    <string name="xonix_stats">Livello: %1$d, conquistato: %2$d%%, vite: %3$d</string>
+    <string name="xonix_over_stats">Livello: %1$d, conquistato: %2$d%%</string>
+    <string name="xonix_level_clear">Livello completato!</string>
+    <string name="xonix_pause">Pausa</string>
+    <string name="xonix_paused_title">Partita in pausa</string>
+    <string name="xonix_resume">Riprendi</string>
+    <string name="xonix_over_title">Partita finita</string>
+    <string name="xonix_play_again">Gioca ancora</string>
+    <string name="xonix_up">Su</string>
+    <string name="xonix_down">Giù</string>
+    <string name="xonix_left">Sinistra</string>
+    <string name="xonix_right">Destra</string>
     <string name="rhythm_song_label">Canzone: %1$s</string>
     <string name="rhythm_no_song">Nessuna canzone scelta</string>
     <string name="rhythm_change_song">Cambia canzone</string>
