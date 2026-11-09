@@ -95,10 +95,34 @@ internal object Breakout {
     fun bricksFor(level: Int): Int = colsFor(level) * rowsFor(level)
 
     /**
-     * Une case de la grille vaut 0 (vide), 1 (brique) ou [CAPSULE_BASE] + le rang d'un [BreakoutBonus] (brique qui cache
-     * une capsule de ce bonus, libérée quand on la casse).
+     * Une case de la grille vaut 0 (vide), 1 (brique), [STURDY] (brique solide), [CRACKED] (brique solide déjà fissurée),
+     * [UNBREAKABLE] (brique incassable) ou [CAPSULE_BASE] + le rang d'un [BreakoutBonus] (brique qui cache une capsule de
+     * ce bonus, libérée quand on la casse).
      */
     const val CAPSULE_BASE = 10
+
+    /** Brique solide : il faut la toucher deux fois. Au premier coup elle se fissure ([CRACKED]), au second elle disparaît. */
+    const val STURDY = 2
+
+    /** Brique solide déjà touchée une fois : le prochain coup la casse. */
+    const val CRACKED = 3
+
+    /** Brique incassable : la balle rebondit dessus, elle ne disparaît jamais et ne compte pas pour finir le niveau. */
+    const val UNBREAKABLE = 4
+
+    /** Premier niveau où des briques solides apparaissent, et premier niveau où des briques incassables apparaissent. */
+    const val STURDY_FROM_LEVEL = 3
+    const val UNBREAKABLE_FROM_LEVEL = 6
+
+    /** Part des briques solides : [STURDY_BASE_SHARE] au premier niveau concerné, puis [STURDY_SHARE_PER_LEVEL] de plus par niveau, jusqu'à [STURDY_MAX_SHARE]. */
+    private const val STURDY_BASE_SHARE = 0.12f
+    private const val STURDY_SHARE_PER_LEVEL = 0.03f
+    private const val STURDY_MAX_SHARE = 0.35f
+
+    /** Part des briques incassables, même principe (elles restent bien plus rares que les solides). */
+    private const val UNBREAKABLE_BASE_SHARE = 0.04f
+    private const val UNBREAKABLE_SHARE_PER_LEVEL = 0.015f
+    private const val UNBREAKABLE_MAX_SHARE = 0.12f
 
     /** Part des briques qui cachent une capsule. */
     private const val CAPSULE_CHANCE = 0.16f
@@ -153,12 +177,65 @@ internal object Breakout {
      *   raquette (voir [rowsFor], [bricksTopFor] et [paddleTopFor]).
      *
      * À tous les niveaux, quelques briques cachent une capsule de bonus ou de malus (voir [CAPSULE_BASE]), tirées au
-     * hasard avec [random].
+     * hasard avec [random]. À partir du niveau [STURDY_FROM_LEVEL], une part des briques sont solides (deux coups pour
+     * les casser, voir [STURDY]) ; à partir du niveau [UNBREAKABLE_FROM_LEVEL], quelques-unes sont incassables (voir
+     * [UNBREAKABLE]). Aucun de ces tirages au hasard n'a lieu avant le niveau [STURDY_FROM_LEVEL].
      */
     fun layoutFor(level: Int, random: Random, seed: Int = 0, minutes: Int = 0): IntArray {
-        val cells = shapeFor(level, colsFor(level), rowsFor(level), seed, minutes)
+        val cols = colsFor(level)
+        val rows = rowsFor(level)
+        val cells = shapeFor(level, cols, rows, seed, minutes)
+        // Les niveaux « heure » restent lisibles : pas de brique solide ni incassable dans les chiffres.
+        if (level >= STURDY_FROM_LEVEL && !isClockLevel(level)) hardenBricks(cells, cols, rows, level, random)
         hideCapsules(cells, random)
         return cells
+    }
+
+    /** Part des briques solides au niveau [level] (0 avant [STURDY_FROM_LEVEL]). */
+    fun sturdyShare(level: Int): Float =
+        if (level < STURDY_FROM_LEVEL) 0f
+        else min(STURDY_MAX_SHARE, STURDY_BASE_SHARE + STURDY_SHARE_PER_LEVEL * (level - STURDY_FROM_LEVEL))
+
+    /** Part des briques incassables au niveau [level] (0 avant [UNBREAKABLE_FROM_LEVEL]). */
+    fun unbreakableShare(level: Int): Float =
+        if (level < UNBREAKABLE_FROM_LEVEL) 0f
+        else min(UNBREAKABLE_MAX_SHARE, UNBREAKABLE_BASE_SHARE + UNBREAKABLE_SHARE_PER_LEVEL * (level - UNBREAKABLE_FROM_LEVEL))
+
+    /**
+     * Rend des briques ordinaires (code 1) plus dures : d'abord des briques incassables (à partir de
+     * [UNBREAKABLE_FROM_LEVEL]), puis des briques solides. Les briques incassables ne se touchent jamais, même en
+     * diagonale : ainsi elles ne peuvent pas former un mur ni enfermer une brique à casser, et le niveau reste toujours
+     * finissable. Il reste en outre toujours au moins une brique à casser.
+     */
+    private fun hardenBricks(cells: IntArray, cols: Int, rows: Int, level: Int, random: Random) {
+        if (level >= UNBREAKABLE_FROM_LEVEL) {
+            val wanted = max(1, Math.round(cells.count { it != 0 } * unbreakableShare(level)))
+            var breakable = cells.count { it != 0 }
+            var placed = 0
+            for (i in cells.indices.shuffled(random)) {
+                if (placed >= wanted || breakable <= 1) break
+                if (cells[i] != 1 || hasUnbreakableAround(cells, cols, rows, i)) continue
+                cells[i] = UNBREAKABLE
+                placed++
+                breakable--
+            }
+        }
+        val share = sturdyShare(level)
+        for (i in cells.indices) {
+            if (cells[i] == 1 && random.nextFloat() < share) cells[i] = STURDY
+        }
+    }
+
+    /** Vrai si une des huit cases autour de [index] est une brique incassable. */
+    private fun hasUnbreakableAround(cells: IntArray, cols: Int, rows: Int, index: Int): Boolean {
+        val row = index / cols
+        val col = index % cols
+        for (r in max(0, row - 1)..min(rows - 1, row + 1)) {
+            for (c in max(0, col - 1)..min(cols - 1, col + 1)) {
+                if (cells[r * cols + c] == UNBREAKABLE) return true
+            }
+        }
+        return false
     }
 
     /**
@@ -187,10 +264,10 @@ internal object Breakout {
         return cells
     }
 
-    /** Cache une capsule, de bonus tiré au hasard, dans une partie des briques. */
+    /** Cache une capsule, de bonus tiré au hasard, dans une partie des briques ordinaires (ni solides, ni incassables). */
     private fun hideCapsules(cells: IntArray, random: Random) {
         for (i in cells.indices) {
-            if (cells[i] != 0 && random.nextFloat() < CAPSULE_CHANCE) cells[i] = CAPSULE_BASE + pickBonus(random).ordinal
+            if (cells[i] == 1 && random.nextFloat() < CAPSULE_CHANCE) cells[i] = CAPSULE_BASE + pickBonus(random).ordinal
         }
     }
 
@@ -366,7 +443,7 @@ internal class BreakoutGame(
     var isOver = false
         private set
 
-    /** Nombre de briques encore debout. */
+    /** Nombre de briques encore à casser (les briques incassables ne comptent pas). */
     var bricksLeft = 0
         private set
 
@@ -433,7 +510,11 @@ internal class BreakoutGame(
     fun brickColor(col: Int, row: Int): Int =
         if (col in 0 until cols && row in 0 until rows) colors.getOrElse(row * cols + col) { 0 } else 0
 
-    /** Vrai s'il y a encore une brique à la colonne [col], rangée [row]. */
+    /** Ce que contient la case (colonne [col], rangée [row]) : 0 (vide), 1, [Breakout.STURDY], [Breakout.CRACKED], [Breakout.UNBREAKABLE] ou un code de capsule. */
+    fun brickKind(col: Int, row: Int): Int =
+        if (col in 0 until cols && row in 0 until rows) bricks[row * cols + col] else 0
+
+    /** Vrai s'il y a encore une brique à la colonne [col], rangée [row] (une brique incassable compte : la balle rebondit dessus). */
     fun hasBrick(col: Int, row: Int): Boolean =
         col in 0 until cols && row in 0 until rows && bricks[row * cols + col] != 0
 
@@ -511,7 +592,7 @@ internal class BreakoutGame(
         }
     }
 
-    /** Le laser tire de lui-même tant qu'il dure ; un tir casse la première brique qu'il touche. Renvoie vrai si le niveau est fini. */
+    /** Le laser tire de lui-même tant qu'il dure ; un tir touche la première brique rencontrée (une brique solide en demande deux, une incassable arrête le tir). Renvoie vrai si le niveau est fini. */
     private fun moveBolts(ms: Int, seconds: Float): Boolean {
         if (laserMs > 0) {
             laserCooldownMs -= ms
@@ -539,7 +620,7 @@ internal class BreakoutGame(
                     if (hasBrick(col, row)) {
                         alive = false
                         bolts.remove(bolt)
-                        if (destroyBrick(col, row)) return true
+                        if (hitBrick(col, row)) return true
                     }
                 }
                 i++
@@ -642,7 +723,8 @@ internal class BreakoutGame(
 
     /**
      * Casse la brique que touche la balle, s'il y en a une, et la fait rebondir (de côté si elle l'a prise par le flanc,
-     * sinon dans le sens vertical). Une balle perforante casse toutes celles qu'elle touche et ne rebondit pas. Renvoie
+     * sinon dans le sens vertical). Une balle perforante casse toutes celles qu'elle touche (même les solides, en un
+     * coup) et ne rebondit pas, sauf sur les briques incassables. Renvoie
      * vrai quand le niveau est fini (la balle revient alors sur la raquette).
      */
     private fun breakBricks(b: BreakoutBall): Boolean {
@@ -666,21 +748,48 @@ internal class BreakoutGame(
                 val dy = b.y - nearY
                 if (dx * dx + dy * dy >= r * r) continue
 
-                if (!pierce) {
+                val code = bricks[row * cols + col]
+                val solid = code == Breakout.UNBREAKABLE
+                // Une brique qui reste en place après le choc (incassable, ou solide pas encore fissurée) : la balle est
+                // replacée juste à côté, sinon elle la toucherait encore au pas suivant et la fissurerait aussitôt.
+                val survives = solid || (code == Breakout.STURDY && !pierce)
+                if (!pierce || solid) {
                     // L'enfoncement le plus faible dit par quel côté la balle est arrivée.
                     val overlapX = min(b.x + r - left, right - (b.x - r))
                     val overlapY = min(b.y + r - top, bottom - (b.y - r))
                     if (overlapX < overlapY) {
-                        b.vx = if (b.x < (left + right) / 2f) -abs(b.vx) else abs(b.vx)
+                        val fromLeft = b.x < (left + right) / 2f
+                        b.vx = if (fromLeft) -abs(b.vx) else abs(b.vx)
+                        if (survives) b.x = if (fromLeft) left - r - CONTACT_GAP else right + r + CONTACT_GAP
                     } else {
-                        b.vy = if (b.y < (top + bottom) / 2f) -abs(b.vy) else abs(b.vy)
+                        val fromTop = b.y < (top + bottom) / 2f
+                        b.vy = if (fromTop) -abs(b.vy) else abs(b.vy)
+                        if (survives) b.y = if (fromTop) top - r - CONTACT_GAP else bottom + r + CONTACT_GAP
                     }
                 }
-                if (destroyBrick(col, row)) return true
+                if (solid) return false
+                if (hitBrick(col, row, crush = pierce)) return true
                 if (!pierce) return false
             }
         }
         return false
+    }
+
+    /**
+     * Un coup sur la brique (col, row) : une brique incassable ne bouge pas, une brique solide se fissure (ou se casse
+     * d'un coup si [crush], comme avec la balle perforante), les autres sont cassées. Renvoie vrai quand c'était la
+     * dernière brique à casser (niveau suivant).
+     */
+    private fun hitBrick(col: Int, row: Int, crush: Boolean = false): Boolean {
+        val index = row * cols + col
+        when (bricks[index]) {
+            Breakout.UNBREAKABLE -> return false
+            Breakout.STURDY -> if (!crush) {
+                bricks[index] = Breakout.CRACKED
+                return false
+            }
+        }
+        return destroyBrick(col, row)
     }
 
     /** Casse la brique (col, row) : points, et capsule libérée si elle en cachait une. Renvoie vrai quand c'était la dernière (niveau suivant). */
@@ -797,7 +906,7 @@ internal class BreakoutGame(
         val minutes = if (Breakout.isClockLevel(level)) clock() else 0
         bricks = Breakout.layoutFor(level, random, seed, minutes)
         colors = Breakout.colorsFor(level, seed)
-        bricksLeft = bricks.count { it != 0 }
+        bricksLeft = bricks.count { it != 0 && it != Breakout.UNBREAKABLE }
     }
 
     /** Une seule balle revient sur la raquette, immobile ; les effets, les capsules et les tirs en l'air disparaissent. */
@@ -861,6 +970,9 @@ internal class BreakoutGame(
     companion object {
         private const val HEADER = 10
 
+        /** Petit espace laissé entre la balle et une brique qui reste en place, pour qu'elles ne se touchent plus au pas suivant. */
+        private const val CONTACT_GAP = 0.001f
+
         /** Plus court pas d'un tir de laser, pour qu'il ne saute pas par-dessus une brique. */
         private const val BOLT_STEP = 0.2f
 
@@ -886,8 +998,10 @@ internal class BreakoutGame(
             if (data[3] !in 0..1 || data[4] !in 0..1) return null
             val cells = data.subList(HEADER, base)
             val validCodes = Breakout.CAPSULE_BASE until Breakout.CAPSULE_BASE + BreakoutBonus.entries.size
-            if (cells.any { it != 0 && it != 1 && it !in validCodes }) return null
-            val left = cells.count { it != 0 }
+            val plainCodes = intArrayOf(0, 1, Breakout.STURDY, Breakout.CRACKED, Breakout.UNBREAKABLE)
+            if (cells.any { it !in plainCodes && it !in validCodes }) return null
+            // Les briques incassables ne comptent pas : un niveau n'a de briques que s'il en reste à casser.
+            val left = cells.count { it != 0 && it != Breakout.UNBREAKABLE }
             // Une partie en cours a toujours des briques et au moins une vie ; une partie finie n'a plus de vie.
             if (left == 0 || (data[3] == 0) == (data[1] == 0)) return null
 

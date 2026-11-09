@@ -504,7 +504,7 @@ class BreakoutTest {
             assertTrue("niveau $level", hidden > 0)
             for (seed in 0 until 20) {
                 for (cell in Breakout.layoutFor(level, Random(seed))) {
-                    assertTrue(cell == 0 || cell == 1 || cell - Breakout.CAPSULE_BASE in BreakoutBonus.entries.indices)
+                    assertTrue(cell == 0 || cell == 1 || cell == Breakout.STURDY || cell - Breakout.CAPSULE_BASE in BreakoutBonus.entries.indices)
                 }
             }
         }
@@ -825,7 +825,7 @@ class BreakoutTest {
         }
         assertTrue("des briques ont été cassées", game.score > 0)
         var counted = 0
-        for (row in 0 until game.rows) for (col in 0 until game.cols) if (game.hasBrick(col, row)) counted++
+        for (row in 0 until game.rows) for (col in 0 until game.cols) if (game.hasBrick(col, row) && game.brickKind(col, row) != Breakout.UNBREAKABLE) counted++
         assertEquals(counted, game.bricksLeft)
     }
 
@@ -864,5 +864,131 @@ class BreakoutTest {
         // Fini mais avec des vies, ou en cours sans vie : incohérent.
         assertNull(BreakoutGame.restore(good.toMutableList().also { it[3] = 1 }))
         assertNull(BreakoutGame.restore(good.toMutableList().also { it[1] = 0 }))
+    }
+
+    // --- Briques solides (deux coups) et briques incassables ---
+
+    private val belowRow6 = Breakout.BRICKS_TOP + Breakout.ROWS * Breakout.BRICK_H + 0.4f
+
+    @Test
+    fun uneBriqueSolideSeFissureAuPremierCoupSansDisparaitre() {
+        val bricks = bricksAt(Triple(3, 6, Breakout.STURDY), Triple(0, 0, 1))
+        val game = state(ballX = 3.5f, ballY = belowRow6, vx = 0f, vy = -7f, bricks = bricks)
+        game.tick(100)
+        assertEquals(Breakout.CRACKED, game.brickKind(3, 6))
+        assertTrue(game.hasBrick(3, 6))
+        assertEquals(2, game.bricksLeft)
+        assertEquals(0, game.score)
+        assertTrue("la balle repart vers le bas", game.ballVy > 0f)
+        // La fissure se garde dans la sauvegarde.
+        val copy = BreakoutGame.restore(game.save())
+        assertNotNull(copy)
+        assertEquals(Breakout.CRACKED, copy!!.brickKind(3, 6))
+        assertEquals(game.save(), copy.save())
+    }
+
+    @Test
+    fun uneBriqueFissureeDisparaitAuSecondCoup() {
+        val bricks = bricksAt(Triple(3, 6, Breakout.CRACKED), Triple(0, 0, 1))
+        val game = state(ballX = 3.5f, ballY = belowRow6, vx = 0f, vy = -7f, bricks = bricks)
+        game.tick(100)
+        assertFalse(game.hasBrick(3, 6))
+        assertEquals(1, game.bricksLeft)
+        assertEquals(Breakout.brickPoints(6, 1), game.score)
+    }
+
+    @Test
+    fun uneBriqueIncassableRenvoieLaBalleEtResteEnPlace() {
+        val bricks = bricksAt(Triple(3, 6, Breakout.UNBREAKABLE), Triple(0, 0, 1))
+        val game = state(ballX = 3.5f, ballY = belowRow6, vx = 0f, vy = -7f, bricks = bricks)
+        // Elle ne compte pas pour finir le niveau.
+        assertEquals(1, game.bricksLeft)
+        game.tick(100)
+        assertEquals(Breakout.UNBREAKABLE, game.brickKind(3, 6))
+        assertEquals(1, game.bricksLeft)
+        assertEquals(0, game.score)
+        assertTrue(game.ballVy > 0f)
+    }
+
+    @Test
+    fun leNiveauSAchevePendantQuIlResteDesBriquesIncassables() {
+        val bricks = bricksAt(Triple(3, 6, 1), Triple(0, 0, Breakout.UNBREAKABLE))
+        val game = state(ballX = 3.5f, ballY = belowRow6, vx = 0f, vy = -7f, bricks = bricks)
+        game.tick(100)
+        assertEquals(2, game.level)
+    }
+
+    @Test
+    fun uneSauvegardeSansBriqueACasserEstRefusee() {
+        val data = listOf(
+            0, Breakout.LIVES, 1, 0, 0,
+            4f.toBits(), 4f.toBits(), 5f.toBits(), 0f.toBits(), (-7f).toBits()
+        ) + bricksAt(Triple(0, 0, Breakout.UNBREAKABLE))
+        assertNull(BreakoutGame.restore(data))
+    }
+
+    @Test
+    fun laBallePerforanteCasseUneBriqueSolideDUnCoupMaisRebonditSurUneIncassable() {
+        val sturdy = state(
+            ballX = 3.5f, ballY = belowRow6, vx = 0f, vy = -7f,
+            bricks = bricksAt(Triple(3, 6, Breakout.STURDY), Triple(0, 0, 1)), extra = extras(pierce = 5000)
+        )
+        sturdy.tick(100)
+        assertFalse(sturdy.hasBrick(3, 6))
+        assertTrue(sturdy.ballVy < 0f)
+        val steel = state(
+            ballX = 3.5f, ballY = belowRow6, vx = 0f, vy = -7f,
+            bricks = bricksAt(Triple(3, 6, Breakout.UNBREAKABLE), Triple(0, 0, 1)), extra = extras(pierce = 5000)
+        )
+        steel.tick(100)
+        assertTrue(steel.hasBrick(3, 6))
+        assertTrue(steel.ballVy > 0f)
+    }
+
+    @Test
+    fun leLaserDemandeDeuxTirsPourUneBriqueSolideEtSArreteSurUneIncassable() {
+        fun laserGame(code: Int) = state(
+            ballX = 2f, ballY = Breakout.PADDLE_TOP - Breakout.BALL_RADIUS, vx = 0f, vy = 0f, attached = true,
+            bricks = bricksAt(Triple(3, 6, code), Triple(0, 0, 1)), extra = extras(laser = 10_000)
+        )
+        val sturdy = laserGame(Breakout.STURDY)
+        repeat(35) { sturdy.tick(16) }
+        assertEquals(Breakout.CRACKED, sturdy.brickKind(3, 6))
+        repeat(60) { sturdy.tick(16) }
+        assertFalse(sturdy.hasBrick(3, 6))
+        val steel = laserGame(Breakout.UNBREAKABLE)
+        repeat(95) { steel.tick(16) }
+        assertEquals(Breakout.UNBREAKABLE, steel.brickKind(3, 6))
+    }
+
+    @Test
+    fun lesBriquesSolidesEtIncassablesApparaissentAPartirDeLeurNiveau() {
+        for (level in 1..40) {
+            val layouts = (0 until 30).map { Breakout.layoutFor(level, Random(it), seed = it, minutes = it * 71) }
+            val sturdy = layouts.sumOf { l -> l.count { it == Breakout.STURDY } }
+            val steel = layouts.sumOf { l -> l.count { it == Breakout.UNBREAKABLE } }
+            val clock = Breakout.isClockLevel(level)
+            if (level < Breakout.STURDY_FROM_LEVEL || clock) assertEquals("niveau $level", 0, sturdy) else assertTrue("niveau $level", sturdy > 0)
+            if (level < Breakout.UNBREAKABLE_FROM_LEVEL || clock) assertEquals("niveau $level", 0, steel) else assertTrue("niveau $level", steel > 0)
+            // Jamais de brique déjà fissurée à la mise en place.
+            assertEquals(0, layouts.sumOf { l -> l.count { it == Breakout.CRACKED } })
+        }
+    }
+
+    @Test
+    fun lesBriquesIncassablesNeSeTouchentJamaisEtIlResteToujoursUneBriqueACasser() {
+        for (level in Breakout.UNBREAKABLE_FROM_LEVEL..40) for (seed in 0 until 30) {
+            val cols = Breakout.colsFor(level)
+            val rows = Breakout.rowsFor(level)
+            val cells = Breakout.layoutFor(level, Random(seed), seed = seed, minutes = seed * 71)
+            for (row in 0 until rows) for (col in 0 until cols) {
+                if (cells[row * cols + col] != Breakout.UNBREAKABLE) continue
+                for (r in maxOf(0, row - 1)..minOf(rows - 1, row + 1)) for (c in maxOf(0, col - 1)..minOf(cols - 1, col + 1)) {
+                    if (r == row && c == col) continue
+                    assertTrue("niveau $level, graine $seed : incassables voisines", cells[r * cols + c] != Breakout.UNBREAKABLE)
+                }
+            }
+            assertTrue("niveau $level, graine $seed", cells.any { it != 0 && it != Breakout.UNBREAKABLE })
+        }
     }
 }

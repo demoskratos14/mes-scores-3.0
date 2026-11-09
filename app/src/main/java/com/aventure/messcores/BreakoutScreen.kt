@@ -53,6 +53,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -80,6 +82,10 @@ private const val BREAKOUT_PHASE_OVER = 2 // la dernière vie est perdue : la pa
 private const val MAX_FRAME_MS = 100L
 
 /** Les couleurs des rangées de briques, de haut en bas : l'arc-en-ciel (pour une partie reprise d'une ancienne sauvegarde). */
+/** L'acier des briques incassables, et la teinte vers laquelle les briques solides sont assombries. */
+private val UNBREAKABLE_COLOR = Color(0xFF78909C)
+private val STURDY_TINT = Color(0xFF263238)
+
 private val BRICK_COLORS = listOf(
     Color(0xFFE53935), Color(0xFFFB8C00), Color(0xFFFDD835), Color(0xFF43A047),
     Color(0xFF00ACC1), Color(0xFF1E88E5), Color(0xFF8E24AA)
@@ -418,17 +424,30 @@ private fun DrawScope.drawBreakoutField(game: BreakoutGame, @Suppress("UNUSED_PA
     for (row in 0 until rows) {
         for (col in 0 until game.cols) {
             if (!game.hasBrick(col, row)) continue
-            drawBevelBrick(
-                path = path,
-                left = col * Breakout.BRICK_W * u,
-                top = (game.bricksTop + row * Breakout.BRICK_H) * u,
-                width = Breakout.BRICK_W * u,
-                height = Breakout.BRICK_H * u,
-                // Sans couleur de dessin, les sept couleurs de l'arc-en-ciel se répartissent sur toutes les rangées.
-                color = game.brickColor(col, row).let { argb ->
-                    if (argb != 0) Color(argb) else BRICK_COLORS[row * BRICK_COLORS.size / rows]
+            val kind = game.brickKind(col, row)
+            val left = col * Breakout.BRICK_W * u
+            val top = (game.bricksTop + row * Breakout.BRICK_H) * u
+            val w = Breakout.BRICK_W * u
+            val h = Breakout.BRICK_H * u
+            // Sans couleur de dessin, les sept couleurs de l'arc-en-ciel se répartissent sur toutes les rangées.
+            val pictureColor = game.brickColor(col, row).let { argb ->
+                if (argb != 0) Color(argb) else BRICK_COLORS[row * BRICK_COLORS.size / rows]
+            }
+            val color = when (kind) {
+                Breakout.UNBREAKABLE -> UNBREAKABLE_COLOR
+                // Une brique solide garde la teinte de son dessin, mais assombrie et cerclée de métal.
+                Breakout.STURDY, Breakout.CRACKED -> lerp(pictureColor, STURDY_TINT, 0.4f)
+                else -> pictureColor
+            }
+            drawBevelBrick(path = path, left = left, top = top, width = w, height = h, color = color)
+            when (kind) {
+                Breakout.STURDY -> drawSturdyFrame(left, top, w, h)
+                Breakout.CRACKED -> {
+                    drawSturdyFrame(left, top, w, h)
+                    drawCracks(left, top, w, h)
                 }
-            )
+                Breakout.UNBREAKABLE -> drawRivets(left, top, w, h)
+            }
         }
     }
 
@@ -559,6 +578,46 @@ private fun DrawScope.drawCapsule(bonus: BreakoutBonus, cx: Float, cy: Float, w:
     val paint = CAPSULE_LETTER_PAINT
     paint.textSize = h * 0.8f
     drawContext.canvas.nativeCanvas.drawText(bonus.letter.toString(), cx, cy - (paint.ascent() + paint.descent()) / 2f, paint)
+}
+
+/** Le cadre de métal clair qui distingue une brique solide d'une brique ordinaire. */
+private fun DrawScope.drawSturdyFrame(left: Float, top: Float, width: Float, height: Float) {
+    val inset = height * 0.1f
+    drawRect(
+        color = Color(0xFFECEFF1).copy(alpha = 0.85f),
+        topLeft = Offset(left + inset, top + inset),
+        size = Size(width - 2f * inset, height - 2f * inset),
+        style = Stroke(width = height * 0.09f)
+    )
+}
+
+/** La fissure d'une brique solide déjà touchée : un éclair sombre en travers de la brique. */
+private fun DrawScope.drawCracks(left: Float, top: Float, width: Float, height: Float) {
+    val stroke = height * 0.08f
+    val points = listOf(
+        Offset(left + width * 0.42f, top + height * 0.06f),
+        Offset(left + width * 0.52f, top + height * 0.38f),
+        Offset(left + width * 0.38f, top + height * 0.55f),
+        Offset(left + width * 0.55f, top + height * 0.94f)
+    )
+    for (i in 0 until points.size - 1) drawLine(Color.Black.copy(alpha = 0.85f), points[i], points[i + 1], strokeWidth = stroke)
+    // Une branche, pour que la fissure se voie bien même sur une petite brique.
+    drawLine(
+        Color.Black.copy(alpha = 0.85f),
+        Offset(left + width * 0.52f, top + height * 0.38f),
+        Offset(left + width * 0.74f, top + height * 0.5f),
+        strokeWidth = stroke
+    )
+}
+
+/** Les rivets d'une brique incassable : un à chaque bout, sur l'acier gris. */
+private fun DrawScope.drawRivets(left: Float, top: Float, width: Float, height: Float) {
+    val radius = height * 0.09f
+    val y = top + height / 2f
+    for (x in listOf(left + width * 0.2f, left + width * 0.8f)) {
+        drawCircle(Color(0xFF263238).copy(alpha = 0.8f), radius * 1.3f, Offset(x, y + radius * 0.3f))
+        drawCircle(Color(0xFFCFD8DC), radius, Offset(x, y))
+    }
 }
 
 /** Une brique biseautée : un cadre en quatre trapèzes (haut clair, bas sombre, côtés intermédiaires) autour d'un cœur uni. */
