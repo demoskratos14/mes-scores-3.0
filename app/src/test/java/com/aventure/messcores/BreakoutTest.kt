@@ -794,11 +794,14 @@ class BreakoutTest {
         val base = 10 + all
         assertNotNull(BreakoutGame.restore(good))
         // Un effet plus long que possible, trop de balles, une capsule inconnue, ou des données en trop.
+        // Le dernier entier est la graine de l'ordre des dessins : la capsule est juste avant.
         assertNull(BreakoutGame.restore(good.toMutableList().also { it[base] = Breakout.EXPAND_MS + 1 }))
         assertNull(BreakoutGame.restore(good.toMutableList().also { it[base + 7] = Breakout.MAX_BALLS }))
-        assertNull(BreakoutGame.restore(good.toMutableList().also { it[good.size - 1] = 99 }))
+        assertNull(BreakoutGame.restore(good.toMutableList().also { it[good.size - 2] = 99 }))
         assertNull(BreakoutGame.restore(good + listOf(5)))
-        assertNull(BreakoutGame.restore(good.dropLast(1)))
+        // Sans la graine, c'est une sauvegarde d'avant les dessins, encore valide ; sans la capsule en plus, elle est abîmée.
+        assertNotNull(BreakoutGame.restore(good.dropLast(1)))
+        assertNull(BreakoutGame.restore(good.dropLast(2)))
     }
 
     // --- Une vraie partie ---
