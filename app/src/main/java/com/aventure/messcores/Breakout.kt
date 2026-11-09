@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import java.util.Calendar
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -18,6 +19,9 @@ internal const val BREAKOUT_ID = "builtin_breakout"
 /**
  * Réglages et calculs du Casse-briques. Le terrain est en « unités » : une brique fait une unité de large, donc le
  * terrain en fait autant que de colonnes ; l'écran n'a qu'à mettre ce terrain à l'échelle. Le haut du terrain est en y = 0.
+ *
+ * Chaque niveau est un dessin en briques : une émoticône (voir [BreakoutPictures]), ou l'heure tous les [CLOCK_EVERY]
+ * niveaux (voir [BreakoutClock]).
  *
  * Le terrain grandit avec le niveau : une colonne de plus à chaque niveau (jusqu'à [MAX_COLS]) et, dans la même
  * proportion, plus de rangées et plus de hauteur. La raquette, la balle et les briques gardent leur taille en unités :
@@ -85,8 +89,8 @@ internal object Breakout {
     fun rowsFor(level: Int): Int = Math.round(ROWS * scaleFor(level))
 
     /**
-     * Nombre de cases de la grille de briques au niveau [level]. Dès le niveau 2 toutes les cases ne sont pas remplies
-     * (voir [layoutFor]) : c'est le nombre maximal de briques, et la taille des sauvegardes.
+     * Nombre de cases de la grille de briques au niveau [level]. Toutes les cases ne sont pas remplies (voir
+     * [layoutFor]) : c'est le nombre maximal de briques, et la taille des sauvegardes.
      */
     fun bricksFor(level: Int): Int = colsFor(level) * rowsFor(level)
 
@@ -127,43 +131,60 @@ internal object Breakout {
     const val MAX_BALLS = 9
     const val SPLIT_ANGLE = 0.35f
 
-    /** Part des cases tirées au sort pour porter une brique, dès le niveau 2. */
-    private const val FILL_CHANCE = 0.75f
+    /** Un niveau sur [CLOCK_EVERY] (le 8e, le 16e…) écrit l'heure en briques au lieu d'un dessin (voir [BreakoutClock]). */
+    const val CLOCK_EVERY = 8
 
-    /** Part minimale de la grille qui doit rester remplie, une fois les briques isolées retirées. */
-    private const val MIN_FILL = 0.45f
+    /** Vrai si le niveau [level] est un niveau « heure » : le premier est le niveau 8, le terrain y est assez large. */
+    fun isClockLevel(level: Int): Boolean = level >= CLOCK_EVERY && level % CLOCK_EVERY == 0
 
-    /** Nombre d'essais avant de se rabattre sur la grille pleine. */
-    private const val LAYOUT_TRIES = 30
+    /** L'heure du téléphone, en minutes depuis minuit : celle qu'écrit un niveau « heure » quand il se lance. */
+    fun minutesNow(): Int = Calendar.getInstance().let { it.get(Calendar.HOUR_OF_DAY) * 60 + it.get(Calendar.MINUTE) }
 
     /**
      * La disposition des briques au niveau [level], rangée par rangée (1 : brique, 0 : vide), de taille [bricksFor].
      *
-     * Le niveau 1 est la grille pleine. Dès le niveau 2, les briques sont tirées au hasard pour que chaque niveau ait
-     * son allure, avec deux garanties :
+     * Chaque niveau est un dessin en briques (voir [BreakoutPictures]) : les niveaux vont des silhouettes les plus
+     * simples aux dessins les plus détaillés, dans un ordre qui dépend de [seed] (celui de la partie). Tous les
+     * [CLOCK_EVERY] niveaux, c'est l'heure [minutes] (minutes depuis minuit) écrite en briques (voir [BreakoutClock]).
+     * Deux garanties :
      * - aucune brique n'est seule dans le vide : chacune touche une autre brique par un côté (gauche, droite, dessus
      *   ou dessous) ;
      * - aucune n'est posée trop bas : elles restent dans la grille, dont le bas est toujours très loin au-dessus de la
      *   raquette (voir [rowsFor], [bricksTopFor] et [paddleTopFor]).
      *
-     * À tous les niveaux, quelques briques cachent une capsule de bonus ou de malus (voir [CAPSULE_BASE]).
+     * À tous les niveaux, quelques briques cachent une capsule de bonus ou de malus (voir [CAPSULE_BASE]), tirées au
+     * hasard avec [random].
      */
-    fun layoutFor(level: Int, random: Random): IntArray {
-        val cols = colsFor(level)
-        val rows = rowsFor(level)
-        val cells = if (level <= 1) IntArray(cols * rows) { 1 } else randomShape(cols, rows, random)
+    fun layoutFor(level: Int, random: Random, seed: Int = 0, minutes: Int = 0): IntArray {
+        val cells = shapeFor(level, colsFor(level), rowsFor(level), seed, minutes)
         hideCapsules(cells, random)
         return cells
     }
 
-    /** Une forme au hasard, sans brique seule ; la grille pleine si les essais donnent trop peu de briques. */
-    private fun randomShape(cols: Int, rows: Int, random: Random): IntArray {
-        repeat(LAYOUT_TRIES) {
-            val cells = IntArray(cols * rows) { if (random.nextFloat() < FILL_CHANCE) 1 else 0 }
-            removeLoneBricks(cells, cols, rows)
-            if (cells.count { it != 0 } >= MIN_FILL * cells.size) return cells
+    /**
+     * Les couleurs (ARGB) des cases du niveau [level], rangée par rangée, dans le même ordre que [layoutFor] : celles
+     * du dessin, ou celles de l'heure. Elles ne dépendent que du niveau et de [seed], pas de l'heure ni des briques
+     * déjà cassées : la sauvegarde n'a donc pas à les garder.
+     */
+    fun colorsFor(level: Int, seed: Int): IntArray {
+        val cols = colsFor(level)
+        val rows = rowsFor(level)
+        val picture = BreakoutPictures.forLevel(level, seed)
+        return if (picture != null) BreakoutPictures.fit(picture, cols, rows) else BreakoutClock.colors(cols, rows)
+    }
+
+    /** La forme du niveau (1 : brique, 0 : vide), sans brique seule ; la grille pleine si le dessin n'a rien donné. */
+    private fun shapeFor(level: Int, cols: Int, rows: Int, seed: Int, minutes: Int): IntArray {
+        val picture = BreakoutPictures.forLevel(level, seed)
+        val cells = if (picture == null) {
+            BreakoutClock.cells(cols, rows, minutes)
+        } else {
+            val colors = BreakoutPictures.fit(picture, cols, rows)
+            IntArray(colors.size) { if (colors[it] != 0) 1 else 0 }
         }
-        return IntArray(cols * rows) { 1 }
+        removeLoneBricks(cells, cols, rows)
+        if (cells.none { it != 0 }) cells.fill(1)
+        return cells
     }
 
     /** Cache une capsule, de bonus tiré au hasard, dans une partie des briques. */
@@ -279,11 +300,20 @@ internal class BreakoutBolt(val x: Float, var y: Float)
  * raquette qui l'attrape en reçoit l'effet pour un temps. Les effets et les capsules en l'air disparaissent quand une
  * vie est perdue ou qu'un niveau s'achève.
  */
-internal class BreakoutGame(private val random: Random = Random.Default) {
+internal class BreakoutGame(
+    private val random: Random = Random.Default,
+    pictureSeed: Int = Random.Default.nextInt(),
+    private val clock: () -> Int = Breakout::minutesNow
+) {
 
     // Une case par brique, rangée par rangée, la rangée 0 étant en haut : 0 vide, 1 brique, sinon brique à capsule (voir
     // [Breakout.CAPSULE_BASE]). Sa taille dépend du niveau.
     private var bricks = IntArray(0)
+
+    // La graine qui fixe l'ordre des dessins de la partie (nouvelle à chaque partie, gardée dans la sauvegarde), et la
+    // couleur (ARGB) de chaque case du niveau, dans le même ordre que [bricks] (vide : couleurs des rangées).
+    private var seed = pictureSeed
+    private var colors = IntArray(0)
 
     /** Les balles en jeu : toujours au moins une (la première est la « principale »). */
     private val balls = mutableListOf<BreakoutBall>()
@@ -377,11 +407,16 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
         }
 
     init {
-        reset()
+        startNewGame()
     }
 
-    /** Une nouvelle partie. */
+    /** Une nouvelle partie : les dessins se suivent dans un nouvel ordre. */
     fun reset() {
+        seed = random.nextInt()
+        startNewGame()
+    }
+
+    private fun startNewGame() {
         score = 0
         lives = Breakout.LIVES
         level = 1
@@ -390,6 +425,13 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
         fillBricks()
         serve()
     }
+
+    /**
+     * La couleur (ARGB) de la brique de la colonne [col], rangée [row] : celle du dessin du niveau. 0 quand le niveau
+     * n'a pas de dessin (partie reprise d'une ancienne sauvegarde) : l'écran prend alors la couleur de la rangée.
+     */
+    fun brickColor(col: Int, row: Int): Int =
+        if (col in 0 until cols && row in 0 until rows) colors.getOrElse(row * cols + col) { 0 } else 0
 
     /** Vrai s'il y a encore une brique à la colonne [col], rangée [row]. */
     fun hasBrick(col: Int, row: Int): Boolean =
@@ -742,7 +784,7 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
         b.vx = if (b.vx >= 0f) vx else -vx
     }
 
-    /** Le niveau suivant : un terrain plus large, plus de briques (disposées au hasard) et une balle plus rapide. */
+    /** Le niveau suivant : un terrain plus large, un nouveau dessin en briques et une balle plus rapide. */
     private fun nextLevel() {
         level++
         paddleX = width / 2f
@@ -750,9 +792,11 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
         serve()
     }
 
-    /** Dispose les briques du niveau en cours : la grille pleine au niveau 1, au hasard ensuite (voir [Breakout.layoutFor]). */
+    /** Dispose les briques du niveau en cours : son dessin, ou l'heure du moment (voir [Breakout.layoutFor]). */
     private fun fillBricks() {
-        bricks = Breakout.layoutFor(level, random)
+        val minutes = if (Breakout.isClockLevel(level)) clock() else 0
+        bricks = Breakout.layoutFor(level, random, seed, minutes)
+        colors = Breakout.colorsFor(level, seed)
         bricksLeft = bricks.count { it != 0 }
     }
 
@@ -773,8 +817,8 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
 
     /**
      * L'état de la partie sous forme d'une liste d'entiers, pour la garder quand l'écran tourne (voir [restore]) : d'abord
-     * l'en-tête (la balle principale), puis les briques, puis les effets, les autres balles et les capsules. Les tirs de
-     * laser, éphémères, ne sont pas gardés.
+     * l'en-tête (la balle principale), puis les briques, puis les effets, les autres balles et les capsules, enfin la
+     * graine de l'ordre des dessins. Les tirs de laser, éphémères, ne sont pas gardés.
      */
     fun save(): List<Int> = buildList {
         val main = balls[0]
@@ -811,6 +855,7 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
             add(c.y.toBits())
             add(c.bonus.ordinal)
         }
+        add(seed)
     }
 
     companion object {
@@ -820,7 +865,7 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
         private const val BOLT_STEP = 0.2f
 
         /** Une partie remise dans l'état de [data] (voir [save]), ou null si la liste est abîmée. */
-        fun restore(data: List<Int>, random: Random = Random.Default): BreakoutGame? {
+        fun restore(data: List<Int>, random: Random = Random.Default, clock: () -> Int = Breakout::minutesNow): BreakoutGame? {
             if (data.size < HEADER || data[2] < 1) return null
             // Le nombre de cases dépend du niveau.
             val level = data[2]
@@ -853,6 +898,8 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
             var mainOffset = 0f
             val extraBalls = mutableListOf<BreakoutBall>()
             val fallen = mutableListOf<BreakoutCapsule>()
+            // La graine de l'ordre des dessins : absente d'une sauvegarde d'avant les dessins (les briques gardent leur forme).
+            var savedSeed: Int? = null
             if (data.size > base) {
                 val limits = intArrayOf(
                     Breakout.EXPAND_MS, Breakout.SHRINK_MS, Breakout.PIERCE_MS,
@@ -891,10 +938,11 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
                     val bonus = BreakoutBonus.entries.getOrNull(kind) ?: return null
                     fallen.add(BreakoutCapsule(cx, cy, bonus))
                 }
+                if (cursor < data.size) savedSeed = next()
                 if (cursor != data.size) return null
             }
 
-            return BreakoutGame(random).apply {
+            return BreakoutGame(random, savedSeed ?: Random.Default.nextInt(), clock).apply {
                 score = data[0]
                 lives = data[1]
                 this.level = data[2]
@@ -902,6 +950,8 @@ internal class BreakoutGame(private val random: Random = Random.Default) {
                 isOver = data[3] == 1
                 paddleX = px
                 cells.forEachIndexed { index, value -> bricks[index] = value }
+                // Sans graine (ancienne sauvegarde), la disposition des briques est celle d'avant : pas de couleurs de dessin.
+                colors = if (savedSeed != null) Breakout.colorsFor(this.level, seed) else IntArray(0)
                 bricksLeft = left
                 expandMs = timers[0]
                 shrinkMs = timers[1]

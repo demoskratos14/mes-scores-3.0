@@ -14,7 +14,8 @@ class BreakoutTest {
 
     private val all = Breakout.COLS * Breakout.ROWS
 
-    private fun newGame(seed: Int = 1) = BreakoutGame(Random(seed))
+    /** Une partie à l'ordre de dessins fixé par [seed], dont l'horloge indique toujours 12 h 34. */
+    private fun newGame(seed: Int = 1) = BreakoutGame(Random(seed), pictureSeed = seed, clock = { 12 * 60 + 34 })
 
     /** Une partie dans l'état voulu (construite par [BreakoutGame.restore]) : toutes les briques sont là sauf si [bricks] dit autrement. */
     private fun state(
@@ -70,8 +71,9 @@ class BreakoutTest {
     @Test
     fun uneNouvellePartieALesBriquesLesViesEtLaBalleSurLaRaquette() {
         val game = newGame()
-        assertEquals(all, game.bricksLeft)
-        for (row in 0 until Breakout.ROWS) for (col in 0 until Breakout.COLS) assertTrue(game.hasBrick(col, row))
+        // Le niveau 1 est un dessin : des briques, mais pas toute la grille.
+        assertTrue(game.bricksLeft in 1..all)
+        assertEquals(game.bricksLeft, (0 until Breakout.ROWS).sumOf { r -> (0 until Breakout.COLS).count { c -> game.hasBrick(c, r) } })
         assertFalse(game.hasBrick(-1, 0))
         assertFalse(game.hasBrick(Breakout.COLS, 0))
         assertFalse(game.hasBrick(0, Breakout.ROWS))
@@ -252,7 +254,7 @@ class BreakoutTest {
         assertEquals(Breakout.LIVES, game.lives)
         assertEquals(1, game.level)
         assertEquals(0, game.score)
-        assertEquals(all, game.bricksLeft)
+        assertTrue(game.bricksLeft in 1..all)
         assertEquals(8, game.cols)
         assertTrue(game.attached)
     }
@@ -358,28 +360,38 @@ class BreakoutTest {
     }
 
     @Test
-    fun leNiveauUnEstToujoursLaGrillePleine() {
+    fun leNiveauUnEstUnDessinDeLaPremiereCategorie() {
         repeat(20) { seed ->
-            assertTrue(Breakout.layoutFor(1, Random(seed)).all { it != 0 })
+            val cells = Breakout.layoutFor(1, Random(seed), seed = seed)
+            assertEquals(all, cells.size)
+            assertTrue(cells.count { it != 0 } in 15 until all)
+            assertEquals(0, BreakoutPictures.forLevel(1, seed)!!.tier)
         }
-        assertEquals(all, newGame(5).bricksLeft)
+        assertTrue(newGame(5).bricksLeft in 15 until all)
     }
 
     @Test
-    fun auNiveauDeuxEtAuDelaLesBriquesSontDisposeesAuHasard() {
-        for (level in 2..17) {
-            val layouts = (0 until 10).map { Breakout.layoutFor(level, Random(it)).toList() }.toSet()
+    fun lesDispositionsDependentDeLaGraineEtDeLHeure() {
+        for (level in 1..17) {
+            val layouts = (0 until 10).map { Breakout.layoutFor(level, Random(it), seed = it).toList() }.toSet()
             assertTrue("niveau $level : les dispositions diffèrent", layouts.size > 1)
             for (layout in layouts) assertEquals(Breakout.bricksFor(level), layout.size)
         }
+        // La même graine, la même heure et le même hasard donnent le même niveau.
+        assertEquals(
+            Breakout.layoutFor(5, Random(3), seed = 9, minutes = 100).toList(),
+            Breakout.layoutFor(5, Random(3), seed = 9, minutes = 100).toList()
+        )
+        // Au niveau horloge, l'heure change la disposition.
+        assertTrue(Breakout.layoutFor(16, Random(1), minutes = 0).toList() != Breakout.layoutFor(16, Random(1), minutes = 754).toList())
     }
 
     @Test
     fun aucuneBriqueNEstSeuleDansLeVide() {
-        for (level in 2..17) for (seed in 0 until 50) {
+        for (level in 1..40) for (seed in 0 until 20) {
             val cols = Breakout.colsFor(level)
             val rows = Breakout.rowsFor(level)
-            val cells = Breakout.layoutFor(level, Random(seed))
+            val cells = Breakout.layoutFor(level, Random(seed), seed = seed, minutes = seed * 71)
             for (row in 0 until rows) for (col in 0 until cols) {
                 if (cells[row * cols + col] != 0) {
                     assertTrue("niveau $level, graine $seed : brique seule en ($col, $row)", neighbours(cells, cols, rows, col, row) >= 1)
@@ -402,10 +414,10 @@ class BreakoutTest {
 
     @Test
     fun lesBriquesNeDescendentJamaisTropBasParRapportALaRaquette() {
-        for (level in 1..17) for (seed in 0 until 20) {
+        for (level in 1..40) for (seed in 0 until 20) {
             val cols = Breakout.colsFor(level)
             val rows = Breakout.rowsFor(level)
-            val cells = Breakout.layoutFor(level, Random(seed))
+            val cells = Breakout.layoutFor(level, Random(seed), seed = seed, minutes = seed * 71)
             val lowestRow = (0 until rows).last { row -> (0 until cols).any { cells[row * cols + it] != 0 } }
             val bottom = Breakout.bricksTopFor(level) + (lowestRow + 1) * Breakout.BRICK_H
             // Il reste toujours plus de la moitié de la hauteur du terrain sous les briques, pour avoir le temps de renvoyer la balle.
@@ -415,14 +427,14 @@ class BreakoutTest {
 
     @Test
     fun uneDispositionNeSeVideJamaisAuPointDEtreTropMaigre() {
-        for (level in 2..17) for (seed in 0 until 50) {
-            val cells = Breakout.layoutFor(level, Random(seed))
-            assertTrue(cells.count { it != 0 } >= cells.size * 0.45)
+        for (level in 1..40) for (seed in 0 until 50) {
+            val cells = Breakout.layoutFor(level, Random(seed), seed = seed, minutes = seed * 29)
+            assertTrue("niveau $level, graine $seed", cells.count { it != 0 } >= 15)
         }
     }
 
     @Test
-    fun lePassageAuNiveauSuivantDisposeLesBriquesAuHasardEtLesSauvegarde() {
+    fun lePassageAuNiveauSuivantDisposeLeDessinSuivantEtLeSauvegarde() {
         val bottom = Breakout.BRICKS_TOP + Breakout.ROWS * Breakout.BRICK_H
         val bricks = List(all) { if (it == (Breakout.ROWS - 1) * Breakout.COLS + 3) 1 else 0 }
         val game = state(ballX = 3.5f, ballY = bottom + 0.4f, vx = 0f, vy = -7f, bricks = bricks)
@@ -836,7 +848,9 @@ class BreakoutTest {
         val good = newGame().save()
         assertNotNull(BreakoutGame.restore(good))
         assertNull(BreakoutGame.restore(emptyList()))
-        assertNull(BreakoutGame.restore(good.dropLast(1)))
+        // Sans la graine, c'est une sauvegarde d'avant les dessins (valide) ; sans le nombre de capsules, elle est abîmée.
+        assertNotNull(BreakoutGame.restore(good.dropLast(1)))
+        assertNull(BreakoutGame.restore(good.dropLast(2)))
         assertNull(BreakoutGame.restore(good.toMutableList().also { it[1] = 9 }))
         assertNull(BreakoutGame.restore(good.toMutableList().also { it[2] = 0 }))
         assertNull(BreakoutGame.restore(good.toMutableList().also { it[6] = Float.NaN.toBits() }))

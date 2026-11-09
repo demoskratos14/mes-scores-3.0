@@ -79,7 +79,7 @@ private const val BREAKOUT_PHASE_OVER = 2 // la dernière vie est perdue : la pa
 /** Plus long temps d'une image pris en compte : après un à-coup, la balle ne doit pas sauter loin d'un coup. */
 private const val MAX_FRAME_MS = 100L
 
-/** Les couleurs des rangées de briques, de haut en bas : l'arc-en-ciel. */
+/** Les couleurs des rangées de briques, de haut en bas : l'arc-en-ciel (pour une partie reprise d'une ancienne sauvegarde). */
 private val BRICK_COLORS = listOf(
     Color(0xFFE53935), Color(0xFFFB8C00), Color(0xFFFDD835), Color(0xFF43A047),
     Color(0xFF00ACC1), Color(0xFF1E88E5), Color(0xFF8E24AA)
@@ -411,7 +411,8 @@ private fun DrawScope.drawBreakoutField(game: BreakoutGame, @Suppress("UNUSED_PA
         drawCircle(Color.White.copy(alpha = 0.35f + radius * 8f), radius * baseUnit, Offset(fx * size.width, fy * size.height))
     }
 
-    // Les briques : chaque rangée a sa couleur, et un biseau donne du relief (clair en haut, sombre en bas).
+    // Les briques : chacune a la couleur de son dessin (ou celle de sa rangée, pour une ancienne sauvegarde), et un
+    // biseau donne du relief (clair en haut, sombre en bas).
     val path = Path()
     val rows = game.rows
     for (row in 0 until rows) {
@@ -423,8 +424,10 @@ private fun DrawScope.drawBreakoutField(game: BreakoutGame, @Suppress("UNUSED_PA
                 top = (game.bricksTop + row * Breakout.BRICK_H) * u,
                 width = Breakout.BRICK_W * u,
                 height = Breakout.BRICK_H * u,
-                // Les sept couleurs de l'arc-en-ciel se répartissent sur toutes les rangées, quel que soit leur nombre.
-                color = BRICK_COLORS[row * BRICK_COLORS.size / rows]
+                // Sans couleur de dessin, les sept couleurs de l'arc-en-ciel se répartissent sur toutes les rangées.
+                color = game.brickColor(col, row).let { argb ->
+                    if (argb != 0) Color(argb) else BRICK_COLORS[row * BRICK_COLORS.size / rows]
+                }
             )
         }
     }
