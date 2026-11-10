@@ -369,6 +369,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Bubble Shooter : écran à part (voir BubbleShooterScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = BUBBLE_ID,
+        name = context.getString(R.string.game_bubble),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Casse-briques : écran à part (voir BreakoutScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = BREAKOUT_ID,

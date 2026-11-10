@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, XONIX_ID, SNAKE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -129,6 +129,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             BREAKOUT_ID -> drawBreakout()
             XONIX_ID -> drawXonix()
             SNAKE_ID -> drawSnake()
+            BUBBLE_ID -> drawBubbleShooter()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -395,6 +396,28 @@ private fun DrawScope.drawSnake() {
     drawCircle(Color(0xFFB8B0A8), unit * 0.22f, Offset(mx + unit * 0.3f, my - unit * 0.34f))
     drawCircle(Color(0xFFF4A6B8), unit * 0.12f, Offset(mx - unit * 0.3f, my - unit * 0.34f))
     drawCircle(Color(0xFFF4A6B8), unit * 0.12f, Offset(mx + unit * 0.3f, my - unit * 0.34f))
+}
+
+private fun DrawScope.drawBubbleShooter() {
+    paper(Color(0xFF14213D))
+    val s = size.minDimension
+    val r = s * 0.085f
+    val colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5), Color(0xFF43A047), Color(0xFFFDD835), Color(0xFF8E24AA))
+    fun bubble(x: Float, y: Float, color: Color) {
+        val center = Offset(s * x, s * y)
+        drawCircle(color, r, center)
+        drawCircle(Color.Black.copy(alpha = 0.35f), r, center, style = Stroke(r * 0.1f))
+        drawCircle(Color.White.copy(alpha = 0.55f), r * 0.2f, center - Offset(r * 0.35f, r * 0.35f))
+    }
+    // Un tas de bulles accrochées en haut : trois rangées qui s'emboîtent, la deuxième décalée d'une demi-bulle.
+    val step = 0.18f
+    for (i in 0 until 5) bubble(0.14f + step * i, 0.15f, colors[i % colors.size])
+    for (i in 0 until 4) bubble(0.23f + step * i, 0.306f, colors[(i + 2) % colors.size])
+    for (i in 0 until 3) bubble(0.32f + step * i, 0.462f, colors[(i + 4) % colors.size])
+    // Le guide de visée en pointillés, une bulle prête à partir et le lanceur.
+    for (i in 0 until 3) drawCircle(Color.White.copy(alpha = 0.6f), s * 0.014f, Offset(s * 0.5f, s * (0.6f + 0.07f * i)))
+    drawCircle(Color(0xFF546E7A), s * 0.1f, Offset(s * 0.5f, s * 0.9f))
+    bubble(0.5f, 0.9f, colors[1])
 }
 
 private fun DrawScope.drawRhythm() {
