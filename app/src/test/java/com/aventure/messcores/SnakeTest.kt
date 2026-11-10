@@ -163,7 +163,7 @@ class SnakeTest {
     fun uneSourisRapporteDixPointsParNiveau() {
         val row = rows / 2
         val game = SnakeGame.restore(
-            listOf(1, SnakeDir.RIGHT.ordinal, cell(3, row), 0, Snake.MICE_PER_LEVEL, 0, 0, 0, 0, 3,
+            listOf(2, SnakeDir.RIGHT.ordinal, cell(3, row), 0, Snake.MICE_PER_LEVEL, 0, 0, 0, 0, 0, 3,
                 cell(2, row), cell(1, row), cell(0, row)),
             Random(1)
         )!!
@@ -197,14 +197,13 @@ class SnakeTest {
         game.turn(SnakeDir.LEFT); game.step()
         game.turn(SnakeDir.DOWN); game.step()
         assertTrue(game.isOver)
-        assertFalse(game.isWon)
     }
 
     @Test
     fun laTetePeutPrendreLaCaseQueLaQueueVientDeLiberer() {
         // Un carré de quatre cases : la tête (6,5) va vers le bas, sur la case (6,6) que la queue quitte au même pas.
         val game = SnakeGame.restore(
-            listOf(1, SnakeDir.RIGHT.ordinal, cell(8, 8), 0, 0, 0, 0, 0, 0, 4,
+            listOf(2, SnakeDir.RIGHT.ordinal, cell(8, 8), 0, 0, 0, 0, 0, 0, 0, 4,
                 cell(6, 5), cell(5, 5), cell(5, 6), cell(6, 6)),
             Random(1)
         )!!
@@ -214,9 +213,8 @@ class SnakeTest {
         assertEquals(cell(6, 6), game.head)
     }
 
-    @Test
-    fun remplirToutLePlateauEstUneVictoire() {
-        // Un serpent de toutes les cases sauf une, la souris sur la dernière : la manger remplit le plateau.
+    /** Un serpent qui occupe tout le plateau sauf la dernière case du parcours, où se trouve la souris (le prochain pas la mange). */
+    private fun almostFullBoard(boardsCleared: Int = 0, score: Int = 0): SnakeGame {
         val all = ArrayList<Int>()
         // Parcours « boustrophédon » : chaque case est voisine de la suivante.
         for (r in 0 until rows) {
@@ -227,19 +225,50 @@ class SnakeTest {
         // La tête est à l'avant-dernière case du parcours, tournée vers la dernière ; la queue est la première case.
         val bodyCells = all.dropLast(1).reversed()
         val headCell = bodyCells.first()
-        val lastCol = last % cols
-        val lastRow = last / cols
-        val dir = SnakeDir.entries.first { Snake.wrap(headCell % cols, headCell / cols, it) == lastCol to lastRow }
-        val game = SnakeGame.restore(
-            listOf(1, dir.ordinal, last, 0, 0, 0, 0, 0, 0, bodyCells.size) + bodyCells,
+        val dir = SnakeDir.entries.first { Snake.wrap(headCell % cols, headCell / cols, it) == (last % cols to last / cols) }
+        return SnakeGame.restore(
+            listOf(2, dir.ordinal, last, score, 0, 0, boardsCleared, 0, 0, 0, bodyCells.size) + bodyCells,
             Random(1)
-        )
-        assertNotNull(game)
-        game!!.step()
-        assertTrue(game.isOver)
-        assertTrue(game.isWon)
-        assertEquals(SnakeGame.NONE, game.mouse)
-        assertEquals(cols * rows, game.length)
+        )!!
+    }
+
+    @Test
+    fun remplirToutLePlateauRelanceUnePartieAvecUnBonusEtPlusDeVitesse() {
+        val game = almostFullBoard(score = 40)
+        game.step()
+        assertFalse(game.isOver)
+        assertEquals(1, game.boardsCleared)
+        assertEquals(40 + Snake.MOUSE_POINTS * game.level + Snake.BOARD_BONUS, game.score)
+        // Nouveau plateau : serpent de départ, une souris libre, et une vitesse supérieure à celle du départ.
+        assertEquals(Snake.START_LENGTH, game.length)
+        assertTrue(game.mouse in 0 until cols * rows)
+        assertFalse(game.isSnake(game.mouse % cols, game.mouse / cols))
+        assertEquals(Snake.stepMs(1 + Snake.SPEED_LEVELS_PER_BOARD, 1), game.stepMs)
+        assertTrue(game.stepMs < Snake.stepMs(1))
+    }
+
+    @Test
+    fun chaquePlateauRempliAbaisseLePlancherDeVitesse() {
+        // Au plancher, un plateau de plus fait encore baisser le temps entre deux cases (jusqu'à la limite absolue).
+        assertTrue(Snake.stepMs(100, 1) < Snake.stepMs(100, 0))
+        assertTrue(Snake.stepMs(100, 3) < Snake.stepMs(100, 2))
+        assertTrue(Snake.stepMs(100, 50) > 0)
+    }
+
+    @Test
+    fun laVitesseRepartAuDepartDuNouveauPlateauPuisMonteAvecLesSouris() {
+        val game = almostFullBoard(boardsCleared = 1)
+        game.step()
+        val start = game.speedLevel
+        assertEquals(1 + Snake.SPEED_LEVELS_PER_BOARD * 2, start)
+        // Chaque série de souris mangées sur ce plateau fait encore monter la vitesse.
+        repeat(Snake.MICE_PER_LEVEL) {
+            val head = game.head
+            val next = Snake.wrap(head % cols, head / cols, game.direction).let { (c, r) -> cell(c, r) }
+            game.placeMouseAt(next)
+            game.step()
+        }
+        assertEquals(start + 1, game.speedLevel)
     }
 
     @Test

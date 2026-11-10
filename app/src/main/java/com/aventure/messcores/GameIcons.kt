@@ -374,12 +374,12 @@ private fun DrawScope.drawSnake() {
         size = Size(unit * 0.9f, unit * 0.9f),
         cornerRadius = corner
     )
-    val body = Color(0xFF43A047)
-    val light = Color(0xFF66BB6A)
+    val body = Color(0xFFC8652F)
+    val light = Color(0xFFE09050)
     listOf(0 to 0, 1 to 0, 2 to 0, 3 to 0, 3 to 1, 3 to 2, 2 to 2, 1 to 2, 1 to 3, 1 to 4).forEachIndexed { i, (c, r) ->
         block(c, r, if (i % 2 == 0) body else light)
     }
-    block(2, 4, Color(0xFF2E7D32))
+    block(2, 4, Color(0xFFDC8E52))
     drawCircle(Color.White, unit * 0.12f, Offset(left + 2 * unit + unit * 0.65f, top + 4 * unit + unit * 0.3f))
     drawCircle(Color.White, unit * 0.12f, Offset(left + 2 * unit + unit * 0.65f, top + 4 * unit + unit * 0.7f))
     // La souris.

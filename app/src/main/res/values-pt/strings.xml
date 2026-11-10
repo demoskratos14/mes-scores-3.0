@@ -2186,7 +2186,7 @@
     <string name="rules_snake_2_title">Os limites</string>
     <string name="rules_snake_2_body">Os limites do tabuleiro fecham-se sobre si mesmos: uma cobra que sai pela direita volta pela esquerda, e vice-versa; se sai por cima, volta por baixo, e vice-versa. A margem tracejada lembra que o tabuleiro continua do outro lado.</string>
     <string name="rules_snake_3_title">Pontos e níveis</string>
-    <string name="rules_snake_3_body">Um ratinho vale 10 pontos, multiplicados pelo nível. O nível sobe a cada 5 ratinhos comidos e a cobra anda cada vez mais depressa. Se a cobra encher o tabuleiro todo, ganhaste!</string>
+    <string name="rules_snake_3_body">Um ratinho vale 10 pontos, multiplicados pelo nível. O nível sobe a cada 5 ratinhos comidos e a cobra anda cada vez mais depressa. Se a cobra encher o tabuleiro todo sem se morder, cai uma chuva de purpurina, ganhas 500 pontos e o jogo recomeça num tabuleiro novo, com uma cobra pequena mas mais rápida.</string>
     <string name="rules_snake_4_title">Na aplicação</string>
     <string name="rules_snake_4_body">Jogo a solo: desliza o dedo no tabuleiro para virar, ou usa as setas. Não é possível voltar para trás de uma só vez. O jogo fica em pausa quando sais da aplicação e a tua melhor pontuação é guardada.</string>
     <string name="snake_ready_title">Vez de %1$s</string>
@@ -2198,7 +2198,7 @@
     <string name="snake_paused_title">Jogo em pausa</string>
     <string name="snake_resume">Retomar</string>
     <string name="snake_over_title">Fim de jogo</string>
-    <string name="snake_won_title">Parabéns, o tabuleiro está cheio!</string>
+    <string name="snake_cleared_title">Tabuleiro cheio! Recomeça, mais rápido…</string>
     <string name="snake_play_again">Jogar outra vez</string>
     <string name="snake_up">Cima</string>
     <string name="snake_down">Baixo</string>

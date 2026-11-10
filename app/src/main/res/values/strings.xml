@@ -2202,7 +2202,7 @@
     <string name="rules_snake_2_title">Les bords</string>
     <string name="rules_snake_2_body">Les bords du plateau sont refermés sur eux-mêmes : un serpent qui sort à droite revient par la gauche, et inversement ; s’il sort en haut, il revient par le bas, et inversement. Le liseré en pointillés rappelle que le plateau se prolonge de l’autre côté.</string>
     <string name="rules_snake_3_title">Points et niveaux</string>
-    <string name="rules_snake_3_body">Une souris rapporte 10 points, multipliés par le niveau. Le niveau monte toutes les 5 souris mangées et le serpent avance de plus en plus vite. Si le serpent remplit tout le plateau, c’est gagné !</string>
+    <string name="rules_snake_3_body">Une souris rapporte 10 points, multipliés par le niveau. Le niveau monte toutes les 5 souris mangées et le serpent avance de plus en plus vite. Si le serpent remplit tout le plateau sans se mordre, une pluie de paillettes tombe, tu gagnes 500 points et la partie repart sur un nouveau plateau, avec un serpent tout petit mais plus rapide.</string>
     <string name="rules_snake_4_title">Dans l’appli</string>
     <string name="rules_snake_4_body">Jeu en solo : glisse le doigt sur le plateau pour tourner, ou utilise les flèches. Impossible de faire demi-tour d’un coup. La partie se met en pause quand tu quittes l’appli, et ton meilleur score est gardé.</string>
     <string name="snake_ready_title">À %1$s de jouer</string>
@@ -2214,7 +2214,7 @@
     <string name="snake_paused_title">Partie en pause</string>
     <string name="snake_resume">Reprendre</string>
     <string name="snake_over_title">Partie terminée</string>
-    <string name="snake_won_title">Bravo, le plateau est plein !</string>
+    <string name="snake_cleared_title">Plateau rempli ! Ça repart, plus vite…</string>
     <string name="snake_play_again">Rejouer</string>
     <string name="snake_up">Haut</string>
     <string name="snake_down">Bas</string>

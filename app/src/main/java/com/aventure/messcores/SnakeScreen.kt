@@ -42,6 +42,7 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,14 +83,19 @@ private const val SNAKE_PHASE_OVER = 2 // le serpent s'est mordu, ou remplit le 
 /** Plus long temps d'une image pris en compte : après un à-coup, le serpent ne doit pas sauter plusieurs cases d'un coup. */
 private const val MAX_FRAME_MS = 100L
 
+/** Temps d'attente, en millisecondes, entre un plateau rempli et la reprise du jeu sur le nouveau plateau. */
+private const val CELEBRATION_MS = 3000L
+
 /** Distance glissée (en dp) à partir de laquelle un geste du doigt compte pour un virage. */
 private const val SWIPE_DP = 18
 
 private val SnakeBoardColor = Color(0xFF1B2A1F)
 private val SnakeBoardAltColor = Color(0xFF203125)
-private val SnakeBodyColor = Color(0xFF43A047)
-private val SnakeBodyAltColor = Color(0xFF66BB6A)
-private val SnakeHeadColor = Color(0xFF2E7D32)
+// Le serpent cuivré : des taches plus sombres en alternance sur un fond orangé, cerné de brun très foncé.
+private val SnakeBodyColor = Color(0xFFC8652F)
+private val SnakeBodyAltColor = Color(0xFFE09050)
+private val SnakeHeadColor = Color(0xFFDC8E52)
+private val SnakeOutlineColor = Color(0xFF2A1608)
 private val MouseFurColor = Color(0xFFB8B0A8)
 private val MouseInnerColor = Color(0xFFF4A6B8)
 
@@ -103,7 +109,8 @@ private val SnakeGameSaver = listSaver<SnakeGame, Int>(
  * Snake en solo : un serpent qui avance sans cesse sur un plateau dont les bords se referment (sortir à droite fait
  * revenir à gauche, et de même en haut et en bas). On le guide en glissant le doigt ou avec les flèches pour manger les
  * souris qui apparaissent : chacune le fait grandir d'une case. La partie s'arrête quand il se mord, et le meilleur
- * score est gardé d'une séance à l'autre. Elle se met en pause quand l'appli passe en arrière-plan.
+ * score est gardé d'une séance à l'autre. S'il remplit tout le plateau, une pluie de paillettes tombe, un bonus est ajouté et le
+ * jeu repart sur un nouveau plateau, plus vite. Elle se met en pause quand l'appli passe en arrière-plan.
  * Tout est gardé quand l'écran tourne. [players] : le joueur dont le nom s'affiche au départ.
  */
 @Composable
@@ -113,6 +120,8 @@ internal fun SnakeScreen(players: List<String>) {
     val game = rememberSaveable(saver = SnakeGameSaver) { SnakeGame() }
     var phase by rememberSaveable { mutableIntStateOf(SNAKE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
+    // Nombre de plateaux remplis : à chaque hausse, la pluie de paillettes tombe.
+    var cleared by rememberSaveable { mutableIntStateOf(game.boardsCleared) }
     val record = rememberSoloRecord(SNAKE_ID)
 
     // La partie se met en pause quand l'appli passe en arrière-plan (et donc aussi quand l'écran tourne).
@@ -130,6 +139,7 @@ internal fun SnakeScreen(players: List<String>) {
     fun startGame() {
         record.clearNew()
         game.reset()
+        cleared = 0
         paused = false
         phase = SNAKE_PHASE_PLAYING
     }
@@ -140,6 +150,7 @@ internal fun SnakeScreen(players: List<String>) {
                 game = game,
                 paused = paused,
                 onPausedChange = { paused = it },
+                onCleared = { cleared = it },
                 onOver = {
                     record.submit(game.score)
                     phase = SNAKE_PHASE_OVER
@@ -147,7 +158,7 @@ internal fun SnakeScreen(players: List<String>) {
             )
             SNAKE_PHASE_OVER -> SnakeCard {
                 Text(
-                    text = stringResource(if (game.isWon) R.string.snake_won_title else R.string.snake_over_title),
+                    text = stringResource(R.string.snake_over_title),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
@@ -192,6 +203,7 @@ internal fun SnakeScreen(players: List<String>) {
             }
         }
         RecordSparkles(record)
+        SparkleRain(cleared)
     }
 }
 
@@ -240,6 +252,7 @@ private fun SnakePlayfield(
     game: SnakeGame,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
+    onCleared: (Int) -> Unit,
     onOver: () -> Unit
 ) {
     KeepScreenOn()
@@ -250,6 +263,9 @@ private fun SnakePlayfield(
     var eaten by remember { mutableIntStateOf(game.eaten) }
     var length by remember { mutableIntStateOf(game.length) }
     val finished by rememberUpdatedState(onOver)
+    val clearedChanged by rememberUpdatedState(onCleared)
+    // Vrai pendant que la fête du plateau rempli se joue : le serpent attend un instant avant de repartir.
+    var celebrating by remember { mutableStateOf(false) }
 
     fun sync() {
         revision++
@@ -264,15 +280,29 @@ private fun SnakePlayfield(
         game.turn(dir)
     }
 
+    LaunchedEffect(celebrating) {
+        if (!celebrating) return@LaunchedEffect
+        delay(CELEBRATION_MS)
+        celebrating = false
+    }
+
     LaunchedEffect(paused) {
         if (paused) return@LaunchedEffect
         var last = withFrameNanos { it }
+        var seenCleared = game.boardsCleared
         while (!game.isOver) {
             val now = withFrameNanos { it }
             val elapsed = ((now - last) / 1_000_000L).coerceIn(0L, MAX_FRAME_MS)
             last = now
+            if (celebrating) continue
             game.tick(elapsed)
             sync()
+            if (game.boardsCleared != seenCleared) {
+                // Le plateau vient d'être rempli : le jeu est déjà reparti sur un nouveau plateau, plus rapide.
+                seenCleared = game.boardsCleared
+                clearedChanged(seenCleared)
+                celebrating = true
+            }
         }
         finished()
     }
@@ -344,6 +374,21 @@ private fun SnakePlayfield(
                     }
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) { drawSnakeBoard(game, revision) }
+                if (celebrating && !paused) {
+                    Text(
+                        text = stringResource(R.string.snake_cleared_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(16.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.Black.copy(alpha = 0.6f))
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+                }
                 if (paused) {
                     Column(
                         modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
@@ -463,30 +508,49 @@ private fun DrawScope.drawSnakeBoard(game: SnakeGame, @Suppress("UNUSED_PARAMETE
     drawSnake(game, cell)
 }
 
-/** Le serpent : un corps rond qui relie chaque case à la suivante (même à travers un bord), puis la tête avec ses yeux. */
+/**
+ * Le serpent, dans le style d'un dessin : un corps orangé à taches alternées, cerné d'un trait foncé, qui relie chaque
+ * case à la suivante (même à travers un bord) et s'affine vers la queue ; la tête est un peu plus grosse, avec de gros
+ * yeux ronds. Le contour est dessiné en premier pour tout le serpent, puis le remplissage par-dessus : les jonctions
+ * entre cases restent propres et seul le pourtour est cerné.
+ */
 private fun DrawScope.drawSnake(game: SnakeGame, cell: Float) {
     val cells = game.bodyCells()
     val half = cell * 0.5f
-    val thick = cell * 0.78f
-    val radius = CornerRadius(thick * 0.35f)
-    // Du bout de la queue vers la tête : la tête est dessinée en dernier, par-dessus.
-    for (i in cells.indices.reversed()) {
-        val color = if (i == 0) SnakeHeadColor else if (i % 2 == 0) SnakeBodyColor else SnakeBodyAltColor
-        val center = cellCenter(cells[i], cell)
-        drawRoundRect(color, Offset(center.x - thick / 2f, center.y - thick / 2f), Size(thick, thick), radius)
-        // Un raccord vers la case suivante (vers la queue), et un autre depuis la précédente : chacun s'arrête au bord de sa case,
-        // si bien qu'à travers un bord du plateau le serpent ressort de l'autre côté sans trait traversant l'écran.
-        if (i + 1 < cells.size) connector(cells[i], cells[i + 1], center, half, thick, color)
-        if (i > 0) connector(cells[i], cells[i - 1], center, half, thick, color)
+    val outline = cell * 0.07f
+    val n = cells.size
+    /** Épaisseur de la case de rang [i] : pleine sur le corps, plus fine sur les quatre dernières cases, plus large à la tête. */
+    fun thickness(i: Int): Float {
+        if (i == 0) return cell * 0.86f
+        val fromTail = n - 1 - i
+        val taper = if (n > 1) (0.45f + 0.18f * fromTail).coerceAtMost(1f) else 1f
+        return cell * 0.74f * taper
+    }
+    for (pass in 0..1) {
+        val fill = pass == 1
+        val grow = if (fill) 0f else outline * 2f
+        // Du bout de la queue vers la tête : la tête est dessinée en dernier, par-dessus.
+        for (i in n - 1 downTo 0) {
+            val color = if (!fill) SnakeOutlineColor else if (i == 0) SnakeHeadColor else if (i % 2 == 0) SnakeBodyColor else SnakeBodyAltColor
+            val center = cellCenter(cells[i], cell)
+            val thick = thickness(i) + grow
+            drawCircle(color, thick / 2f, center)
+            // Un raccord vers la case suivante (vers la queue), et un autre depuis la précédente : chacun s'arrête au bord de
+            // sa case, si bien qu'à travers un bord du plateau le serpent ressort de l'autre côté sans trait traversant l'écran.
+            if (i + 1 < n) connector(cells[i], cells[i + 1], center, half, thick, color)
+            if (i > 0) connector(cells[i], cells[i - 1], center, half, thick, color)
+        }
     }
     val head = cellCenter(cells.first(), cell)
     val forward = Offset(game.direction.dx.toFloat(), game.direction.dy.toFloat())
     val side = Offset(-forward.y, forward.x)
-    val eye = cell * 0.11f
+    val eye = cell * 0.13f
     listOf(-1f, 1f).forEach { sign ->
-        val at = head + forward * (cell * 0.16f) + side * (sign * cell * 0.2f)
-        drawCircle(Color.White, eye * 1.35f, at)
-        drawCircle(Color.Black, eye * 0.75f, at + forward * (eye * 0.35f))
+        val at = head + forward * (cell * 0.14f) + side * (sign * cell * 0.22f)
+        drawCircle(SnakeOutlineColor, eye * 1.3f, at)
+        drawCircle(Color.White, eye * 1.05f, at)
+        drawCircle(Color.Black, eye * 0.72f, at + forward * (eye * 0.3f))
+        drawCircle(Color.White, eye * 0.22f, at + forward * (eye * 0.3f) - side * (sign * eye * 0.2f) - forward * (eye * 0.25f))
     }
 }
 

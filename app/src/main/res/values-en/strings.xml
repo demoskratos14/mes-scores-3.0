@@ -2156,7 +2156,7 @@
     <string name="rules_snake_2_title">The edges</string>
     <string name="rules_snake_2_body">The edges of the board wrap around: a snake leaving on the right comes back on the left, and the other way round; leaving at the top it comes back at the bottom, and the other way round. The dotted border is a reminder that the board continues on the other side.</string>
     <string name="rules_snake_3_title">Points and levels</string>
-    <string name="rules_snake_3_body">A mouse is worth 10 points, multiplied by the level. The level goes up every 5 mice eaten and the snake gets faster and faster. If the snake fills the whole board, you win!</string>
+    <string name="rules_snake_3_body">A mouse is worth 10 points, multiplied by the level. The level goes up every 5 mice eaten and the snake gets faster and faster. If the snake fills the whole board without biting itself, a rain of sparkles falls, you get 500 points and the game restarts on a new board, with a tiny snake that is faster.</string>
     <string name="rules_snake_4_title">In the app</string>
     <string name="rules_snake_4_body">Solo game: swipe on the board to turn, or use the arrows. You cannot turn back on yourself in one move. The game pauses when you leave the app, and your best score is saved.</string>
     <string name="snake_ready_title">%1$s’s turn</string>
@@ -2168,7 +2168,7 @@
     <string name="snake_paused_title">Game paused</string>
     <string name="snake_resume">Resume</string>
     <string name="snake_over_title">Game over</string>
-    <string name="snake_won_title">Well done, the board is full!</string>
+    <string name="snake_cleared_title">Board full! Here we go again, faster…</string>
     <string name="snake_play_again">Play again</string>
     <string name="snake_up">Up</string>
     <string name="snake_down">Down</string>

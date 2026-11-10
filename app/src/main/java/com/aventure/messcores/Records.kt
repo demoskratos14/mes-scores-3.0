@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.runtime.withFrameNanos
 import kotlin.math.PI
@@ -213,28 +214,67 @@ internal fun RecordSparkles(record: SoloRecord) {
     }
 
     if (time < 0f) return
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val fadeOut = ((SPARKLE_SECONDS - time) / SPARKLE_FADE_SECONDS).coerceIn(0f, 1f)
-        sparkles.forEach { p ->
-            val t = time - p.delay
-            if (t < 0f) return@forEach
-            val y = (-0.04f + t * p.fall) * size.height
-            if (y > size.height + 24f * density) return@forEach
-            val x = (p.x + sin(t * p.swayRate + p.phase) * p.sway) * size.width
-            val twinkle = 0.55f + 0.45f * sin(t * p.twinkleRate + p.phase)
-            val color = p.color.copy(alpha = (twinkle * fadeOut).coerceIn(0f, 1f))
-            val s = p.size * density
-            if (p.dot) {
-                drawCircle(color, radius = s * 0.35f, center = Offset(x, y))
-            } else {
-                withTransform({
-                    translate(x, y)
-                    rotate(p.spin * t, Offset.Zero)
-                    scale(s, s, Offset.Zero)
-                }) {
-                    drawPath(star, color)
-                }
+    Canvas(modifier = Modifier.fillMaxSize()) { drawSparkles(sparkles, time, star) }
+}
+
+/** Dessine les paillettes à l'instant [time] (en secondes depuis le début de la pluie). */
+private fun DrawScope.drawSparkles(sparkles: List<Sparkle>, time: Float, star: Path) {
+    val fadeOut = ((SPARKLE_SECONDS - time) / SPARKLE_FADE_SECONDS).coerceIn(0f, 1f)
+    sparkles.forEach { p ->
+        val t = time - p.delay
+        if (t < 0f) return@forEach
+        val y = (-0.04f + t * p.fall) * size.height
+        if (y > size.height + 24f * density) return@forEach
+        val x = (p.x + sin(t * p.swayRate + p.phase) * p.sway) * size.width
+        val twinkle = 0.55f + 0.45f * sin(t * p.twinkleRate + p.phase)
+        val color = p.color.copy(alpha = (twinkle * fadeOut).coerceIn(0f, 1f))
+        val s = p.size * density
+        if (p.dot) {
+            drawCircle(color, radius = s * 0.35f, center = Offset(x, y))
+        } else {
+            withTransform({
+                translate(x, y)
+                rotate(p.spin * t, Offset.Zero)
+                scale(s, s, Offset.Zero)
+            }) {
+                drawPath(star, color)
             }
         }
     }
+}
+
+/**
+ * La pluie de paillettes jouée une fois à chaque fois que [playCount] augmente (par exemple à chaque plateau rempli au Snake),
+ * par-dessus l'écran du jeu. Comme [RecordSparkles], elle ne prend aucun toucher, ne rejoue pas quand l'écran tourne et reste
+ * éteinte quand les animations du téléphone sont coupées. La valeur de [playCount] à l'arrivée de l'écran ne la déclenche pas.
+ */
+@Composable
+internal fun SparkleRain(playCount: Int) {
+    val context = LocalContext.current
+    var playedFor by rememberSaveable { mutableIntStateOf(playCount) }
+    var time by remember { mutableFloatStateOf(-1f) }
+    var sparkles by remember { mutableStateOf(emptyList<Sparkle>()) }
+    val star = remember { unitStar() }
+
+    LaunchedEffect(playCount) {
+        // Le compteur qui retombe (nouvelle partie) ne déclenche rien : seule une hausse joue la pluie.
+        if (playCount <= playedFor) {
+            playedFor = playCount
+            return@LaunchedEffect
+        }
+        playedFor = playCount
+        val animationScale = Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
+        if (animationScale == 0f) return@LaunchedEffect
+        sparkles = makeSparkles(Random.Default)
+        val start = withFrameNanos { it }
+        var elapsed = 0f
+        while (elapsed < SPARKLE_SECONDS) {
+            time = elapsed
+            elapsed = (withFrameNanos { it } - start) / 1_000_000_000f
+        }
+        time = -1f
+    }
+
+    if (time < 0f) return
+    Canvas(modifier = Modifier.fillMaxSize()) { drawSparkles(sparkles, time, star) }
 }
