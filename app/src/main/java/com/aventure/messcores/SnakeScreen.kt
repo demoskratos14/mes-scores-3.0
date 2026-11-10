@@ -73,7 +73,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.sin
 
 // Les étapes de la séance.
 private const val SNAKE_PHASE_READY = 0 // on attend que le joueur lance la partie
@@ -96,6 +98,7 @@ private val SnakeBodyColor = Color(0xFFC8652F)
 private val SnakeBodyAltColor = Color(0xFFE09050)
 private val SnakeHeadColor = Color(0xFFDC8E52)
 private val SnakeOutlineColor = Color(0xFF2A1608)
+private val SnakeTongueColor = Color(0xFFFF6FA3)
 private val MouseFurColor = Color(0xFFB8B0A8)
 private val MouseInnerColor = Color(0xFFF4A6B8)
 
@@ -511,7 +514,7 @@ private fun DrawScope.drawSnakeBoard(game: SnakeGame, @Suppress("UNUSED_PARAMETE
 /**
  * Le serpent, dans le style d'un dessin : un corps orangé à taches alternées, cerné d'un trait foncé, qui relie chaque
  * case à la suivante (même à travers un bord) et s'affine vers la queue ; la tête est un peu plus grosse, avec de gros
- * yeux ronds. Le contour est dessiné en premier pour tout le serpent, puis le remplissage par-dessus : les jonctions
+ * yeux ronds et une langue rose fourchue qui sort et rentre. Le contour est dessiné en premier pour tout le serpent, puis le remplissage par-dessus : les jonctions
  * entre cases restent propres et seul le pourtour est cerné.
  */
 private fun DrawScope.drawSnake(game: SnakeGame, cell: Float) {
@@ -525,6 +528,21 @@ private fun DrawScope.drawSnake(game: SnakeGame, cell: Float) {
         val fromTail = n - 1 - i
         val taper = if (n > 1) (0.45f + 0.18f * fromTail).coerceAtMost(1f) else 1f
         return cell * 0.74f * taper
+    }
+    // La langue rose, fourchue, dessinée avant le serpent pour que la tête la recouvre à sa base : elle sort et rentre à chaque case.
+    run {
+        val start = cellCenter(cells.first(), cell)
+        val ahead = Offset(game.direction.dx.toFloat(), game.direction.dy.toFloat())
+        val across = Offset(-ahead.y, ahead.x)
+        val length = cell * (0.3f + 0.25f * sin(game.progress * PI.toFloat()))
+        val base = start + ahead * (cell * 0.38f)
+        val fork = base + ahead * (length * 0.6f)
+        val width = cell * 0.08f
+        drawLine(SnakeTongueColor, base, fork, strokeWidth = width, cap = StrokeCap.Round)
+        listOf(-1f, 1f).forEach { sign ->
+            val tip = fork + ahead * (length * 0.4f) + across * (sign * length * 0.28f)
+            drawLine(SnakeTongueColor, fork, tip, strokeWidth = width, cap = StrokeCap.Round)
+        }
     }
     for (pass in 0..1) {
         val fill = pass == 1

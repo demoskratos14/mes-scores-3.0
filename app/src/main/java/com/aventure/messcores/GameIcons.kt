@@ -380,6 +380,11 @@ private fun DrawScope.drawSnake() {
         block(c, r, if (i % 2 == 0) body else light)
     }
     block(2, 4, Color(0xFFDC8E52))
+    val tongue = Color(0xFFFF6FA3)
+    val tongueFrom = Offset(left + 3 * unit - unit * 0.05f, top + 4.5f * unit)
+    drawLine(tongue, tongueFrom, tongueFrom + Offset(unit * 0.3f, 0f), strokeWidth = unit * 0.1f)
+    drawLine(tongue, tongueFrom + Offset(unit * 0.3f, 0f), tongueFrom + Offset(unit * 0.5f, -unit * 0.14f), strokeWidth = unit * 0.1f)
+    drawLine(tongue, tongueFrom + Offset(unit * 0.3f, 0f), tongueFrom + Offset(unit * 0.5f, unit * 0.14f), strokeWidth = unit * 0.1f)
     drawCircle(Color.White, unit * 0.12f, Offset(left + 2 * unit + unit * 0.65f, top + 4 * unit + unit * 0.3f))
     drawCircle(Color.White, unit * 0.12f, Offset(left + 2 * unit + unit * 0.65f, top + 4 * unit + unit * 0.7f))
     // La souris.
