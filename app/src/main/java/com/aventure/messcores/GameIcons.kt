@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, XONIX_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, XONIX_ID, SNAKE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -128,6 +128,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             TETRIS_ID -> drawTetris()
             BREAKOUT_ID -> drawBreakout()
             XONIX_ID -> drawXonix()
+            SNAKE_ID -> drawSnake()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -357,6 +358,38 @@ private fun DrawScope.drawXonix() {
     drawRect(Color.White, Offset(trailX - player / 2f, frame + band - player / 2f), Size(player, player))
     drawCircle(Color.White, s * 0.1f, Offset(s * 0.66f, s * 0.42f))
     drawCircle(Color(0xFFE53935), s * 0.075f, Offset(s * 0.66f, s * 0.42f))
+}
+
+private fun DrawScope.drawSnake() {
+    paper(Color(0xFF1B2A1F))
+    val s = size.minDimension
+    // Un serpent vert qui serpente sur un damier, et une petite souris grise devant sa tête.
+    val unit = s * 0.15f
+    val left = s * 0.125f
+    val top = s * 0.12f
+    val corner = CornerRadius(unit * 0.3f)
+    fun block(col: Int, row: Int, color: Color) = drawRoundRect(
+        color = color,
+        topLeft = Offset(left + col * unit + unit * 0.05f, top + row * unit + unit * 0.05f),
+        size = Size(unit * 0.9f, unit * 0.9f),
+        cornerRadius = corner
+    )
+    val body = Color(0xFF43A047)
+    val light = Color(0xFF66BB6A)
+    listOf(0 to 0, 1 to 0, 2 to 0, 3 to 0, 3 to 1, 3 to 2, 2 to 2, 1 to 2, 1 to 3, 1 to 4).forEachIndexed { i, (c, r) ->
+        block(c, r, if (i % 2 == 0) body else light)
+    }
+    block(2, 4, Color(0xFF2E7D32))
+    drawCircle(Color.White, unit * 0.12f, Offset(left + 2 * unit + unit * 0.65f, top + 4 * unit + unit * 0.3f))
+    drawCircle(Color.White, unit * 0.12f, Offset(left + 2 * unit + unit * 0.65f, top + 4 * unit + unit * 0.7f))
+    // La souris.
+    val mx = left + 4.5f * unit
+    val my = top + 4.5f * unit
+    drawCircle(Color(0xFFB8B0A8), unit * 0.42f, Offset(mx, my))
+    drawCircle(Color(0xFFB8B0A8), unit * 0.22f, Offset(mx - unit * 0.3f, my - unit * 0.34f))
+    drawCircle(Color(0xFFB8B0A8), unit * 0.22f, Offset(mx + unit * 0.3f, my - unit * 0.34f))
+    drawCircle(Color(0xFFF4A6B8), unit * 0.12f, Offset(mx - unit * 0.3f, my - unit * 0.34f))
+    drawCircle(Color(0xFFF4A6B8), unit * 0.12f, Offset(mx + unit * 0.3f, my - unit * 0.34f))
 }
 
 private fun DrawScope.drawRhythm() {
