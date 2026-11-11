@@ -237,7 +237,10 @@ class ShmupTest {
         assertTrue(Shmup.spawnEveryMs(0, 3, 0) < Shmup.spawnEveryMs(0, 1, 0))
         assertTrue(Shmup.spawnEveryMs(3, 1, 0) < Shmup.spawnEveryMs(0, 1, 0))
         assertTrue(Shmup.spawnEveryMs(0, 1, 1) < Shmup.spawnEveryMs(0, 1, 0))
-        assertEquals(500L, Shmup.spawnEveryMs(3, 3, 100))
+        assertEquals(350L, Shmup.spawnEveryMs(3, 3, 100))
+        assertTrue(Shmup.extraWaveChance(3, 1) > Shmup.extraWaveChance(0, 0))
+        assertEquals(0f, Shmup.extraWaveChance(0, 0), 0f)
+        assertTrue(Shmup.extraWaveChance(3, 100) <= 0.6f)
         assertEquals(1, newGame().level)
         assertEquals(Shmup.STAGES + 1, gameAt(0, loop = 1).level)
     }
@@ -439,14 +442,14 @@ class ShmupTest {
     }
 
     @Test
-    fun unBossVaincuLaisseDeuxBonus() {
+    fun unBossVaincuLaisseUnBonus() {
         val game = withBoss(0)
         val boss = game.boss!!
         boss.hp = 1
         game.bullets += ShmupGame.Bullet(boss.x, boss.y, 0f, 0f, Shmup.MISSILE_DAMAGE, 1)
         game.tick(50)
-        assertEquals(2, game.pickups.size)
-        assertTrue(game.pickups.all { it.bonus })
+        assertEquals(1, game.pickups.size)
+        assertTrue(game.pickups.single().bonus)
         assertEquals(EnemyType.BOSS_SAUCER.points, game.score)
     }
 
@@ -476,8 +479,8 @@ class ShmupTest {
                 game.tick(33)
                 ms += 33
             }
-            assertTrue(game.enemies.size < 60)
-            assertTrue(game.enemyBullets.size < 800)
+            assertTrue(game.enemies.size < 100)
+            assertTrue(game.enemyBullets.size < 1500)
             assertTrue(game.sparks.size <= Shmup.MAX_SPARKS)
         }
     }

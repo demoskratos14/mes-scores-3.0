@@ -49,6 +49,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -91,7 +92,6 @@ private val SHMUP_STARS: List<Triple<Float, Float, Float>> = Random(77).let { ra
     List(60) { Triple(random.nextFloat(), random.nextFloat(), 0.01f + random.nextFloat() * 0.03f) }
 }
 
-private val SHMUP_PLATFORM_COLOR = Color(0x99252B3D)
 
 /** Ce qu'affiche l'annonce au milieu du terrain : rien, l'arrivée du boss ou le nom du plateau. */
 private const val BANNER_NONE = 0
@@ -423,23 +423,25 @@ private fun DrawScope.drawShmupField(
     val u = size.width / Shmup.WIDTH
     drawStageBackground(game, backgrounds, u)
 
-    // Les ennemis : chacun a son sprite ; ceux posés au sol reposent sur une plateforme sombre qui défile avec le fond.
+    // Les ennemis : chacun a son sprite ; ceux posés au sol projettent une ombre qui suit la forme du sprite.
     for (e in game.enemies) {
         val type = e.type
         val left = (e.x - type.w / 2f) * u
         val top = (e.y - type.h / 2f) * u
+        val dstSize = IntSize((type.w * u).roundToInt(), (type.h * u).roundToInt())
         if (type.ground) {
-            drawRoundRect(
-                color = SHMUP_PLATFORM_COLOR,
-                topLeft = Offset(left - 0.12f * u, top - 0.12f * u),
-                size = Size((type.w + 0.24f) * u, (type.h + 0.24f) * u),
-                cornerRadius = CornerRadius(0.2f * u)
+            drawImage(
+                image = sprites[type.ordinal],
+                dstOffset = IntOffset((left + 0.1f * u).roundToInt(), (top + 0.14f * u).roundToInt()),
+                dstSize = dstSize,
+                alpha = 0.4f,
+                colorFilter = ColorFilter.tint(Color.Black)
             )
         }
         drawImage(
             image = sprites[type.ordinal],
             dstOffset = IntOffset(left.roundToInt(), top.roundToInt()),
-            dstSize = IntSize((type.w * u).roundToInt(), (type.h * u).roundToInt())
+            dstSize = dstSize
         )
     }
 
@@ -537,14 +539,16 @@ private fun DrawScope.drawStageBackground(game: ShmupGame, backgrounds: List<Ima
     val period = tileH * 2f
     var top = (game.scroll * u) % period - period
     var index = 0
-    val dstSize = IntSize(size.width.roundToInt(), tileH.roundToInt() + 1)
+    // Chaque copie déborde d'un pixel de chaque côté : sans cela, l'arrondi laisse parfois une fine ligne entre deux copies.
+    val dstSize = IntSize(size.width.roundToInt(), tileH.roundToInt() + 2)
     while (top < size.height) {
         if (top + tileH > 0f) {
-            val dstOffset = IntOffset(0, top.roundToInt())
+            val dstTop = top.roundToInt() - 1
+            val dstOffset = IntOffset(0, dstTop)
             if (index % 2 == 0) {
                 drawImage(image = image, dstOffset = dstOffset, dstSize = dstSize)
             } else {
-                withTransform({ scale(1f, -1f, Offset(size.width / 2f, top + tileH / 2f)) }) {
+                withTransform({ scale(1f, -1f, Offset(size.width / 2f, dstTop + dstSize.height / 2f)) }) {
                     drawImage(image = image, dstOffset = dstOffset, dstSize = dstSize)
                 }
             }

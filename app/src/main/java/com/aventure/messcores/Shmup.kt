@@ -79,7 +79,10 @@ internal object Shmup {
 
     /** Délai entre deux arrivées d'ennemis : plus court de palier en palier, de plateau en plateau et de tour en tour. */
     fun spawnEveryMs(stage: Int, sublevel: Int, loop: Int): Long =
-        max(500L, 1500L - 110L * (sublevel - 1) - 70L * stage - 160L * loop)
+        max(350L, 1250L - 150L * (sublevel - 1) - 110L * stage - 200L * loop)
+
+    /** Chance qu'une seconde vague arrive en même temps que la première : de plus en plus fréquent, de plateau en plateau et de tour en tour. */
+    fun extraWaveChance(stage: Int, loop: Int): Float = min(0.6f, 0.12f * stage + 0.25f * loop)
 
     /** Les types d'ennemis (sans les boss) qui peuvent arriver à ce plateau et à ce palier. */
     fun poolAt(stage: Int, sublevel: Int): List<EnemyType> =
@@ -259,7 +262,7 @@ internal enum class EnemyType(
     val hitW: Float get() = w * 0.36f
     val hitH: Float get() = h * 0.30f
 
-    /** Posé sur le sol : ne blesse pas le joueur au contact et se dessine sur une plateforme. */
+    /** Posé sur le sol : ne blesse pas le joueur au contact et se dessine avec une ombre portée. */
     val ground: Boolean get() = move == Move.GROUND || move == Move.ROLL
 
     /** Vrai si ce type peut arriver au palier [sublevel] du plateau [stageIndex] (un type déjà débloqué reste là). */
@@ -558,6 +561,7 @@ internal class ShmupGame(private val random: Random = Random.Default) {
                 if (spawnInMs <= 0L) {
                     spawnInMs += Shmup.spawnEveryMs(stage, sublevel, loop)
                     spawnWave()
+                    if (random.nextFloat() < Shmup.extraWaveChance(stage, loop)) spawnWave()
                 }
                 if (stageMs >= Shmup.STAGE_MS) {
                     phase = ShmupPhase.CLEARING
@@ -719,13 +723,13 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         score += e.type.points * level
         burst(e.x, e.y, 10 + (e.type.h * 6f).toInt())
         if (e.type.boss) {
-            pickups += Pickup(e.x - 0.8f, e.y, true)
-            pickups += Pickup(e.x + 0.8f, e.y, true)
+            pickups += Pickup(e.x, e.y, true)
             return
         }
-        val chance = if (e.type.hp >= 9) 0.25f else 0.10f
+        // Les pastilles sont rares : un peu plus souvent sur les gros ennemis, et un malus sur deux quand l'arme n'est pas au minimum.
+        val chance = if (e.type.hp >= 9) 0.12f else 0.05f
         if (random.nextFloat() < chance) {
-            val bonus = weapon <= 1 || random.nextFloat() < 0.7f
+            val bonus = weapon <= 1 || random.nextFloat() < 0.5f
             pickups += Pickup(e.x.coerceIn(0.5f, Shmup.WIDTH - 0.5f), e.y, bonus)
         }
     }

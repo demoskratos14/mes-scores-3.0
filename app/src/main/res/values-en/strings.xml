@@ -2234,7 +2234,7 @@
     <string name="rules_shmup_3_title">Points and levels</string>
     <string name="rules_shmup_3_body">The game has four stages: space, a dirt road, an air base and then the desert. Each stage lasts a little over a minute, then a boss arrives: the scrolling stops and you must destroy it to reach the next stage, through a jump at light speed. Enemies get more varied: tanks arrive at stage 2, turrets at stage 3. After the last stage everything starts again at the first, but harder. Each enemy destroyed is worth its points, multiplied by the level. After a hit, the ship blinks and cannot be hit for a short time. Tanks and turrets on the ground do not hurt on contact.</string>
     <string name="rules_shmup_4_title">Bonuses and maluses</string>
-    <string name="rules_shmup_4_body">Some destroyed enemies drop a pill: green with a plus, it raises the weapon by one level; red with a minus, it lowers it by one. Level 1: one missile. Level 2: two missiles. Level 3: three missiles in a fan. Level 4: a laser and two missiles. Level 5: a wide laser and three missiles. A defeated boss always leaves two bonuses.</string>
+    <string name="rules_shmup_4_body">Some destroyed enemies drop a pill: green with a plus, it raises the weapon by one level; red with a minus, it lowers it by one. Level 1: one missile. Level 2: two missiles. Level 3: three missiles in a fan. Level 4: a laser and two missiles. Level 5: a wide laser and three missiles. A defeated boss always leaves one bonus.</string>
     <string name="shmup_stage">Stage %1$d</string>
     <string name="shmup_warning">Warning!</string>
     <string name="shmup_ready_hint">Shoot down the enemy ships and dodge their fire. You have three lives: don’t get hit!</string>
