@@ -2256,6 +2256,25 @@
     <string name="breakout_tap_to_launch">Toca para lançar</string>
     <string name="breakout_launch">Lançar a bola</string>
     <string name="breakout_field">Campo: desliza o dedo para mover a raquete, toca para lançar a bola</string>
+    <string name="game_shmup">Shoot’em up</string>
+    <string name="rules_shmup_1_title">Objetivo</string>
+    <string name="rules_shmup_1_body">Pilotar a nave na parte de baixo do ecrã, destruir as naves inimigas que descem e evitar os seus tiros. O jogo termina quando as três vidas são perdidas.</string>
+    <string name="rules_shmup_2_title">Controlos</string>
+    <string name="rules_shmup_2_body">Desliza o dedo para mover a nave; ela segue o movimento do dedo sem saltar por baixo dele. Dispara sozinha, dois tiros de cada vez.</string>
+    <string name="rules_shmup_3_title">Pontos e níveis</string>
+    <string name="rules_shmup_3_body">Cada inimigo destruído dá pontos (mais os grandes), multiplicados pelo nível. O nível sobe a cada 25 segundos: aparecem novos inimigos, cada um com a sua maneira de se mover e de disparar, e chegam com mais frequência. As torres no chão deslocam-se com o fundo e não magoam ao contacto. Depois de um impacto, a nave pisca e não pode ser atingida durante um curto instante.</string>
+    <string name="shmup_ready_hint">Destrói as naves inimigas e evita os seus tiros. Tens três vidas: não te deixes atingir!</string>
+    <string name="shmup_field">Campo: desliza o dedo para mover a nave, dispara sozinha</string>
+    <string name="shmup_ready_title">Vez de %1$s</string>
+    <string name="shmup_go">Vamos a isso!</string>
+    <string name="shmup_score">Pontos: %1$d</string>
+    <string name="shmup_stats">Vidas: %1$d, nível: %2$d</string>
+    <string name="shmup_level_reached">Nível alcançado: %1$d</string>
+    <string name="shmup_pause">Pausa</string>
+    <string name="shmup_paused_title">Jogo em pausa</string>
+    <string name="shmup_resume">Retomar</string>
+    <string name="shmup_over_title">Fim de jogo</string>
+    <string name="shmup_play_again">Jogar de novo</string>
     <string name="game_xonix">Xonix</string>
     <string name="rules_xonix_1_title">Objetivo</string>
     <string name="rules_xonix_1_body" formatted="false">Conquista o tabuleiro: sai da terra firme que o rodeia, traça um caminho no mar e volta à terra. A parte do mar cortada do lado onde não há nenhuma bola passa a ser terra. Conquista 75% do mar para passar ao nível seguinte.</string>

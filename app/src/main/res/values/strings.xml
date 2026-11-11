@@ -2272,6 +2272,25 @@
     <string name="breakout_tap_to_launch">Touche pour lancer</string>
     <string name="breakout_launch">Lancer la balle</string>
     <string name="breakout_field">Terrain : glisse le doigt pour déplacer la raquette, touche pour lancer la balle</string>
+    <string name="game_shmup">Shoot’em up</string>
+    <string name="rules_shmup_1_title">But du jeu</string>
+    <string name="rules_shmup_1_body">Piloter le vaisseau en bas de l’écran, détruire les vaisseaux ennemis qui descendent et éviter leurs tirs. La partie s’arrête quand les trois vies sont perdues.</string>
+    <string name="rules_shmup_2_title">Commandes</string>
+    <string name="rules_shmup_2_body">Glisse le doigt pour déplacer le vaisseau comme le doigt, sans qu’il saute sous lui. Il tire tout seul, deux tirs à la fois.</string>
+    <string name="rules_shmup_3_title">Points et niveaux</string>
+    <string name="rules_shmup_3_body">Un ennemi détruit rapporte des points (plus pour les gros), multipliés par le niveau. Le niveau monte toutes les 25 secondes : de nouveaux ennemis apparaissent, chacun avec sa manière de se déplacer et de tirer, et ils arrivent plus souvent. Les tourelles posées au sol défilent avec le fond et ne blessent pas au contact. Après un impact, le vaisseau clignote et ne peut pas être touché pendant un court instant.</string>
+    <string name="shmup_ready_hint">Détruis les vaisseaux ennemis et évite leurs tirs. Tu as trois vies : ne te fais pas toucher !</string>
+    <string name="shmup_field">Terrain : glisse le doigt pour déplacer le vaisseau, il tire tout seul</string>
+    <string name="shmup_ready_title">À %1$s de jouer</string>
+    <string name="shmup_go">C’est parti !</string>
+    <string name="shmup_score">Score : %1$d</string>
+    <string name="shmup_stats">Vies : %1$d, niveau : %2$d</string>
+    <string name="shmup_level_reached">Niveau atteint : %1$d</string>
+    <string name="shmup_pause">Pause</string>
+    <string name="shmup_paused_title">Partie en pause</string>
+    <string name="shmup_resume">Reprendre</string>
+    <string name="shmup_over_title">Partie terminée</string>
+    <string name="shmup_play_again">Rejouer</string>
     <string name="game_xonix">Xonix</string>
     <string name="rules_xonix_1_title">But du jeu</string>
     <string name="rules_xonix_1_body" formatted="false">Conquérir le plateau : pars de la terre ferme qui le borde, trace un chemin dans la mer et reviens sur la terre. La partie de la mer coupée du côté où il n’y a aucune bille devient de la terre. Conquiers 75 % de la mer pour passer au niveau suivant.</string>

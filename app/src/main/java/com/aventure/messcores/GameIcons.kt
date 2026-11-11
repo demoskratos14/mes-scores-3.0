@@ -43,7 +43,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -127,6 +127,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             RHYTHM_ID -> drawRhythm()
             TETRIS_ID -> drawTetris()
             BREAKOUT_ID -> drawBreakout()
+            SHMUP_ID -> drawShmup()
             XONIX_ID -> drawXonix()
             SNAKE_ID -> drawSnake()
             BUBBLE_ID -> drawBubbleShooter()
@@ -418,6 +419,31 @@ private fun DrawScope.drawBubbleShooter() {
     for (i in 0 until 3) drawCircle(Color.White.copy(alpha = 0.6f), s * 0.014f, Offset(s * 0.5f, s * (0.6f + 0.07f * i)))
     drawCircle(Color(0xFF546E7A), s * 0.1f, Offset(s * 0.5f, s * 0.9f))
     bubble(0.5f, 0.9f, colors[1])
+}
+
+private fun DrawScope.drawShmup() {
+    paper(Color(0xFF0A1430))
+    val s = size.minDimension
+    // Quelques étoiles, un ennemi qui descend, un tir et le vaisseau pointé vers le haut.
+    listOf(0.2f to 0.2f, 0.8f to 0.3f, 0.15f to 0.65f, 0.85f to 0.7f).forEach { (x, y) ->
+        drawCircle(Color.White.copy(alpha = 0.6f), s * 0.015f, Offset(s * x, s * y))
+    }
+    val enemy = Path().apply {
+        moveTo(s * 0.5f, s * 0.3f)
+        lineTo(s * 0.4f, s * 0.12f)
+        lineTo(s * 0.6f, s * 0.12f)
+        close()
+    }
+    drawPath(enemy, Color(0xFFE0527A))
+    drawRoundRect(Color(0xFF7FE8FF), Offset(s * 0.485f, s * 0.38f), Size(s * 0.03f, s * 0.12f), CornerRadius(s * 0.015f))
+    val ship = Path().apply {
+        moveTo(s * 0.5f, s * 0.55f)
+        lineTo(s * 0.66f, s * 0.84f)
+        lineTo(s * 0.5f, s * 0.76f)
+        lineTo(s * 0.34f, s * 0.84f)
+        close()
+    }
+    drawPath(ship, Color(0xFFC5CAE9))
 }
 
 private fun DrawScope.drawRhythm() {

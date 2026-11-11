@@ -2266,6 +2266,25 @@
     <string name="breakout_tap_to_launch">Tocca per lanciare</string>
     <string name="breakout_launch">Lancia la palla</string>
     <string name="breakout_field">Campo: fai scorrere il dito per spostare la racchetta, tocca per lanciare la palla</string>
+    <string name="game_shmup">Shoot’em up</string>
+    <string name="rules_shmup_1_title">Obiettivo</string>
+    <string name="rules_shmup_1_body">Pilotare l’astronave in basso sullo schermo, distruggere le navi nemiche che scendono e schivare i loro colpi. La partita finisce quando le tre vite sono perse.</string>
+    <string name="rules_shmup_2_title">Comandi</string>
+    <string name="rules_shmup_2_body">Trascina il dito per muovere l’astronave; segue il movimento del dito senza saltare sotto di esso. Spara da sola, due colpi alla volta.</string>
+    <string name="rules_shmup_3_title">Punti e livelli</string>
+    <string name="rules_shmup_3_body">Ogni nemico distrutto dà dei punti (di più i grandi), moltiplicati per il livello. Il livello sale ogni 25 secondi: compaiono nuovi nemici, ognuno con il suo modo di muoversi e di sparare, e arrivano più spesso. Le torrette a terra scorrono con lo sfondo e non fanno male al contatto. Dopo un colpo subito, l’astronave lampeggia e non può essere colpita per un breve momento.</string>
+    <string name="shmup_ready_hint">Distruggi le navi nemiche e schiva i loro colpi. Hai tre vite: non farti colpire!</string>
+    <string name="shmup_field">Campo: trascina il dito per muovere l’astronave, spara da sola</string>
+    <string name="shmup_ready_title">Tocca a %1$s</string>
+    <string name="shmup_go">Si parte!</string>
+    <string name="shmup_score">Punteggio: %1$d</string>
+    <string name="shmup_stats">Vite: %1$d, livello: %2$d</string>
+    <string name="shmup_level_reached">Livello raggiunto: %1$d</string>
+    <string name="shmup_pause">Pausa</string>
+    <string name="shmup_paused_title">Partita in pausa</string>
+    <string name="shmup_resume">Riprendi</string>
+    <string name="shmup_over_title">Partita finita</string>
+    <string name="shmup_play_again">Gioca ancora</string>
     <string name="game_xonix">Xonix</string>
     <string name="rules_xonix_1_title">Obiettivo</string>
     <string name="rules_xonix_1_body" formatted="false">Conquista il campo: parti dalla terraferma che lo circonda, traccia un percorso nel mare e torna sulla terra. La parte di mare tagliata dal lato in cui non c’è nessuna palla diventa terra. Conquista il 75% del mare per passare al livello successivo.</string>

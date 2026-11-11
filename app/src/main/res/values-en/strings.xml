@@ -2226,6 +2226,25 @@
     <string name="breakout_tap_to_launch">Tap to launch</string>
     <string name="breakout_launch">Launch the ball</string>
     <string name="breakout_field">Playfield: slide your finger to move the paddle, tap to launch the ball</string>
+    <string name="game_shmup">Shoot’em up</string>
+    <string name="rules_shmup_1_title">Goal</string>
+    <string name="rules_shmup_1_body">Fly the ship at the bottom of the screen, shoot down the enemy ships coming down and dodge their fire. The game ends when all three lives are lost.</string>
+    <string name="rules_shmup_2_title">Controls</string>
+    <string name="rules_shmup_2_body">Drag your finger to move the ship; it follows your finger’s movement without jumping under it. It fires on its own, two shots at a time.</string>
+    <string name="rules_shmup_3_title">Points and levels</string>
+    <string name="rules_shmup_3_body">Each enemy destroyed is worth points (more for big ones), multiplied by the level. The level goes up every 25 seconds: new enemies appear, each with its own way of moving and firing, and they come more often. Turrets on the ground scroll with the background and do not hurt on contact. After a hit, the ship blinks and cannot be hit for a short time.</string>
+    <string name="shmup_ready_hint">Shoot down the enemy ships and dodge their fire. You have three lives: don’t get hit!</string>
+    <string name="shmup_field">Playfield: drag your finger to move the ship, it fires on its own</string>
+    <string name="shmup_ready_title">%1$s to play</string>
+    <string name="shmup_go">Let’s go!</string>
+    <string name="shmup_score">Score: %1$d</string>
+    <string name="shmup_stats">Lives: %1$d, level: %2$d</string>
+    <string name="shmup_level_reached">Level reached: %1$d</string>
+    <string name="shmup_pause">Pause</string>
+    <string name="shmup_paused_title">Game paused</string>
+    <string name="shmup_resume">Resume</string>
+    <string name="shmup_over_title">Game over</string>
+    <string name="shmup_play_again">Play again</string>
     <string name="game_xonix">Xonix</string>
     <string name="rules_xonix_1_title">Goal</string>
     <string name="rules_xonix_1_body" formatted="false">Conquer the board: leave the land that borders it, draw a path through the sea and return to land. The part of the sea you cut off on the side with no ball in it turns into land. Conquer 75% of the sea to reach the next level.</string>

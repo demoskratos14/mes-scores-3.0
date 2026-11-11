@@ -32,7 +32,7 @@ private val SPECIAL_GAMES = setOf(
     "builtin_rummikub", "builtin_dominos", "builtin_wizard", "builtin_phase10", "builtin_splendor",
     "builtin_dixit", "builtin_ttr", "builtin_azul", "builtin_carcassonne", "builtin_catane",
     "builtin_sevenwonders", "builtin_wingspan", "builtin_hanabi", "builtin_scrabble", "builtin_trivial",
-    "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc", "builtin_reflex", "builtin_circles", "builtin_simon", "builtin_rhythm", "builtin_tetris", "builtin_breakout", "builtin_xonix", "builtin_snake", "builtin_bubble",
+    "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc", "builtin_reflex", "builtin_circles", "builtin_simon", "builtin_rhythm", "builtin_tetris", "builtin_breakout", "builtin_shmup", "builtin_xonix", "builtin_snake", "builtin_bubble",
     "builtin_gomoku", "builtin_dots", "builtin_draughts", "builtin_othello", "builtin_hangman", "builtin_chess"
 )
 
@@ -43,18 +43,18 @@ private val SPECIAL_GAMES = setOf(
  * les cartes n'y sont pas distribuées. King of Tokyo aussi : il n'a que des dés génériques sur sa feuille (voir [hasDiceOnSheet]), il n'est donc pas listé ici.
  */
 fun GameRules.isPlayableGame(): Boolean =
-    id == MASTERMIND_ID || id == MORPION_ID || id == CONNECT4_ID || id == BATTLESHIP_ID || id == NIM_ID || id == PFC_ID || id == REFLEX_ID || id == CIRCLES_ID || id == SIMON_ID || id == RHYTHM_ID || id == TETRIS_ID || id == BREAKOUT_ID || id == XONIX_ID || id == SNAKE_ID || id == BUBBLE_ID ||
+    id == MASTERMIND_ID || id == MORPION_ID || id == CONNECT4_ID || id == BATTLESHIP_ID || id == NIM_ID || id == PFC_ID || id == REFLEX_ID || id == CIRCLES_ID || id == SIMON_ID || id == RHYTHM_ID || id == TETRIS_ID || id == BREAKOUT_ID || id == SHMUP_ID || id == XONIX_ID || id == SNAKE_ID || id == BUBBLE_ID ||
         id == GOMOKU_ID || id == DOTS_ID || id == DRAUGHTS_ID || id == OTHELLO_ID || id == HANGMAN_ID || id == CHESS_ID ||
         id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || id == YANIV_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
 
 /** Vrai si le jeu a une feuille de scores : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont chacun leur écran, sans feuille. */
 fun GameRules.hasScoreSheet(): Boolean =
-    id != MASTERMIND_ID && id != MORPION_ID && id != CONNECT4_ID && id != BATTLESHIP_ID && id != NIM_ID && id != PFC_ID && id != REFLEX_ID && id != CIRCLES_ID && id != SIMON_ID && id != RHYTHM_ID && id != TETRIS_ID && id != BREAKOUT_ID && id != XONIX_ID && id != SNAKE_ID && id != BUBBLE_ID &&
+    id != MASTERMIND_ID && id != MORPION_ID && id != CONNECT4_ID && id != BATTLESHIP_ID && id != NIM_ID && id != PFC_ID && id != REFLEX_ID && id != CIRCLES_ID && id != SIMON_ID && id != RHYTHM_ID && id != TETRIS_ID && id != BREAKOUT_ID && id != SHMUP_ID && id != XONIX_ID && id != SNAKE_ID && id != BUBBLE_ID &&
         id != GOMOKU_ID && id != DOTS_ID && id != DRAUGHTS_ID && id != OTHELLO_ID && id != HANGMAN_ID && id != CHESS_ID
 
 // Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : le Huit américain, dont chaque joueur cache sa main : on se passe le téléphone ; les Ronds et Simon, où chacun joue sa série à son tour sur le même téléphone.
 // Le Mastermind, le Morpion, le Duel de réflexes, le Gomoku, la Pipopipette, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
-private val SINGLE_PHONE_GAMES = setOf(HUIT_ID, UNO_ID, HEARTS_ID, YANIV_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, CIRCLES_ID, SIMON_ID)
+private val SINGLE_PHONE_GAMES = setOf(HUIT_ID, UNO_ID, HEARTS_ID, YANIV_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, CIRCLES_ID, SIMON_ID)
 
 /** Vrai si le jeu jouable peut se jouer en connectant plusieurs téléphones (deux téléphones dessinés dans la liste). */
 fun GameRules.isMultiPhone(): Boolean = isPlayableGame() && id !in SINGLE_PHONE_GAMES
