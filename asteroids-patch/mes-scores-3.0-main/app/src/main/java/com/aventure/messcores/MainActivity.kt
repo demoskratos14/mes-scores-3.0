@@ -1,0 +1,909 @@
+package com.aventure.messcores
+
+import androidx.compose.ui.res.stringResource
+import android.net.Uri
+import android.os.Bundle
+import androidx.activity.SystemBarStyle
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+
+// AppCompatActivity (et non ComponentActivity) : c'est ce qui permet à AppCompatDelegate.setApplicationLocales
+// de changer la langue de l'appli depuis le bouton drapeau sur Android 12 et moins.
+class MainActivity : AppCompatActivity() {
+
+    // Même instance que celle récupérée par viewModel() dans ScoreApp (même Activity, même clé).
+    private val scoreViewModel: ScoreViewModel by viewModels()
+
+    /**
+     * Sauvegarde automatique : dès que l'appli quitte l'écran (retour à l'accueil, autre appli…),
+     * la partie en cours est enregistrée dans le journal. Si Android ferme ensuite l'appli en
+     * arrière-plan, la partie reste récupérable via « Reprendre ».
+     */
+    override fun onStart() {
+        super.onStart()
+        // L'appli est visible : le minuteur sonne directement, et une éventuelle notification
+        // de fin de minuteur n'a plus lieu d'être.
+        TimerAlert.appInForeground = true
+        TimerAlert.cancelNotification(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        TimerAlert.appInForeground = false
+        // Dernière sauvegarde avant que le système ne puisse arrêter l'appli : toujours écrite.
+        scoreViewModel.autoSave(GameHistoryRepository(this), force = true)
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Nécessaire pour que Modifier.imePadding() fonctionne correctement et que le
+        // contenu remonte automatiquement au-dessus du clavier au lieu d'être masqué.
+        // La photo de fond est toujours assombrie par un voile : icônes claires dans la barre d'état
+        // et la barre de navigation, en thème clair comme en thème sombre.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+        )
+        setContent {
+            // Apparence choisie sur l'écran d'accueil (Auto = réglage du téléphone), conservée entre deux lancements.
+            var themeMode by remember { mutableStateOf(ThemePreference.load(this@MainActivity)) }
+            // Mode daltonien (code sur chaque couleur), réglé sur l'écran d'accueil et conservé entre deux lancements.
+            var colorBlindMode by remember { mutableStateOf(ColorBlindPreference.load(this@MainActivity)) }
+            CompositionLocalProvider(LocalColorBlindMode provides colorBlindMode) {
+                MesScoresTheme(mode = themeMode) {
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        ScoreApp(
+                            themeMode = themeMode,
+                            onThemeModeChange = { mode ->
+                                themeMode = mode
+                                ThemePreference.save(this@MainActivity, mode)
+                            },
+                            colorBlindMode = colorBlindMode,
+                            onColorBlindModeChange = { enabled ->
+                                colorBlindMode = enabled
+                                ColorBlindPreference.save(this@MainActivity, enabled)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Jeux jouables qui ont leur propre écran, sans feuille de scores, et qu'on ouvre directement par leur route : deux
+ * joueurs, sur un téléphone ou chacun sur le sien. Le Mastermind, le touché coulé et le Pendu s'ouvrent aussi sur
+ * leur écran, mais leur ViewModel est d'abord préparé (voir « chooseGame »). Un nouveau jeu de ce genre s'ajoute ici.
+ */
+internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
+    MORPION_ID to "morpion",
+    GOMOKU_ID to "gomoku",
+    DOTS_ID to "dots",
+    CONNECT4_ID to "connect4",
+    PFC_ID to "pfc",
+    NIM_ID to "nim",
+    REFLEX_ID to "reflex",
+    CIRCLES_ID to "circles",
+    SIMON_ID to "simon",
+    RHYTHM_ID to "rhythm",
+    TETRIS_ID to "tetris",
+    BREAKOUT_ID to "breakout",
+    SHMUP_ID to "shmup",
+    XONIX_ID to "xonix",
+    SNAKE_ID to "snake",
+    BUBBLE_ID to "bubble",
+    ASTEROIDS_ID to "asteroids",
+    DRAUGHTS_ID to "draughts",
+    OTHELLO_ID to "othello",
+    CHESS_ID to "chess"
+)
+
+/** Écrans de jeux jouables sur lesquels le badge chronomètre / minuteur est masqué. */
+private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
+    "battleship", "morpion", "connect4", "nim", "reflex", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "asteroids",
+    "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
+)
+
+@Composable
+fun ScoreApp(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeModeChange: (ThemeMode) -> Unit = {},
+    colorBlindMode: Boolean = false,
+    onColorBlindModeChange: (Boolean) -> Unit = {}
+) {
+    val navController = rememberNavController()
+    // Le ViewModel est créé ici, au niveau du graphe de navigation,
+    // afin d'être partagé entre tous les écrans.
+    val viewModel: ScoreViewModel = viewModel()
+    // Vit au même niveau que ScoreViewModel pour continuer de tourner sur tous les écrans.
+    // Le minuteur (vibration, son, notification, alarme) est géré par TimerViewModel lui-même.
+    val timerViewModel: TimerViewModel = viewModel()
+    val tournamentViewModel: TournamentViewModel = viewModel()
+    val mastermindViewModel: MastermindViewModel = viewModel()
+    val battleshipViewModel: BattleshipViewModel = viewModel()
+    val hangmanViewModel: HangmanViewModel = viewModel()
+    // Partage de la partie avec un autre téléphone : vit au même niveau pour garder la connexion sur tous les écrans.
+    val syncViewModel: SyncViewModel = viewModel()
+    val sync = syncViewModel.session
+    val mastermindOnline = syncViewModel.mastermind
+    val ticTacToeOnline = syncViewModel.ticTacToe
+    val connect4Online = syncViewModel.connect4
+    val battleshipOnline = syncViewModel.battleship
+    val nimOnline = syncViewModel.nim
+    val reflexOnline = syncViewModel.reflex
+    val rockPaperScissorsOnline = syncViewModel.rockPaperScissors
+    val gomokuOnline = syncViewModel.gomoku
+    val dotsOnline = syncViewModel.dots
+    val draughtsOnline = syncViewModel.draughts
+    val othelloOnline = syncViewModel.othello
+    val hangmanOnline = syncViewModel.hangman
+    val chessOnline = syncViewModel.chess
+    SideEffect { sync.attach(viewModel) }
+
+    val context = LocalContext.current
+    val gameRepository = remember { GameRepository(context) }
+    val gameHistoryRepository = remember { GameHistoryRepository(context) }
+    // La partie est sauvegardée dans le journal peu après chaque modification, pas seulement en quittant l'appli.
+    AutoSaveEffect(viewModel, gameHistoryRepository)
+
+    // Quitter une partie qui contient des scores demande confirmation.
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+    var playMode by rememberSaveable { mutableStateOf(false) }
+    // Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille, Qwixx, Shut the Box jouables : la page des dés est l'écran de la partie (pas de feuille de score derrière).
+    // Un invité qui rejoint une de ces parties arrive lui aussi directement sur la page des dés.
+    // Seulement si l'organisateur joue en version jouable : la feuille de scores seule reste indépendante.
+    val playable = playMode || (sync.role == SyncRole.GUEST && sync.hostPlayable)
+    SideEffect { sync.playable = playMode }
+    val diceOnlyGame = playable && viewModel.gameRules.isDiceOnly()
+    val onDiceOnlyRoute = currentRoute == "dice" && diceOnlyGame
+    // Huit américain jouable : son écran est celui de la partie (pas de feuille de score derrière), comme les jeux de dés ci-dessus.
+    val onHuitRoute = currentRoute == "huit" && playable && viewModel.gameRules.id == HUIT_ID
+    // Uno jouable : même principe, son écran est celui de la partie.
+    val onUnoRoute = currentRoute == "uno" && playable && viewModel.gameRules.id == UNO_ID
+    // Cœurs jouable : même principe.
+    val onHeartsRoute = currentRoute == "hearts" && playable && viewModel.gameRules.id == HEARTS_ID
+    // Yaniv jouable : même principe.
+    val onYanivRoute = currentRoute == "yaniv" && playable && viewModel.gameRules.id == YANIV_ID
+    val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
+        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute
+    var showQuitDialog by remember { mutableStateOf(false) }
+
+    // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
+    val unfinishedGame = remember(currentRoute) {
+        if (currentRoute == "setup") {
+            gameHistoryRepository.listGames().filter { !it.isFinished }.maxByOrNull { it.savedAt }
+        } else {
+            null
+        }
+    }
+
+    fun quitGame(save: Boolean) {
+        // Enregistrer : état actuel. Ne pas enregistrer : on défait l'auto-sauvegarde faite par onStop.
+        if (save) viewModel.saveToJournal(gameHistoryRepository) else viewModel.discardToJournal(gameHistoryRepository)
+        viewModel.closeGame()
+        sync.disconnect()
+        showQuitDialog = false
+        if (!navController.popBackStack("setup", inclusive = false)) {
+            navController.popBackStack("home", inclusive = false)
+        }
+    }
+
+    // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+    fun leaveToSetup() {
+        if (!navController.popBackStack("setup", inclusive = false)) {
+            navController.popBackStack("home", inclusive = false)
+        }
+    }
+
+    // Noms saisis à l'étape 1, en attente d'être associés à un jeu à l'étape 2.
+    // rememberSaveable : sinon une rotation de l'écran vide la liste alors que la navigation reste
+    // sur « choisir le jeu » (message « Tu as saisi 0 joueur »).
+    var pendingPlayerNames by rememberSaveable(stateSaver = StringListSaver) { mutableStateOf(listOf<String>()) }
+    // Couleurs choisies à l'étape 1 (ARGB ; 0 = pas de choix, tirée au sort au lancement de la partie).
+    var pendingPlayerColors by rememberSaveable(
+        stateSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
+    ) { mutableStateOf(listOf<Int>()) }
+    fun pendingColors(): List<Color?> = pendingPlayerColors.map { if (it == 0) null else Color(it) }
+
+    // Accueil : false = feuilles de scores seules, true = jeux jouables dans l'appli (dés, Mastermind).
+    // (playMode est déclaré plus haut : le dialogue de sortie en a besoin.)
+    // Le bouton « Dés » n'existe que côté jeux jouables, sauf King of Tokyo (dés libres sur sa feuille de scores, voir
+    // [hasDiceOnSheet]) ; un invité le garde quand l'organisateur joue en version jouable (les dés se partagent).
+    val openDice: (() -> Unit)? =
+        if (playable || viewModel.gameRules.hasDiceOnSheet()) { { navController.navigate("dice") } } else null
+
+    // Route vers l'écran de score adapté au mode du jeu choisi.
+    fun scoreRouteFor(rules: GameRules): String = when (rules.scoreMode) {
+        ScoreMode.TABLE -> "score"
+        ScoreMode.COUNTER -> "counter"
+        ScoreMode.VARIABLE_TEAMS -> "teamRounds"
+        ScoreMode.POKER -> "poker"
+        ScoreMode.RACKET -> "racket"
+    }
+
+    // Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille, Qwixx et Shut the Box jouables : tout (scores compris) s'affiche sur la page des dés, sans feuille de score.
+    // Un invité y est amené comme l'organisateur, mais seulement si celui-ci joue en version jouable.
+    // Le Huit américain jouable aussi : tout (scores compris) s'affiche sur son écran de cartes.
+    fun gameRouteFor(rules: GameRules): String = when {
+        playable && rules.id == HUIT_ID -> "huit"
+        playable && rules.id == UNO_ID -> "uno"
+        playable && rules.id == HEARTS_ID -> "hearts"
+        playable && rules.id == YANIV_ID -> "yaniv"
+        playable && rules.isDiceOnly() -> "dice"
+        else -> scoreRouteFor(rules)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Fond commun à tous les écrans, décodé une seule fois.
+        AppBackground()
+
+        NavHost(navController = navController, startDestination = "home") {
+            composable("home") {
+                HomeScreen(
+                    onOpenScores = {
+                        playMode = false
+                        navController.navigate("setup")
+                    },
+                    onOpenPlayable = {
+                        playMode = true
+                        navController.navigate("setup")
+                    },
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
+                    colorBlindMode = colorBlindMode,
+                    onColorBlindModeChange = onColorBlindModeChange
+                )
+            }
+            composable("setup") {
+                SetupScreen(
+                    onNext = { names, colors ->
+                        pendingPlayerNames = names
+                        pendingPlayerColors = colors.map { it?.toArgb() ?: 0 }
+                        navController.navigate("chooseGame")
+                    },
+                    onOpenJournal = {
+                        navController.navigate("journal")
+                    },
+                    onOpenStats = {
+                        navController.navigate("stats")
+                    },
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
+                    colorBlindMode = colorBlindMode,
+                    onColorBlindModeChange = onColorBlindModeChange,
+                    unfinishedGame = unfinishedGame,
+                    onResumeGame = {
+                        unfinishedGame?.let { saved ->
+                            viewModel.loadFromSaved(saved)
+                            navController.navigate(gameRouteFor(saved.gameRules)) { popUpTo("setup") }
+                        }
+                    },
+                    onOpenShare = { navController.navigate("share") },
+                    playableMode = playMode,
+                    onOpenTournament = {
+                        // Un championnat sauvegardé se reprend directement ; sinon on en prépare un.
+                        navController.navigate(
+                            if (tournamentViewModel.hasTournament) "tournamentBracket" else "tournamentSetup"
+                        )
+                    }
+                )
+            }
+            composable("tournamentSetup") {
+                TournamentSetupScreen(
+                    onNext = { names, format, ordered ->
+                        tournamentViewModel.startTournament(names, format, ordered)
+                        navController.navigate("tournamentBracket") { popUpTo("setup") }
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable("tournamentBracket") {
+                TournamentBracketScreen(
+                    viewModel = tournamentViewModel,
+                    onBack = { navController.popBackStack("setup", inclusive = false) },
+                    onNewTournament = { navController.navigate("tournamentSetup") }
+                )
+            }
+            composable("stats") {
+                StatsScreen(
+                    repository = gameHistoryRepository,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable("journal") {
+                GameHistoryScreen(
+                    repository = gameHistoryRepository,
+                    onResumeGame = { saved ->
+                        viewModel.loadFromSaved(saved)
+                        navController.navigate(gameRouteFor(saved.gameRules)) {
+                            popUpTo("setup")
+                        }
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable("chooseGame") {
+                ChooseGameScreen(
+                    repository = gameRepository,
+                    playerCount = pendingPlayerNames.size,
+                    onGameChosen = { rules ->
+                        val ownScreenRoute = OWN_SCREEN_ROUTES[rules.id]
+                        if (rules.id == MASTERMIND_ID) {
+                            // Le Mastermind a son propre écran et n'utilise ni le tableau ni les compteurs.
+                            mastermindViewModel.open(rules, pendingPlayerNames)
+                            navController.navigate("mastermind")
+                        } else if (rules.id == BATTLESHIP_ID) {
+                            // Le touché coulé a lui aussi son propre écran : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            battleshipViewModel.open(rules, pendingPlayerNames)
+                            navController.navigate("battleship")
+                        } else if (rules.id == HANGMAN_ID) {
+                            // Le Pendu aussi : deux joueurs, sur un téléphone ou chacun sur le sien.
+                            hangmanViewModel.open(rules, pendingPlayerNames)
+                            navController.navigate("hangman")
+                        } else if (ownScreenRoute != null) {
+                            // Les autres jeux jouables ont leur propre écran, sans rien à préparer : voir OWN_SCREEN_ROUTES.
+                            navController.navigate(ownScreenRoute)
+                        } else if (rules.scoreMode == ScoreMode.POKER) {
+                            // Le poker se règle d'abord (tapis, blinds, antes…) avant de lancer la partie.
+                            navController.navigate("pokerSetup")
+                        } else {
+                            viewModel.initGame(pendingPlayerNames, rules, pendingColors())
+                            navController.navigate(gameRouteFor(rules))
+                        }
+                    },
+                    onCreateNewGame = {
+                        navController.navigate("createGame")
+                    },
+                    onEditGame = { rules ->
+                        navController.navigate("createGame?editId=${Uri.encode(rules.id)}")
+                    },
+                    playableOnly = playMode
+                )
+            }
+            // editId absent : création d'un jeu ; présent : modification du jeu personnalisé correspondant.
+            composable(
+                route = "createGame?editId={editId}",
+                arguments = listOf(
+                    navArgument("editId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { entry ->
+                val editId = entry.arguments?.getString("editId")
+                val editing = remember(editId) {
+                    editId?.let { id -> gameRepository.customGames().firstOrNull { it.id == id } }
+                }
+                CreateGameScreen(
+                    repository = gameRepository,
+                    editing = editing,
+                    onGameCreated = { rules ->
+                        viewModel.initGame(pendingPlayerNames, rules, pendingColors())
+                        navController.navigate(scoreRouteFor(rules)) {
+                            popUpTo("chooseGame") { inclusive = true }
+                        }
+                    },
+                    // Retour à la liste des jeux : ChooseGameScreen relit alors les jeux à jour.
+                    onGameUpdated = { navController.popBackStack() }
+                )
+            }
+            composable("pokerSetup") {
+                val pokerRules = remember { gameRepository.allGames().firstOrNull { it.scoreMode == ScoreMode.POKER } }
+                PokerSetupScreen(
+                    playerNames = pendingPlayerNames,
+                    onStart = { settings ->
+                        pokerRules?.let { rules ->
+                            viewModel.initGame(pendingPlayerNames, rules, pendingColors())
+                            viewModel.startPoker(settings)
+                            navController.navigate("poker") { popUpTo("pokerSetup") { inclusive = true } }
+                        }
+                    }
+                )
+            }
+            composable("battleship") {
+                BattleshipScreen(
+                    viewModel = battleshipViewModel,
+                    online = battleshipOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareBattleship") }
+                )
+            }
+            composable("shareBattleship") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.BATTLESHIP,
+                    battleship = battleshipOnline,
+                    battleshipSettings = battleshipViewModel.settings,
+                    // La salle d'attente du touché coulé est l'écran du jeu, juste derrière.
+                    onHostedBattleship = { navController.popBackStack() }
+                )
+            }
+            composable("morpion") {
+                TicTacToeScreen(
+                    players = pendingPlayerNames,
+                    online = ticTacToeOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareMorpion") }
+                )
+            }
+            composable("shareMorpion") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.MORPION,
+                    ticTacToe = ticTacToeOnline,
+                    // La table du Morpion est l'écran du jeu, juste derrière.
+                    onHostedTicTacToe = { navController.popBackStack() }
+                )
+            }
+            composable("connect4") {
+                Connect4Screen(
+                    players = pendingPlayerNames,
+                    online = connect4Online,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareConnect4") }
+                )
+            }
+            composable("shareConnect4") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.CONNECT4,
+                    connect4 = connect4Online,
+                    // La table du Puissance 4 est l'écran du jeu, juste derrière.
+                    onHostedConnect4 = { navController.popBackStack() }
+                )
+            }
+            composable("nim") {
+                NimScreen(
+                    players = pendingPlayerNames,
+                    online = nimOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareNim") }
+                )
+            }
+            composable("shareNim") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.NIM,
+                    nim = nimOnline,
+                    // La table du jeu des allumettes est l'écran du jeu, juste derrière.
+                    onHostedNim = { navController.popBackStack() }
+                )
+            }
+            composable("reflex") {
+                ReflexScreen(
+                    players = pendingPlayerNames,
+                    online = reflexOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareReflex") }
+                )
+            }
+            composable("circles") {
+                CirclesScreen(players = pendingPlayerNames)
+            }
+            composable("simon") {
+                SimonScreen(players = pendingPlayerNames)
+            }
+            composable("rhythm") {
+                RhythmScreen(players = pendingPlayerNames)
+            }
+            composable("tetris") {
+                TetrisScreen(players = pendingPlayerNames)
+            }
+            composable("breakout") {
+                BreakoutScreen(players = pendingPlayerNames)
+            }
+            composable("shmup") {
+                ShmupScreen(players = pendingPlayerNames)
+            }
+            composable("xonix") {
+                XonixScreen(players = pendingPlayerNames)
+            }
+            composable("snake") {
+                SnakeScreen(players = pendingPlayerNames)
+            }
+            composable("bubble") {
+                BubbleShooterScreen(players = pendingPlayerNames)
+            }
+            composable("asteroids") {
+                AsteroidsScreen(players = pendingPlayerNames)
+            }
+            composable("shareReflex") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.REFLEX,
+                    reflex = reflexOnline,
+                    // La table du Duel de réflexes est l'écran du jeu, juste derrière.
+                    onHostedReflex = { navController.popBackStack() }
+                )
+            }
+            composable("pfc") {
+                RockPaperScissorsScreen(
+                    players = pendingPlayerNames,
+                    online = rockPaperScissorsOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("sharePfc") }
+                )
+            }
+            composable("sharePfc") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.PFC,
+                    rockPaperScissors = rockPaperScissorsOnline,
+                    // La table est l'écran du jeu, juste derrière.
+                    onHostedRockPaperScissors = { navController.popBackStack() }
+                )
+            }
+            composable("gomoku") {
+                DuoGameScreen(
+                    spec = GomokuSpec,
+                    players = pendingPlayerNames,
+                    online = gomokuOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareGomoku") }
+                )
+            }
+            composable("shareGomoku") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.GOMOKU,
+                    duo = gomokuOnline,
+                    // La table du Gomoku est l'écran du jeu, juste derrière.
+                    onHostedDuo = { navController.popBackStack() }
+                )
+            }
+            composable("dots") {
+                DuoGameScreen(
+                    spec = DotsSpec,
+                    players = pendingPlayerNames,
+                    online = dotsOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareDots") }
+                )
+            }
+            composable("shareDots") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.DOTS,
+                    duo = dotsOnline,
+                    // La table de la Pipopipette est l'écran du jeu, juste derrière.
+                    onHostedDuo = { navController.popBackStack() }
+                )
+            }
+            composable("hangman") {
+                HangmanScreen(
+                    viewModel = hangmanViewModel,
+                    online = hangmanOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareHangman") }
+                )
+            }
+            composable("shareHangman") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.HANGMAN,
+                    hangman = hangmanOnline,
+                    hangmanSettings = hangmanViewModel.settings,
+                    // La salle d'attente du Pendu est l'écran du jeu, juste derrière.
+                    onHostedHangman = { navController.popBackStack() }
+                )
+            }
+            composable("chess") {
+                ChessScreen(
+                    players = pendingPlayerNames,
+                    online = chessOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareChess") }
+                )
+            }
+            composable("shareChess") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.CHESS,
+                    chess = chessOnline,
+                    // La table d'échecs est l'écran du jeu, juste derrière.
+                    onHostedChess = { navController.popBackStack() }
+                )
+            }
+            composable("draughts") {
+                DraughtsScreen(
+                    players = pendingPlayerNames,
+                    online = draughtsOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareDraughts") }
+                )
+            }
+            composable("shareDraughts") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.DRAUGHTS,
+                    draughts = draughtsOnline,
+                    // La table des dames est l'écran du jeu, juste derrière.
+                    onHostedDraughts = { navController.popBackStack() }
+                )
+            }
+            composable("othello") {
+                OthelloScreen(
+                    players = pendingPlayerNames,
+                    online = othelloOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareOthello") }
+                )
+            }
+            composable("shareOthello") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.OTHELLO,
+                    othello = othelloOnline,
+                    // La table de l'Othello est l'écran du jeu, juste derrière.
+                    onHostedOthello = { navController.popBackStack() }
+                )
+            }
+            composable("poker") {
+                PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
+            }
+            composable("score") {
+                ScoreScreen(
+                    viewModel = viewModel,
+                    historyRepository = gameHistoryRepository,
+                    onOpenDice = openDice,
+                    onOpenShare = { navController.navigate("share") },
+                    shareActive = sync.isConnected
+                )
+            }
+            composable("share") {
+                ShareScreen(game = viewModel, session = sync, onBack = { navController.popBackStack() })
+            }
+            composable("mastermind") {
+                MastermindScreen(
+                    viewModel = mastermindViewModel,
+                    online = mastermindOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareMastermind") }
+                )
+            }
+            composable("shareMastermind") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.MASTERMIND,
+                    mastermind = mastermindOnline,
+                    mastermindSettings = mastermindViewModel.settings,
+                    // La salle d'attente du Mastermind est l'écran du jeu, juste derrière.
+                    onHostedMastermind = { navController.popBackStack() }
+                )
+            }
+            composable("dice") {
+                DiceScreen(
+                    viewModel = viewModel,
+                    session = sync,
+                    diceOnly = onDiceOnlyRoute,
+                    onOpenShare = { navController.navigate("share") },
+                    shareActive = sync.isConnected,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (!onDiceOnlyRoute) {
+                            navController.popBackStack()
+                        } else if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
+            composable("huit") {
+                HuitScreen(
+                    viewModel = viewModel,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
+            composable("uno") {
+                UnoScreen(
+                    viewModel = viewModel,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
+            composable("hearts") {
+                HeartsScreen(
+                    viewModel = viewModel,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
+            composable("yaniv") {
+                YanivScreen(
+                    viewModel = viewModel,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
+            composable("racket") {
+                RacketScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
+            }
+            composable("counter") {
+                CounterScreen(
+                    viewModel = viewModel,
+                    historyRepository = gameHistoryRepository,
+                    onOpenDice = openDice,
+                    onOpenShare = { navController.navigate("share") },
+                    shareActive = sync.isConnected
+                )
+            }
+            composable("teamRounds") {
+                TeamRoundsScreen(
+                    viewModel = viewModel,
+                    historyRepository = gameHistoryRepository,
+                    onAddRound = { navController.navigate("newTeamRound") },
+                    onOpenShare = { navController.navigate("share") },
+                    shareActive = sync.isConnected
+                )
+            }
+            composable("newTeamRound") {
+                NewTeamRoundScreen(
+                    viewModel = viewModel,
+                    onDone = { navController.popBackStack() }
+                )
+            }
+        }
+
+        // Doit être déclaré APRÈS le NavHost : le dernier BackHandler enregistré est prioritaire,
+        // sinon celui du NavHost quitte l'écran sans jamais afficher la confirmation.
+        BackHandler(enabled = onScoreRoute && viewModel.hasProgress()) { showQuitDialog = true }
+
+        // Envoie la partie aux téléphones connectés à chaque changement, et ouvre la partie reçue (invité).
+        SyncEffects(
+            game = viewModel,
+            session = sync,
+            navController = navController,
+            routeFor = ::gameRouteFor,
+            mastermind = mastermindOnline,
+            onMastermindJoined = {
+                gameRepository.builtInGames().firstOrNull { it.id == MASTERMIND_ID }?.let { mastermindViewModel.prepareOnline(it) }
+                navController.navigate("mastermind") { popUpTo("home") }
+            },
+            ticTacToe = ticTacToeOnline,
+            onTicTacToeJoined = { navController.navigate("morpion") { popUpTo("home") } },
+            connect4 = connect4Online,
+            onConnect4Joined = { navController.navigate("connect4") { popUpTo("home") } },
+            battleship = battleshipOnline,
+            onBattleshipJoined = {
+                gameRepository.builtInGames().firstOrNull { it.id == BATTLESHIP_ID }?.let { battleshipViewModel.prepareOnline(it) }
+                navController.navigate("battleship") { popUpTo("home") }
+            },
+            nim = nimOnline,
+            onNimJoined = { navController.navigate("nim") { popUpTo("home") } },
+            reflex = reflexOnline,
+            onReflexJoined = { navController.navigate("reflex") { popUpTo("home") } },
+            rockPaperScissors = rockPaperScissorsOnline,
+            onRockPaperScissorsJoined = { navController.navigate("pfc") { popUpTo("home") } },
+            gomoku = gomokuOnline,
+            onGomokuJoined = { navController.navigate("gomoku") { popUpTo("home") } },
+            dots = dotsOnline,
+            onDotsJoined = { navController.navigate("dots") { popUpTo("home") } },
+            draughts = draughtsOnline,
+            onDraughtsJoined = { navController.navigate("draughts") { popUpTo("home") } },
+            othello = othelloOnline,
+            onOthelloJoined = { navController.navigate("othello") { popUpTo("home") } },
+            hangman = hangmanOnline,
+            onHangmanJoined = {
+                gameRepository.builtInGames().firstOrNull { it.id == HANGMAN_ID }?.let { hangmanViewModel.prepareOnline(it) }
+                navController.navigate("hangman") { popUpTo("home") }
+            },
+            chess = chessOnline,
+            onChessJoined = { navController.navigate("chess") { popUpTo("home") } }
+        )
+        // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
+        SyncPendingDialog(sync)
+
+        // Superposé à toutes les pages ci-dessus, sauf le poker (minuteur de blinds) et les jeux jouables
+        // qui n'ont pas besoin d'horloge (les échecs ont la leur, le réflexe et le rythme mesurent le temps eux-mêmes).
+        val hideTimer = currentRoute == "poker" || currentRoute in PLAYABLE_ROUTES_WITHOUT_TIMER ||
+            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute
+        if (!hideTimer) TimerOverlay(viewModel = timerViewModel)
+
+        if (showQuitDialog) {
+            AlertDialog(
+                onDismissRequest = { showQuitDialog = false },
+                title = { Text(stringResource(R.string.quit_title)) },
+                text = {
+                    Column {
+                        Text(stringResource(R.string.quit_message))
+                        TextButton(onClick = { quitGame(save = false) }) {
+                            Text(stringResource(R.string.quit_without_saving), color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { quitGame(save = true) }) { Text(stringResource(R.string.quit_save_and_quit)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showQuitDialog = false }) { Text(stringResource(R.string.quit_continue)) }
+                }
+            )
+        }
+    }
+}
