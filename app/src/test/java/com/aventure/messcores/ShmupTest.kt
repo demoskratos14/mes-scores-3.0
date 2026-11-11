@@ -4,6 +4,7 @@ import kotlin.math.abs
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -15,6 +16,32 @@ class ShmupTest {
     /** Un ennemi de [type] arrivé en (x, y), qui ne tirera pas de sitôt. */
     private fun enemyAt(type: EnemyType, x: Float, y: Float, hp: Int = type.hp) =
         ShmupGame.Enemy(type, spawnX = x, spawnY = y, dir = 1f, phase = 0f, hp = hp, shootInMs = 100_000L)
+
+    /** Une partie déjà au plateau [stage], au tour [loop], avec [stageMs] ms écoulées (on retouche la sauvegarde d'une partie neuve). */
+    private fun gameAt(stage: Int, stageMs: Long = 0L, loop: Int = 0): ShmupGame {
+        val data = newGame().save().toMutableList()
+        // Rangs dans la sauvegarde (voir ShmupGame.save) : 8 = plateau, 9 = tour, 11 = temps du plateau.
+        data[8] = stage
+        data[9] = loop
+        data[11] = stageMs.toInt()
+        return ShmupGame.restore(data, Random(1))!!
+    }
+
+    /** Monte l'arme de [levels] niveaux en ramassant des bonus. */
+    private fun raiseWeapon(game: ShmupGame, levels: Int) {
+        repeat(levels) {
+            game.pickups += ShmupGame.Pickup(game.playerX, game.playerY, true)
+            game.tick(50)
+        }
+    }
+
+    /** Fait arriver le boss du plateau en cours et renvoie la partie une fois le boss en jeu. */
+    private fun withBoss(stage: Int, loop: Int = 0): ShmupGame {
+        val game = gameAt(stage, Shmup.STAGE_MS - 100L, loop)
+        game.tick(300)
+        assertEquals(ShmupPhase.BOSS, game.phase)
+        return game
+    }
 
     @Test
     fun leVaisseauResteDansLeTerrain() {
@@ -28,32 +55,94 @@ class ShmupTest {
     }
 
     @Test
-    fun leVaisseauTireToutSeulDeuxTirsALaFois() {
+    fun auDepartLeVaisseauTireUnSeulMissile() {
         val game = newGame()
         game.tick(60)
-        assertTrue(game.bullets.size >= 2)
-        assertEquals(0, game.bullets.size % 2)
-        assertTrue(game.bullets.all { it.vy < 0f })
+        assertEquals(1, game.weapon)
+        assertEquals(1, game.bullets.size)
+        assertTrue(game.bullets.single().vy < 0f)
+        assertFalse(game.laserOn)
     }
 
     @Test
-    fun unTirDetruitUnEnnemiEtRapporteDesPoints() {
+    fun chaqueNiveauDArmeATonTir() {
+        val missiles = mapOf(1 to 1, 2 to 2, 3 to 3, 4 to 2, 5 to 3)
+        for ((level, count) in missiles) {
+            val game = newGame()
+            raiseWeapon(game, level - 1)
+            assertEquals(level, game.weapon)
+            game.bullets.clear()
+            // On avance par petits pas jusqu'à la prochaine salve : tous ses missiles partent au même instant.
+            while (game.bullets.isEmpty()) game.tick(10)
+            assertEquals("missiles au niveau $level", count, game.bullets.size)
+            assertTrue(game.bullets.all { it.lvl == level })
+            assertEquals(level >= 4, game.laserOn)
+        }
+    }
+
+    @Test
+    fun unBonusMonteLArmeUnMalusLaBaisse() {
+        val game = newGame()
+        raiseWeapon(game, 2)
+        assertEquals(3, game.weapon)
+        game.pickups += ShmupGame.Pickup(game.playerX, game.playerY, false)
+        game.tick(50)
+        assertEquals(2, game.weapon)
+        // Jamais en dessous de 1 ni au-dessus de 5 ; au maximum, un bonus rapporte des points.
+        repeat(4) { game.pickups += ShmupGame.Pickup(game.playerX, game.playerY, false); game.tick(50) }
+        assertEquals(1, game.weapon)
+        raiseWeapon(game, Shmup.MAX_WEAPON - 1)
+        assertEquals(Shmup.MAX_WEAPON, game.weapon)
+        val before = game.score
+        raiseWeapon(game, 1)
+        assertEquals(Shmup.MAX_WEAPON, game.weapon)
+        assertEquals(before + 200, game.score)
+    }
+
+    @Test
+    fun unePastilleTombeEtSort() {
+        val game = newGame()
+        game.pickups += ShmupGame.Pickup(1f, 1f, true)
+        game.tick(1000)
+        assertTrue(game.pickups.single().y > 1f)
+        game.tick(10_000)
+        assertTrue(game.pickups.isEmpty())
+        assertEquals(1, game.weapon)
+    }
+
+    @Test
+    fun leLaserTouchePlusieursEnnemisDansSaColonne() {
+        val game = newGame()
+        raiseWeapon(game, 3)
+        assertTrue(game.laserOn)
+        val inColumn = enemyAt(EnemyType.CORVETTE, game.playerX, 5f)
+        val behind = enemyAt(EnemyType.CORVETTE, game.playerX, 2f)
+        val aside = enemyAt(EnemyType.CORVETTE, game.playerX + 3f, 5f)
+        game.enemies += listOf(inColumn, behind, aside)
+        game.tick(200)
+        assertTrue(inColumn.hp < EnemyType.CORVETTE.hp - 2)
+        assertTrue(behind.hp < EnemyType.CORVETTE.hp - 2)
+        assertEquals(EnemyType.CORVETTE.hp, aside.hp)
+    }
+
+    @Test
+    fun unMissileDetruitUnEnnemiEtRapporteDesPoints() {
         val game = newGame()
         game.enemies += enemyAt(EnemyType.WASP, 4.5f, 8f)
-        game.bullets += ShmupGame.Bullet(4.5f, 8.4f, 0f, -Shmup.BULLET_SPEED)
+        game.bullets += ShmupGame.Bullet(4.5f, 8.4f, 0f, -Shmup.MISSILE_SPEED, Shmup.MISSILE_DAMAGE, 1)
         game.tick(50)
         assertTrue(game.enemies.isEmpty())
         assertEquals(EnemyType.WASP.points, game.score)
     }
 
     @Test
-    fun unEnnemiRobusteEncaisseSeveralTirs() {
+    fun unEnnemiRobusteEncaisseSeveralMissiles() {
         val game = newGame()
-        game.enemies += enemyAt(EnemyType.K24, 4.5f, 8f)
-        game.bullets += ShmupGame.Bullet(4.5f, 8.4f, 0f, -Shmup.BULLET_SPEED)
+        game.enemies += enemyAt(EnemyType.TANK_TOP, 4.5f, 8f)
+        game.bullets += ShmupGame.Bullet(4.5f, 8.4f, 0f, -Shmup.MISSILE_SPEED, Shmup.MISSILE_DAMAGE, 1)
         game.tick(50)
         assertEquals(1, game.enemies.size)
-        assertEquals(EnemyType.K24.hp - 1, game.enemies.single().hp)
+        assertEquals(EnemyType.TANK_TOP.hp - Shmup.MISSILE_DAMAGE, game.enemies.single().hp)
         assertEquals(0, game.score)
     }
 
@@ -84,7 +173,6 @@ class ShmupTest {
         game.enemies += enemyAt(EnemyType.CORVETTE, game.playerX, game.playerY - 1f)
         game.tick(50)
         assertEquals(Shmup.LIVES - 1, game.lives)
-        // Il encaisse le choc (trois tirs d'un coup), plus d'éventuels tirs du joueur : il reste en jeu.
         assertEquals(1, game.enemies.size)
         assertTrue(game.enemies.single().hp <= EnemyType.CORVETTE.hp - 3)
     }
@@ -114,19 +202,44 @@ class ShmupTest {
     }
 
     @Test
-    fun leNiveauEtLaDifficulteMontentAvecLeTemps() {
-        assertEquals(1, Shmup.levelAt(0L))
-        assertEquals(2, Shmup.levelAt(Shmup.LEVEL_EVERY_MS))
-        assertTrue(Shmup.spawnEveryMs(5) < Shmup.spawnEveryMs(1))
-        assertEquals(600L, Shmup.spawnEveryMs(100))
+    fun lesEnnemisArriventAvecLeurPlateauEtLeurPalier() {
+        // Plateau 1 : que des vaisseaux, de plus en plus variés.
+        assertTrue(Shmup.poolAt(0, 1).isNotEmpty())
+        assertTrue(Shmup.poolAt(0, 1).size < Shmup.poolAt(0, 3).size)
+        assertTrue(Shmup.poolAt(0, Shmup.SUBLEVELS).none { it.ground })
+        // Les chars arrivent au plateau 2, les tourelles au plateau 3.
+        assertTrue(EnemyType.TANK in Shmup.poolAt(1, 1))
+        assertFalse(EnemyType.TANK_TOP in Shmup.poolAt(1, 1))
+        assertTrue(EnemyType.TANK_TOP in Shmup.poolAt(1, 2))
+        assertFalse(EnemyType.FALL_TURRET in Shmup.poolAt(1, Shmup.SUBLEVELS))
+        assertTrue(EnemyType.FALL_TURRET in Shmup.poolAt(2, 1))
+        // Un type déjà débloqué reste disponible, et tout est là au dernier plateau.
+        assertTrue(Shmup.poolAt(0, 1).all { it in Shmup.poolAt(3, 1) })
+        assertEquals(EnemyType.values().filter { !it.boss }, Shmup.poolAt(3, Shmup.SUBLEVELS))
+        assertTrue(EnemyType.values().filter { !it.boss }.all { it.weight > 0 && it.hp > 0 && it.h > 0f && it.ratio > 0f })
     }
 
     @Test
-    fun lesNouveauxEnnemisArriventAvecLesNiveaux() {
-        assertTrue(Shmup.poolAt(1).isNotEmpty())
-        assertTrue(Shmup.poolAt(1).size < Shmup.poolAt(4).size)
-        assertEquals(EnemyType.values().toList(), Shmup.poolAt(100))
-        assertTrue(EnemyType.values().all { it.weight > 0 && it.hp > 0 && it.h > 0f && it.ratio > 0f })
+    fun chaquePlateauAUnBossQuiNEstJamaisTire() {
+        assertEquals(EnemyType.BOSS_SAUCER, Shmup.bossOf(0))
+        assertEquals(EnemyType.BOSS_TANK, Shmup.bossOf(1))
+        assertEquals(EnemyType.BOSS_SHUTTLE, Shmup.bossOf(2))
+        assertEquals(EnemyType.BOSS_LAUNCHER, Shmup.bossOf(3))
+        for (stage in 0 until Shmup.STAGES) assertTrue(Shmup.bossOf(stage).boss)
+        for (stage in 0 until Shmup.STAGES) for (sub in 1..Shmup.SUBLEVELS) assertTrue(Shmup.poolAt(stage, sub).none { it.boss })
+        // Les boss sont bien plus longs à détruire que n'importe quel ennemi ordinaire.
+        val strongest = EnemyType.values().filter { !it.boss }.maxOf { it.hp }
+        assertTrue(EnemyType.values().filter { it.boss }.all { it.hp > strongest * 5 })
+    }
+
+    @Test
+    fun laDifficulteMonteAvecLePlateauEtLeTour() {
+        assertTrue(Shmup.spawnEveryMs(0, 3, 0) < Shmup.spawnEveryMs(0, 1, 0))
+        assertTrue(Shmup.spawnEveryMs(3, 1, 0) < Shmup.spawnEveryMs(0, 1, 0))
+        assertTrue(Shmup.spawnEveryMs(0, 1, 1) < Shmup.spawnEveryMs(0, 1, 0))
+        assertEquals(500L, Shmup.spawnEveryMs(3, 3, 100))
+        assertEquals(1, newGame().level)
+        assertEquals(Shmup.STAGES + 1, gameAt(0, loop = 1).level)
     }
 
     @Test
@@ -139,13 +252,20 @@ class ShmupTest {
                 Move.STRAFE, Move.HOVER -> assertTrue("$type n'a pas de vitesse", type.speed > 0f)
                 Move.SWOOP -> assertTrue("$type n'a pas d'amplitude", type.amp > 0f)
                 Move.GROUND, Move.ROLL -> assertTrue(type.ground)
+                Move.BOSS -> assertTrue("$type n'est pas un boss complet", type.boss && type.speed > 0f && type.lane > 0f && type.amp > 0f)
+            }
+            if (type.boss) {
+                assertEquals(Move.BOSS, type.move)
+                assertTrue("$type n'a pas de second tir", type.fire2 != Fire.NONE && type.fire2EveryMs > 0L)
+            } else {
+                assertTrue(type.move != Move.BOSS)
             }
         }
     }
 
     @Test
     fun chaqueMouvementFiniParSortirDuTerrain() {
-        for (type in EnemyType.values()) {
+        for (type in EnemyType.values().filter { !it.boss }) {
             val x = if (type.move == Move.DIAGONAL || type.move == Move.STRAFE || type.move == Move.SWOOP) 0.8f else 4.5f
             val e = enemyAt(type, x, -type.h / 2f)
             var ms = 0L
@@ -157,6 +277,20 @@ class ShmupTest {
                 assertTrue("$type: position invalide", e.x.isFinite() && e.y.isFinite())
             }
             assertTrue("$type ne sort jamais du terrain", e.isGone())
+        }
+    }
+
+    @Test
+    fun unBossNeSortJamaisEtSeBalanceSurSaLigne() {
+        for (type in EnemyType.values().filter { it.boss }) {
+            val e = enemyAt(type, Shmup.WIDTH / 2f, -type.h / 2f)
+            for (t in 0..600) {
+                e.ageMs = t * 100L
+                e.place()
+                assertFalse("$type est parti", e.isGone())
+                assertTrue(abs(e.x - Shmup.WIDTH / 2f) <= type.amp + 0.001f)
+            }
+            assertEquals(type.lane, e.y, 0.3f)
         }
     }
 
@@ -230,48 +364,157 @@ class ShmupTest {
     }
 
     @Test
+    fun leBossPasseAuSecondTirQuandIlEstALaMoitieDeSaVie() {
+        val game = newGame()
+        game.movePlayerTo(8f, 14f)
+        val type = EnemyType.BOSS_SAUCER
+        // Pleine vie : un anneau de 12 tirs ; sous la moitié : la spirale (2 tirs par salve).
+        val full = ShmupGame.Enemy(type, 4.5f, 4f, 1f, 0f, type.hp, shootInMs = 0L)
+        game.enemies += full
+        game.tick(50)
+        assertEquals(12, game.enemyBullets.size)
+
+        val hurtGame = newGame()
+        hurtGame.movePlayerTo(8f, 14f)
+        hurtGame.enemies += ShmupGame.Enemy(type, 4.5f, 4f, 1f, 0f, type.hp / 2 - 1, maxHp = type.hp, shootInMs = 0L)
+        hurtGame.tick(50)
+        assertEquals(2, hurtGame.enemyBullets.size)
+    }
+
+    @Test
     fun desEnnemisArriventAuFilDuTemps() {
         val game = newGame()
         game.tick(1500)
         assertTrue(game.enemies.isNotEmpty())
+        assertTrue(game.scroll > 0f)
     }
 
     @Test
-    fun uneLongueSimulationNeBlessePasLeMoteur() {
-        val game = newGame()
-        game.movePlayerTo(4.5f, 8f)
-        var ms = 0L
-        while (ms < 120_000L && !game.isOver) {
-            game.tick(33)
-            ms += 33
+    fun aLaFinDuPlateauLeBossArriveEtLeDefilementSArrete() {
+        val game = withBoss(0)
+        val boss = game.boss
+        assertNotNull(boss)
+        assertEquals(EnemyType.BOSS_SAUCER, boss!!.type)
+        assertEquals(boss.type.hp, boss.maxHp)
+        assertTrue(game.bossIntroMs > 0L)
+        game.tick(1500)
+        assertEquals(0f, game.scrollSpeed, 0.001f)
+        val scroll = game.scroll
+        game.tick(500)
+        assertEquals(scroll, game.scroll, 0.001f)
+        assertEquals(ShmupPhase.BOSS, game.phase)
+    }
+
+    @Test
+    fun leBossAttendQueLesEnnemisSoientPartis() {
+        val game = gameAt(0, Shmup.STAGE_MS - 50L)
+        game.enemies += enemyAt(EnemyType.CORVETTE, 4.5f, 3f)
+        game.tick(200)
+        assertEquals(ShmupPhase.CLEARING, game.phase)
+        assertNull(game.boss)
+        // Au bout du délai maximal, il arrive quand même.
+        game.tick(Shmup.CLEAR_WAIT_MS + 100L)
+        assertEquals(ShmupPhase.BOSS, game.phase)
+        assertNotNull(game.boss)
+    }
+
+    @Test
+    fun vaincreLeBossMeneAuPlateauSuivant() {
+        val game = withBoss(0)
+        game.boss!!.hp = 0
+        game.tick(50)
+        assertEquals(ShmupPhase.TRANSITION, game.phase)
+        assertTrue(game.enemyBullets.isEmpty())
+        assertEquals(0, game.stage)
+        // Le décor change au milieu du saut en vitesse lumière.
+        game.tick(Shmup.TRANSITION_MS / 2 + 100L)
+        assertEquals(1, game.stage)
+        assertTrue(game.transitionProgress in 0.4f..0.8f)
+        game.tick(Shmup.TRANSITION_MS)
+        assertEquals(ShmupPhase.NORMAL, game.phase)
+        assertEquals(1, game.stage)
+        assertTrue(game.stageMs in 1L..3000L)
+        assertEquals(0f, game.transitionProgress, 0f)
+        assertTrue(game.scrollSpeed > 0f)
+    }
+
+    @Test
+    fun unBossVaincuLaisseDeuxBonus() {
+        val game = withBoss(0)
+        val boss = game.boss!!
+        boss.hp = 1
+        game.bullets += ShmupGame.Bullet(boss.x, boss.y, 0f, 0f, Shmup.MISSILE_DAMAGE, 1)
+        game.tick(50)
+        assertEquals(2, game.pickups.size)
+        assertTrue(game.pickups.all { it.bonus })
+        assertEquals(EnemyType.BOSS_SAUCER.points, game.score)
+    }
+
+    @Test
+    fun apresLeDernierPlateauToutRecommenceEnPlusDifficile() {
+        val game = withBoss(Shmup.STAGES - 1)
+        assertEquals(EnemyType.BOSS_LAUNCHER, game.boss!!.type)
+        game.boss!!.hp = 0
+        game.tick(50)
+        game.tick(Shmup.TRANSITION_MS + 100L)
+        assertEquals(0, game.stage)
+        assertEquals(1, game.loop)
+        assertEquals(Shmup.STAGES + 1, game.level)
+        assertEquals(ShmupPhase.NORMAL, game.phase)
+        // Au tour suivant le boss est plus résistant.
+        val second = withBoss(0, loop = 1)
+        assertTrue(second.boss!!.maxHp > EnemyType.BOSS_SAUCER.hp)
+    }
+
+    @Test
+    fun uneLongueSimulationSurChaquePlateauNeBlessePasLeMoteur() {
+        for (stage in 0 until Shmup.STAGES) {
+            val game = gameAt(stage, 0L, loop = stage % 2)
+            game.movePlayerTo(4.5f, 8f)
+            var ms = 0L
+            while (ms < 40_000L && !game.isOver) {
+                game.tick(33)
+                ms += 33
+            }
+            assertTrue(game.enemies.size < 60)
+            assertTrue(game.enemyBullets.size < 800)
+            assertTrue(game.sparks.size <= Shmup.MAX_SPARKS)
         }
-        assertTrue(game.enemies.size < 60)
-        assertTrue(game.enemyBullets.size < 600)
-        assertTrue(game.sparks.size <= Shmup.MAX_SPARKS)
     }
 
     @Test
     fun reinitialiserRemetLaPartieAZero() {
-        val game = newGame()
+        val game = gameAt(2, 10_000L, loop = 1)
+        raiseWeapon(game, 2)
         game.tick(3000)
         game.reset()
         assertEquals(Shmup.LIVES, game.lives)
         assertEquals(0, game.score)
         assertEquals(0L, game.timeMs)
-        assertTrue(game.bullets.isEmpty() && game.enemies.isEmpty() && game.enemyBullets.isEmpty())
+        assertEquals(1, game.weapon)
+        assertEquals(0, game.stage)
+        assertEquals(0, game.loop)
+        assertEquals(ShmupPhase.NORMAL, game.phase)
+        assertTrue(game.bullets.isEmpty() && game.enemies.isEmpty() && game.enemyBullets.isEmpty() && game.pickups.isEmpty())
     }
 
     @Test
     fun laSauvegardeSeRestaureIdentique() {
-        val game = newGame()
+        val game = gameAt(2, 20_000L, loop = 1)
         game.movePlayerTo(3f, 12f)
+        raiseWeapon(game, 2)
+        game.pickups += ShmupGame.Pickup(1f, 1f, false)
         game.tick(30_000)
         val saved = game.save()
         val restored = ShmupGame.restore(saved, Random(2))!!
         assertEquals(saved, restored.save())
         assertEquals(game.playerX, restored.playerX, 0f)
         assertEquals(game.score, restored.score)
+        assertEquals(game.weapon, restored.weapon)
+        assertEquals(game.stage, restored.stage)
+        assertEquals(game.phase, restored.phase)
         assertEquals(game.enemies.size, restored.enemies.size)
+        assertEquals(game.pickups.size, restored.pickups.size)
         for ((a, b) in game.enemies.zip(restored.enemies)) {
             assertEquals(a.type, b.type)
             assertEquals(a.x, b.x, 0.0001f)
@@ -287,11 +530,17 @@ class ShmupTest {
         assertNull(ShmupGame.restore(saved + 0))
         assertNull(ShmupGame.restore(saved.dropLast(1)))
         assertNull(ShmupGame.restore(listOf(99) + saved.drop(1)))
+        // Une arme, un plateau ou une phase hors limites sont refusés.
+        for ((index, value) in listOf(7 to 9, 8 to 9, 9 to -1, 10 to 99)) {
+            val broken = saved.toMutableList()
+            broken[index] = value
+            assertNull("rang $index", ShmupGame.restore(broken))
+        }
         // Un type d'ennemi inconnu est refusé.
         val game = newGame()
         game.enemies += enemyAt(EnemyType.WASP, 4f, 1f)
         val withEnemy = game.save().toMutableList()
-        withEnemy[withEnemy.size - 10] = 999
+        withEnemy[withEnemy.size - 11] = 999
         assertNull(ShmupGame.restore(withEnemy))
     }
 }

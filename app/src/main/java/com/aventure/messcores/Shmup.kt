@@ -19,6 +19,11 @@ private const val TWO_PI = 6.2831855f
 /**
  * Réglages et calculs du Shoot'em up à défilement vertical. Le terrain est en « unités » (9 de large sur 16 de haut) ;
  * l'écran n'a qu'à le mettre à l'échelle. Le haut du terrain est en y = 0, le vaisseau du joueur est en bas.
+ *
+ * Le jeu compte [STAGES] plateaux (espace, chemin de terre, base aérienne, désert). Un plateau dure [STAGE_MS], coupé en
+ * [SUBLEVELS] paliers où arrivent de nouveaux ennemis ; puis un boss arrive, le défilement s'arrête, et une fois le boss
+ * détruit un saut en vitesse lumière mène au plateau suivant. Après le dernier plateau, tout recommence au premier, en
+ * plus difficile (un « tour » de plus).
  */
 internal object Shmup {
     const val WIDTH = 9f
@@ -31,10 +36,19 @@ internal object Shmup {
     const val SHIP_HIT = 0.25f
 
     const val START_Y = HEIGHT - 2.2f
-    const val FIRE_EVERY_MS = 150L
-    const val BULLET_SPEED = 14f
-    const val BULLET_HALF_W = 0.06f
-    const val BULLET_HALF_H = 0.25f
+
+    // L'arme du vaisseau a 5 niveaux : 1 missile, 2 missiles, 3 missiles en éventail, laser + 2 missiles, grand laser + 3 missiles.
+    const val MAX_WEAPON = 5
+    const val FIRE_EVERY_MS = 200L
+    const val MISSILE_SPEED = 14f
+    const val MISSILE_HALF_W = 0.07f
+    const val MISSILE_HALF_H = 0.25f
+    const val MISSILE_DAMAGE = 2
+    const val SPREAD_ANGLE = 0.2f
+    const val LASER_EVERY_MS = 60L
+    const val LASER_HALF_W = 0.12f
+    const val LASER_WIDE_HALF_W = 0.3f
+
     const val ENEMY_BULLET_HIT = 0.12f
 
     /** Durée pendant laquelle le vaisseau ne peut pas être touché après un impact. */
@@ -43,19 +57,51 @@ internal object Shmup {
     /** Vitesse du défilement du fond (et du sol, où les tourelles sont posées), en unités par seconde. */
     const val SCROLL_SPEED = 3f
 
+    /** Vitesse du défilement pendant le saut en vitesse lumière. */
+    const val TRANSITION_SCROLL = 14f
+
     /** Plus long pas de calcul : après un à-coup, rien ne doit traverser un autre objet d'un coup. */
     const val MAX_STEP_MS = 50L
 
-    const val LEVEL_EVERY_MS = 25_000L
+    const val STAGES = 4
+    const val SUBLEVELS = 3
+    const val SUBLEVEL_MS = 25_000L
+    const val STAGE_MS = SUBLEVEL_MS * SUBLEVELS
+
+    /** Temps maximal laissé aux ennemis restants pour quitter le terrain avant l'arrivée du boss. */
+    const val CLEAR_WAIT_MS = 10_000L
+    const val BOSS_INTRO_MS = 2500L
+    const val TRANSITION_MS = 4000L
+
+    const val PICKUP_SPEED = 2.2f
+    const val PICKUP_HALF = 0.3f
     const val MAX_SPARKS = 200
 
-    fun levelAt(timeMs: Long): Int = 1 + (timeMs / LEVEL_EVERY_MS).toInt()
+    /** Délai entre deux arrivées d'ennemis : plus court de palier en palier, de plateau en plateau et de tour en tour. */
+    fun spawnEveryMs(stage: Int, sublevel: Int, loop: Int): Long =
+        max(500L, 1500L - 110L * (sublevel - 1) - 70L * stage - 160L * loop)
 
-    /** Délai entre deux arrivées d'ennemis : de plus en plus court, jusqu'à un plancher. */
-    fun spawnEveryMs(level: Int): Long = max(600L, 1500L - (level - 1) * 110L)
+    /** Les types d'ennemis (sans les boss) qui peuvent arriver à ce plateau et à ce palier. */
+    fun poolAt(stage: Int, sublevel: Int): List<EnemyType> =
+        EnemyType.values().filter { !it.boss && it.availableAt(stage, sublevel) }
 
-    /** Les types d'ennemis qui peuvent arriver au niveau [level]. */
-    fun poolAt(level: Int): List<EnemyType> = EnemyType.values().filter { it.minLevel <= level }
+    /** Le boss du plateau [stage]. */
+    fun bossOf(stage: Int): EnemyType = EnemyType.values().first { it.boss && it.stage == stage }
+}
+
+/** Où en est la partie dans un plateau. */
+internal enum class ShmupPhase {
+    /** Les ennemis arrivent. */
+    NORMAL,
+
+    /** Le temps du plateau est écoulé : on attend que les ennemis restants soient partis, puis le boss arrive. */
+    CLEARING,
+
+    /** Le combat contre le boss : le défilement est arrêté. */
+    BOSS,
+
+    /** Le saut en vitesse lumière vers le plateau suivant. */
+    TRANSITION
 }
 
 /** Comment un ennemi se déplace. La position est calculée d'après son âge (voir [ShmupGame.Enemy.place]). */
@@ -91,7 +137,10 @@ internal enum class Move {
     GROUND,
 
     /** Posé sur le sol et roule de gauche à droite pendant que le sol défile. */
-    ROLL
+    ROLL,
+
+    /** Un boss : descend jusqu'à sa ligne puis se balance de gauche à droite, sans jamais partir. */
+    BOSS
 }
 
 /** Comment un ennemi tire. */
@@ -126,8 +175,10 @@ internal enum class Fire {
 /**
  * Les ennemis du jeu. Chacun a son sprite (voir [ShmupScreen]), sa taille, sa résistance, son mouvement et son tir.
  * [h] est la hauteur dessinée en unités du terrain et [ratio] le rapport largeur / hauteur du sprite. [speed], [amp],
- * [lane] et [holdMs] règlent le mouvement, [fireEveryMs] et [bulletSpeed] le tir. Un type n'arrive qu'à partir du niveau
- * [minLevel] ; [weight] est sa chance relative d'être tiré et [group] le nombre d'ennemis qui arrivent ensemble.
+ * [lane] et [holdMs] règlent le mouvement, [fireEveryMs] et [bulletSpeed] le tir. Un type n'arrive qu'à partir du plateau
+ * [stage] (0 pour le premier) et du palier [tier] de ce plateau ; [weight] est sa chance relative d'être tiré et [group] le
+ * nombre d'ennemis qui arrivent ensemble. Un [boss] arrive seul à la fin du plateau [stage] et passe à son second tir
+ * ([fire2], toutes les [fire2EveryMs]) quand il lui reste moins de la moitié de sa vie.
  */
 internal enum class EnemyType(
     val h: Float,
@@ -142,58 +193,64 @@ internal enum class EnemyType(
     val holdMs: Long = 0L,
     val fireEveryMs: Long = 0L,
     val bulletSpeed: Float = 5f,
-    val minLevel: Int = 1,
+    val stage: Int = 0,
+    val tier: Int = 1,
     val weight: Int = 1,
-    val group: Int = 1
+    val group: Int = 1,
+    val fire2: Fire = Fire.NONE,
+    val fire2EveryMs: Long = 0L,
+    val boss: Boolean = false
 ) {
     /** Essaim en V de 4, ondule sans tirer. */
-    WASP(h = 1.5f, ratio = 0.561f, hp = 1, points = 50, move = Move.SINE, fire = Fire.NONE, speed = 3.0f, amp = 1.4f, minLevel = 1, weight = 4, group = 4),
+    WASP(h = 1.5f, ratio = 0.561f, hp = 1, points = 50, move = Move.SINE, fire = Fire.NONE, speed = 3.0f, amp = 1.4f, weight = 4, group = 4),
     /** Descend droit en tirant deux salves parallèles. */
-    K24(h = 1.4f, ratio = 1.025f, hp = 2, points = 80, move = Move.STRAIGHT, fire = Fire.TWIN, speed = 2.0f, fireEveryMs = 1500L, bulletSpeed = 5.0f, minLevel = 1, weight = 3),
+    K24(h = 1.4f, ratio = 1.025f, hp = 2, points = 80, move = Move.STRAIGHT, fire = Fire.TWIN, speed = 2.0f, fireEveryMs = 1500L, bulletSpeed = 5.0f, weight = 3),
     /** Zigzag sec, tir visé. */
-    D14(h = 1.8f, ratio = 0.703f, hp = 2, points = 100, move = Move.ZIGZAG, fire = Fire.AIMED, speed = 2.4f, amp = 1.6f, fireEveryMs = 1800L, bulletSpeed = 5.5f, minLevel = 2, weight = 3),
-    /** Char au sol : roule de gauche à droite, canon vers le bas. */
-    TANK(h = 2.6f, ratio = 0.301f, hp = 4, points = 120, move = Move.ROLL, fire = Fire.STREAM, amp = 1.8f, fireEveryMs = 1300L, bulletSpeed = 5.5f, minLevel = 2, weight = 2),
+    D14(h = 1.8f, ratio = 0.703f, hp = 2, points = 100, move = Move.ZIGZAG, fire = Fire.AIMED, speed = 2.4f, amp = 1.6f, fireEveryMs = 1800L, bulletSpeed = 5.5f, weight = 3),
     /** Par deux : ralentit, vise votre position puis fonce dessus. */
-    L9G(h = 1.6f, ratio = 0.482f, hp = 2, points = 100, move = Move.DIVE, fire = Fire.NONE, speed = 2.2f, minLevel = 2, weight = 3, group = 2),
-    /** Tourelle au sol, tir visé rapide. */
-    FALL_TURRET(h = 1.5f, ratio = 0.841f, hp = 3, points = 110, move = Move.GROUND, fire = Fire.AIMED, fireEveryMs = 1700L, bulletSpeed = 6.0f, minLevel = 3, weight = 2),
+    L9G(h = 1.6f, ratio = 0.482f, hp = 2, points = 100, move = Move.DIVE, fire = Fire.NONE, speed = 2.2f, tier = 2, weight = 3, group = 2),
     /** Entre par le côté en diagonale, tir visé. */
-    D2(h = 1.9f, ratio = 0.641f, hp = 3, points = 130, move = Move.DIAGONAL, fire = Fire.AIMED, speed = 2.6f, fireEveryMs = 1600L, bulletSpeed = 5.5f, minLevel = 3, weight = 3),
-    /** Descend puis traverse l’écran en arrosant vers le bas. */
-    K23(h = 1.9f, ratio = 0.707f, hp = 4, points = 150, move = Move.STRAFE, fire = Fire.STREAM, speed = 3.0f, lane = 2.6f, fireEveryMs = 600L, bulletSpeed = 5.5f, minLevel = 3, weight = 2),
-    /** Plonge en arc puis remonte, tir en éventail de 3. */
-    D18(h = 1.9f, ratio = 0.743f, hp = 4, points = 160, move = Move.SWOOP, fire = Fire.TRIPLE, amp = 8.5f, fireEveryMs = 1400L, bulletSpeed = 5.0f, minLevel = 4, weight = 2),
-    /** Tourne en spirale en descendant, tir visé très rapide. */
-    K27(h = 1.9f, ratio = 0.629f, hp = 5, points = 180, move = Move.CIRCLE, fire = Fire.AIMED, speed = 2.4f, amp = 1.5f, fireEveryMs = 1300L, bulletSpeed = 7.0f, minLevel = 4, weight = 2),
-    /** Tourelle au sol, tir en éventail de 3. */
-    SHERMAN_TURRET(h = 2.3f, ratio = 0.505f, hp = 6, points = 200, move = Move.GROUND, fire = Fire.TRIPLE, fireEveryMs = 1900L, bulletSpeed = 5.0f, minLevel = 4, weight = 2),
-    /** S’installe en haut 6 s et mitraille en éventail de 3. */
-    D9(h = 2.3f, ratio = 0.693f, hp = 8, points = 250, move = Move.HOVER, fire = Fire.TRIPLE, speed = 2.4f, amp = 0.8f, lane = 2.6f, holdMs = 6000L, fireEveryMs = 1100L, bulletSpeed = 5.0f, minLevel = 5, weight = 2),
-    /** Grande vague lente, anneau de 8 tirs. */
-    D20(h = 2.5f, ratio = 0.668f, hp = 7, points = 250, move = Move.SINE, fire = Fire.RADIAL8, speed = 1.5f, amp = 2.2f, fireEveryMs = 2200L, bulletSpeed = 4.0f, minLevel = 5, weight = 2),
-    /** Grosse tourelle au sol, salve de missiles en éventail de 5. */
-    REDFOR_TURRET(h = 2.2f, ratio = 0.892f, hp = 10, points = 300, move = Move.GROUND, fire = Fire.SPREAD5, fireEveryMs = 2100L, bulletSpeed = 5.0f, minLevel = 6, weight = 2),
-    /** Zigzag lent, tir en spirale continue. */
-    D4(h = 2.5f, ratio = 0.623f, hp = 8, points = 300, move = Move.ZIGZAG, fire = Fire.SPIRAL, speed = 1.6f, amp = 2.0f, fireEveryMs = 220L, bulletSpeed = 4.5f, minLevel = 6, weight = 2),
-    /** Grand arc de plongée, éventail de 5. */
-    D16(h = 2.5f, ratio = 0.527f, hp = 9, points = 350, move = Move.SWOOP, fire = Fire.SPREAD5, amp = 9.5f, fireEveryMs = 1500L, bulletSpeed = 5.0f, minLevel = 7, weight = 1),
-    /** Très lente et très résistante, mitrailleuse vers le bas. */
-    CORVETTE(h = 4.2f, ratio = 0.272f, hp = 20, points = 600, move = Move.STRAIGHT, fire = Fire.STREAM, speed = 1.0f, fireEveryMs = 350L, bulletSpeed = 6.0f, minLevel = 7, weight = 1),
-    /** Mini-boss : reste 9 s en haut, anneaux de 12 tirs. */
-    CONSTELLATION(h = 3.6f, ratio = 0.565f, hp = 28, points = 1000, move = Move.HOVER, fire = Fire.RADIAL12, speed = 1.6f, amp = 0.6f, lane = 3.4f, holdMs = 9000L, fireEveryMs = 1400L, bulletSpeed = 3.8f, minLevel = 8, weight = 1),
-    /** Nacelle ronde : s’installe au milieu du terrain 5 s et lâche un anneau de 8 tirs. */
-    SPACE_TANK(h = 1.8f, ratio = 1f, hp = 9, points = 280, move = Move.HOVER, fire = Fire.RADIAL8, speed = 1.8f, amp = 0.5f, lane = 4.2f, holdMs = 5000L, fireEveryMs = 1900L, bulletSpeed = 3.8f, minLevel = 6, weight = 2),
+    D2(h = 1.9f, ratio = 0.641f, hp = 3, points = 130, move = Move.DIAGONAL, fire = Fire.AIMED, speed = 2.6f, fireEveryMs = 1600L, bulletSpeed = 5.5f, tier = 2, weight = 3),
     /** Chasseur en piqué : repère votre position, fonce dessus en mitraillant tout droit. */
-    STARSHIP(h = 1.7f, ratio = 0.9f, hp = 3, points = 140, move = Move.DIVE, fire = Fire.STREAM, speed = 2.6f, fireEveryMs = 450L, bulletSpeed = 6.5f, minLevel = 3, weight = 2),
-    /** Char au sol qui roule de gauche à droite, tir en éventail de 3. */
-    TANK_PROFILE(h = 2.4f, ratio = 0.479f, hp = 7, points = 220, move = Move.ROLL, fire = Fire.TRIPLE, amp = 2.4f, fireEveryMs = 1800L, bulletSpeed = 5f, minLevel = 5, weight = 2),
-    /** Gros char au sol qui patrouille largement, tir visé rapide. */
-    TANK_TOP(h = 2.6f, ratio = 0.703f, hp = 9, points = 260, move = Move.ROLL, fire = Fire.AIMED, amp = 2.8f, fireEveryMs = 1500L, bulletSpeed = 6.5f, minLevel = 4, weight = 2),
-    /** Navette qui entre en diagonale, tir en éventail de 5. */
-    SHUTTLE(h = 2.4f, ratio = 0.848f, hp = 7, points = 240, move = Move.DIAGONAL, fire = Fire.SPREAD5, speed = 2.2f, fireEveryMs = 1700L, bulletSpeed = 5f, minLevel = 6, weight = 2),
-    /** Tourelle lourde au sol, 14 points de vie, spirale de tirs continue. */
-    TURRET_HEAVY(h = 2.6f, ratio = 0.93f, hp = 14, points = 450, move = Move.GROUND, fire = Fire.SPIRAL, fireEveryMs = 240L, bulletSpeed = 4.5f, minLevel = 7, weight = 1);
+    STARSHIP(h = 1.7f, ratio = 0.9f, hp = 3, points = 140, move = Move.DIVE, fire = Fire.STREAM, speed = 2.6f, fireEveryMs = 450L, bulletSpeed = 6.5f, tier = 2, weight = 2),
+    /** Descend puis traverse l’écran en arrosant vers le bas. */
+    K23(h = 1.9f, ratio = 0.707f, hp = 4, points = 150, move = Move.STRAFE, fire = Fire.STREAM, speed = 3.0f, lane = 2.6f, fireEveryMs = 600L, bulletSpeed = 5.5f, tier = 3, weight = 2),
+    /** Plonge en arc puis remonte, tir en éventail de 3. */
+    D18(h = 1.9f, ratio = 0.743f, hp = 4, points = 160, move = Move.SWOOP, fire = Fire.TRIPLE, amp = 8.5f, fireEveryMs = 1400L, bulletSpeed = 5.0f, tier = 3, weight = 2),
+    /** Tourne en spirale en descendant, tir visé très rapide. */
+    K27(h = 1.9f, ratio = 0.629f, hp = 5, points = 180, move = Move.CIRCLE, fire = Fire.AIMED, speed = 2.4f, amp = 1.5f, fireEveryMs = 1300L, bulletSpeed = 7.0f, tier = 3, weight = 2),
+    /** S’installe en haut 6 s et mitraille en éventail de 3. */
+    D9(h = 2.3f, ratio = 0.693f, hp = 8, points = 250, move = Move.HOVER, fire = Fire.TRIPLE, speed = 2.4f, amp = 0.8f, lane = 2.6f, holdMs = 6000L, fireEveryMs = 1100L, bulletSpeed = 5.0f, stage = 1, weight = 2),
+    /** Grande vague lente, anneau de 8 tirs. */
+    D20(h = 2.5f, ratio = 0.668f, hp = 7, points = 250, move = Move.SINE, fire = Fire.RADIAL8, speed = 1.5f, amp = 2.2f, fireEveryMs = 2200L, bulletSpeed = 4.0f, stage = 1, weight = 2),
+    /** Char au sol : roule de gauche à droite, canon vers le bas. */
+    TANK(h = 2.0f, ratio = 0.301f, hp = 4, points = 120, move = Move.ROLL, fire = Fire.STREAM, amp = 1.8f, fireEveryMs = 1300L, bulletSpeed = 5.5f, stage = 1, weight = 2),
+    /** Char au sol qui patrouille largement, tir visé rapide. */
+    TANK_TOP(h = 1.9f, ratio = 0.707f, hp = 9, points = 260, move = Move.ROLL, fire = Fire.AIMED, amp = 2.8f, fireEveryMs = 1500L, bulletSpeed = 6.5f, stage = 1, tier = 2, weight = 2),
+    /** Zigzag lent, tir en spirale continue. */
+    D4(h = 2.5f, ratio = 0.623f, hp = 8, points = 300, move = Move.ZIGZAG, fire = Fire.SPIRAL, speed = 1.6f, amp = 2.0f, fireEveryMs = 220L, bulletSpeed = 4.5f, stage = 1, tier = 3, weight = 2),
+    /** Grand arc de plongée, éventail de 5. */
+    D16(h = 2.5f, ratio = 0.527f, hp = 9, points = 350, move = Move.SWOOP, fire = Fire.SPREAD5, amp = 9.5f, fireEveryMs = 1500L, bulletSpeed = 5.0f, stage = 2, weight = 1),
+    /** Tourelle au sol, tir visé rapide. */
+    FALL_TURRET(h = 1.5f, ratio = 0.841f, hp = 3, points = 110, move = Move.GROUND, fire = Fire.AIMED, fireEveryMs = 1700L, bulletSpeed = 6.0f, stage = 2, weight = 2),
+    /** Tourelle au sol, tir en éventail de 3. */
+    SHERMAN_TURRET(h = 2.3f, ratio = 0.505f, hp = 6, points = 200, move = Move.GROUND, fire = Fire.TRIPLE, fireEveryMs = 1900L, bulletSpeed = 5.0f, stage = 2, tier = 2, weight = 2),
+    /** Très lente et très résistante, mitrailleuse vers le bas. */
+    CORVETTE(h = 4.2f, ratio = 0.272f, hp = 20, points = 600, move = Move.STRAIGHT, fire = Fire.STREAM, speed = 1.0f, fireEveryMs = 350L, bulletSpeed = 6.0f, stage = 2, tier = 3, weight = 1),
+    /** Reste 9 s en haut, anneaux de 12 tirs. */
+    CONSTELLATION(h = 3.6f, ratio = 0.565f, hp = 28, points = 1000, move = Move.HOVER, fire = Fire.RADIAL12, speed = 1.6f, amp = 0.6f, lane = 3.4f, holdMs = 9000L, fireEveryMs = 1400L, bulletSpeed = 3.8f, stage = 3, weight = 1),
+    /** Tourelle lourde au sol, spirale de tirs continue. */
+    TURRET_HEAVY(h = 2.6f, ratio = 0.93f, hp = 14, points = 450, move = Move.GROUND, fire = Fire.SPIRAL, fireEveryMs = 240L, bulletSpeed = 4.5f, stage = 3, weight = 1),
+    /** Lance-missiles au sol, salve en éventail de 5. */
+    REDFOR_TURRET(h = 1.5f, ratio = 0.894f, hp = 10, points = 300, move = Move.GROUND, fire = Fire.SPREAD5, fireEveryMs = 2100L, bulletSpeed = 5.0f, stage = 3, tier = 2, weight = 2),
+    /** Boss : la soucoupe : anneaux de 12 tirs, puis spirale quand elle est à moitié détruite. */
+    BOSS_SAUCER(h = 3.6f, ratio = 1.0f, hp = 300, points = 5000, move = Move.BOSS, fire = Fire.RADIAL12, speed = 2f, amp = 2.4f, lane = 3.6f, fireEveryMs = 1500L, bulletSpeed = 3.8f, fire2 = Fire.SPIRAL, fire2EveryMs = 200L, boss = true),
+    /** Boss : le gros char : tir en éventail de 3, puis de 5 quand il est à moitié détruit. */
+    BOSS_TANK(h = 4.0f, ratio = 0.705f, hp = 400, points = 6000, move = Move.BOSS, fire = Fire.TRIPLE, speed = 2f, amp = 2.6f, lane = 3.8f, fireEveryMs = 1100L, bulletSpeed = 5.5f, fire2 = Fire.SPREAD5, fire2EveryMs = 800L, boss = true, stage = 1),
+    /** Boss : la navette : éventail de 5, puis anneaux de 12 quand elle est à moitié détruite. */
+    BOSS_SHUTTLE(h = 4.4f, ratio = 0.85f, hp = 500, points = 8000, move = Move.BOSS, fire = Fire.SPREAD5, speed = 2f, amp = 2.2f, lane = 3.8f, fireEveryMs = 1300L, bulletSpeed = 5.0f, fire2 = Fire.RADIAL12, fire2EveryMs = 900L, boss = true, stage = 2),
+    /** Boss : le gros lance-missiles : salves en éventail de 5, puis anneaux de 12 quand il est à moitié détruit. */
+    BOSS_LAUNCHER(h = 3.8f, ratio = 0.892f, hp = 650, points = 10000, move = Move.BOSS, fire = Fire.SPREAD5, speed = 2f, amp = 1.8f, lane = 3.6f, fireEveryMs = 900L, bulletSpeed = 4.8f, fire2 = Fire.RADIAL12, fire2EveryMs = 600L, boss = true, stage = 3);
 
     /** Largeur dessinée, en unités du terrain. */
     val w: Float get() = h * ratio
@@ -204,21 +261,31 @@ internal enum class EnemyType(
 
     /** Posé sur le sol : ne blesse pas le joueur au contact et se dessine sur une plateforme. */
     val ground: Boolean get() = move == Move.GROUND || move == Move.ROLL
+
+    /** Vrai si ce type peut arriver au palier [sublevel] du plateau [stageIndex] (un type déjà débloqué reste là). */
+    fun availableAt(stageIndex: Int, sublevel: Int): Boolean =
+        stageIndex > stage || (stageIndex == stage && sublevel >= tier)
 }
 
 /**
- * Une partie de Shoot'em up : le vaisseau tire tout seul, des ennemis de [EnemyType] différents arrivent avec leurs
- * mouvements et leurs tirs. Trois vies ; la partie est finie ([isOver]) quand la dernière est perdue. Le moteur n'utilise
- * pas Compose : l'écran appelle [tick] à chaque image et lit les listes pour dessiner.
+ * Une partie de Shoot'em up : le vaisseau tire tout seul avec une arme à [Shmup.MAX_WEAPON] niveaux (qu'on change avec les
+ * bonus et malus qui tombent), des ennemis de [EnemyType] différents arrivent avec leurs mouvements et leurs tirs, et chaque
+ * plateau se termine par un boss. Trois vies ; la partie est finie ([isOver]) quand la dernière est perdue. Le moteur
+ * n'utilise pas Compose : l'écran appelle [tick] à chaque image et lit les listes pour dessiner.
  */
 internal class ShmupGame(private val random: Random = Random.Default) {
 
-    class Bullet(var x: Float, var y: Float, val vx: Float, val vy: Float)
+    /** Un tir. [dmg] : les points de vie qu'il retire ; [lvl] : le niveau d'arme qui l'a tiré (0 pour un tir ennemi). */
+    class Bullet(var x: Float, var y: Float, val vx: Float, val vy: Float, val dmg: Int = 1, val lvl: Int = 0)
+
+    /** Une pastille qui tombe : un bonus (l'arme gagne un niveau) ou un malus (elle en perd un). */
+    class Pickup(var x: Float, var y: Float, val bonus: Boolean)
 
     /**
      * Un ennemi. Sa position ne dépend que de son point d'arrivée ([spawnX], [spawnY]), de son sens [dir] (1 ou -1), de sa
-     * [phase] et de son âge [ageMs] : elle se recalcule avec [place], sans rien intégrer image par image. [aux] sert au
-     * type DIVE pour retenir où était le joueur (négatif tant qu'il ne l'a pas repéré) ; [shots] compte ses salves.
+     * [phase] et de son âge [ageMs] : elle se recalcule avec [place], sans rien intégrer image par image. [maxHp] est sa vie
+     * au départ ; [aux] sert au type DIVE pour retenir où était le joueur (négatif tant qu'il ne l'a pas repéré) ; [shots]
+     * compte ses salves.
      */
     class Enemy(
         val type: EnemyType,
@@ -227,6 +294,7 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         val dir: Float,
         val phase: Float,
         var hp: Int,
+        val maxHp: Int = hp,
         var ageMs: Long = 0L,
         var shootInMs: Long = 0L,
         var aux: Float = -1f,
@@ -313,12 +381,17 @@ internal class ShmupGame(private val random: Random = Random.Default) {
                     x = spawnX + sin(t * 0.7f + phase) * type.amp
                     y = spawnY + Shmup.SCROLL_SPEED * t
                 }
+                Move.BOSS -> {
+                    val down = (lane - spawnY) / v
+                    y = if (t < down) spawnY + v * t else lane + sin((t - down) * 0.8f) * 0.25f
+                    x = spawnX + (if (t < down) 0f else sin((t - down) * 0.55f + phase) * type.amp)
+                }
             }
         }
 
-        /** Vrai quand l'ennemi est sorti du terrain pour de bon (en bas, sur un côté ou remonté par le haut). */
-        fun isGone(): Boolean =
-            y > Shmup.HEIGHT + type.h || x < -3f || x > Shmup.WIDTH + 3f || (y < -type.h - 2f && ageMs > 1500L)
+        /** Vrai quand l'ennemi est sorti du terrain pour de bon (en bas, sur un côté ou remonté par le haut). Un boss reste. */
+        fun isGone(): Boolean = !type.boss &&
+            (y > Shmup.HEIGHT + type.h || x < -3f || x > Shmup.WIDTH + 3f || (y < -type.h - 2f && ageMs > 1500L))
 
         companion object {
             /** Moment (en ms) où un DIVE repère le joueur. */
@@ -347,22 +420,63 @@ internal class ShmupGame(private val random: Random = Random.Default) {
     var invulnMs = 0L
         private set
 
-    /** Distance de défilement du fond depuis le début, en unités (ne revient jamais à zéro). */
+    /** Niveau de l'arme, de 1 à [Shmup.MAX_WEAPON]. */
+    var weapon = 1
+        private set
+
+    /** Plateau en cours (0 à 3) et nombre de tours déjà finis (0 au premier tour). */
+    var stage = 0
+        private set
+    var loop = 0
+        private set
+    var phase = ShmupPhase.NORMAL
+        private set
+
+    /** Temps passé dans le plateau avant le boss, temps écoulé du saut en vitesse lumière et de l'annonce du boss. */
+    var stageMs = 0L
+        private set
+    var transitionMs = 0L
+        private set
+    var bossIntroMs = 0L
+        private set
+
+    /** Distance de défilement du fond depuis le début, en unités (ne revient jamais à zéro), et sa vitesse du moment. */
     var scroll = 0f
+        private set
+    var scrollSpeed = Shmup.SCROLL_SPEED
         private set
 
     val bullets = mutableListOf<Bullet>()
     val enemyBullets = mutableListOf<Bullet>()
     val enemies = mutableListOf<Enemy>()
+    val pickups = mutableListOf<Pickup>()
     val sparks = mutableListOf<Spark>()
 
     private var fireInMs = 0L
     private var spawnInMs = 1000L
+    private var laserInMs = 0L
+    private var clearWaitMs = 0L
+    private var stageSwitched = false
 
-    val level: Int get() = Shmup.levelAt(timeMs)
+    /** Le numéro de niveau montré au joueur : il monte d'un à chaque plateau et ne redescend pas au nouveau tour. */
+    val level: Int get() = loop * Shmup.STAGES + stage + 1
+
+    /** Le palier du plateau, de 1 à [Shmup.SUBLEVELS]. */
+    val sublevel: Int get() = min(Shmup.SUBLEVELS, 1 + (stageMs / Shmup.SUBLEVEL_MS).toInt())
+
     val isOver: Boolean get() = lives <= 0
 
-    /** Remet la partie à neuf : trois vies, plus de score, plus aucun objet sur le terrain. */
+    /** Vrai quand le laser du vaisseau est allumé (arme de niveau 4 ou plus). */
+    val laserOn: Boolean get() = weapon >= 4 && !isOver
+
+    /** Le boss en jeu, s'il y en a un. */
+    val boss: Enemy? get() = enemies.firstOrNull { it.type.boss }
+
+    /** Avancement du saut en vitesse lumière, de 0 à 1 (0 en dehors du saut). */
+    val transitionProgress: Float
+        get() = if (phase == ShmupPhase.TRANSITION) (transitionMs.toFloat() / Shmup.TRANSITION_MS).coerceIn(0f, 1f) else 0f
+
+    /** Remet la partie à neuf : trois vies, plus de score, premier plateau, arme de niveau 1, plus aucun objet sur le terrain. */
     fun reset() {
         playerX = Shmup.WIDTH / 2f
         playerY = Shmup.START_Y
@@ -370,13 +484,25 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         lives = Shmup.LIVES
         timeMs = 0L
         invulnMs = 0L
+        weapon = 1
+        stage = 0
+        loop = 0
+        phase = ShmupPhase.NORMAL
+        stageMs = 0L
+        transitionMs = 0L
+        bossIntroMs = 0L
         scroll = 0f
+        scrollSpeed = Shmup.SCROLL_SPEED
         bullets.clear()
         enemyBullets.clear()
         enemies.clear()
+        pickups.clear()
         sparks.clear()
         fireInMs = 0L
         spawnInMs = 1000L
+        laserInMs = 0L
+        clearWaitMs = 0L
+        stageSwitched = false
     }
 
     /** Place le vaisseau en (x, y), sans le laisser sortir du terrain. */
@@ -398,23 +524,59 @@ internal class ShmupGame(private val random: Random = Random.Default) {
     private fun advance(ms: Long) {
         val dt = ms / 1000f
         timeMs += ms
-        scroll += Shmup.SCROLL_SPEED * dt
         invulnMs = max(0L, invulnMs - ms)
 
-        // Tir automatique : deux tirs côte à côte.
+        // Défilement : il s'arrête pendant le combat contre le boss et s'emballe pendant le saut en vitesse lumière.
+        val targetSpeed = when (phase) {
+            ShmupPhase.BOSS -> 0f
+            ShmupPhase.TRANSITION -> Shmup.TRANSITION_SCROLL
+            else -> Shmup.SCROLL_SPEED
+        }
+        val change = 6f * dt
+        scrollSpeed += (targetSpeed - scrollSpeed).coerceIn(-change, change)
+        scroll += scrollSpeed * dt
+
+        // Tir automatique : les missiles de l'arme, plus le laser aux niveaux 4 et 5.
         fireInMs -= ms
         if (fireInMs <= 0L) {
             fireInMs += Shmup.FIRE_EVERY_MS
-            val muzzleY = playerY - Shmup.SHIP_H / 2f
-            bullets += Bullet(playerX - 0.3f, muzzleY, 0f, -Shmup.BULLET_SPEED)
-            bullets += Bullet(playerX + 0.3f, muzzleY, 0f, -Shmup.BULLET_SPEED)
+            fireMissiles()
+        }
+        if (laserOn) {
+            laserInMs -= ms
+            if (laserInMs <= 0L) {
+                laserInMs += Shmup.LASER_EVERY_MS
+                laserHit()
+            }
         }
 
-        // Arrivée des ennemis.
-        spawnInMs -= ms
-        if (spawnInMs <= 0L) {
-            spawnInMs += Shmup.spawnEveryMs(level)
-            spawnWave()
+        // Le déroulement du plateau.
+        when (phase) {
+            ShmupPhase.NORMAL -> {
+                stageMs += ms
+                spawnInMs -= ms
+                if (spawnInMs <= 0L) {
+                    spawnInMs += Shmup.spawnEveryMs(stage, sublevel, loop)
+                    spawnWave()
+                }
+                if (stageMs >= Shmup.STAGE_MS) {
+                    phase = ShmupPhase.CLEARING
+                    clearWaitMs = 0L
+                }
+            }
+            ShmupPhase.CLEARING -> {
+                clearWaitMs += ms
+                if (enemies.isEmpty() || clearWaitMs >= Shmup.CLEAR_WAIT_MS) spawnBoss()
+            }
+            ShmupPhase.BOSS -> bossIntroMs = max(0L, bossIntroMs - ms)
+            ShmupPhase.TRANSITION -> {
+                transitionMs += ms
+                if (!stageSwitched && transitionMs >= Shmup.TRANSITION_MS / 2) switchStage()
+                if (transitionMs >= Shmup.TRANSITION_MS) {
+                    phase = ShmupPhase.NORMAL
+                    spawnInMs = 1200L
+                }
+            }
         }
 
         // Mouvements.
@@ -433,10 +595,13 @@ internal class ShmupGame(private val random: Random = Random.Default) {
             if (e.type.fire != Fire.NONE) {
                 e.shootInMs -= ms
                 if (e.shootInMs <= 0L) {
-                    val jitter = if (e.type.fireEveryMs >= 800L) random.nextInt(300) else 0
-                    e.shootInMs = e.type.fireEveryMs + jitter
+                    val second = e.type.fire2 != Fire.NONE && e.hp * 2 < e.maxHp
+                    val pattern = if (second) e.type.fire2 else e.type.fire
+                    val every = if (second) e.type.fire2EveryMs else e.type.fireEveryMs
+                    val jitter = if (every >= 800L) random.nextInt(300) else 0
+                    e.shootInMs = (every * max(0.6f, 1f - 0.08f * loop)).toLong() + jitter
                     // Il ne tire que s'il est à l'écran et pas trop près du bas.
-                    if (e.y > 0.4f && e.y < Shmup.HEIGHT * 0.78f) fireFrom(e)
+                    if (e.y > 0.4f && e.y < Shmup.HEIGHT * 0.78f) fireFrom(e, pattern)
                 }
             }
         }
@@ -446,22 +611,31 @@ internal class ShmupGame(private val random: Random = Random.Default) {
             s.lifeMs -= ms
         }
 
-        // Les tirs du joueur touchent les ennemis.
+        // Les pastilles tombent et le vaisseau les ramasse.
+        val falling = pickups.iterator()
+        while (falling.hasNext()) {
+            val p = falling.next()
+            p.y += Shmup.PICKUP_SPEED * dt
+            if (abs(p.x - playerX) < Shmup.PICKUP_HALF + Shmup.SHIP_W / 2f &&
+                abs(p.y - playerY) < Shmup.PICKUP_HALF + Shmup.SHIP_H / 2f
+            ) {
+                collect(p)
+                falling.remove()
+            } else if (p.y > Shmup.HEIGHT + 1f) {
+                falling.remove()
+            }
+        }
+
+        // Les missiles du joueur touchent les ennemis.
         val shots = bullets.iterator()
         while (shots.hasNext()) {
             val b = shots.next()
             val target = enemies.firstOrNull {
                 it.hp > 0 &&
-                    abs(b.x - it.x) < Shmup.BULLET_HALF_W + it.type.hitW &&
-                    abs(b.y - it.y) < Shmup.BULLET_HALF_H + it.type.hitH
+                    abs(b.x - it.x) < Shmup.MISSILE_HALF_W + it.type.hitW &&
+                    abs(b.y - it.y) < Shmup.MISSILE_HALF_H + it.type.hitH
             } ?: continue
-            target.hp--
-            if (target.hp <= 0) {
-                score += target.type.points * level
-                burst(target.x, target.y, 10 + (target.type.h * 6f).toInt())
-            } else {
-                burst(b.x, b.y, 3)
-            }
+            hit(target, b.dmg, b.x, b.y)
             shots.remove()
         }
 
@@ -473,9 +647,8 @@ internal class ShmupGame(private val random: Random = Random.Default) {
                     abs(it.y - playerY) < it.type.hitH + Shmup.SHIP_HIT
             }
             if (rammer != null) {
-                // Un petit ennemi se détruit en percutant ; un gros encaisse trois tirs d'un coup et continue.
-                rammer.hp -= 3
-                if (rammer.hp <= 0) burst(rammer.x, rammer.y, 14)
+                // Un petit ennemi se détruit en percutant ; un gros encaisse un peu plus et continue.
+                hit(rammer, 3, rammer.x, rammer.y)
                 hurt()
             }
         }
@@ -491,17 +664,85 @@ internal class ShmupGame(private val random: Random = Random.Default) {
             }
         }
 
+        // Le boss est détruit : on saute vers le plateau suivant.
+        if (phase == ShmupPhase.BOSS && enemies.none { it.type.boss && it.hp > 0 }) startTransition()
+
         // Nettoyage de ce qui est mort ou sorti du terrain.
         enemies.removeAll { it.hp <= 0 || it.isGone() }
-        bullets.removeAll { it.y < -1f }
+        bullets.removeAll { it.y < -1f || it.y > Shmup.HEIGHT + 1f || it.x < -1f || it.x > Shmup.WIDTH + 1f }
         enemyBullets.removeAll { it.y < -1f || it.y > Shmup.HEIGHT + 1f || it.x < -1f || it.x > Shmup.WIDTH + 1f }
         sparks.removeAll { it.lifeMs <= 0L }
     }
 
-    /** Fait arriver un type d'ennemi tiré parmi ceux du niveau (avec son escorte s'il vient en groupe). */
+    /** Les missiles de l'arme actuelle : 1, 2 ou 3 selon le niveau (le laser des niveaux 4 et 5 s'y ajoute). */
+    private fun fireMissiles() {
+        val y = playerY - Shmup.SHIP_H / 2f
+        val speed = Shmup.MISSILE_SPEED
+        fun missile(x: Float, angle: Float) {
+            bullets += Bullet(x, y, sin(angle) * speed, -cos(angle) * speed, Shmup.MISSILE_DAMAGE, weapon)
+        }
+        when (weapon) {
+            1 -> missile(playerX, 0f)
+            2, 4 -> {
+                missile(playerX - 0.3f, 0f)
+                missile(playerX + 0.3f, 0f)
+            }
+            else -> {
+                missile(playerX, 0f)
+                missile(playerX - 0.35f, -Shmup.SPREAD_ANGLE)
+                missile(playerX + 0.35f, Shmup.SPREAD_ANGLE)
+            }
+        }
+    }
+
+    /** Un coup de laser : tous les ennemis dans la colonne au-dessus du vaisseau perdent des points de vie. */
+    private fun laserHit() {
+        val half = if (weapon >= Shmup.MAX_WEAPON) Shmup.LASER_WIDE_HALF_W else Shmup.LASER_HALF_W
+        val damage = if (weapon >= Shmup.MAX_WEAPON) 2 else 1
+        val nose = playerY - Shmup.SHIP_H / 2f
+        for (e in enemies) {
+            if (e.hp > 0 && e.y - e.type.hitH < nose && e.y + e.type.hitH > 0f &&
+                abs(e.x - playerX) < half + e.type.hitW
+            ) {
+                hit(e, damage, e.x, e.y + e.type.hitH)
+            }
+        }
+    }
+
+    /** Retire [dmg] points de vie à [e] ; s'il est détruit, il rapporte ses points et peut laisser tomber une pastille. */
+    private fun hit(e: Enemy, dmg: Int, sparkX: Float, sparkY: Float) {
+        e.hp -= dmg
+        if (e.hp > 0) {
+            burst(sparkX, sparkY, 2)
+            return
+        }
+        score += e.type.points * level
+        burst(e.x, e.y, 10 + (e.type.h * 6f).toInt())
+        if (e.type.boss) {
+            pickups += Pickup(e.x - 0.8f, e.y, true)
+            pickups += Pickup(e.x + 0.8f, e.y, true)
+            return
+        }
+        val chance = if (e.type.hp >= 9) 0.25f else 0.10f
+        if (random.nextFloat() < chance) {
+            val bonus = weapon <= 1 || random.nextFloat() < 0.7f
+            pickups += Pickup(e.x.coerceIn(0.5f, Shmup.WIDTH - 0.5f), e.y, bonus)
+        }
+    }
+
+    /** Le vaisseau ramasse une pastille : un bonus monte l'arme d'un niveau (ou rapporte des points au maximum), un malus la baisse. */
+    private fun collect(p: Pickup) {
+        if (p.bonus) {
+            if (weapon < Shmup.MAX_WEAPON) weapon++ else score += 200
+        } else {
+            weapon = max(1, weapon - 1)
+        }
+        burst(p.x, p.y, 6)
+    }
+
+    /** Fait arriver un type d'ennemi tiré parmi ceux du plateau (avec son escorte s'il vient en groupe). */
     private fun spawnWave() {
-        val lvl = level
-        val pool = Shmup.poolAt(lvl)
+        val pool = Shmup.poolAt(stage, sublevel)
         var pick = random.nextInt(pool.sumOf { it.weight })
         val type = pool.first {
             pick -= it.weight
@@ -518,24 +759,52 @@ internal class ShmupGame(private val random: Random = Random.Default) {
             fromSide -> if (dir > 0f) 0.8f else Shmup.WIDTH - 0.8f
             else -> margin + random.nextFloat() * (Shmup.WIDTH - 2f * margin)
         }
-        val phase = random.nextFloat() * TWO_PI
-        val hp = type.hp + max(0, lvl - type.minLevel) / 3
+        val wobble = random.nextFloat() * TWO_PI
+        // Un type plus ancien que le plateau et chaque tour de plus rendent l'ennemi plus résistant.
+        val hp = type.hp + max(0, stage - type.stage) / 2 + loop * (1 + type.hp / 4)
         val n = type.group
         for (i in 0 until n) {
             val off = i - (n - 1) / 2f
             val x = if (n == 1) baseX else (baseX + off * (type.w + 0.5f)).coerceIn(0.8f, Shmup.WIDTH - 0.8f)
             val y = -type.h / 2f - abs(off) * 0.9f
             val delay = type.fireEveryMs / 2 + random.nextInt(600)
-            enemies += Enemy(type, x, y, dir, phase, hp, shootInMs = delay)
+            enemies += Enemy(type, x, y, dir, wobble, hp, shootInMs = delay)
         }
     }
 
-    private fun fireFrom(e: Enemy) {
+    /** Fait arriver le boss du plateau, plus résistant à chaque tour. */
+    private fun spawnBoss() {
+        val type = Shmup.bossOf(stage)
+        val hp = (type.hp * (1f + 0.6f * loop)).toInt()
+        enemies += Enemy(type, Shmup.WIDTH / 2f, -type.h / 2f, 1f, 0f, hp, shootInMs = Shmup.BOSS_INTRO_MS + 500L)
+        phase = ShmupPhase.BOSS
+        bossIntroMs = Shmup.BOSS_INTRO_MS
+    }
+
+    private fun startTransition() {
+        phase = ShmupPhase.TRANSITION
+        transitionMs = 0L
+        stageSwitched = false
+        enemyBullets.clear()
+    }
+
+    /** Au milieu du saut en vitesse lumière : le plateau suivant (ou le premier, en plus difficile, après le dernier). */
+    private fun switchStage() {
+        stage++
+        if (stage >= Shmup.STAGES) {
+            stage = 0
+            loop++
+        }
+        stageMs = 0L
+        stageSwitched = true
+    }
+
+    private fun fireFrom(e: Enemy, pattern: Fire) {
         val t = e.type
-        val speed = t.bulletSpeed
+        val speed = t.bulletSpeed * (1f + 0.12f * loop)
         val x = e.x
         val muzzleY = e.y + t.h * 0.25f
-        when (t.fire) {
+        when (pattern) {
             Fire.NONE -> Unit
             Fire.STREAM -> shoot(x, muzzleY, HALF_PI, speed)
             Fire.TWIN -> {
@@ -602,7 +871,17 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         out += lives
         out += timeMs.toInt()
         out += invulnMs.toInt()
+        out += weapon
+        out += stage
+        out += loop
+        out += phase.ordinal
+        out += stageMs.toInt()
+        out += transitionMs.toInt()
+        out += bossIntroMs.toInt()
+        out += clearWaitMs.toInt()
+        out += if (stageSwitched) 1 else 0
         out += scroll.toRawBits()
+        out += scrollSpeed.toRawBits()
         out += fireInMs.toInt()
         out += spawnInMs.toInt()
         for (list in listOf(bullets, enemyBullets)) {
@@ -612,7 +891,15 @@ internal class ShmupGame(private val random: Random = Random.Default) {
                 out += b.y.toRawBits()
                 out += b.vx.toRawBits()
                 out += b.vy.toRawBits()
+                out += b.dmg
+                out += b.lvl
             }
+        }
+        out += pickups.size
+        for (p in pickups) {
+            out += p.x.toRawBits()
+            out += p.y.toRawBits()
+            out += if (p.bonus) 1 else 0
         }
         out += enemies.size
         for (e in enemies) {
@@ -622,6 +909,7 @@ internal class ShmupGame(private val random: Random = Random.Default) {
             out += e.dir.toRawBits()
             out += e.phase.toRawBits()
             out += e.hp
+            out += e.maxHp
             out += e.ageMs.toInt()
             out += e.shootInMs.toInt()
             out += e.aux.toRawBits()
@@ -631,7 +919,7 @@ internal class ShmupGame(private val random: Random = Random.Default) {
     }
 
     companion object {
-        private const val SAVE_VERSION = 2
+        private const val SAVE_VERSION = 3
         private const val MAX_SAVED = 500
 
         /** Une partie remise dans l'état de [data] (voir [save]), ou null si la liste est abîmée. */
@@ -650,12 +938,26 @@ internal class ShmupGame(private val random: Random = Random.Default) {
             require(game.lives in 0..Shmup.LIVES)
             game.timeMs = int().toLong()
             game.invulnMs = int().toLong()
+            game.weapon = int()
+            require(game.weapon in 1..Shmup.MAX_WEAPON)
+            game.stage = int()
+            require(game.stage in 0 until Shmup.STAGES)
+            game.loop = int()
+            require(game.loop >= 0)
+            game.phase = ShmupPhase.values()[int()]
+            game.stageMs = int().toLong()
+            game.transitionMs = int().toLong()
+            game.bossIntroMs = int().toLong()
+            game.clearWaitMs = int().toLong()
+            game.stageSwitched = int() == 1
             game.scroll = float()
+            game.scrollSpeed = float()
             game.fireInMs = int().toLong()
             game.spawnInMs = int().toLong()
             for (list in listOf(game.bullets, game.enemyBullets)) {
-                repeat(count()) { list += Bullet(float(), float(), float(), float()) }
+                repeat(count()) { list += Bullet(float(), float(), float(), float(), int(), int()) }
             }
+            repeat(count()) { game.pickups += Pickup(float(), float(), int() == 1) }
             val types = EnemyType.values()
             repeat(count()) {
                 val type = types[int()]
@@ -666,6 +968,7 @@ internal class ShmupGame(private val random: Random = Random.Default) {
                     dir = float(),
                     phase = float(),
                     hp = int(),
+                    maxHp = int(),
                     ageMs = int().toLong(),
                     shootInMs = int().toLong(),
                     aux = float(),

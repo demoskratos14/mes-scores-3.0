@@ -50,7 +50,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
@@ -67,7 +70,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.random.Random
 
 // Les étapes de la séance.
@@ -84,7 +92,23 @@ private val SHMUP_STARS: List<Triple<Float, Float, Float>> = Random(77).let { ra
 }
 
 private val SHMUP_PLATFORM_COLOR = Color(0x99252B3D)
-private val SHMUP_SHOT_COLOR = Color(0xFF7FE8FF)
+
+/** Ce qu'affiche l'annonce au milieu du terrain : rien, l'arrivée du boss ou le nom du plateau. */
+private const val BANNER_NONE = 0
+private const val BANNER_WARNING = 1
+private const val BANNER_STAGE = 2
+
+private const val PI_F = 3.1415927f
+
+/** La couleur de chaque niveau d'arme (de 1 à 5) : celle des missiles, du laser et de la lueur autour du vaisseau. */
+private val SHMUP_WEAPON_COLORS = listOf(
+    Color(0xFF7FE8FF), Color(0xFFFFEB3B), Color(0xFFFF9800), Color(0xFFE040FB), Color(0xFFFFFFFF)
+)
+
+/** Les traînées du saut en vitesse lumière (angle depuis le centre, position de départ, éclat), tirées une fois pour toutes. */
+private val SHMUP_HYPER_STARS: List<Triple<Float, Float, Float>> = Random(5).let { random ->
+    List(90) { Triple(random.nextFloat() * 2f * PI_F, random.nextFloat(), random.nextFloat()) }
+}
 private val SHMUP_ENEMY_SHOT_COLOR = Color(0xFFFF9F43)
 private val SHMUP_SPARK_COLOR = Color(0xFFFFB340)
 
@@ -240,11 +264,20 @@ private fun ShmupPlayfield(
     val ship = ImageBitmap.imageResource(R.drawable.shmup_ship)
     // Un sprite par type d'ennemi, dans l'ordre de l'énumération.
     val sprites = EnemyType.values().map { ImageBitmap.imageResource(enemySprite(it)) }
+    // Les fonds des plateaux 2, 3 et 4 (le plateau 1, l'espace, est dessiné).
+    val backgrounds = listOf(
+        ImageBitmap.imageResource(R.drawable.shmup_bg_dirt),
+        ImageBitmap.imageResource(R.drawable.shmup_bg_airbase),
+        ImageBitmap.imageResource(R.drawable.shmup_bg_dunes)
+    )
     // Change à chaque image : le dessin le lit et se refait, sans recomposer tout l'écran.
     var revision by remember { mutableIntStateOf(0) }
     var score by remember { mutableIntStateOf(game.score) }
     var lives by remember { mutableIntStateOf(game.lives) }
     var level by remember { mutableIntStateOf(game.level) }
+    var weapon by remember { mutableIntStateOf(game.weapon) }
+    var banner by remember { mutableIntStateOf(BANNER_NONE) }
+    var bannerStage by remember { mutableIntStateOf(game.stage + 1) }
     val finished by rememberUpdatedState(onOver)
     val isPaused by rememberUpdatedState(paused)
 
@@ -260,6 +293,13 @@ private fun ShmupPlayfield(
             score = game.score
             lives = game.lives
             level = game.level
+            weapon = game.weapon
+            banner = when {
+                game.phase == ShmupPhase.TRANSITION && game.transitionProgress >= 0.5f -> BANNER_STAGE
+                game.phase == ShmupPhase.BOSS && game.bossIntroMs > 0L -> BANNER_WARNING
+                else -> BANNER_NONE
+            }
+            bannerStage = game.stage + 1
         }
         finished()
     }
@@ -283,7 +323,7 @@ private fun ShmupPlayfield(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = stringResource(R.string.shmup_stats, lives, level),
+                        text = stringResource(R.string.shmup_stats, lives, level, weapon),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -326,7 +366,24 @@ private fun ShmupPlayfield(
                         }
                     }
             ) {
-                Canvas(modifier = Modifier.fillMaxSize()) { drawShmupField(game, ship, sprites, revision) }
+                Canvas(modifier = Modifier.fillMaxSize()) { drawShmupField(game, ship, sprites, backgrounds, revision) }
+                if (banner != BANNER_NONE) {
+                    Text(
+                        text = if (banner == BANNER_WARNING) {
+                            stringResource(R.string.shmup_warning)
+                        } else {
+                            stringResource(R.string.shmup_stage, bannerStage)
+                        },
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 20.dp, vertical = 10.dp)
+                    )
+                }
                 if (paused) {
                     Column(
                         modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
@@ -352,23 +409,19 @@ private fun ShmupPlayfield(
 }
 
 /**
- * Le terrain, dessiné en unités du terrain mises à l'échelle : le fond d'étoiles qui défile, les ennemis, les tirs, les
- * étincelles et le vaisseau. [revision] n'est là que pour que le dessin se refasse quand elle change.
+ * Le terrain, dessiné en unités du terrain mises à l'échelle : le fond du plateau qui défile, les ennemis, les pastilles, les
+ * tirs, le laser, les étincelles, le vaisseau, puis le saut en vitesse lumière par-dessus. [revision] n'est là que pour que le
+ * dessin se refasse quand elle change.
  */
 private fun DrawScope.drawShmupField(
     game: ShmupGame,
     ship: ImageBitmap,
     sprites: List<ImageBitmap>,
+    backgrounds: List<ImageBitmap>,
     @Suppress("UNUSED_PARAMETER") revision: Int
 ) {
     val u = size.width / Shmup.WIDTH
-
-    drawRect(Brush.verticalGradient(listOf(Color(0xFF03050C), Color(0xFF0A1430), Color(0xFF13214A))))
-    // Les grosses étoiles défilent plus vite que les petites : un peu de profondeur.
-    SHMUP_STARS.forEach { (fx, fy, radius) ->
-        val y = ((fy + game.scroll / Shmup.HEIGHT * (0.5f + radius * 20f)) % 1f) * size.height
-        drawCircle(Color.White.copy(alpha = 0.35f + radius * 15f), radius * u, Offset(fx * size.width, y))
-    }
+    drawStageBackground(game, backgrounds, u)
 
     // Les ennemis : chacun a son sprite ; ceux posés au sol reposent sur une plateforme sombre qui défile avec le fond.
     for (e in game.enemies) {
@@ -390,17 +443,57 @@ private fun DrawScope.drawShmupField(
         )
     }
 
-    for (b in game.bullets) {
-        drawRoundRect(
-            color = SHMUP_SHOT_COLOR,
-            topLeft = Offset((b.x - Shmup.BULLET_HALF_W) * u, (b.y - Shmup.BULLET_HALF_H) * u),
-            size = Size(Shmup.BULLET_HALF_W * 2f * u, Shmup.BULLET_HALF_H * 2f * u),
-            cornerRadius = CornerRadius(u * 0.05f)
-        )
+    // La barre de vie du boss.
+    game.boss?.let { boss ->
+        val barW = Shmup.WIDTH * 0.7f * u
+        val left = (size.width - barW) / 2f
+        val top = 0.3f * u
+        val h = 0.28f * u
+        drawRoundRect(Color.Black.copy(alpha = 0.6f), Offset(left - 2f, top - 2f), Size(barW + 4f, h + 4f), CornerRadius(h / 2f))
+        val ratio = (boss.hp.toFloat() / boss.maxHp).coerceIn(0f, 1f)
+        if (ratio > 0f) drawRoundRect(Color(0xFFE53935), Offset(left, top), Size(barW * ratio, h), CornerRadius(h / 2f))
     }
+
+    // Les pastilles : vert avec un plus pour un bonus, rouge avec un moins pour un malus.
+    for (p in game.pickups) {
+        val c = Offset(p.x * u, p.y * u)
+        val r = Shmup.PICKUP_HALF * u
+        drawCircle(if (p.bonus) Color(0xFF43A047) else Color(0xFFD32F2F), r, c)
+        drawCircle(Color.White, r, c, style = Stroke(width = r * 0.18f))
+        val bar = r * 0.95f
+        val thick = r * 0.28f
+        drawRect(Color.White, Offset(c.x - bar / 2f, c.y - thick / 2f), Size(bar, thick))
+        if (p.bonus) drawRect(Color.White, Offset(c.x - thick / 2f, c.y - bar / 2f), Size(thick, bar))
+    }
+
     for (b in game.enemyBullets) {
         drawCircle(SHMUP_ENEMY_SHOT_COLOR, Shmup.ENEMY_BULLET_HIT * 1.2f * u, Offset(b.x * u, b.y * u))
     }
+
+    // Le laser du vaisseau (armes de niveau 4 et 5) : une colonne lumineuse jusqu'en haut du terrain.
+    val weaponColor = SHMUP_WEAPON_COLORS[(game.weapon - 1).coerceIn(0, SHMUP_WEAPON_COLORS.size - 1)]
+    if (game.laserOn) {
+        val half = if (game.weapon >= Shmup.MAX_WEAPON) Shmup.LASER_WIDE_HALF_W else Shmup.LASER_HALF_W
+        val bottom = (game.playerY - Shmup.SHIP_H / 2f) * u
+        for ((width, color) in listOf(
+            3.6f to weaponColor.copy(alpha = 0.30f),
+            2f to weaponColor.copy(alpha = 0.75f),
+            0.9f to Color.White
+        )) {
+            drawRect(color, Offset((game.playerX - half * width / 2f * 2f) * u, 0f), Size(half * width * 2f * u, bottom))
+        }
+    }
+
+    // Les missiles : une traînée colorée selon le niveau de l'arme, avec une tête claire.
+    for (b in game.bullets) {
+        val speed = hypot(b.vx, b.vy)
+        if (speed <= 0f) continue
+        val color = SHMUP_WEAPON_COLORS[(b.lvl - 1).coerceIn(0, SHMUP_WEAPON_COLORS.size - 1)]
+        val head = Offset(b.x * u, b.y * u)
+        drawLine(color.copy(alpha = 0.6f), Offset((b.x - b.vx / speed * 0.5f) * u, (b.y - b.vy / speed * 0.5f) * u), head, 0.16f * u, StrokeCap.Round)
+        drawLine(Color.White, Offset((b.x - b.vx / speed * 0.18f) * u, (b.y - b.vy / speed * 0.18f) * u), head, 0.09f * u, StrokeCap.Round)
+    }
+
     for (s in game.sparks) {
         drawCircle(
             SHMUP_SPARK_COLOR.copy(alpha = (s.lifeMs / 400f).coerceIn(0f, 1f)),
@@ -409,8 +502,9 @@ private fun DrawScope.drawShmupField(
         )
     }
 
-    // Le vaisseau clignote tant qu'il est protégé après un impact.
+    // Le vaisseau : une lueur à la couleur de l'arme dès le niveau 2, et il clignote tant qu'il est protégé après un impact.
     if (game.invulnMs <= 0L || (game.invulnMs / 100L) % 2L == 0L) {
+        if (game.weapon > 1) drawCircle(weaponColor.copy(alpha = 0.22f), 0.95f * u, Offset(game.playerX * u, game.playerY * u))
         drawImage(
             image = ship,
             dstOffset = IntOffset(
@@ -420,6 +514,71 @@ private fun DrawScope.drawShmupField(
             dstSize = IntSize((Shmup.SHIP_W * u).roundToInt(), (Shmup.SHIP_H * u).roundToInt())
         )
     }
+
+    if (game.phase == ShmupPhase.TRANSITION) drawHyperspace(game.transitionProgress)
+}
+
+/**
+ * Le fond du plateau. Le plateau 1 est l'espace (un dégradé et des étoiles qui défilent) ; les autres sont des photos qui
+ * défilent vers le bas, chaque copie étant retournée par rapport à la précédente pour qu'on ne voie pas de raccord.
+ */
+private fun DrawScope.drawStageBackground(game: ShmupGame, backgrounds: List<ImageBitmap>, u: Float) {
+    if (game.stage == 0) {
+        drawRect(Brush.verticalGradient(listOf(Color(0xFF03050C), Color(0xFF0A1430), Color(0xFF13214A))))
+        // Les grosses étoiles défilent plus vite que les petites : un peu de profondeur.
+        SHMUP_STARS.forEach { (fx, fy, radius) ->
+            val y = ((fy + game.scroll / Shmup.HEIGHT * (0.5f + radius * 20f)) % 1f) * size.height
+            drawCircle(Color.White.copy(alpha = 0.35f + radius * 15f), radius * u, Offset(fx * size.width, y))
+        }
+        return
+    }
+    val image = backgrounds[(game.stage - 1).coerceIn(0, backgrounds.size - 1)]
+    val tileH = size.width * image.height / image.width
+    val period = tileH * 2f
+    var top = (game.scroll * u) % period - period
+    var index = 0
+    val dstSize = IntSize(size.width.roundToInt(), tileH.roundToInt() + 1)
+    while (top < size.height) {
+        if (top + tileH > 0f) {
+            val dstOffset = IntOffset(0, top.roundToInt())
+            if (index % 2 == 0) {
+                drawImage(image = image, dstOffset = dstOffset, dstSize = dstSize)
+            } else {
+                withTransform({ scale(1f, -1f, Offset(size.width / 2f, top + tileH / 2f)) }) {
+                    drawImage(image = image, dstOffset = dstOffset, dstSize = dstSize)
+                }
+            }
+        }
+        top += tileH
+        index++
+    }
+    // Un voile sombre pour que les ennemis et les tirs ressortent sur la photo.
+    drawRect(Color.Black.copy(alpha = 0.28f))
+}
+
+/** Le saut en vitesse lumière : des traînées qui jaillissent du centre, de plus en plus longues, et un éclair au milieu. */
+private fun DrawScope.drawHyperspace(progress: Float) {
+    val cx = size.width / 2f
+    val cy = size.height / 2f
+    val maxDist = hypot(cx, cy)
+    val speed = sin(progress * PI_F)
+    drawRect(Color(0xFF020512).copy(alpha = (0.75f * speed).coerceIn(0f, 1f)))
+    for ((angle, start, bright) in SHMUP_HYPER_STARS) {
+        val dist = ((start + progress * 2.2f * (0.4f + start)) % 1f) * maxDist
+        val length = (maxDist * 0.02f + maxDist * 0.35f * speed) * (0.2f + dist / maxDist)
+        val dx = cos(angle)
+        val dy = sin(angle)
+        drawLine(
+            Color(0xFFBFD9FF).copy(alpha = ((0.35f + 0.65f * bright) * min(1f, speed * 2f + 0.2f)).coerceIn(0f, 1f)),
+            Offset(cx + dx * dist, cy + dy * dist),
+            Offset(cx + dx * (dist + length), cy + dy * (dist + length)),
+            1.5f + 2.5f * bright,
+            StrokeCap.Round
+        )
+    }
+    // L'éclair : c'est à ce moment que le décor change.
+    val flash = (1f - abs(progress - 0.5f) * 4f).coerceIn(0f, 1f)
+    if (flash > 0f) drawRect(Color.White.copy(alpha = flash))
 }
 
 /** Le sprite de chaque type d'ennemi (tiré du modèle 3D correspondant, vu de dessus). */
@@ -442,11 +601,12 @@ private fun enemySprite(type: EnemyType): Int = when (type) {
     EnemyType.D16 -> R.drawable.enemy_d16
     EnemyType.CORVETTE -> R.drawable.enemy_corvette
     EnemyType.CONSTELLATION -> R.drawable.enemy_constellation
-    EnemyType.SPACE_TANK -> R.drawable.enemy_space_tank
+    EnemyType.BOSS_SAUCER -> R.drawable.boss_saucer
+    EnemyType.BOSS_TANK -> R.drawable.boss_tank
+    EnemyType.BOSS_SHUTTLE -> R.drawable.boss_shuttle
+    EnemyType.BOSS_LAUNCHER -> R.drawable.boss_launcher
     EnemyType.STARSHIP -> R.drawable.enemy_starship
-    EnemyType.TANK_PROFILE -> R.drawable.enemy_tank_profile
     EnemyType.TANK_TOP -> R.drawable.enemy_tank_top
-    EnemyType.SHUTTLE -> R.drawable.enemy_shuttle
     EnemyType.TURRET_HEAVY -> R.drawable.enemy_turret_heavy
 }
 
