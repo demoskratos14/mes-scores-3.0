@@ -3,6 +3,11 @@ name: Nettoyer les anciens runs
 # Se lance tout seul à la fin de chaque build (workflow « Build APK », fichier build.yml), et à la main :
 # onglet Actions > "Nettoyer les anciens runs" > Run workflow
 # (à la main, la simulation est cochée par défaut ; en automatique, les anciens runs sont vraiment supprimés)
+#
+# En automatique, il nettoie trois choses : les anciens runs du build (on garde les 20 derniers) et ceux des deux
+# workflows de nettoyage eux-mêmes (« Nettoyer les anciens runs » et « Nettoyer les artefacts »), dont on ne garde
+# que le plus récent : sinon ils s'accumulent à l'infini. Un run ne peut pas se supprimer lui-même : le run en cours
+# reste, et c'est le suivant qui l'efface.
 on:
   workflow_run:
     workflows: ["Build APK"]
@@ -44,44 +49,61 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Lancement automatique (après chaque build) : valeurs par défaut, et vraie suppression.
-          if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
-            GARDER=20
-            WORKFLOW="build.yml"
-            SIMULATION="false"
-          fi
+          # Combien de runs on garde pour chacun des deux workflows de nettoyage (le run en cours compte pour un).
+          GARDER_NETTOYAGES=1
 
-          filtre=()
-          if [ -n "$WORKFLOW" ]; then filtre=(--workflow "$WORKFLOW"); fi
+          # Supprime les anciens runs terminés d'un workflow (« tous » si le nom est vide), en gardant les $2 plus récents.
+          # $3 = « oui » : s'arrêter en erreur si on ne trouve aucun run (sécurité pour le build) ; « non » : passer.
+          nettoyer() {
+            local workflow="$1" garder="$2" obligatoire="$3"
+            local filtre=()
+            if [ -n "$workflow" ]; then filtre=(--workflow "$workflow"); fi
 
-          # Runs du plus récent au plus ancien (1000 max par appel)
-          gh run list -R "$REPO" "${filtre[@]}" --limit 1000 \
-            --json databaseId,status > runs.json
+            echo "== Workflow : ${workflow:-tous}, on garde les $garder plus récents"
 
-          total=$(jq length runs.json)
-          if [ "$total" -eq 0 ]; then
-            echo "Aucun run trouvé : arrêt par sécurité, rien n'est supprimé."
-            exit 1
-          fi
-          echo "Runs trouvés : $total, on garde les $GARDER plus récents."
+            # Runs du plus récent au plus ancien (1000 max par appel)
+            gh run list -R "$REPO" "${filtre[@]}" --limit 1000 \
+              --json databaseId,status > runs.json
 
-          # On saute les N plus récents, on ne touche qu'aux runs terminés
-          # et jamais au run en cours de ce nettoyage.
-          jq -r --argjson n "$GARDER" --arg courant "$RUN_COURANT" \
-            '.[$n:] | .[] | select(.status == "completed") | select((.databaseId|tostring) != $courant) | .databaseId' \
-            runs.json > a_supprimer.txt
-
-          supprimes=0
-          while read -r id; do
-            if [ "$SIMULATION" = "true" ]; then
-              echo "[simulation] supprimerait le run $id"
-            else
-              gh run delete "$id" -R "$REPO" > /dev/null
-              echo "supprimé : run $id"
+            local total
+            total=$(jq length runs.json)
+            if [ "$total" -eq 0 ]; then
+              if [ "$obligatoire" = "oui" ]; then
+                echo "Aucun run trouvé : arrêt par sécurité, rien n'est supprimé."
+                exit 1
+              fi
+              echo "Aucun run trouvé : rien à faire."
+              return 0
             fi
-            supprimes=$((supprimes + 1))
-          done < a_supprimer.txt
+            echo "Runs trouvés : $total"
 
-          echo "----"
-          echo "Runs gardés : $GARDER"
-          echo "Runs supprimés (ou à supprimer en simulation) : $supprimes"
+            # On saute les N plus récents, on ne touche qu'aux runs terminés
+            # et jamais au run en cours de ce nettoyage.
+            jq -r --argjson n "$garder" --arg courant "$RUN_COURANT" \
+              '.[$n:] | .[] | select(.status == "completed") | select((.databaseId|tostring) != $courant) | .databaseId' \
+              runs.json > a_supprimer.txt
+
+            local supprimes=0 id
+            while read -r id; do
+              if [ "$SIMULATION" = "true" ]; then
+                echo "[simulation] supprimerait le run $id"
+              else
+                gh run delete "$id" -R "$REPO" > /dev/null
+                echo "supprimé : run $id"
+              fi
+              supprimes=$((supprimes + 1))
+            done < a_supprimer.txt
+
+            echo "Runs supprimés (ou à supprimer en simulation) : $supprimes"
+          }
+
+          if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
+            # Lancement automatique (après chaque build) : vraie suppression.
+            SIMULATION="false"
+            nettoyer "build.yml" 20 oui
+            nettoyer "nettoyer-runs.yml" "$GARDER_NETTOYAGES" non
+            nettoyer "nettoyer-artefacts.yml" "$GARDER_NETTOYAGES" non
+          else
+            # Lancement à la main : un seul workflow (ou tous si le champ est vide), comme avant.
+            nettoyer "$WORKFLOW" "$GARDER" oui
+          fi
