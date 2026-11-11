@@ -384,6 +384,13 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_breakout_5_title, R.string.rules_breakout_5_body),
         RulesSection(R.string.rules_breakout_6_title, R.string.rules_breakout_6_body)
     ),
+    "builtin_asteroids" to listOf(
+        RulesSection(R.string.rules_asteroids_1_title, R.string.rules_asteroids_1_body),
+        RulesSection(R.string.rules_asteroids_2_title, R.string.rules_asteroids_2_body),
+        RulesSection(R.string.rules_asteroids_3_title, R.string.rules_asteroids_3_body),
+        RulesSection(R.string.rules_asteroids_4_title, R.string.rules_asteroids_4_body),
+        RulesSection(R.string.rules_asteroids_5_title, R.string.rules_asteroids_5_body)
+    ),
     "builtin_xonix" to listOf(
         RulesSection(R.string.rules_xonix_1_title, R.string.rules_xonix_1_body),
         RulesSection(R.string.rules_xonix_2_title, R.string.rules_xonix_2_body),

@@ -37,13 +37,15 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.cos
+import kotlin.math.sin
 
 /** Nombre de jeux par ligne dans la grille. */
 private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
 )
 
@@ -128,6 +130,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             TETRIS_ID -> drawTetris()
             BREAKOUT_ID -> drawBreakout()
             SHMUP_ID -> drawShmup()
+            ASTEROIDS_ID -> drawAsteroids()
             XONIX_ID -> drawXonix()
             SNAKE_ID -> drawSnake()
             BUBBLE_ID -> drawBubbleShooter()
@@ -336,6 +339,37 @@ private fun DrawScope.drawBreakout() {
     drawRoundRect(Color(0xFFAAB6BE), Offset(paddleLeft, paddleTop), Size(paddleW, paddleH), CornerRadius(paddleH * 0.4f))
     drawRoundRect(Color(0xFFD32F2F), Offset(paddleLeft, paddleTop), Size(paddleW * 0.16f, paddleH), CornerRadius(paddleH * 0.4f))
     drawRoundRect(Color(0xFFD32F2F), Offset(paddleLeft + paddleW * 0.84f, paddleTop), Size(paddleW * 0.16f, paddleH), CornerRadius(paddleH * 0.4f))
+}
+
+private fun DrawScope.drawAsteroids() {
+    paper(Color(0xFF0B1E2B))
+    val s = size.minDimension
+    // Deux roches grises (une grosse en haut à gauche, une petite en bas à droite), un tir jaune et le vaisseau pointé vers le haut.
+    fun rock(cx: Float, cy: Float, r: Float) {
+        val path = Path()
+        for (i in 0 until 9) {
+            val a = i * 6.2831855f / 9f
+            val k = if (i % 2 == 0) 1f else 0.82f
+            val x = cx + sin(a) * r * k
+            val y = cy - cos(a) * r * k
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        }
+        path.close()
+        drawPath(path, Color(0xFF8D8378))
+        drawPath(path, Color(0xFFD0C6B8), style = Stroke(width = s * 0.02f))
+    }
+    rock(s * 0.3f, s * 0.3f, s * 0.2f)
+    rock(s * 0.78f, s * 0.74f, s * 0.1f)
+    drawCircle(Color(0xFFFFF176), s * 0.03f, Offset(s * 0.5f, s * 0.34f))
+    val ship = Path().apply {
+        moveTo(s * 0.5f, s * 0.48f)
+        lineTo(s * 0.64f, s * 0.84f)
+        lineTo(s * 0.5f, s * 0.76f)
+        lineTo(s * 0.36f, s * 0.84f)
+        close()
+    }
+    drawPath(ship, Color(0xFFB7C7DB))
+    drawCircle(Color(0xFF4DD0E1), s * 0.035f, Offset(s * 0.5f, s * 0.64f))
 }
 
 private fun DrawScope.drawXonix() {
