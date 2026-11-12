@@ -26,6 +26,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -46,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, PANCAKE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID
 )
 
@@ -135,6 +136,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             XONIX_ID -> drawXonix()
             SNAKE_ID -> drawSnake()
             BUBBLE_ID -> drawBubbleShooter()
+            PANCAKE_ID -> drawPancake()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -433,6 +435,30 @@ private fun DrawScope.drawSnake() {
     drawCircle(Color(0xFFB8B0A8), unit * 0.22f, Offset(mx + unit * 0.3f, my - unit * 0.34f))
     drawCircle(Color(0xFFF4A6B8), unit * 0.12f, Offset(mx - unit * 0.3f, my - unit * 0.34f))
     drawCircle(Color(0xFFF4A6B8), unit * 0.12f, Offset(mx + unit * 0.3f, my - unit * 0.34f))
+}
+
+private fun DrawScope.drawPancake() {
+    paper(Color(0xFFB8BCA4))
+    val s = size.minDimension
+    val ink = Color(0xFF2A2724)
+    val red = Color(0xFFB5503C)
+    // Le rideau rouge en haut, comme sur l'écran de la console d'origine.
+    drawRect(red, Offset(s * 0.1f, s * 0.12f), Size(s * 0.8f, s * 0.07f))
+    // La poêle à gauche (un manche et un rond) et la crêpe qui en part en arc vers l'assiette de droite.
+    drawLine(ink, Offset(s * 0.12f, s * 0.62f), Offset(s * 0.27f, s * 0.58f), strokeWidth = s * 0.04f, cap = StrokeCap.Round)
+    drawOval(ink, Offset(s * 0.27f, s * 0.55f), Size(s * 0.17f, s * 0.07f))
+    val arc = Path().apply {
+        moveTo(s * 0.35f, s * 0.5f)
+        quadraticTo(s * 0.55f, s * 0.05f, s * 0.8f, s * 0.58f)
+    }
+    drawPath(arc, ink.copy(alpha = 0.55f), style = Stroke(width = s * 0.018f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(s * 0.04f, s * 0.04f))))
+    drawOval(ink, Offset(s * 0.47f, s * 0.26f), Size(s * 0.15f, s * 0.06f))
+    // Le serveur : un corps sombre portant une assiette où atterrit la crêpe.
+    drawOval(ink, Offset(s * 0.64f, s * 0.6f), Size(s * 0.26f, s * 0.05f))
+    drawRect(ink, Offset(s * 0.74f, s * 0.65f), Size(s * 0.06f, s * 0.12f))
+    drawRect(ink, Offset(s * 0.7f, s * 0.77f), Size(s * 0.14f, s * 0.05f))
+    // La crêpe posée sur l'assiette.
+    drawOval(red, Offset(s * 0.69f, s * 0.55f), Size(s * 0.16f, s * 0.06f))
 }
 
 private fun DrawScope.drawBubbleShooter() {
