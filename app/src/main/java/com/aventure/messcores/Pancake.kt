@@ -184,8 +184,15 @@ internal class PancakeGame(private val random: Random = Random.Default) {
         reset()
     }
 
-    /** Repart de zéro. */
-    fun reset() {
+    /**
+     * Niveau supérieur (« GAME B » de la console) : les crêpes se pressent dès le début, comme au-delà de [Pancake.BUSY_SCORE] points.
+     */
+    var hard = false
+        private set
+
+    /** Repart de zéro, au niveau normal ou, avec [hard], au niveau supérieur. */
+    fun reset(hard: Boolean = false) {
+        this.hard = hard
         flights.clear()
         waiter = PANCAKE_CENTER
         score = 0
@@ -275,7 +282,7 @@ internal class PancakeGame(private val random: Random = Random.Default) {
             val inFlight = flights.count { !it.splat }
             val launch = when {
                 inFlight == 0 -> true
-                score >= Pancake.BUSY_SCORE && inFlight < Pancake.MAX_IN_FLIGHT -> random.nextDouble() < Pancake.LAUNCH_CHANCE
+                (hard || score >= Pancake.BUSY_SCORE) && inFlight < Pancake.MAX_IN_FLIGHT -> random.nextDouble() < Pancake.LAUNCH_CHANCE
                 else -> false
             }
             if (launch) flights.add(PancakeFlight(age = clock - nextLaunchCheck))
@@ -301,6 +308,7 @@ internal class PancakeGame(private val random: Random = Random.Default) {
         add(splatLane)
         add((nextLaunchCheck * 1000).toInt())
         add(flights.size)
+        add(if (hard) 1 else 0)
         for (f in flights) {
             add((f.age * 1000).toInt())
             add(if (f.splat) 1 else 0)
@@ -310,11 +318,11 @@ internal class PancakeGame(private val random: Random = Random.Default) {
     }
 
     companion object {
-        private const val SAVE_VERSION = 1
+        private const val SAVE_VERSION = 2
 
         /** Le bit de [PancakeFlight.decided] qui dit que le point de cette crêpe est déjà marqué. */
         private const val SCORED = 8
-        private const val SAVE_HEADER = 10
+        private const val SAVE_HEADER = 11
 
         /** Rebâtit une partie depuis [data] (voir [save]), ou renvoie `null` si ces données ne sont pas celles d'une partie. */
         fun restore(data: List<Int>, random: Random = Random.Default): PancakeGame? {
@@ -323,7 +331,9 @@ internal class PancakeGame(private val random: Random = Random.Default) {
             if (count !in 0..16 || data.size != SAVE_HEADER + count * 4) return null
             if (data[1] !in PANCAKE_LEFT..PANCAKE_RIGHT || data[2] < 0 || data[3] !in 0..Pancake.MAX_MISSES) return null
             if (data[4] !in 0..1 || data[5] < 0 || data[6] < 0 || data[7] !in -1..PANCAKE_RIGHT || data[8] < 0) return null
+            if (data[10] !in 0..1) return null
             val game = PancakeGame(random)
+            game.hard = data[10] == 1
             game.waiter = data[1]
             game.score = data[2]
             game.misses = data[3]

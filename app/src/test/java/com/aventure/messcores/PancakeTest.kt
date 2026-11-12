@@ -205,11 +205,50 @@ class PancakeTest {
         assertEquals(0.0, game.clock, 0.0)
     }
 
+    // --- Le niveau supérieur (GAME B) ---
+
+    @Test
+    fun auNiveauSuperieurLesCrepesSePressentAvantCinqPoints() {
+        val game = newGame()
+        game.reset(hard = true)
+        assertTrue(game.hard)
+        var most = 0
+        var t = 0L
+        while (t < 60_000 && game.score < Pancake.BUSY_SCORE) {
+            game.playPerfectly(20)
+            most = maxOf(most, game.flights.size)
+            t += 20
+        }
+        assertTrue("au moins deux crêpes en vol en même temps", most >= 2)
+    }
+
+    @Test
+    fun auNiveauNormalUneSeuleCrepeVoleAvantCinqPoints() {
+        val game = newGame()
+        var most = 0
+        var t = 0L
+        while (t < 120_000 && game.score < Pancake.BUSY_SCORE) {
+            game.playPerfectly(20)
+            most = maxOf(most, game.flights.size)
+            t += 20
+        }
+        assertEquals(1, most)
+    }
+
+    @Test
+    fun resetSansArgumentRevientAuNiveauNormal() {
+        val game = newGame()
+        game.reset(hard = true)
+        game.reset()
+        assertFalse(game.hard)
+    }
+
     // --- La sauvegarde ---
 
     @Test
     fun laPartieSeRestaureTelleQuelle() {
         val game = newGame()
+        game.reset(hard = true)
         game.playPerfectly(45_000)
         game.moveLeft()
         val copy = PancakeGame.restore(game.save(), Random(1))
@@ -221,11 +260,13 @@ class PancakeTest {
         assertEquals(game.clock, copy.clock, 1e-3)
         assertEquals(game.flights.size, copy.flights.size)
         assertEquals(game.sprites(), copy.sprites())
+        assertEquals(game.hard, copy.hard)
     }
 
     @Test
     fun uneSauvegardeIncorrecteEstRefusee() {
         assertNull(PancakeGame.restore(emptyList()))
         assertNull(PancakeGame.restore(List(5) { 0 }))
+        assertNull(PancakeGame.restore(PancakeGame().save().toMutableList().also { it[10] = 5 }))
     }
 }
