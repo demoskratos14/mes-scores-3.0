@@ -1310,6 +1310,7 @@
     <string name="flip7_status_busted">È sballato</string>
     <string name="flip7_player_points">Totale: %1$d · round: %2$d</string>
     <string name="flip7_hit">Pesca una carta</string>
+    <string name="flip7_tap_stock">Tocca a %1$s: tocca il mazzo per pescare una carta.</string>
     <string name="flip7_stay">Fermati (passa e totalizza %1$d)</string>
     <string name="flip7_choose_freeze">%1$s ha pescato Congela. Chi viene congelato? Totalizza i suoi punti ed esce dal round.</string>
     <string name="flip7_choose_flip_three">%1$s ha pescato Pesca tre. Chi deve pescare tre carte?</string>

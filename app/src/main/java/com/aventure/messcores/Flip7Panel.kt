@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
@@ -69,7 +70,7 @@ internal fun Flip7Section(viewModel: ScoreViewModel, round: Flip7Round, onLeave:
         // La partie est finie (ou reprise déjà finie) : le vainqueur, la dernière manche s'il y en a une, puis la sortie.
         GameOverBanner(players = players, winners = viewModel.winners())
         if (round.roundOver) Flip7RoundResult(round = round, players = players, canContinue = false, onNext = {})
-        Flip7Players(viewModel = viewModel, round = round)
+        Flip7Players(viewModel = viewModel, round = round, onStay = {})
         Button(onClick = onLeave, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.dice_leave_game))
         }
@@ -82,6 +83,8 @@ internal fun Flip7Section(viewModel: ScoreViewModel, round: Flip7Round, onLeave:
         color = Color.White
     )
 
+    // La pioche est tout en haut : c'est elle qu'on touche pour piocher.
+    Flip7StockCard(round = round, players = players, onHit = { act { round.hit() } })
     if (round.roundOver) {
         Flip7RoundResult(
             round = round,
@@ -90,16 +93,9 @@ internal fun Flip7Section(viewModel: ScoreViewModel, round: Flip7Round, onLeave:
             onNext = { round.nextRound() }
         )
     } else {
-        Flip7ActionCard(
-            round = round,
-            players = players,
-            onHit = { act { round.hit() } },
-            onStay = { act { round.stay() } },
-            onChoose = { target -> act { round.chooseTarget(target) } }
-        )
+        Flip7PendingCard(round = round, players = players, onChoose = { target -> act { round.chooseTarget(target) } })
     }
-    Flip7Players(viewModel = viewModel, round = round)
-    Flip7StockCard(round = round, onHit = { act { round.hit() } })
+    Flip7Players(viewModel = viewModel, round = round, onStay = { act { round.stay() } })
 }
 
 /** Le nom lisible (et lu par TalkBack) d'une carte de Flip 7. */
@@ -126,58 +122,35 @@ private fun Flip7CardFace(card: Int, modifier: Modifier = Modifier, grayed: Bool
 }
 
 /**
- * Ce que doit faire le joueur : piocher ou s'arrêter ; ou, quand une carte Action vient d'être piochée, choisir sur qui elle
- * s'applique. Dessous, ce qui vient de se passer sur la table.
+ * Quand une carte Action vient d'être piochée : la carte et les joueurs sur qui elle peut s'appliquer (rien d'affiché sinon).
  */
 @Composable
-private fun Flip7ActionCard(
-    round: Flip7Round,
-    players: List<String>,
-    onHit: () -> Unit,
-    onStay: () -> Unit,
-    onChoose: (Int) -> Unit
-) {
-    val pending = round.pending
+private fun Flip7PendingCard(round: Flip7Round, players: List<String>, onChoose: (Int) -> Unit) {
+    val pending = round.pending ?: return
     CardPanel(spacing = 10) {
-        if (pending != null) {
-            val source = players.getOrElse(pending.source) { "" }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Flip7CardFace(card = pending.card, modifier = Modifier.width(64.dp))
-                Text(
-                    text = stringResource(
-                        when (pending.choice) {
-                            Flip7Choice.FREEZE -> R.string.flip7_choose_freeze
-                            Flip7Choice.FLIP_THREE -> R.string.flip7_choose_flip_three
-                            Flip7Choice.GIVE_SECOND_CHANCE -> R.string.flip7_choose_give
-                        },
-                        source
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { liveRegion = LiveRegionMode.Polite }
-                )
-            }
-            pending.targets.forEach { target ->
-                Button(onClick = { onChoose(target) }, modifier = Modifier.fillMaxWidth()) {
-                    Text(players.getOrElse(target) { "" })
-                }
-            }
-        } else if (round.canAct) {
-            val name = players.getOrElse(round.current) { "" }
+        val source = players.getOrElse(pending.source) { "" }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Flip7CardFace(card = pending.card, modifier = Modifier.width(64.dp))
             Text(
-                text = stringResource(R.string.dice_bunco_turn, name),
+                text = stringResource(
+                    when (pending.choice) {
+                        Flip7Choice.FREEZE -> R.string.flip7_choose_freeze
+                        Flip7Choice.FLIP_THREE -> R.string.flip7_choose_flip_three
+                        Flip7Choice.GIVE_SECOND_CHANCE -> R.string.flip7_choose_give
+                    },
+                    source
+                ),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { liveRegion = LiveRegionMode.Polite }
             )
-            Button(onClick = onHit, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.flip7_hit))
-            }
-            OutlinedButton(onClick = onStay, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.flip7_stay, round.pointsOf(round.current)))
+        }
+        pending.targets.forEach { target ->
+            Button(onClick = { onChoose(target) }, modifier = Modifier.fillMaxWidth()) {
+                Text(players.getOrElse(target) { "" })
             }
         }
-        Flip7EventText(event = round.lastEvent, round = round, players = players)
     }
 }
 
@@ -211,9 +184,13 @@ private fun Flip7EventText(event: Flip7Event?, round: Flip7Round, players: List<
 
 /** La table de chaque joueur : son état, ses points, ses cartes Action et Bonus puis ses cartes Nombre (tout est visible). */
 @Composable
-private fun Flip7Players(viewModel: ScoreViewModel, round: Flip7Round) {
+private fun Flip7Players(viewModel: ScoreViewModel, round: Flip7Round, onStay: () -> Unit) {
     val totals = viewModel.totals
-    viewModel.players.forEachIndexed { index, name ->
+    // Le joueur dont c'est le tour est toujours le premier (sous la pioche) ; ceux qui ont joué passent en bas de la file.
+    val count = viewModel.players.size
+    val start = if (round.current in 0 until count && !round.roundOver) round.current else 0
+    List(count) { (start + it) % count }.forEach { index ->
+        val name = viewModel.players[index]
         val status = round.status.getOrElse(index) { Flip7Status.ACTIVE }
         val mine = index == round.current && !round.roundOver
         val busted = status == Flip7Status.BUSTED
@@ -256,24 +233,43 @@ private fun Flip7Players(viewModel: ScoreViewModel, round: Flip7Round) {
                     Flip7CardFace(card = card, modifier = cardModifier, grayed = busted)
                 }
             }
+            if (mine && round.canAct) {
+                OutlinedButton(onClick = onStay, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.flip7_stay, round.pointsOf(index)))
+                }
+            }
         }
     }
 }
 
-/** La pioche : son dos de carte (qu'on peut toucher pour piocher, comme le bouton) et le nombre de cartes qui restent. */
+/**
+ * La pioche, tout en haut : on la touche pour piocher (il n'y a pas de bouton). À côté : le nombre de cartes qui restent, à qui
+ * c'est de jouer et ce qui vient de se passer sur la table.
+ */
 @Composable
-private fun Flip7StockCard(round: Flip7Round, onHit: () -> Unit) {
+private fun Flip7StockCard(round: Flip7Round, players: List<String>, onHit: () -> Unit) {
     val count = round.stock.size
     val description = pluralStringResource(R.plurals.card_stock_desc, count, count)
+    val hitLabel = stringResource(R.string.flip7_hit)
     CardPanel {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Flip7CardBack(
                 Modifier
-                    .width(64.dp)
-                    .then(if (round.canAct) Modifier.clickable(role = Role.Button, onClick = onHit) else Modifier)
+                    .width(88.dp)
+                    .then(if (round.canAct) Modifier.clickable(onClickLabel = hitLabel, role = Role.Button, onClick = onHit) else Modifier)
                     .semantics { contentDescription = description }
             )
-            Text(text = stringResource(R.string.huit_stock, count), style = MaterialTheme.typography.bodyMedium)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(text = stringResource(R.string.huit_stock, count), style = MaterialTheme.typography.labelLarge)
+                if (round.canAct) {
+                    Text(
+                        text = stringResource(R.string.flip7_tap_stock, players.getOrElse(round.current) { "" }),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                    )
+                }
+                Flip7EventText(event = round.lastEvent, round = round, players = players)
+            }
         }
     }
 }

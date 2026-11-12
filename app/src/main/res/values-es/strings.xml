@@ -1300,6 +1300,7 @@
     <string name="flip7_status_busted">Ha saltado</string>
     <string name="flip7_player_points">Total: %1$d · ronda: %2$d</string>
     <string name="flip7_hit">Robar una carta</string>
+    <string name="flip7_tap_stock">Turno de %1$s: toca el mazo para robar una carta.</string>
     <string name="flip7_stay">Plantarse (pasar y sumar %1$d)</string>
     <string name="flip7_choose_freeze">%1$s ha robado Congelar. ¿Quién queda congelado? Suma sus puntos y sale de la ronda.</string>
     <string name="flip7_choose_flip_three">%1$s ha robado Roba tres. ¿Quién debe robar tres cartas?</string>

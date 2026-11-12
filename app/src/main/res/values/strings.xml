@@ -1315,6 +1315,7 @@
     <string name="flip7_status_busted">A sauté</string>
     <string name="flip7_player_points">Total : %1$d · manche : %2$d</string>
     <string name="flip7_hit">Piocher une carte</string>
+    <string name="flip7_tap_stock">À %1$s de jouer : touche la pioche pour piocher une carte.</string>
     <string name="flip7_stay">S’arrêter (passer et marquer %1$d)</string>
     <string name="flip7_choose_freeze">%1$s a pioché Gel. Qui est gelé ? Il marque ses points et sort de la manche.</string>
     <string name="flip7_choose_flip_three">%1$s a pioché Pioche trois. Qui doit piocher trois cartes ?</string>

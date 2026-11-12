@@ -1300,6 +1300,7 @@
     <string name="flip7_status_busted">Rebentou</string>
     <string name="flip7_player_points">Total: %1$d · ronda: %2$d</string>
     <string name="flip7_hit">Tirar uma carta</string>
+    <string name="flip7_tap_stock">Vez de %1$s: toca no baralho para tirar uma carta.</string>
     <string name="flip7_stay">Parar (passar e marcar %1$d)</string>
     <string name="flip7_choose_freeze">%1$s tirou Congelar. Quem fica congelado? Marca os seus pontos e sai da ronda.</string>
     <string name="flip7_choose_flip_three">%1$s tirou Tirar três. Quem deve tirar três cartas?</string>
