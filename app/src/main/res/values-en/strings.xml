@@ -2219,7 +2219,6 @@
     <string name="pancake_go">Let’s go!</string>
     <string name="pancake_score">Score: %1$d</string>
     <string name="pancake_misses">Dropped pancakes: %1$d of %2$d</string>
-    <string name="pancake_pause">Pause</string>
     <string name="pancake_paused_title">Game paused</string>
     <string name="pancake_resume">Resume</string>
     <string name="pancake_over_title">Game over</string>

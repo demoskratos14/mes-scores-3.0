@@ -2249,7 +2249,6 @@
     <string name="pancake_go">Vamos lá!</string>
     <string name="pancake_score">Pontuação: %1$d</string>
     <string name="pancake_misses">Panquecas caídas: %1$d de %2$d</string>
-    <string name="pancake_pause">Pausa</string>
     <string name="pancake_paused_title">Partida em pausa</string>
     <string name="pancake_resume">Retomar</string>
     <string name="pancake_over_title">Fim da partida</string>

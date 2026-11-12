@@ -1,7 +1,9 @@
 package com.aventure.messcores
 
+import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.pm.ActivityInfo
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -27,7 +30,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -155,7 +157,7 @@ private class PancakeShapes {
  * traversent l'écran en arcs, d'assiette en assiette, jusqu'au client. Les deux boutons ronds (ou les deux côtés de la
  * console) font sauter le serveur d'une voie à l'autre pour rattraper chaque crêpe ; une crêpe tombée au sol compte pour
  * un raté, et la partie s'arrête au cinquième. Le meilleur score est gardé d'une séance à l'autre. Elle se met en
- * pause quand l'appli passe en arrière-plan. Tout est gardé quand l'écran tourne.
+ * pause quand l'appli passe en arrière-plan ou sur le bouton retour. La console remplit l'écran en paysage.
  * [players] : le joueur dont le nom s'affiche au départ.
  */
 @Composable
@@ -166,6 +168,14 @@ internal fun PancakeScreen(players: List<String>) {
     var phase by rememberSaveable { mutableIntStateOf(PANCAKE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
     val record = rememberSoloRecord(PANCAKE_ID)
+
+    // La console se joue à l'horizontale : l'écran passe en paysage tant que le jeu est ouvert.
+    DisposableEffect(context) {
+        val activity = findPancakeActivity(context)
+        val previous = activity?.requestedOrientation
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        onDispose { if (previous != null) activity?.requestedOrientation = previous }
+    }
 
     // La partie se met en pause quand l'appli passe en arrière-plan (et donc aussi quand l'écran tourne).
     val lifecycleOwner = remember(context) { findPancakeLifecycleOwner(context) }
@@ -279,7 +289,7 @@ private fun PancakeCard(content: @Composable ColumnScope.() -> Unit) {
 }
 
 /**
- * La partie en cours : l'en-tête (score, crêpes tombées, pause) puis la console. La partie avance à chaque image tant
+ * La partie en cours : la console, à plein écran (le score et les crêpes tombées s'y affichent comme sur l'original). La partie avance à chaque image tant
  * qu'elle n'est pas en [paused] ; quand la cinquième crêpe tombe, [onOver] est appelé une fois.
  */
 @Composable
@@ -292,7 +302,7 @@ private fun PancakePlayfield(
     KeepScreenOn()
     // Change à chaque image ou action : le dessin le lit et se refait, sans recomposer tout l'écran.
     var revision by remember { mutableIntStateOf(0) }
-    // Les chiffres de l'en-tête : ils ne recomposent l'écran que lorsqu'ils changent.
+    // Le score et les crêpes tombées, lus par TalkBack : ils ne recomposent l'écran que lorsqu'ils changent.
     var score by remember { mutableIntStateOf(game.score) }
     var misses by remember { mutableIntStateOf(game.misses) }
     val finished by rememberUpdatedState(onOver)
@@ -301,6 +311,9 @@ private fun PancakePlayfield(
     val shapes = remember { PancakeShapes() }
     val ink = ImageBitmap.imageResource(R.drawable.pancake_ink)
     val console = ImageBitmap.imageResource(R.drawable.pancake_console)
+    // Le score et les crêpes tombées ne sont plus écrits à côté de la console : TalkBack les lit ici.
+    val screenDescription = stringResource(R.string.pancake_score, score) + ", " +
+        stringResource(R.string.pancake_misses, misses, Pancake.MAX_MISSES)
 
     fun sync() {
         revision++
@@ -328,81 +341,52 @@ private fun PancakePlayfield(
         finished()
     }
 
-    // La marge de la barre de navigation (boutons ou geste) garde les commandes du bas hors de ses touches.
-    Column(
-        modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.pancake_score, score),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = stringResource(R.string.pancake_misses, misses, Pancake.MAX_MISSES),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                OutlinedButton(onClick = { onPausedChange(true) }, enabled = !paused) {
-                    Text(stringResource(R.string.pancake_pause))
-                }
+    // La console remplit tout l'écran (hors zones système), sur fond noir, en gardant ses proportions.
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
+        // La console garde ses proportions : la plus grande qui tient dans la place disponible.
+        val ratio = CONSOLE_W / CONSOLE_H
+        val consoleWidth = minOf(maxWidth, maxHeight * ratio)
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(consoleWidth, consoleWidth / ratio)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = screenDescription }) {
+                drawPancakeConsole(game, revision, shapes, ink, console, leftDown, rightDown)
             }
-        }
-
-        BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            // La console garde ses proportions : la plus grande qui tient dans la place disponible.
-            val ratio = CONSOLE_W / CONSOLE_H
-            val consoleWidth = minOf(maxWidth, maxHeight * ratio)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(consoleWidth, consoleWidth / ratio)
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawPancakeConsole(game, revision, shapes, ink, console, leftDown, rightDown)
+            // Les deux côtés de la console : un appui déplace le serveur dès que le doigt se pose.
+            PancakeZone(
+                description = stringResource(R.string.pancake_left),
+                modifier = Modifier.align(Alignment.CenterStart),
+                onPress = { down ->
+                    leftDown = down
+                    if (down) move(toLeft = true)
                 }
-                // Les deux côtés de la console : un appui déplace le serveur dès que le doigt se pose.
-                PancakeZone(
-                    description = stringResource(R.string.pancake_left),
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    onPress = { down ->
-                        leftDown = down
-                        if (down) move(toLeft = true)
-                    }
-                )
-                PancakeZone(
-                    description = stringResource(R.string.pancake_right),
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    onPress = { down ->
-                        rightDown = down
-                        if (down) move(toLeft = false)
-                    }
-                )
-                if (paused) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = stringResource(R.string.pancake_paused_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                        Button(onClick = { onPausedChange(false) }) {
-                            Text(stringResource(R.string.pancake_resume))
-                        }
+            )
+            PancakeZone(
+                description = stringResource(R.string.pancake_right),
+                modifier = Modifier.align(Alignment.CenterEnd),
+                onPress = { down ->
+                    rightDown = down
+                    if (down) move(toLeft = false)
+                }
+            )
+            if (paused) {
+                Column(
+                    modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.pancake_paused_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                    Button(onClick = { onPausedChange(false) }) {
+                        Text(stringResource(R.string.pancake_resume))
                     }
                 }
             }
@@ -522,6 +506,15 @@ private fun DrawScope.drawPancakeScreen(game: PancakeGame, shapes: PancakeShapes
     }
     // La crêpe écrasée au sol.
     if (game.splatLane >= 0) lit(shapes.splats[game.splatLane])
+}
+
+private fun findPancakeActivity(context: Context): Activity? {
+    var current: Context? = context
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return null
 }
 
 private fun findPancakeLifecycleOwner(context: Context): LifecycleOwner? {
