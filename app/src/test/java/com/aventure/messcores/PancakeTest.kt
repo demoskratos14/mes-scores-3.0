@@ -83,9 +83,52 @@ class PancakeTest {
         assertEquals(Pancake.Sprite.OnPlate(PANCAKE_CENTER), Pancake.spriteAt(47.5))
         assertEquals(Pancake.Sprite.OnPlate(PANCAKE_LEFT), Pancake.spriteAt(67.5))
         assertEquals(Pancake.Sprite.Step(Pancake.stepCount - 1), Pancake.spriteAt(70.0))
+        assertEquals(Pancake.Sprite.Approach, Pancake.spriteAt(73.0))
         assertEquals(Pancake.Sprite.Diner, Pancake.spriteAt(76.0))
-        assertNull(Pancake.spriteAt(73.0))
-        assertNull(Pancake.spriteAt(81.0))
+        assertEquals(Pancake.Sprite.Table, Pancake.spriteAt(79.0))
+        assertEquals(Pancake.Sprite.Hand, Pancake.spriteAt(81.5))
+        assertNull(Pancake.spriteAt(82.0))
+    }
+
+    @Test
+    fun laCrepeNeDisparaitJamaisEntreLaDerniereAssietteEtLeClient() {
+        var u = Pancake.LEFT_PLATE.toDouble()
+        while (u < Pancake.END_AT) {
+            assertNotNull("trou à $u", Pancake.spriteAt(u))
+            u += 0.05
+        }
+        assertNull(Pancake.spriteAt(Pancake.END_AT.toDouble()))
+    }
+
+    @Test
+    fun lePointEstMarqueQuandLeClientLeveLaMain() {
+        val game = newGame()
+        var guard = 0
+        while (game.sprites().none { it == Pancake.Sprite.Hand } && guard++ < 10_000) {
+            game.playPerfectly(20)
+        }
+        assertEquals(1, game.score)
+        assertEquals(1, game.flights.size)
+        game.playPerfectly(400)
+        assertEquals(1, game.score)
+    }
+
+    @Test
+    fun manquerLAssietteGaucheCompteAussiUnRate() {
+        val game = newGame()
+        var guard = 0
+        // Bien placé pour les assiettes de droite et du centre, absent de celle de gauche.
+        while (game.misses == 0 && guard++ < 20_000) {
+            val age = game.flights.firstOrNull()?.age ?: 0.0
+            val lane = if (age < Pancake.CENTER_PLATE + 1.2) {
+                if (age < Pancake.RIGHT_PLATE + 1.2) PANCAKE_RIGHT else PANCAKE_CENTER
+            } else PANCAKE_RIGHT
+            while (game.waiter < lane) game.moveRight()
+            while (game.waiter > lane) game.moveLeft()
+            game.tick(20)
+        }
+        assertEquals(1, game.misses)
+        assertEquals(PANCAKE_LEFT, game.splatLane)
     }
 
     @Test

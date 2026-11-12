@@ -59,6 +59,9 @@ internal object Pancake {
     const val DINER_AT = 75
     const val SCORE_AT = 81
 
+    /** Fin de la scène chez le client : sa main lève la crêpe à la bouche pendant environ une unité, puis la crêpe disparaît. */
+    const val END_AT = 82
+
     /** Les dates (en unités) de chaque position de la trajectoire hors assiettes : crêpe visible de [start] à [start] + 3. */
     private val STEPS = listOf(
         0, 3, 6, 9, 12, 15, 18, // lancer, arc vers la droite, puis la crêpe au-dessus de l'assiette droite
@@ -80,8 +83,17 @@ internal object Pancake {
         /** La crêpe posée sur l'assiette du serveur dans la voie [lane] (attrapée) ou juste avant de tomber. */
         data class OnPlate(val lane: Int) : Sprite
 
+        /** La crêpe qui s'approche du client, juste après la dernière position de la trajectoire. */
+        data object Approach : Sprite
+
         /** Les crêpes livrées sur la table du client. */
         data object Diner : Sprite
+
+        /** La crêpe posée sur la table du client, qu'il va manger. */
+        data object Table : Sprite
+
+        /** La main du client qui porte la crêpe à sa bouche : le point est marqué. */
+        data object Hand : Sprite
     }
 
     /** Voie de l'assiette atteinte à la date [unit] (en unités depuis le lancer), ou `null`. */
@@ -100,8 +112,11 @@ internal object Pancake {
             u >= RIGHT_PLATE && u < RIGHT_PLATE + CATCH_UNITS -> Sprite.OnPlate(PANCAKE_RIGHT)
             u >= CENTER_PLATE && u < CENTER_PLATE + CATCH_UNITS -> Sprite.OnPlate(PANCAKE_CENTER)
             u >= LEFT_PLATE && u < LEFT_PLATE + CATCH_UNITS -> Sprite.OnPlate(PANCAKE_LEFT)
+            u >= LAST_STEP + TICK_UNITS && u < DINER_AT -> Sprite.Approach
             u >= DINER_AT && u < DINER_AT + TICK_UNITS -> Sprite.Diner
-            u >= SCORE_AT -> null
+            u >= DINER_AT + TICK_UNITS && u < SCORE_AT -> Sprite.Table
+            u >= SCORE_AT && u < END_AT -> Sprite.Hand
+            u >= END_AT -> null
             else -> {
                 val i = STEPS.indexOfLast { it <= u }
                 if (i >= 0 && u < STEPS[i] + TICK_UNITS) Sprite.Step(i) else null
@@ -230,7 +245,7 @@ internal class PancakeGame(private val random: Random = Random.Default) {
             val plates = listOf(
                 Triple(Pancake.RIGHT_PLATE, PANCAKE_RIGHT, 1),
                 Triple(Pancake.CENTER_PLATE, PANCAKE_CENTER, 2),
-                Triple(Pancake.LEFT_PLATE, PANCAKE_LEFT, 3)
+                Triple(Pancake.LEFT_PLATE, PANCAKE_LEFT, 4)
             )
             for ((start, lane, bit) in plates) {
                 if (f.decided and bit != 0) continue
@@ -246,10 +261,12 @@ internal class PancakeGame(private val random: Random = Random.Default) {
                     return
                 }
             }
-            if (f.age >= Pancake.SCORE_AT) {
+            // Le point est marqué quand le client lève la main ; la crêpe disparaît juste après.
+            if (f.age >= Pancake.SCORE_AT && f.decided and SCORED == 0) {
+                f.decided = f.decided or SCORED
                 score++
-                iter.remove()
             }
+            if (f.age >= Pancake.END_AT) iter.remove()
         }
     }
 
@@ -294,6 +311,9 @@ internal class PancakeGame(private val random: Random = Random.Default) {
 
     companion object {
         private const val SAVE_VERSION = 1
+
+        /** Le bit de [PancakeFlight.decided] qui dit que le point de cette crêpe est déjà marqué. */
+        private const val SCORED = 8
         private const val SAVE_HEADER = 10
 
         /** Rebâtit une partie depuis [data] (voir [save]), ou renvoie `null` si ces données ne sont pas celles d'une partie. */
@@ -316,7 +336,7 @@ internal class PancakeGame(private val random: Random = Random.Default) {
             for (i in 0 until count) {
                 val at = SAVE_HEADER + i * 4
                 val lane = data[at + 2]
-                if (data[at] < 0 || data[at + 1] !in 0..1 || lane !in PANCAKE_LEFT..PANCAKE_RIGHT || data[at + 3] !in 0..7) return null
+                if (data[at] < 0 || data[at + 1] !in 0..1 || lane !in PANCAKE_LEFT..PANCAKE_RIGHT || data[at + 3] !in 0..15) return null
                 game.flights.add(PancakeFlight(data[at] / 1000.0, data[at + 1] == 1, lane, data[at + 3]))
             }
             return game

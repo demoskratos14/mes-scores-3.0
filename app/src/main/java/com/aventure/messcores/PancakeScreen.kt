@@ -141,7 +141,10 @@ private class PancakeShapes {
     val steps: List<Path> = PancakeArt.STEPS.map { parse(it) }
     val blobs: List<Path> = listOf(PancakeArt.BLOB_LEFT, PancakeArt.BLOB_CENTER, PancakeArt.BLOB_RIGHT).map { parse(it) }
     val splats: List<Path> = listOf(PancakeArt.SPLAT_LEFT, PancakeArt.SPLAT_CENTER, PancakeArt.SPLAT_RIGHT).map { parse(it) }
+    val approach: Path = parse(PancakeArt.APPROACH)
     val diner: Path = parse(PancakeArt.DINER)
+    val table: Path = parse(PancakeArt.TABLE)
+    val hand: Path = parse(PancakeArt.HAND)
     val markers: List<Path> = PancakeArt.MARKERS.map { parse(it) }
     val chef: List<Path> = PancakeArt.CHEF.map { parse(it) }
     val units: List<Path> = PancakeArt.UNITS.map { parse(it) }
@@ -511,7 +514,10 @@ private fun DrawScope.drawPancakeScreen(game: PancakeGame, shapes: PancakeShapes
         when (sprite) {
             is Pancake.Sprite.Step -> lit(shapes.steps[sprite.index])
             is Pancake.Sprite.OnPlate -> lit(shapes.blobs[sprite.lane])
+            Pancake.Sprite.Approach -> lit(shapes.approach)
             Pancake.Sprite.Diner -> lit(shapes.diner)
+            Pancake.Sprite.Table -> lit(shapes.table)
+            Pancake.Sprite.Hand -> lit(shapes.hand)
         }
     }
     // La crêpe écrasée au sol.
