@@ -27,6 +27,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -46,7 +47,7 @@ private const val GRID_COLUMNS = 3
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
     MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID,
-    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID
+    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID
 )
 
 /**
@@ -141,6 +142,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             HANGMAN_ID -> drawHangman()
             CHESS_ID -> drawChess()
             UNO_ID -> drawUno()
+            FLIP7_ID -> drawFlip7()
             else -> drawGeneric()
         }
     }
@@ -689,4 +691,37 @@ private fun DrawScope.drawMastermind() {
             drawCircle(key, radius = s * 0.035f, center = Offset(s * (0.8f + 0.08f * (k % 2)), y + s * (-0.045f + 0.09f * (k / 2))))
         }
     }
+}
+
+private fun DrawScope.drawFlip7() {
+    paper(Color(0xFF00695C))
+    val s = size.minDimension
+    val w = s * 0.4f
+    val h = s * 0.6f
+    // Trois cartes en éventail ; la dernière porte le 7 de « Flip 7 ».
+    fun card(color: Color, angle: Float, dx: Float, seven: Boolean) {
+        val left = s / 2f + dx - w / 2f
+        val top = s / 2f - h / 2f
+        rotate(angle, pivot = Offset(s / 2f + dx, s * 0.8f)) {
+            drawRoundRect(Color(0xFFFFF8E1), topLeft = Offset(left, top), size = Size(w, h), cornerRadius = CornerRadius(s * 0.06f))
+            val inset = s * 0.025f
+            drawRoundRect(
+                color,
+                topLeft = Offset(left + inset, top + inset),
+                size = Size(w - 2 * inset, h - 2 * inset),
+                cornerRadius = CornerRadius(s * 0.045f)
+            )
+            if (seven) {
+                val path = Path().apply {
+                    moveTo(left + w * 0.24f, top + h * 0.24f)
+                    lineTo(left + w * 0.76f, top + h * 0.24f)
+                    lineTo(left + w * 0.44f, top + h * 0.78f)
+                }
+                drawPath(path, Color(0xFFFFEB3B), style = Stroke(width = s * 0.07f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+        }
+    }
+    card(Color(0xFFEF6C00), -26f, -s * 0.12f, seven = false)
+    card(Color(0xFF29B6F6), 0f, 0f, seven = false)
+    card(Color(0xFF26A69A), 26f, s * 0.12f, seven = true)
 }

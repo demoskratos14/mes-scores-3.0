@@ -196,8 +196,10 @@ fun ScoreApp(
     val onHeartsRoute = currentRoute == "hearts" && playable && viewModel.gameRules.id == HEARTS_ID
     // Yaniv jouable : même principe.
     val onYanivRoute = currentRoute == "yaniv" && playable && viewModel.gameRules.id == YANIV_ID
+    // Flip 7 jouable : même principe.
+    val onFlip7Route = currentRoute == "flip7" && playable && viewModel.gameRules.id == FLIP7_ID
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
-        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute
+        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute || onFlip7Route
     var showQuitDialog by remember { mutableStateOf(false) }
 
     // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
@@ -261,6 +263,7 @@ fun ScoreApp(
         playable && rules.id == UNO_ID -> "uno"
         playable && rules.id == HEARTS_ID -> "hearts"
         playable && rules.id == YANIV_ID -> "yaniv"
+        playable && rules.id == FLIP7_ID -> "flip7"
         playable && rules.isDiceOnly() -> "dice"
         else -> scoreRouteFor(rules)
     }
@@ -801,6 +804,19 @@ fun ScoreApp(
                     }
                 )
             }
+            composable("flip7") {
+                Flip7Screen(
+                    viewModel = viewModel,
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
             composable("racket") {
                 RacketScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
@@ -882,7 +898,7 @@ fun ScoreApp(
         // Superposé à toutes les pages ci-dessus, sauf le poker (minuteur de blinds) et les jeux jouables
         // qui n'ont pas besoin d'horloge (les échecs ont la leur, le réflexe et le rythme mesurent le temps eux-mêmes).
         val hideTimer = currentRoute == "poker" || currentRoute in PLAYABLE_ROUTES_WITHOUT_TIMER ||
-            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute
+            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute || onFlip7Route
         if (!hideTimer) TimerOverlay(viewModel = timerViewModel)
 
         if (showQuitDialog) {

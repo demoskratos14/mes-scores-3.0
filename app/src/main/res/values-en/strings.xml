@@ -1259,11 +1259,42 @@
     <string name="rules_flip7_1_title">Goal</string>
     <string name="rules_flip7_1_body">Be the first to reach 200 points. The game ends at the end of the round in which at least one player reaches or passes 200; the highest total wins. If players are tied for the lead, play one more round.</string>
     <string name="rules_flip7_2_title">A round</string>
-    <string name="rules_flip7_2_body">On your turn, draw a card or stay. Number cards go from 0 to 12. Drawing a number you already have in front of you makes you bust: you score 0 for the round, unless you have a Second Chance. Action cards (Freeze, Flip Three, Second Chance) and modifier cards (+2 to +10, ×2) are mixed into the deck. The round ends when nobody is still playing, or as soon as a player collects 7 different numbers: a “Flip 7”.</string>
+    <string name="rules_flip7_2_body">On your turn, draw a card or stay (you then score your points and are out of the round). Number cards go from 0 to 12 (as many copies as their value). Drawing a number you already have in front of you makes you bust: you score 0 for the round, unless you have a Second Chance, which is then discarded along with the duplicate. Freeze: the chosen player (yourself included) scores their points and is out of the round. Flip Three: the chosen player draws three cards in a row (any Freeze or Flip Three they find is only played afterwards). You can only keep one Second Chance: the next one goes to another player who has none. Modifier cards (+2 to +10, ×2) are mixed into the deck. The round ends when nobody is still playing, or as soon as a player collects 7 different numbers: a “Flip 7”.</string>
     <string name="rules_flip7_3_title">Scoring a round</string>
     <string name="rules_flip7_3_body">Add up your number cards; the ×2 card doubles that total, then the +2 to +10 modifiers are added. A Flip 7 is worth 15 extra points. A player who busted scores 0.</string>
     <string name="rules_flip7_4_title">In the app</string>
-    <string name="rules_flip7_4_body">At the end of each round, enter each player’s score (0 for a player who busted). The app adds the rounds up and ends the game at the end of the round in which a player reaches 200.</string>
+    <string name="rules_flip7_4_body">In the playable version, the app plays the game on a single phone: it deals one card to everyone, draws, applies Freeze, Flip Three and Second Chance (you pick the target), spots duplicates and the Flip 7, counts the points and writes them in the score table. All cards are face up: you simply pass the turn. On the score sheet alone, enter each player’s score at the end of each round (0 for a player who busted). In both cases the game ends at the end of the round in which a player reaches 200.</string>
+    <!-- Flip 7 jouable -->
+    <string name="flip7_card_number">Number %1$d</string>
+    <string name="flip7_card_plus">Bonus +%1$d</string>
+    <string name="flip7_card_times2">Bonus ×2</string>
+    <string name="flip7_card_freeze">Freeze</string>
+    <string name="flip7_card_flip_three">Flip Three</string>
+    <string name="flip7_card_second_chance">Second Chance</string>
+    <string name="flip7_status_active">Playing</string>
+    <string name="flip7_status_stayed">Stayed</string>
+    <string name="flip7_status_frozen">Frozen</string>
+    <string name="flip7_status_busted">Busted</string>
+    <string name="flip7_player_points">Total: %1$d · round: %2$d</string>
+    <string name="flip7_hit">Draw a card</string>
+    <string name="flip7_stay">Stay (stop and score %1$d)</string>
+    <string name="flip7_choose_freeze">%1$s drew Freeze. Who gets frozen? They score their points and are out of the round.</string>
+    <string name="flip7_choose_flip_three">%1$s drew Flip Three. Who must draw three cards?</string>
+    <string name="flip7_choose_give">%1$s already has a Second Chance. Who gets this one?</string>
+    <string name="flip7_event_draw">%1$s draws: %2$s.</string>
+    <string name="flip7_event_bust">%1$s draws a duplicate (%2$s) and busts: 0 points for this round.</string>
+    <string name="flip7_event_saved">%1$s draws a duplicate (%2$s), but the Second Chance cancels it: both cards are discarded.</string>
+    <string name="flip7_event_flip7" tools:ignore="PluralsCandidate">%1$s collects 7 different numbers: Flip 7! +%2$d points, the round ends.</string>
+    <string name="flip7_event_stay" tools:ignore="PluralsCandidate">%1$s stays and scores %2$d points.</string>
+    <string name="flip7_event_freeze">%1$s freezes %2$s: %2$s scores their points and is out of the round.</string>
+    <string name="flip7_event_freeze_self">%1$s freezes themselves and scores their points.</string>
+    <string name="flip7_event_flip_three">%1$s picks %2$s: %2$s must draw three cards.</string>
+    <string name="flip7_event_flip_three_self">%1$s must draw three cards.</string>
+    <string name="flip7_event_second_chance_given">%1$s gives a Second Chance to %2$s.</string>
+    <string name="flip7_event_second_chance_lost">%1$s discards a second Second Chance: nobody can take it.</string>
+    <string name="flip7_event_deck_empty">There are no cards left to draw: the round ends.</string>
+    <string name="flip7_round_flip7" tools:ignore="PluralsCandidate">%1$s gets a Flip 7! +%2$d points. The round ends.</string>
+    <string name="flip7_round_over">Round over</string>
     <string name="dice_button">Dice</string>
     <string name="dice_title">Dice roller</string>
     <string name="dice_roll">Roll</string>

@@ -101,3 +101,33 @@ internal fun ImageCard(
         )
     }
 }
+
+/**
+ * Les 22 images des cartes de Flip 7 (res/drawable-nodpi/flip7_*.webp), dans l'ordre de [Flip7Cards] : les nombres de 0 à 12,
+ * Gel, Pioche trois, Seconde chance, les bonus +2 à +10, puis « ×2 ».
+ */
+private val FLIP7_IMAGES = intArrayOf(
+    R.drawable.flip7_n00, R.drawable.flip7_n01, R.drawable.flip7_n02, R.drawable.flip7_n03, R.drawable.flip7_n04, R.drawable.flip7_n05, R.drawable.flip7_n06,
+    R.drawable.flip7_n07, R.drawable.flip7_n08, R.drawable.flip7_n09, R.drawable.flip7_n10, R.drawable.flip7_n11, R.drawable.flip7_n12,
+    R.drawable.flip7_freeze, R.drawable.flip7_flip_three, R.drawable.flip7_second_chance,
+    R.drawable.flip7_plus2, R.drawable.flip7_plus4, R.drawable.flip7_plus6, R.drawable.flip7_plus8, R.drawable.flip7_plus10,
+    R.drawable.flip7_x2
+)
+
+/** L'image de la carte [card] de Flip 7 (voir [Flip7Cards]). */
+@DrawableRes
+internal fun flip7CardImage(card: Int): Int = FLIP7_IMAGES[card.coerceIn(0, Flip7Cards.TYPES - 1)]
+
+/** Largeur / hauteur des images des cartes de Flip 7. */
+internal const val FLIP7_CARD_RATIO = 140f / 221f
+
+/** Le dos des cartes de Flip 7 (res/drawable-nodpi/flip7_back.webp), pour la pioche. */
+@Composable
+internal fun Flip7CardBack(modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(R.drawable.flip7_back),
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
+        modifier = modifier.aspectRatio(FLIP7_CARD_RATIO)
+    )
+}
