@@ -2234,7 +2234,7 @@
     <string name="rules_bubble_2_title">Aiming and shooting</string>
     <string name="rules_bubble_2_body">Put your finger on the board to aim, drag to adjust the angle, then lift it to shoot. You can also use the arrows (keep your finger down to keep turning) and the Fire button. The bubble bounces off the walls: the dotted line shows its path. Tap the waiting bubble, to the left of the cannon, to swap it with the one in the cannon.</string>
     <string name="rules_bubble_3_title">Points and levels</string>
-    <string name="rules_bubble_3_body">A popped bubble is worth 10 points, a falling bubble 20 points. Clearing the board gives a 500-point bonus. Each level starts with a fuller board and more colours (up to six).</string>
+    <string name="rules_bubble_3_body">A popped bubble is worth 10 points. Falling bubbles are worth 20 points for the first one of a shot, then double for each following one (40, 80…): dropping a whole cluster at once pays off. Clearing the board gives a 500-point bonus. Each level starts with a fuller board and more colours (up to six).</string>
     <string name="rules_bubble_4_title">The ceiling and the end</string>
     <string name="rules_bubble_4_body">When a shot pops nothing, the ceiling gets closer: after a few missed shots (the number is shown at the top), a new row appears and everything moves down one row. The game ends as soon as a bubble touches the red line. Solo game: your best score is kept, and the game pauses when you leave the app.</string>
     <string name="bubble_ready_title">%1$s’s turn</string>

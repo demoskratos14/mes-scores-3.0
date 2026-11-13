@@ -62,8 +62,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -79,6 +81,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.random.Random
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -107,6 +110,40 @@ private const val NEXT_OFFSET_X = -2.6f
 private const val NEXT_OFFSET_Y = 0.25f
 private const val NEXT_RADIUS = 0.4f
 private const val NEXT_TOUCH_RADIUS = 0.95f
+
+// Les animations : un anneau qui s'élargit (la bulle éclate), des étincelles, et les bulles qui tombent avec de la gravité.
+private const val PARTICLE_RING = 0
+private const val PARTICLE_SPARK = 1
+private const val PARTICLE_FALL = 2
+
+/** Durée de vie, en millisecondes, d'un anneau d'éclatement et d'une étincelle. */
+private const val RING_LIFE_MS = 280f
+private const val SPARK_LIFE_MS = 450f
+
+/** Étincelles par bulle éclatée, et nombre maximal par tir (un gros éclatement ne doit pas alourdir le dessin). */
+private const val SPARKS_PER_BUBBLE = 4
+private const val MAX_SPARKS_PER_SHOT = 80
+
+/** Gravité des bulles qui tombent, en unités du terrain par seconde au carré. */
+private const val FALL_GRAVITY = 55f
+
+private const val TWO_PI = 6.2831855f
+
+/**
+ * Un élément d'animation, en unités du terrain : sa [kind] ([PARTICLE_RING], [PARTICLE_SPARK] ou [PARTICLE_FALL]), sa position et
+ * sa vitesse (par seconde), la couleur de la bulle d'où il vient, son âge et sa durée de vie [life] en millisecondes.
+ */
+private class BubbleParticle(
+    val kind: Int,
+    var x: Float,
+    var y: Float,
+    var vx: Float,
+    var vy: Float,
+    val color: Int,
+    val life: Float
+) {
+    var age = 0f
+}
 
 private val BubbleBoardColor = Color(0xFF14213D)
 private val BubbleShooterZoneColor = Color(0xFF1B2D52)
@@ -310,6 +347,58 @@ private fun BubblePlayfield(
         untilDrop = game.shotsUntilDrop
     }
 
+    // Les animations en cours : ni sauvegardées ni observées, le dessin les relit à chaque image (voir [revision]).
+    val particles = remember { mutableListOf<BubbleParticle>() }
+    val random = remember { Random.Default }
+    val haptic = LocalHapticFeedback.current
+
+    /** Lance l'animation des bulles que le dernier tir a fait éclater ou tomber. */
+    fun spawnEffects(effects: List<BubbleEffect>) {
+        var sparks = 0
+        for (e in effects) {
+            if (e.falling) {
+                // Un petit saut vers le haut, une dérive de côté, puis la chute.
+                particles.add(
+                    BubbleParticle(PARTICLE_FALL, e.x, e.y, (random.nextFloat() - 0.5f) * 3f, -random.nextFloat() * 4f, e.color, Float.MAX_VALUE)
+                )
+            } else {
+                particles.add(BubbleParticle(PARTICLE_RING, e.x, e.y, 0f, 0f, e.color, RING_LIFE_MS))
+                for (i in 0 until SPARKS_PER_BUBBLE) {
+                    if (sparks >= MAX_SPARKS_PER_SHOT) break
+                    val angle = random.nextFloat() * TWO_PI
+                    val speed = 3f + random.nextFloat() * 4f
+                    particles.add(
+                        BubbleParticle(PARTICLE_SPARK, e.x, e.y, cos(angle) * speed, sin(angle) * speed, e.color, SPARK_LIFE_MS)
+                    )
+                    sparks++
+                }
+            }
+        }
+    }
+
+    /** Fait avancer les animations de [elapsedMs] millisecondes et retire celles qui sont finies ou sorties du terrain. */
+    fun stepParticles(elapsedMs: Long) {
+        val seconds = elapsedMs / 1000f
+        val iterator = particles.iterator()
+        while (iterator.hasNext()) {
+            val p = iterator.next()
+            p.age += elapsedMs
+            when (p.kind) {
+                PARTICLE_FALL -> {
+                    p.vy += FALL_GRAVITY * seconds
+                    p.x += p.vx * seconds
+                    p.y += p.vy * seconds
+                }
+                PARTICLE_SPARK -> {
+                    p.vy += FALL_GRAVITY * 0.3f * seconds
+                    p.x += p.vx * seconds
+                    p.y += p.vy * seconds
+                }
+            }
+            if (p.age >= p.life || p.y > Bubble.HEIGHT + 1f) iterator.remove()
+        }
+    }
+
     fun fire() {
         if (paused || celebrating || game.isOver) return
         if (game.shoot(aim)) sync()
@@ -342,13 +431,24 @@ private fun BubblePlayfield(
         if (paused) return@LaunchedEffect
         var last = withFrameNanos { it }
         var seenLevel = game.level
+        var seenShots = game.shotCount
         while (!game.isOver) {
             val now = withFrameNanos { it }
             val elapsed = ((now - last) / 1_000_000L).coerceIn(0L, MAX_FRAME_MS)
             last = now
             val wasFlying = game.isFlying
             game.tick(elapsed)
-            if (wasFlying || game.isFlying) sync()
+            if (game.shotCount != seenShots) {
+                // Une bulle vient de se poser : les bulles parties s'animent, et le téléphone vibre (plus fort si quelque chose est parti).
+                seenShots = game.shotCount
+                spawnEffects(game.lastEffects)
+                haptic.performHapticFeedback(
+                    if (game.lastEffects.isEmpty()) HapticFeedbackType.TextHandleMove else HapticFeedbackType.LongPress
+                )
+            }
+            val animating = particles.isNotEmpty()
+            if (animating) stepParticles(elapsed)
+            if (wasFlying || game.isFlying || animating) sync()
             if (game.level != seenLevel) {
                 // Le tableau vient d'être vidé : le jeu est déjà reparti sur le niveau suivant.
                 seenLevel = game.level
@@ -356,8 +456,16 @@ private fun BubblePlayfield(
                 celebrating = true
             }
         }
-        sync()
-        delay(GAME_OVER_DELAY_MS)
+        // La partie est perdue : on laisse les dernières animations se jouer avant la carte de fin.
+        var wait = GAME_OVER_DELAY_MS
+        while (wait > 0L) {
+            val now = withFrameNanos { it }
+            val elapsed = ((now - last) / 1_000_000L).coerceIn(0L, MAX_FRAME_MS)
+            last = now
+            wait -= elapsed.coerceAtLeast(1L)
+            stepParticles(elapsed)
+            sync()
+        }
         finished()
     }
 
@@ -426,7 +534,7 @@ private fun BubblePlayfield(
                         }
                     }
             ) {
-                Canvas(modifier = Modifier.fillMaxSize()) { drawBubbleBoard(game, aim, colorBlind, revision) }
+                Canvas(modifier = Modifier.fillMaxSize()) { drawBubbleBoard(game, aim, colorBlind, particles, revision) }
                 if (celebrating && !paused) {
                     Text(
                         text = stringResource(R.string.bubble_cleared_title, level),
@@ -588,6 +696,7 @@ private fun DrawScope.drawBubbleBoard(
     game: BubbleGame,
     aim: Float,
     colorBlind: Boolean,
+    particles: List<BubbleParticle>,
     @Suppress("UNUSED_PARAMETER") revision: Int
 ) {
     val u = size.width / Bubble.WIDTH
@@ -612,6 +721,30 @@ private fun DrawScope.drawBubbleBoard(
             val color = game.colorAt(row, col)
             if (color == BubbleGame.EMPTY) continue
             drawBubble(Offset(game.centerX(row, col) * u, game.centerY(row) * u), radius * 0.96f, color, colorBlind)
+        }
+    }
+
+    // Les animations : bulles qui éclatent (elle rétrécit pendant qu'un anneau s'élargit), étincelles, bulles qui tombent.
+    for (p in particles) {
+        val t = (p.age / p.life).coerceIn(0f, 1f)
+        val position = Offset(p.x * u, p.y * u)
+        val base = BubbleColors[p.color.coerceAtLeast(0) % BubbleColors.size]
+        when (p.kind) {
+            PARTICLE_RING -> {
+                if (t < 0.5f) drawBubble(position, radius * 0.96f * (1f - 2f * t), p.color, colorBlind)
+                drawCircle(
+                    color = lerp(base, Color.White, 0.4f).copy(alpha = 1f - t),
+                    radius = radius * (0.7f + 0.9f * t),
+                    center = position,
+                    style = Stroke(width = radius * 0.35f * (1f - t) + 1f)
+                )
+            }
+            PARTICLE_SPARK -> drawCircle(
+                color = lerp(base, Color.White, 0.3f).copy(alpha = 1f - t),
+                radius = radius * 0.22f * (1f - 0.6f * t),
+                center = position
+            )
+            else -> drawBubble(position, radius * 0.96f, p.color, colorBlind)
         }
     }
 

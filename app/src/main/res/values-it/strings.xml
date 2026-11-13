@@ -2274,7 +2274,7 @@
     <string name="rules_bubble_2_title">Mirare e sparare</string>
     <string name="rules_bubble_2_body">Appoggia il dito sul campo per mirare, trascinalo per regolare l’angolo, poi sollevalo per sparare. Puoi anche usare le frecce (tieni il dito premuto per continuare a ruotare) e il pulsante Spara. La bolla rimbalza sulle pareti: la linea tratteggiata mostra il suo percorso. Tocca la bolla in attesa, a sinistra del cannone, per scambiarla con quella nel cannone.</string>
     <string name="rules_bubble_3_title">Punti e livelli</string>
-    <string name="rules_bubble_3_body">Una bolla scoppiata vale 10 punti, una bolla che cade 20 punti. Svuotare il campo dà un bonus di 500 punti. Ogni livello inizia con il campo più pieno e con più colori (fino a sei).</string>
+    <string name="rules_bubble_3_body">Una bolla scoppiata vale 10 punti. Le bolle che cadono valgono 20 punti la prima di uno stesso tiro e il doppio ciascuna delle successive (40, 80…): far cadere un intero grappolo in un colpo solo conviene molto. Svuotare il campo dà un bonus di 500 punti. Ogni livello inizia con il campo più pieno e con più colori (fino a sei).</string>
     <string name="rules_bubble_4_title">La discesa e la fine</string>
     <string name="rules_bubble_4_body">Quando un tiro non fa scoppiare nulla, il soffitto si avvicina: dopo alcuni tiri a vuoto (il numero è indicato in alto) compare una nuova fila e tutto scende di un gradino. La partita finisce appena una bolla tocca la linea rossa. Gioco in solitaria: il miglior punteggio viene conservato e la partita va in pausa quando esci dall’app.</string>
     <string name="bubble_ready_title">Tocca a %1$s</string>

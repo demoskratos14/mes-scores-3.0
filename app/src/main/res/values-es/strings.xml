@@ -2264,7 +2264,7 @@
     <string name="rules_bubble_2_title">Apuntar y disparar</string>
     <string name="rules_bubble_2_body">Apoya el dedo en el tablero para apuntar, desliza para ajustar el ángulo y levántalo para disparar. También puedes usar las flechas (mantén el dedo pulsado para seguir girando) y el botón Disparar. La bola rebota en las paredes: la línea de puntos muestra su trayectoria. Toca la bola de espera, a la izquierda del cañón, para cambiarla por la del cañón.</string>
     <string name="rules_bubble_3_title">Puntos y niveles</string>
-    <string name="rules_bubble_3_body">Una bola que explota vale 10 puntos y una bola que cae, 20 puntos. Vaciar el tablero da un bonus de 500 puntos. Cada nivel empieza con el tablero más lleno y con más colores (hasta seis).</string>
+    <string name="rules_bubble_3_body">Una bola que explota vale 10 puntos. Las bolas que caen valen 20 puntos la primera de un mismo disparo y el doble cada una de las siguientes (40, 80…): hacer caer un racimo entero de golpe compensa mucho. Vaciar el tablero da un bonus de 500 puntos. Cada nivel empieza con el tablero más lleno y con más colores (hasta seis).</string>
     <string name="rules_bubble_4_title">El descenso y el final</string>
     <string name="rules_bubble_4_body">Cuando un disparo no hace explotar nada, el techo se acerca: tras unos cuantos disparos fallidos (el número aparece arriba), aparece una fila nueva y todo baja un escalón. La partida termina en cuanto una bola toca la línea roja. Juego en solitario: se guarda la mejor puntuación y la partida se pone en pausa al salir de la app.</string>
     <string name="bubble_ready_title">Le toca a %1$s</string>

@@ -2280,7 +2280,7 @@
     <string name="rules_bubble_2_title">Viser et tirer</string>
     <string name="rules_bubble_2_body">Pose le doigt sur le plateau pour viser, fais-le glisser pour régler l’angle, puis relève-le pour tirer. Tu peux aussi utiliser les flèches (garde le doigt posé pour continuer à tourner) et le bouton Tirer. La bulle rebondit sur les murs : le trait en pointillés montre son chemin. Touche la bulle d’attente, à gauche du canon, pour l’échanger avec celle du canon.</string>
     <string name="rules_bubble_3_title">Points et niveaux</string>
-    <string name="rules_bubble_3_body">Une bulle éclatée rapporte 10 points, une bulle qui tombe 20 points. Vider le tableau rapporte 500 points de bonus. À chaque niveau, le tableau est plus rempli, et des couleurs s’ajoutent (jusqu’à six).</string>
+    <string name="rules_bubble_3_body">Une bulle éclatée rapporte 10 points. Les bulles qui tombent rapportent 20 points pour la première d’un même tir, puis le double pour chacune des suivantes (40, 80…) : faire tomber toute une grappe d’un coup vaut très cher. Vider le tableau rapporte 500 points de bonus. À chaque niveau, le tableau est plus rempli, et des couleurs s’ajoutent (jusqu’à six).</string>
     <string name="rules_bubble_4_title">La descente et la fin</string>
     <string name="rules_bubble_4_body">Quand un tir ne fait rien éclater, le plafond se rapproche : après quelques tirs manqués (le nombre est affiché en haut), une nouvelle rangée apparaît et tout descend d’un cran. La partie est finie dès qu’une bulle touche la ligne rouge. Jeu en solo : le meilleur score est gardé, et la partie se met en pause quand tu quittes l’appli.</string>
     <string name="bubble_ready_title">À %1$s de jouer</string>

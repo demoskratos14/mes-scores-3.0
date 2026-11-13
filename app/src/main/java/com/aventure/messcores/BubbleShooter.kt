@@ -61,7 +61,12 @@ internal object Bubble {
     const val MIN_CLUSTER = 3
 
     const val POP_POINTS = 10
+
+    /** Points de la première bulle qui tombe d'un tir : chacune des suivantes en vaut le double (voir [fallPoints]). */
     const val FALL_POINTS = 20
+
+    /** Valeur la plus haute d'une bulle qui tombe : le doublement s'arrête là (20 × 64), pour que le score reste raisonnable. */
+    const val FALL_POINTS_MAX = FALL_POINTS * 64
 
     /** Points gagnés en vidant le tableau. */
     const val LEVEL_BONUS = 500
@@ -75,12 +80,33 @@ internal object Bubble {
     /** Nombre de tirs manqués (sans bulle éclatée) après lesquels le plafond descend d'une rangée au niveau [level]. */
     fun shotsPerDrop(level: Int): Int = (7 - (level.coerceAtLeast(1) - 1) / 2).coerceAtLeast(4)
 
+    /**
+     * Points de [count] bulles tombées par un seul tir : la première vaut [FALL_POINTS], la deuxième le double, la troisième le
+     * double encore… jusqu'à [FALL_POINTS_MAX]. Faire tomber une grappe d'un coup rapporte donc bien plus que des chutes séparées
+     * (1 bulle : 20, 2 : 60, 3 : 140, 4 : 300…).
+     */
+    fun fallPoints(count: Int): Int {
+        var total = 0
+        var value = FALL_POINTS
+        repeat(count.coerceAtLeast(0)) {
+            total += value
+            if (value < FALL_POINTS_MAX) value *= 2
+        }
+        return total
+    }
+
     fun clampAngle(angle: Float): Float = angle.coerceIn(MIN_ANGLE, MAX_ANGLE)
 
     /** L'angle de visée (de l'horizontale, vers le haut) pour aller du lanceur vers un point à [dx] vers la droite et [dy] vers le haut. */
     fun angleTo(dx: Float, dy: Float): Float =
         if (dy <= 0f) (if (dx >= 0f) MIN_ANGLE else MAX_ANGLE) else clampAngle(atan2(dy, dx))
 }
+
+/**
+ * Une bulle qui vient de quitter le tableau, pour que l'écran l'anime : où elle était (en unités du terrain), sa couleur, et
+ * [falling] vrai si elle tombe (elle ne tenait plus au plafond), faux si elle éclate (elle faisait partie du groupe de même couleur).
+ */
+internal class BubbleEffect(val x: Float, val y: Float, val color: Int, val falling: Boolean)
 
 /**
  * Une partie de Bubble Shooter : des bulles de couleur accrochées au plafond, et un lanceur en bas qui en tire une à la fois.
@@ -124,6 +150,12 @@ internal class BubbleGame(private val random: Random = Random.Default) {
     var shotsSinceDrop = 0
         private set
 
+    /** Les bulles parties du tableau au dernier tir, et le nombre de tirs posés depuis le début (il ne fait que croître : l'écran s'en sert pour repérer un nouveau tir). */
+    var lastEffects: List<BubbleEffect> = emptyList()
+        private set
+    var shotCount = 0
+        private set
+
     /** Nombre de bulles éclatées et de bulles tombées par le dernier tir. */
     var lastPopped = 0
         private set
@@ -154,6 +186,7 @@ internal class BubbleGame(private val random: Random = Random.Default) {
         shotsSinceDrop = 0
         lastPopped = 0
         lastFallen = 0
+        lastEffects = emptyList()
         flight = null
         fillLevel()
         current = randomPlayableColor()
@@ -355,15 +388,23 @@ internal class BubbleGame(private val random: Random = Random.Default) {
         grid[row][col] = color
         var popped = 0
         var fallen = 0
+        val effects = mutableListOf<BubbleEffect>()
         val group = cluster(row, col)
         if (group.size >= Bubble.MIN_CLUSTER) {
-            group.forEach { grid[it / Bubble.COLS][it % Bubble.COLS] = EMPTY }
+            group.forEach {
+                val r = it / Bubble.COLS
+                val c = it % Bubble.COLS
+                effects.add(BubbleEffect(centerX(r, c), centerY(r), grid[r][c], falling = false))
+                grid[r][c] = EMPTY
+            }
             popped = group.size
-            fallen = dropFloating()
+            fallen = dropFloating(effects)
         }
         lastPopped = popped
         lastFallen = fallen
-        score += Bubble.POP_POINTS * popped + Bubble.FALL_POINTS * fallen
+        lastEffects = effects
+        shotCount++
+        score += Bubble.POP_POINTS * popped + Bubble.fallPoints(fallen)
         if (popped == 0) {
             shotsSinceDrop++
             if (shotsSinceDrop >= Bubble.shotsPerDrop(level)) {
@@ -408,8 +449,11 @@ internal class BubbleGame(private val random: Random = Random.Default) {
         return group
     }
 
-    /** Fait tomber les bulles qui ne tiennent plus au plafond (même par d'autres bulles), et renvoie combien sont tombées. */
-    internal fun dropFloating(): Int {
+    /**
+     * Fait tomber les bulles qui ne tiennent plus au plafond (même par d'autres bulles), et renvoie combien sont tombées. Si
+     * [effects] est donné, chaque bulle tombée y est ajoutée (pour l'animer).
+     */
+    internal fun dropFloating(effects: MutableList<BubbleEffect>? = null): Int {
         val seen = BooleanArray(Bubble.MAX_ROWS * Bubble.COLS)
         val queue = ArrayDeque<Int>()
         for (c in 0 until Bubble.COLS) {
@@ -432,6 +476,7 @@ internal class BubbleGame(private val random: Random = Random.Default) {
         for (r in 0 until Bubble.MAX_ROWS) {
             for (c in 0 until Bubble.COLS) {
                 if (grid[r][c] != EMPTY && !seen[r * Bubble.COLS + c]) {
+                    effects?.add(BubbleEffect(centerX(r, c), centerY(r), grid[r][c], falling = true))
                     grid[r][c] = EMPTY
                     fallen++
                 }

@@ -288,6 +288,55 @@ class BubbleShooterTest {
         assertTrue(shots > 0)
     }
 
+    @Test
+    fun lesChutesRapportentDePlusEnPlusParBulle() {
+        assertEquals(0, Bubble.fallPoints(0))
+        assertEquals(20, Bubble.fallPoints(1))
+        assertEquals(60, Bubble.fallPoints(2))
+        assertEquals(140, Bubble.fallPoints(3))
+        assertEquals(300, Bubble.fallPoints(4))
+        // Le doublement s'arrête au maximum : au-delà, chaque bulle de plus vaut ce maximum.
+        assertEquals(Bubble.FALL_POINTS_MAX, Bubble.fallPoints(20) - Bubble.fallPoints(19))
+    }
+
+    @Test
+    fun uneGrappeQuiTombeRapporteLeBaremeProgressif() {
+        val game = emptyGame()
+        game.place(0, 5, 0)
+        game.place(0, 4, 0)
+        game.place(1, 5, 1) // tenue par (0, 5) seulement
+        game.place(2, 5, 1) // tenue par (1, 5) : elle tombe avec elle
+        game.place(0, 0, 2)
+        game.settle(0, 3, 0)
+        assertEquals(2, game.lastFallen)
+        assertEquals(3 * Bubble.POP_POINTS + Bubble.fallPoints(2), game.score)
+        assertEquals(30 + 60, game.score)
+    }
+
+    @Test
+    fun leTirNoteLesBullesPartiesPourLAnimation() {
+        val game = emptyGame()
+        game.place(0, 5, 0)
+        game.place(0, 4, 0)
+        game.place(1, 5, 1)
+        game.place(0, 0, 2)
+        assertEquals(0, game.shotCount)
+        game.settle(0, 3, 0)
+        assertEquals(1, game.shotCount)
+        val effects = game.lastEffects
+        assertEquals(4, effects.size)
+        assertEquals(3, effects.count { !it.falling })
+        val fallen = effects.single { it.falling }
+        assertEquals(1, fallen.color)
+        // La bulle est notée là où elle se trouvait.
+        assertEquals(game.centerX(1, 5), fallen.x, 1e-6f)
+        assertEquals(game.centerY(1), fallen.y, 1e-6f)
+        // Un tir manqué ne fait partir aucune bulle.
+        game.settle(0, 1, 2)
+        assertEquals(2, game.shotCount)
+        assertTrue(game.lastEffects.isEmpty())
+    }
+
     // --- La sauvegarde ---
 
     @Test

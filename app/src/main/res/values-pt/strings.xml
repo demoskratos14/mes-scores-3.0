@@ -2264,7 +2264,7 @@
     <string name="rules_bubble_2_title">Apontar e disparar</string>
     <string name="rules_bubble_2_body">Põe o dedo no tabuleiro para apontar, desliza para ajustar o ângulo e levanta-o para disparar. Também podes usar as setas (mantém o dedo premido para continuar a rodar) e o botão Disparar. A bola ressalta nas paredes: a linha tracejada mostra o seu caminho. Toca na bola de espera, à esquerda do canhão, para a trocar pela do canhão.</string>
     <string name="rules_bubble_3_title">Pontos e níveis</string>
-    <string name="rules_bubble_3_body">Uma bola que rebenta vale 10 pontos e uma bola que cai, 20 pontos. Esvaziar o tabuleiro dá um bónus de 500 pontos. Cada nível começa com o tabuleiro mais cheio e com mais cores (até seis).</string>
+    <string name="rules_bubble_3_body">Uma bola que rebenta vale 10 pontos. As bolas que caem valem 20 pontos a primeira de um mesmo disparo e o dobro cada uma das seguintes (40, 80…): fazer cair um cacho inteiro de uma vez compensa muito. Esvaziar o tabuleiro dá um bónus de 500 pontos. Cada nível começa com o tabuleiro mais cheio e com mais cores (até seis).</string>
     <string name="rules_bubble_4_title">A descida e o fim</string>
     <string name="rules_bubble_4_body">Quando um disparo não faz rebentar nada, o teto aproxima-se: depois de alguns disparos falhados (o número aparece no topo), surge uma nova fila e tudo desce um degrau. O jogo termina assim que uma bola toca a linha vermelha. Jogo a solo: a melhor pontuação é guardada e o jogo fica em pausa quando sais da aplicação.</string>
     <string name="bubble_ready_title">Vez de %1$s</string>
