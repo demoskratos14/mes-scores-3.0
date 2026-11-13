@@ -110,7 +110,7 @@ private val AsteroidsGameSaver = listSaver<AsteroidsGame, Int>(
  * Les images du jeu, tirées de modèles 3D vus de dessus et chargées une fois : le vaisseau du joueur (nez en haut) et la planche des
  * ennemis (voir [Asteroids.ATLAS_COLS]) ; null si une image ne se charge pas, le dessin se rabat alors sur des formes simples.
  */
-private object AsteroidsSprites {
+internal object AsteroidsSprites {
     private var ship: ImageBitmap? = null
     private var loaded = false
     private var enemies: ImageBitmap? = null
@@ -432,14 +432,14 @@ private fun AsteroidsPlayfield(
     }
 }
 
-private enum class PadIcon { LEFT, RIGHT, THRUST, FIRE }
+internal enum class PadIcon { LEFT, RIGHT, THRUST, FIRE }
 
 /**
  * Un bouton qui agit tant qu'on le tient : [onHold] reçoit vrai dès que le doigt se pose et faux quand il se lève (ou que
  * le bouton disparaît). Chaque bouton suit son propre doigt, on peut donc en tenir plusieurs à la fois.
  */
 @Composable
-private fun PadButton(icon: PadIcon, label: String, modifier: Modifier, onHold: (Boolean) -> Unit) {
+internal fun PadButton(icon: PadIcon, label: String, modifier: Modifier, onHold: (Boolean) -> Unit) {
     var pressed by remember { mutableStateOf(false) }
     val update by rememberUpdatedState(onHold)
     val idleColor = MaterialTheme.colorScheme.secondaryContainer

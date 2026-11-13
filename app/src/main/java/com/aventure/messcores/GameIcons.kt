@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, PANCAKE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, PANCAKE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID
 )
 
@@ -133,6 +133,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             BREAKOUT_ID -> drawBreakout()
             SHMUP_ID -> drawShmup()
             ASTEROIDS_ID -> drawAsteroids()
+            INVADERS_ID -> drawInvaders()
             XONIX_ID -> drawXonix()
             SNAKE_ID -> drawSnake()
             BUBBLE_ID -> drawBubbleShooter()
@@ -375,6 +376,30 @@ private fun DrawScope.drawAsteroids() {
     }
     drawPath(ship, Color(0xFFB7C7DB))
     drawCircle(Color(0xFF4DD0E1), s * 0.035f, Offset(s * 0.5f, s * 0.64f))
+}
+
+private fun DrawScope.drawInvaders() {
+    paper(Color(0xFF0B1E2B))
+    val s = size.minDimension
+    // Un envahisseur en pixels, un tir jaune et le vaisseau pointé vers le haut.
+    val rows = listOf("  #     #  ", "   #   #   ", "  #######  ", " ## ### ## ", "###########", "# ####### #", "# #     # #", "   ## ##   ")
+    val cell = s * 0.065f
+    val left = (s - cell * 11f) / 2f
+    val top = s * 0.14f
+    for ((r, line) in rows.withIndex()) {
+        for ((c, ch) in line.withIndex()) {
+            if (ch == '#') drawRect(Color(0xFF81C784), topLeft = Offset(left + c * cell, top + r * cell), size = Size(cell + 0.5f, cell + 0.5f))
+        }
+    }
+    drawRect(Color(0xFFFFF176), topLeft = Offset(s * 0.49f, s * 0.64f), size = Size(s * 0.02f, s * 0.07f))
+    val ship = Path().apply {
+        moveTo(s * 0.5f, s * 0.74f)
+        lineTo(s * 0.63f, s * 0.9f)
+        lineTo(s * 0.5f, s * 0.85f)
+        lineTo(s * 0.37f, s * 0.9f)
+        close()
+    }
+    drawPath(ship, Color(0xFFB7C7DB))
 }
 
 private fun DrawScope.drawXonix() {

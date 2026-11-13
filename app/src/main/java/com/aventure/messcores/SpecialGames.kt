@@ -379,6 +379,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Envahisseurs : écran à part (voir InvadersScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = INVADERS_ID,
+        name = context.getString(R.string.game_invaders),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Snake : écran à part (voir SnakeScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = SNAKE_ID,
