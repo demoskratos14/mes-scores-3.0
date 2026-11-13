@@ -88,25 +88,25 @@ private const val PANCAKE_PHASE_OVER = 2 // cinq crêpes sont tombées : la part
 /** Plus long temps d'une image pris en compte : après un à-coup, les crêpes ne doivent pas sauter plusieurs positions d'un coup. */
 private const val PANCAKE_MAX_FRAME_MS = 100L
 
-// Le dessin de la console, en unités de la photo d'origine recadrée (633 x 423).
-private const val CONSOLE_W = 633f
-private const val CONSOLE_H = 423f
-private const val SCREEN_X = 173f
-private const val SCREEN_Y = 59f
-private const val BUTTON_LEFT_X = 76f
-private const val BUTTON_LEFT_Y = 269.5f
-private const val BUTTON_RIGHT_X = 556.5f
-private const val BUTTON_RIGHT_Y = 270.3f
-private const val BUTTON_RADIUS = 27f
+// Le dessin de la console, en unités de la photo d'origine recadrée (636,2 x 419).
+private const val CONSOLE_W = 636.2f
+private const val CONSOLE_H = 419f
+private const val SCREEN_X = 173.1f
+private const val SCREEN_Y = 58.1f
+private const val BUTTON_LEFT_X = 77.2f
+private const val BUTTON_LEFT_Y = 268.5f
+private const val BUTTON_RIGHT_X = 559.4f
+private const val BUTTON_RIGHT_Y = 269f
+private const val BUTTON_RADIUS = 27.2f
 
 // Les trois petits boutons du bas : GAME A, GAME B et TIME (centre, puis demi-largeur et demi-hauteur).
-private const val BUTTON_A_X = 335f
-private const val BUTTON_B_X = 402.5f
-private const val BUTTON_TIME_X = 469f
-private const val BUTTONS_Y = 355.5f
-private const val BUTTON_HALF_W = 25f
-private const val BUTTON_HALF_H = 12.5f
-private const val BUTTON_CORNER = 12f
+private const val BUTTON_A_X = 337.5f
+private const val BUTTON_B_X = 404.2f
+private const val BUTTON_TIME_X = 470.2f
+private const val BUTTONS_Y = 353.4f
+private const val BUTTON_HALF_W = 25.6f
+private const val BUTTON_HALF_H = 14.5f
+private const val BUTTON_CORNER = 14f
 
 // Les boutons enfoncés, un bit chacun.
 private const val PRESS_LEFT = 1
@@ -158,7 +158,6 @@ private val PancakeGameSaver = listSaver<PancakeGame, Int>(
 private class PancakeShapes {
     private fun parse(d: String): Path = PathParser().parsePathString(d).toPath().apply { fillType = PathFillType.EvenOdd }
 
-    val layers: List<Pair<Color, Path>> = PancakeArt.LAYERS.map { (color, d) -> Color(color) to parse(d) }
     val waiters: List<Path> = listOf(PancakeArt.WAITER_LEFT, PancakeArt.WAITER_CENTER, PancakeArt.WAITER_RIGHT).map { parse(it) }
     val steps: List<Path> = PancakeArt.STEPS.map { parse(it) }
     val blobs: List<Path> = listOf(PancakeArt.BLOB_LEFT, PancakeArt.BLOB_CENTER, PancakeArt.BLOB_RIGHT).map { parse(it) }
@@ -197,7 +196,7 @@ internal fun PancakeScreen(players: List<String>) {
     // Les boutons de la console actuellement enfoncés (un bit chacun, voir PRESS_LEFT et les suivants).
     var pressed by remember { mutableIntStateOf(0) }
     val shapes = remember { PancakeShapes() }
-    val ink = ImageBitmap.imageResource(R.drawable.pancake_ink)
+    val background = ImageBitmap.imageResource(R.drawable.pancake_bg)
     val console = ImageBitmap.imageResource(R.drawable.pancake_console)
     val screenDescription = stringResource(R.string.pancake_score, score) + ", " +
         stringResource(R.string.pancake_misses, misses, Pancake.MAX_MISSES)
@@ -276,7 +275,7 @@ internal fun PancakeScreen(players: List<String>) {
                     .size(consoleWidth, consoleWidth / ratio)
             ) {
                 Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = screenDescription }) {
-                    drawPancakeConsole(game, revision, shapes, ink, console, pressed)
+                    drawPancakeConsole(game, revision, shapes, background, console, pressed)
                 }
                 // Les deux côtés de la console : un appui déplace le serveur dès que le doigt se pose.
                 PancakeZone(
@@ -486,7 +485,7 @@ private fun DrawScope.drawPancakeConsole(
     game: PancakeGame,
     @Suppress("UNUSED_PARAMETER") revision: Int,
     shapes: PancakeShapes,
-    ink: ImageBitmap,
+    background: ImageBitmap,
     console: ImageBitmap,
     pressed: Int
 ) {
@@ -498,7 +497,7 @@ private fun DrawScope.drawPancakeConsole(
             translate(screenTopLeft.x, screenTopLeft.y)
             scale(k, k, pivot = Offset.Zero)
         }) {
-            drawPancakeScreen(game, shapes, ink)
+            drawPancakeScreen(game, shapes, background)
         }
     }
     drawImage(
@@ -522,13 +521,11 @@ private fun DrawScope.drawPancakeConsole(
     }
 }
 
-/** L'écran à cristaux liquides, dans son propre repère de 288 x 218 : fond, personnages fixes, puis segments allumés. */
-private fun DrawScope.drawPancakeScreen(game: PancakeGame, shapes: PancakeShapes, ink: ImageBitmap) {
-    drawRect(Color(PancakeArt.PAPER), size = Size(PancakeArt.WIDTH, PancakeArt.HEIGHT))
-    for ((color, path) in shapes.layers) drawPath(path, color)
-    // Le client, le cuisinier au repos, le fourneau et le titre, dessinés en une seule image.
+/** L'écran à cristaux liquides, dans son propre repère de 288 x 218 : le fond, puis les segments allumés. */
+private fun DrawScope.drawPancakeScreen(game: PancakeGame, shapes: PancakeShapes, background: ImageBitmap) {
+    // Le papier, le rideau, la grille, les plantes, le client, le cuisinier au repos, le fourneau et le titre : une seule image.
     drawImage(
-        ink,
+        background,
         dstOffset = IntOffset.Zero,
         dstSize = IntSize(PancakeArt.WIDTH.toInt(), PancakeArt.HEIGHT.toInt()),
         filterQuality = FilterQuality.High
