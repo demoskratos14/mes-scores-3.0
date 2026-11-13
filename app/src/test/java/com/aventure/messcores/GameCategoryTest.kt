@@ -41,7 +41,7 @@ class GameCategoryTest {
         fun idsIn(category: GameCategory) = builtIns.filter { it.category() == category }.map { it.id }.toSet()
         assertEquals(
             setOf(
-                "builtin_skyjo", "builtin_uno", "builtin_milleb", "builtin_sixqp", "builtin_papayoo", "builtin_cabo",
+                "builtin_skyjo", "builtin_skyjo_action", "builtin_uno", "builtin_milleb", "builtin_sixqp", "builtin_papayoo", "builtin_cabo",
                 "builtin_rummikub", "builtin_dominos", "builtin_wizard", "builtin_phase10", "builtin_splendor",
                 "builtin_dixit", "builtin_ttr", "builtin_azul", "builtin_carcassonne", "builtin_catane",
                 "builtin_sevenwonders", "builtin_wingspan", "builtin_hanabi", "builtin_scrabble", "builtin_trivial",
