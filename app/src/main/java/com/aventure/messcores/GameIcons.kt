@@ -48,7 +48,7 @@ private const val GRID_COLUMNS = 3
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
     MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, PANCAKE_ID,
-    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID
+    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID
 )
 
 /**
@@ -145,6 +145,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             CHESS_ID -> drawChess()
             UNO_ID -> drawUno()
             FLIP7_ID -> drawFlip7()
+            SKYJO_ACTION_ID -> drawSkyjoAction()
             else -> drawGeneric()
         }
     }
@@ -656,6 +657,33 @@ private fun DrawScope.drawUno() {
     card(Color(0xFF1565C0), -26f, -s * 0.12f, oval = false)
     card(Color(0xFFF9A825), 0f, 0f, oval = false)
     card(Color(0xFFD32F2F), 26f, s * 0.12f, oval = true)
+}
+
+private fun DrawScope.drawSkyjoAction() {
+    paper(Color(0xFF263238))
+    val s = size.minDimension
+    val w = s * 0.4f
+    val h = s * 0.6f
+    // Deux cartes en éventail : une carte action rose (avec son ovale blanc) devant une carte numérotée verte.
+    fun card(color: Color, angle: Float, dx: Float, oval: Boolean) {
+        val left = s / 2f + dx - w / 2f
+        val top = s / 2f - h / 2f
+        rotate(angle, pivot = Offset(s / 2f + dx, s * 0.8f)) {
+            drawRoundRect(Color.White, topLeft = Offset(left, top), size = Size(w, h), cornerRadius = CornerRadius(s * 0.06f))
+            val inset = s * 0.025f
+            drawRoundRect(
+                color,
+                topLeft = Offset(left + inset, top + inset),
+                size = Size(w - 2 * inset, h - 2 * inset),
+                cornerRadius = CornerRadius(s * 0.045f)
+            )
+            if (oval) {
+                drawOval(Color.White, topLeft = Offset(left + w * 0.18f, top + h * 0.3f), size = Size(w * 0.64f, h * 0.4f))
+            }
+        }
+    }
+    card(Color(0xFF43A047), -16f, -s * 0.12f, oval = false)
+    card(Color(0xFFD81B8C), 16f, s * 0.12f, oval = true)
 }
 
 private fun DrawScope.drawHangman() {

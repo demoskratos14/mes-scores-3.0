@@ -19,6 +19,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 100, stopImmediately = false)
     ),
     GameRules(
+        id = SKYJO_ACTION_ID,
+        name = context.getString(R.string.game_skyjo_action),
+        minPlayers = 2,
+        maxPlayers = 8,
+        lowestWins = true,
+        allowNegativeScores = true,
+        scoreMode = ScoreMode.TABLE,
+        endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 100, stopImmediately = false)
+    ),
+    GameRules(
         id = "builtin_uno",
         name = context.getString(R.string.game_uno),
         minPlayers = 2,

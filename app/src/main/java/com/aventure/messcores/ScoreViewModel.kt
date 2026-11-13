@@ -164,6 +164,16 @@ class ScoreViewModel : ViewModel() {
         return Flip7Round(players.size, dealer = played % players.size.coerceAtLeast(1), startRound = played + 1).also { flip7Round = it }
     }
 
+    // La partie de Skyjo Action en cours (grilles, pioches, cartes action, tour) : elle vit ici pour la même raison.
+    private var skyjoActionRound: SkyjoActionRound? = null
+
+    /** La partie de Skyjo Action ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun skyjoActionRound(): SkyjoActionRound {
+        val current = skyjoActionRound
+        if (current != null && current.playerCount == players.size) return current
+        return SkyjoActionRound(players.size, startRound = roundsPlayed() + 1).also { skyjoActionRound = it }
+    }
+
     // La partie de Qwixx en cours (plateau de chaque joueur, tour en cours). Elle vit ici pour la même raison ; une partie
     // reprise ou rouverte repart d'une partie neuve.
     private var qwixxRound: QwixxRound? = null
@@ -282,6 +292,7 @@ class ScoreViewModel : ViewModel() {
         yanivRound = null
         flip7Round = null
         qwixxRound = null
+        skyjoActionRound = null
         editingTeamRoundIndex = null
         allModes.forEach { it.clear() }
         phases.clear()
@@ -319,6 +330,7 @@ class ScoreViewModel : ViewModel() {
             yanivRound = null
             flip7Round = null
             qwixxRound = null
+            skyjoActionRound = null
         }
         currentSaveId = saved.id
         savedBaseline = saved
@@ -341,7 +353,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la partie ouverte contient au moins un score saisi (donc qu'il y a quelque chose à perdre). */
     fun hasProgress(): Boolean {
         if (!gameActive || players.isEmpty()) return false
-        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true
+        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true
     }
 
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
@@ -358,6 +370,7 @@ class ScoreViewModel : ViewModel() {
         yanivRound = null
         flip7Round = null
         qwixxRound = null
+        skyjoActionRound = null
         currentSaveId = null
         savedBaseline = null
         lastSavedContent = null

@@ -228,6 +228,13 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_yaniv_3_title, R.string.rules_yaniv_3_body),
         RulesSection(R.string.rules_yaniv_4_title, R.string.rules_yaniv_4_body)
     ),
+    "builtin_skyjo_action" to listOf(
+        RulesSection(R.string.rules_skyjoa_1_title, R.string.rules_skyjoa_1_body),
+        RulesSection(R.string.rules_skyjoa_2_title, R.string.rules_skyjoa_2_body),
+        RulesSection(R.string.rules_skyjoa_3_title, R.string.rules_skyjoa_3_body),
+        RulesSection(R.string.rules_skyjoa_4_title, R.string.rules_skyjoa_4_body),
+        RulesSection(R.string.rules_skyjoa_5_title, R.string.rules_skyjoa_5_body)
+    ),
     "builtin_barbu" to listOf(
         RulesSection(R.string.rules_barbu_1_title, R.string.rules_barbu_1_body),
         RulesSection(R.string.rules_barbu_2_title, R.string.rules_barbu_2_body),
