@@ -53,4 +53,14 @@ class AppFlowUiTest {
         openFromHome(R.string.home_playable)
         composeRule.onNodeWithText(context.getString(R.string.choose_title)).assertIsDisplayed()
     }
+
+    @Test
+    fun deLAccueilLesJeuxSoloOuvrentDirectementLeChoixDuJeuSansSaisieDesJoueurs() {
+        composeRule.setContent {
+            MesScoresTheme(mode = ThemeMode.SYSTEM) { ScoreApp() }
+        }
+        composeRule.onNodeWithText(context.getString(R.string.home_solo)).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.choose_title)).assertIsDisplayed()
+    }
 }

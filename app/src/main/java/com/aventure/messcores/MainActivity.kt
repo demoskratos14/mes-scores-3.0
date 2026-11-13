@@ -182,6 +182,8 @@ fun ScoreApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var playMode by rememberSaveable { mutableStateOf(false) }
+    // Accueil « Jeux solo » : un joueur seul, sans écran de saisie des joueurs (playMode est alors vrai aussi).
+    var soloMode by rememberSaveable { mutableStateOf(false) }
     // Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille, Qwixx, Shut the Box jouables : la page des dés est l'écran de la partie (pas de feuille de score derrière).
     // Un invité qui rejoint une de ces parties arrive lui aussi directement sur la page des dés.
     // Seulement si l'organisateur joue en version jouable : la feuille de scores seule reste indépendante.
@@ -236,6 +238,7 @@ fun ScoreApp(
     // rememberSaveable : sinon une rotation de l'écran vide la liste alors que la navigation reste
     // sur « choisir le jeu » (message « Tu as saisi 0 joueur »).
     var pendingPlayerNames by rememberSaveable(stateSaver = StringListSaver) { mutableStateOf(listOf<String>()) }
+    val playerDefault = stringResource(R.string.player_default)
     // Couleurs choisies à l'étape 1 (ARGB ; 0 = pas de choix, tirée au sort au lancement de la partie).
     var pendingPlayerColors by rememberSaveable(
         stateSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
@@ -281,11 +284,21 @@ fun ScoreApp(
                 HomeScreen(
                     onOpenScores = {
                         playMode = false
+                        soloMode = false
                         navController.navigate("setup")
                     },
                     onOpenPlayable = {
                         playMode = true
+                        soloMode = false
                         navController.navigate("setup")
+                    },
+                    onOpenSolo = {
+                        playMode = true
+                        soloMode = true
+                        // Un seul joueur : on saute la saisie des joueurs et on reprend le premier nom de la dernière partie.
+                        pendingPlayerNames = PlayerNames.resolve(loadLastPlayerNames(context).take(1).ifEmpty { listOf("") }, playerDefault)
+                        pendingPlayerColors = listOf(0)
+                        navController.navigate("chooseGame")
                     },
                     themeMode = themeMode,
                     onThemeModeChange = onThemeModeChange,
@@ -396,7 +409,8 @@ fun ScoreApp(
                     onEditGame = { rules ->
                         navController.navigate("createGame?editId=${Uri.encode(rules.id)}")
                     },
-                    playableOnly = playMode
+                    playableOnly = playMode,
+                    soloOnly = soloMode
                 )
             }
             // editId absent : création d'un jeu ; présent : modification du jeu personnalisé correspondant.

@@ -1594,6 +1594,8 @@
     <string name="home_scores_hint">Cuenta los puntos de tus partidas (cartas, dados, deportes…)</string>
     <string name="home_playable">Juegos jugables</string>
     <string name="home_playable_hint">Juega directamente en la app (dados, cartas, Mastermind…), con un teléfono o con varios</string>
+    <string name="home_solo">Juegos en solitario</string>
+    <string name="home_solo_hint">Juega solo en tu teléfono (Tetris, Snake, Rompeladrillos…)</string>
     <string name="playable_one_phone">Un solo teléfono</string>
     <string name="playable_multi_phone">Se pueden conectar varios teléfonos</string>
     <string name="game_morpion">Tres en raya</string>

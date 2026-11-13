@@ -1594,6 +1594,8 @@
     <string name="home_scores_hint">Conta os pontos dos teus jogos (cartas, dados, desportos…)</string>
     <string name="home_playable">Jogos jogáveis</string>
     <string name="home_playable_hint">Joga diretamente na app (dados, cartas, Mastermind…), com um telemóvel ou com vários</string>
+    <string name="home_solo">Jogos a solo</string>
+    <string name="home_solo_hint">Joga sozinho no teu telemóvel (Tetris, Snake, Breakout…)</string>
     <string name="playable_one_phone">Um só telemóvel</string>
     <string name="playable_multi_phone">Podem ligar-se vários telemóveis</string>
     <string name="game_morpion">Jogo do galo</string>

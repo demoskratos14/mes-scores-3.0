@@ -1604,6 +1604,8 @@
     <string name="home_scores_hint">Conta i punti delle tue partite (carte, dadi, sport…)</string>
     <string name="home_playable">Giochi giocabili</string>
     <string name="home_playable_hint">Gioca direttamente nell\'app (dadi, carte, Mastermind…), con un telefono o con più telefoni</string>
+    <string name="home_solo">Giochi singoli</string>
+    <string name="home_solo_hint">Gioca da solo sul tuo telefono (Tetris, Snake, Breakout…)</string>
     <string name="playable_one_phone">Un solo telefono</string>
     <string name="playable_multi_phone">Si possono collegare più telefoni</string>
     <string name="game_morpion">Tris</string>

@@ -47,6 +47,15 @@ fun GameRules.isPlayableGame(): Boolean =
         id == GOMOKU_ID || id == DOTS_ID || id == DRAUGHTS_ID || id == OTHELLO_ID || id == HANGMAN_ID || id == CHESS_ID ||
         id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || id == YANIV_ID || id == FLIP7_ID || id == SKYJO_ACTION_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
 
+/**
+ * Vrai si le jeu peut se jouer seul (accueil « Jeux solo ») : Tetris, Snake, Casse-briques… mais aussi les Ronds et Simon,
+ * qui se jouent seul ou à plusieurs et sont donc aussi listés dans « Jeux jouables » (voir [isSoloOnlyGame]).
+ */
+fun GameRules.isSoloGame(): Boolean = isPlayableGame() && minPlayers == 1
+
+/** Vrai si le jeu ne se joue qu'à un seul joueur : il n'apparaît alors que dans « Jeux solo », pas dans « Jeux jouables ». */
+fun GameRules.isSoloOnlyGame(): Boolean = isSoloGame() && maxPlayers == 1
+
 /** Vrai si le jeu a une feuille de scores : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont chacun leur écran, sans feuille. */
 fun GameRules.hasScoreSheet(): Boolean =
     id != MASTERMIND_ID && id != MORPION_ID && id != CONNECT4_ID && id != BATTLESHIP_ID && id != NIM_ID && id != PFC_ID && id != REFLEX_ID && id != CIRCLES_ID && id != SIMON_ID && id != RHYTHM_ID && id != TETRIS_ID && id != BREAKOUT_ID && id != ASTEROIDS_ID && id != SHMUP_ID && id != XONIX_ID && id != SNAKE_ID && id != BUBBLE_ID && id != PANCAKE_ID &&

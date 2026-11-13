@@ -365,7 +365,7 @@ internal fun AppearanceSettings(
 private const val SETUP_PREFS = "mes_scores_setup"
 private const val KEY_LAST_NAMES = "last_player_names"
 
-private fun loadLastPlayerNames(context: Context): List<String> = try {
+internal fun loadLastPlayerNames(context: Context): List<String> = try {
     val json = context.getSharedPreferences(SETUP_PREFS, Context.MODE_PRIVATE)
         .getString(KEY_LAST_NAMES, null)
     if (json == null) {

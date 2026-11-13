@@ -1609,6 +1609,8 @@
     <string name="home_scores_hint">Compter les points de tes parties (cartes, dés, sports…)</string>
     <string name="home_playable">Jeux jouables</string>
     <string name="home_playable_hint">Jouer directement dans l\'appli (dés, cartes, Mastermind…), sur un téléphone ou à plusieurs</string>
+    <string name="home_solo">Jeux solo</string>
+    <string name="home_solo_hint">Jouer seul sur ton téléphone (Tetris, Snake, Simon…)</string>
     <string name="playable_one_phone">Un seul téléphone</string>
     <string name="playable_multi_phone">Plusieurs téléphones possibles</string>
     <string name="game_morpion">Morpion</string>

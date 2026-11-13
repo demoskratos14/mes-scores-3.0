@@ -1568,6 +1568,8 @@
     <string name="home_scores_hint">Keep score for your games (cards, dice, sports…)</string>
     <string name="home_playable">Playable games</string>
     <string name="home_playable_hint">Play right in the app (dice, cards, Mastermind…), on one phone or with several</string>
+    <string name="home_solo">Solo games</string>
+    <string name="home_solo_hint">Play alone on your phone (Tetris, Snake, Breakout…)</string>
     <string name="playable_one_phone">One phone only</string>
     <string name="playable_multi_phone">Can connect several phones</string>
     <string name="game_morpion">Tic-tac-toe</string>

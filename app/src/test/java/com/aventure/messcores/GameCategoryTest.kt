@@ -71,6 +71,22 @@ class GameCategoryTest {
     }
 
     @Test
+    fun lesJeuxSoloSontLesJeuxJouablesPourUnSeulJoueur() {
+        val solo = builtIns.filter { it.isSoloGame() }.map { it.id }.toSet()
+        assertEquals(
+            setOf(RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, PANCAKE_ID, CIRCLES_ID, SIMON_ID),
+            solo
+        )
+        // Les Ronds et Simon se jouent seul ou à plusieurs : ils sont dans « Jeux solo » ET dans « Jeux jouables ».
+        assertEquals(false, builtIns.single { it.id == CIRCLES_ID }.isSoloOnlyGame())
+        assertEquals(false, builtIns.single { it.id == SIMON_ID }.isSoloOnlyGame())
+        assertEquals(true, builtIns.single { it.id == TETRIS_ID }.isSoloOnlyGame())
+        // Un jeu solo reste jouable, sans feuille de scores.
+        assertEquals(true, builtIns.single { it.id == TETRIS_ID }.isPlayableGame())
+        assertEquals(false, builtIns.single { it.id == TETRIS_ID }.hasScoreSheet())
+    }
+
+    @Test
     fun kingOfTokyoNEstPasUnJeuJouableMaisGardeSaFeuilleEtSesDes() {
         val kot = builtIns.single { it.id == "builtin_kot" }
         assertEquals(false, kot.isPlayableGame())
