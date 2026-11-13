@@ -2364,7 +2364,7 @@
     <string name="rules_shmup_3_title">Points et niveaux</string>
     <string name="rules_shmup_3_body">Le jeu compte quatre plateaux : l’espace, un chemin de terre, une base aérienne puis le désert. Chaque plateau dure un peu plus d’une minute, puis un boss arrive : le défilement s’arrête et il faut le détruire pour passer au plateau suivant, dans un saut en vitesse lumière. Les ennemis se diversifient : les chars arrivent au plateau 2, les tourelles au plateau 3. Après le dernier plateau, tout recommence au premier, en plus difficile. Un ennemi détruit rapporte ses points multipliés par le niveau. Après un impact, le vaisseau clignote et ne peut pas être touché pendant un court instant. Les chars et les tourelles posés au sol ne blessent pas au contact.</string>
     <string name="rules_shmup_4_title">Bonus et malus</string>
-    <string name="rules_shmup_4_body">Certains ennemis détruits laissent tomber une pastille : verte avec un plus, elle fait gagner un niveau à l’arme ; rouge avec un moins, elle en fait perdre un. Niveau 1 : un missile. Niveau 2 : deux missiles. Niveau 3 : trois missiles en éventail. Niveau 4 : un laser et deux missiles. Niveau 5 : un grand laser et trois missiles. Un boss vaincu laisse toujours un bonus.</string>
+    <string name="rules_shmup_4_body">Certains ennemis détruits laissent tomber une pastille : verte avec un plus, elle fait progresser l’arme ; rouge avec un moins, elle fait reculer d’un niveau l’arme du vaisseau principal. L’arme a 4 niveaux : 1 missile, 2 missiles, 3 missiles en éventail, puis un laser avec 2 missiles. Au laser, le bonus suivant ramène l’arme du vaisseau au niveau 1 mais fait apparaître un petit vaisseau satellite, qui tourne autour du vaisseau et tire comme lui. Il y en a 3 à gagner. Quand ils sont tous là, les bonus font monter l’arme du vaisseau jusqu’au laser, puis celle des satellites, qui passent eux aussi par le niveau 2, le niveau 3 et le laser : c’est l’armement final. Quand le vaisseau est touché, il perd un satellite au lieu d’une vie. Un boss vaincu laisse toujours un bonus.</string>
     <string name="shmup_stage">Plateau %1$d</string>
     <string name="shmup_warning">Attention !</string>
     <string name="shmup_ready_hint">Détruis les vaisseaux ennemis et évite leurs tirs. Tu as trois vies : ne te fais pas toucher !</string>
@@ -2372,7 +2372,9 @@
     <string name="shmup_ready_title">À %1$s de jouer</string>
     <string name="shmup_go">C’est parti !</string>
     <string name="shmup_score">Score : %1$d</string>
-    <string name="shmup_stats">Vies : %1$d, niveau : %2$d, arme : %3$d</string>
+    <string name="shmup_stats">Vies : %1$d, niveau : %2$d</string>
+    <string name="shmup_weapon">Arme : %1$d</string>
+    <string name="shmup_weapon_sat">Arme : %1$d, satellites : %2$d (niveau %3$d)</string>
     <string name="shmup_level_reached">Niveau atteint : %1$d</string>
     <string name="shmup_pause">Pause</string>
     <string name="shmup_paused_title">Partie en pause</string>

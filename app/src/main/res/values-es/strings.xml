@@ -2348,7 +2348,7 @@
     <string name="rules_shmup_3_title">Puntos y niveles</string>
     <string name="rules_shmup_3_body">El juego tiene cuatro fases: el espacio, un camino de tierra, una base aérea y después el desierto. Cada fase dura algo más de un minuto, luego llega un jefe: el desplazamiento se detiene y hay que destruirlo para pasar a la fase siguiente, con un salto a la velocidad de la luz. Los enemigos se diversifican: los tanques llegan en la fase 2 y las torretas en la fase 3. Tras la última fase todo vuelve a empezar en la primera, pero más difícil. Cada enemigo destruido da sus puntos, multiplicados por el nivel. Tras un impacto, la nave parpadea y no puede ser alcanzada durante un breve instante. Los tanques y las torretas del suelo no hacen daño al contacto.</string>
     <string name="rules_shmup_4_title">Bonus y penalizaciones</string>
-    <string name="rules_shmup_4_body">Algunos enemigos destruidos sueltan una pastilla: verde con un más, sube un nivel el arma; roja con un menos, se lo baja. Nivel 1: un misil. Nivel 2: dos misiles. Nivel 3: tres misiles en abanico. Nivel 4: un láser y dos misiles. Nivel 5: un gran láser y tres misiles. Un jefe derrotado siempre deja un bonus.</string>
+    <string name="rules_shmup_4_body">Algunos enemigos destruidos sueltan una pastilla: verde con un más, hace progresar el arma; roja con un menos, baja un nivel el arma de la nave principal. El arma tiene 4 niveles: 1 misil, 2 misiles, 3 misiles en abanico y después un láser con 2 misiles. Con el láser, el siguiente bonus devuelve el arma de la nave al nivel 1 pero hace aparecer una pequeña nave satélite, que gira alrededor de la nave y dispara como ella. Hay 3 por conseguir. Cuando están todos, los bonus suben el arma de la nave hasta el láser, y luego la de los satélites, que también pasan por el nivel 2, el nivel 3 y el láser: es el armamento final. Cuando la nave es alcanzada, pierde un satélite en lugar de una vida. Un jefe derrotado siempre deja un bonus.</string>
     <string name="shmup_stage">Fase %1$d</string>
     <string name="shmup_warning">¡Atención!</string>
     <string name="shmup_ready_hint">Destruye las naves enemigas y esquiva sus disparos. Tienes tres vidas: ¡que no te alcancen!</string>
@@ -2356,7 +2356,9 @@
     <string name="shmup_ready_title">Le toca a %1$s</string>
     <string name="shmup_go">¡Vamos!</string>
     <string name="shmup_score">Puntos: %1$d</string>
-    <string name="shmup_stats">Vidas: %1$d, nivel: %2$d, arma: %3$d</string>
+    <string name="shmup_stats">Vidas: %1$d, nivel: %2$d</string>
+    <string name="shmup_weapon">Arma: %1$d</string>
+    <string name="shmup_weapon_sat">Arma: %1$d, satélites: %2$d (nivel %3$d)</string>
     <string name="shmup_level_reached">Nivel alcanzado: %1$d</string>
     <string name="shmup_pause">Pausa</string>
     <string name="shmup_paused_title">Partida en pausa</string>

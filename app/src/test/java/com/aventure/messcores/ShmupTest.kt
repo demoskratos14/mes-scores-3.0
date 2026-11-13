@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -35,6 +36,12 @@ class ShmupTest {
         }
     }
 
+    /** Ramasse un bonus (ou un malus) tout de suite, sans laisser le temps passer. */
+    private fun pickUp(game: ShmupGame, bonus: Boolean) {
+        game.pickups += ShmupGame.Pickup(game.playerX, game.playerY, bonus)
+        game.tick(10)
+    }
+
     /** Fait arriver le boss du plateau en cours et renvoie la partie une fois le boss en jeu. */
     private fun withBoss(stage: Int, loop: Int = 0): ShmupGame {
         val game = gameAt(stage, Shmup.STAGE_MS - 100L, loop)
@@ -66,7 +73,7 @@ class ShmupTest {
 
     @Test
     fun chaqueNiveauDArmeATonTir() {
-        val missiles = mapOf(1 to 1, 2 to 2, 3 to 3, 4 to 2, 5 to 3)
+        val missiles = mapOf(1 to 1, 2 to 2, 3 to 3, 4 to 2)
         for ((level, count) in missiles) {
             val game = newGame()
             raiseWeapon(game, level - 1)
@@ -81,22 +88,93 @@ class ShmupTest {
     }
 
     @Test
-    fun unBonusMonteLArmeUnMalusLaBaisse() {
+    fun armeMonteJusquAuLaserPuisChaqueCycleDonneUnSatellite() {
+        // (arme du vaisseau, satellites, niveau d'arme des satellites) après chaque bonus ramassé.
+        val expected = listOf(
+            Triple(2, 0, 1), Triple(3, 0, 1), Triple(4, 0, 1),
+            Triple(1, 1, 1), Triple(2, 1, 1), Triple(3, 1, 1), Triple(4, 1, 1),
+            Triple(1, 2, 1), Triple(2, 2, 1), Triple(3, 2, 1), Triple(4, 2, 1),
+            Triple(1, 3, 1), Triple(2, 3, 1), Triple(3, 3, 1), Triple(4, 3, 1),
+            Triple(4, 3, 2), Triple(4, 3, 3), Triple(4, 3, 4)
+        )
         val game = newGame()
-        raiseWeapon(game, 2)
-        assertEquals(3, game.weapon)
-        game.pickups += ShmupGame.Pickup(game.playerX, game.playerY, false)
-        game.tick(50)
-        assertEquals(2, game.weapon)
-        // Jamais en dessous de 1 ni au-dessus de 5 ; au maximum, un bonus rapporte des points.
-        repeat(4) { game.pickups += ShmupGame.Pickup(game.playerX, game.playerY, false); game.tick(50) }
-        assertEquals(1, game.weapon)
-        raiseWeapon(game, Shmup.MAX_WEAPON - 1)
-        assertEquals(Shmup.MAX_WEAPON, game.weapon)
+        assertFalse(game.satelliteLaserOn)
+        for ((step, state) in expected.withIndex()) {
+            pickUp(game, true)
+            assertEquals("bonus ${step + 1}", state, Triple(game.weapon, game.satellites, game.satWeapon))
+        }
+        assertTrue(game.laserOn && game.satelliteLaserOn)
+        // Tout est au maximum : un bonus de plus ne change rien mais rapporte des points.
         val before = game.score
-        raiseWeapon(game, 1)
-        assertEquals(Shmup.MAX_WEAPON, game.weapon)
+        pickUp(game, true)
+        assertEquals(Triple(4, 3, 4), Triple(game.weapon, game.satellites, game.satWeapon))
         assertEquals(before + 200, game.score)
+    }
+
+    @Test
+    fun unMalusBaisseSeulementLArmeDuVaisseau() {
+        val game = newGame()
+        repeat(5) { pickUp(game, true) }
+        assertEquals(Triple(2, 1, 1), Triple(game.weapon, game.satellites, game.satWeapon))
+        pickUp(game, false)
+        assertEquals(Triple(1, 1, 1), Triple(game.weapon, game.satellites, game.satWeapon))
+        pickUp(game, false)
+        assertEquals(Triple(1, 1, 1), Triple(game.weapon, game.satellites, game.satWeapon))
+    }
+
+    @Test
+    fun unSatelliteTourneAutourDuVaisseauEtTireCommeLui() {
+        val game = newGame()
+        repeat(4) { pickUp(game, true) }
+        assertEquals(1, game.satellites)
+        val distance = hypot(game.satelliteX(0) - game.playerX, game.satelliteY(0) - game.playerY)
+        assertEquals(Shmup.ORBIT_RADIUS, distance, 0.01f)
+        val x0 = game.satelliteX(0)
+        game.tick(300)
+        assertTrue(abs(game.satelliteX(0) - x0) > 0.05f)
+        // Une salve : un missile du vaisseau et un du satellite, tous deux au niveau 1.
+        game.bullets.clear()
+        while (game.bullets.isEmpty()) game.tick(10)
+        assertEquals(2, game.bullets.size)
+        assertTrue(game.bullets.all { it.lvl == 1 })
+    }
+
+    @Test
+    fun lesSatellitesSontRepartisAutourDuVaisseau() {
+        val game = newGame()
+        repeat(12) { pickUp(game, true) }
+        assertEquals(3, game.satellites)
+        val angles = (0 until 3).map { kotlin.math.atan2(game.satelliteY(it) - game.playerY, game.satelliteX(it) - game.playerX) }
+        assertEquals(3, angles.map { (it * 100).toInt() }.toSet().size)
+    }
+
+    @Test
+    fun unSatelliteEncaisseLeCoupALaPlaceDUneVie() {
+        val game = newGame()
+        repeat(4) { pickUp(game, true) }
+        game.enemyBullets += ShmupGame.Bullet(game.playerX, game.playerY, 0f, 0f)
+        game.tick(50)
+        assertEquals(0, game.satellites)
+        assertEquals(Shmup.LIVES, game.lives)
+        assertTrue(game.invulnMs > 0L)
+        // Sans satellite, le coup suivant coûte une vie.
+        game.tick(Shmup.INVULN_MS)
+        game.enemyBullets += ShmupGame.Bullet(game.playerX, game.playerY, 0f, 0f)
+        game.tick(50)
+        assertEquals(Shmup.LIVES - 1, game.lives)
+    }
+
+    @Test
+    fun unSatellitePerduSeRemplaceEtGardeLeNiveauDesAutres() {
+        val game = newGame()
+        repeat(18) { pickUp(game, true) }
+        game.enemyBullets += ShmupGame.Bullet(game.playerX, game.playerY, 0f, 0f)
+        game.tick(50)
+        assertEquals(Triple(4, 2, 4), Triple(game.weapon, game.satellites, game.satWeapon))
+        assertEquals(Shmup.LIVES, game.lives)
+        // L'arme est au laser : le bonus suivant la remet au niveau 1 et rend le satellite, au niveau commun.
+        pickUp(game, true)
+        assertEquals(Triple(1, 3, 4), Triple(game.weapon, game.satellites, game.satWeapon))
     }
 
     @Test
@@ -488,13 +566,15 @@ class ShmupTest {
     @Test
     fun reinitialiserRemetLaPartieAZero() {
         val game = gameAt(2, 10_000L, loop = 1)
-        raiseWeapon(game, 2)
+        raiseWeapon(game, 5)
         game.tick(3000)
         game.reset()
         assertEquals(Shmup.LIVES, game.lives)
         assertEquals(0, game.score)
         assertEquals(0L, game.timeMs)
         assertEquals(1, game.weapon)
+        assertEquals(0, game.satellites)
+        assertEquals(1, game.satWeapon)
         assertEquals(0, game.stage)
         assertEquals(0, game.loop)
         assertEquals(ShmupPhase.NORMAL, game.phase)
@@ -505,7 +585,7 @@ class ShmupTest {
     fun laSauvegardeSeRestaureIdentique() {
         val game = gameAt(2, 20_000L, loop = 1)
         game.movePlayerTo(3f, 12f)
-        raiseWeapon(game, 2)
+        raiseWeapon(game, 5)
         game.pickups += ShmupGame.Pickup(1f, 1f, false)
         game.tick(30_000)
         val saved = game.save()
@@ -514,6 +594,8 @@ class ShmupTest {
         assertEquals(game.playerX, restored.playerX, 0f)
         assertEquals(game.score, restored.score)
         assertEquals(game.weapon, restored.weapon)
+        assertEquals(game.satellites, restored.satellites)
+        assertEquals(game.satWeapon, restored.satWeapon)
         assertEquals(game.stage, restored.stage)
         assertEquals(game.phase, restored.phase)
         assertEquals(game.enemies.size, restored.enemies.size)
@@ -534,7 +616,7 @@ class ShmupTest {
         assertNull(ShmupGame.restore(saved.dropLast(1)))
         assertNull(ShmupGame.restore(listOf(99) + saved.drop(1)))
         // Une arme, un plateau ou une phase hors limites sont refusés.
-        for ((index, value) in listOf(7 to 9, 8 to 9, 9 to -1, 10 to 99)) {
+        for ((index, value) in listOf(7 to 9, 8 to 9, 9 to -1, 10 to 99, 20 to 9, 21 to 0)) {
             val broken = saved.toMutableList()
             broken[index] = value
             assertNull("rang $index", ShmupGame.restore(broken))

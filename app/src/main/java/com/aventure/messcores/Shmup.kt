@@ -37,8 +37,11 @@ internal object Shmup {
 
     const val START_Y = HEIGHT - 2.2f
 
-    // L'arme du vaisseau a 5 niveaux : 1 missile, 2 missiles, 3 missiles en éventail, laser + 2 missiles, grand laser + 3 missiles.
-    const val MAX_WEAPON = 5
+    // L'arme a 4 niveaux : 1 missile, 2 missiles, 3 missiles en éventail, laser + 2 missiles (le premier laser, niveau final).
+    // Au laser, le bonus suivant remet l'arme du vaisseau au niveau 1 et ajoute un satellite (3 au maximum) ; quand ils sont
+    // tous là, les bonus montent l'arme du vaisseau jusqu'au laser, puis celle des satellites, jusqu'au laser aussi.
+    const val MAX_WEAPON = 4
+    const val MAX_SATELLITES = 3
     const val FIRE_EVERY_MS = 200L
     const val MISSILE_SPEED = 14f
     const val MISSILE_HALF_W = 0.07f
@@ -47,7 +50,14 @@ internal object Shmup {
     const val SPREAD_ANGLE = 0.2f
     const val LASER_EVERY_MS = 60L
     const val LASER_HALF_W = 0.12f
-    const val LASER_WIDE_HALF_W = 0.3f
+
+    /** Les satellites : distance au vaisseau, vitesse de rotation (rad/s), taille dessinée, écart des missiles et laser plus fin. */
+    const val ORBIT_RADIUS = 1.1f
+    const val ORBIT_SPEED = 2.4f
+    const val SAT_W = 0.5f
+    const val SAT_H = 0.58f
+    const val SAT_SPREAD = 0.15f
+    const val SAT_LASER_HALF_W = 0.08f
 
     const val ENEMY_BULLET_HIT = 0.12f
 
@@ -271,8 +281,8 @@ internal enum class EnemyType(
 }
 
 /**
- * Une partie de Shoot'em up : le vaisseau tire tout seul avec une arme à [Shmup.MAX_WEAPON] niveaux (qu'on change avec les
- * bonus et malus qui tombent), des ennemis de [EnemyType] différents arrivent avec leurs mouvements et leurs tirs, et chaque
+ * Une partie de Shoot'em up : le vaisseau tire tout seul avec une arme à [Shmup.MAX_WEAPON] niveaux, que des petits vaisseaux
+ * satellites viennent renforcer (le tout se change avec les bonus et malus qui tombent), des ennemis de [EnemyType] différents arrivent avec leurs mouvements et leurs tirs, et chaque
  * plateau se termine par un boss. Trois vies ; la partie est finie ([isOver]) quand la dernière est perdue. Le moteur
  * n'utilise pas Compose : l'écran appelle [tick] à chaque image et lit les listes pour dessiner.
  */
@@ -423,8 +433,16 @@ internal class ShmupGame(private val random: Random = Random.Default) {
     var invulnMs = 0L
         private set
 
-    /** Niveau de l'arme, de 1 à [Shmup.MAX_WEAPON]. */
+    /** Niveau de l'arme du vaisseau, de 1 à [Shmup.MAX_WEAPON]. */
     var weapon = 1
+        private set
+
+    /** Nombre de satellites (de 0 à [Shmup.MAX_SATELLITES]), niveau d'arme qu'ils ont en commun, et leur angle de rotation. */
+    var satellites = 0
+        private set
+    var satWeapon = 1
+        private set
+    var orbitAngle = 0f
         private set
 
     /** Plateau en cours (0 à 3) et nombre de tours déjà finis (0 au premier tour). */
@@ -470,7 +488,17 @@ internal class ShmupGame(private val random: Random = Random.Default) {
     val isOver: Boolean get() = lives <= 0
 
     /** Vrai quand le laser du vaisseau est allumé (arme de niveau 4 ou plus). */
-    val laserOn: Boolean get() = weapon >= 4 && !isOver
+    val laserOn: Boolean get() = weapon >= Shmup.MAX_WEAPON && !isOver
+
+    /** Vrai quand les satellites tirent au laser (ils ont atteint le niveau final). */
+    val satelliteLaserOn: Boolean get() = satellites > 0 && satWeapon >= Shmup.MAX_WEAPON && !isOver
+
+    /** Position du satellite numéro [index] (de 0 à satellites - 1) : sur un cercle autour du vaisseau, gardée dans le terrain. */
+    fun satelliteX(index: Int): Float =
+        (playerX + cos(orbitAngle + index * TWO_PI / satellites) * Shmup.ORBIT_RADIUS).coerceIn(0.3f, Shmup.WIDTH - 0.3f)
+
+    fun satelliteY(index: Int): Float =
+        (playerY + sin(orbitAngle + index * TWO_PI / satellites) * Shmup.ORBIT_RADIUS).coerceIn(0.3f, Shmup.HEIGHT - 0.3f)
 
     /** Le boss en jeu, s'il y en a un. */
     val boss: Enemy? get() = enemies.firstOrNull { it.type.boss }
@@ -488,6 +516,9 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         timeMs = 0L
         invulnMs = 0L
         weapon = 1
+        satellites = 0
+        satWeapon = 1
+        orbitAngle = 0f
         stage = 0
         loop = 0
         phase = ShmupPhase.NORMAL
@@ -539,13 +570,16 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         scrollSpeed += (targetSpeed - scrollSpeed).coerceIn(-change, change)
         scroll += scrollSpeed * dt
 
-        // Tir automatique : les missiles de l'arme, plus le laser aux niveaux 4 et 5.
+        // Les satellites tournent autour du vaisseau.
+        orbitAngle = (orbitAngle + Shmup.ORBIT_SPEED * dt) % TWO_PI
+
+        // Tir automatique : les missiles du vaisseau et de chaque satellite, plus les lasers du dernier niveau.
         fireInMs -= ms
         if (fireInMs <= 0L) {
             fireInMs += Shmup.FIRE_EVERY_MS
             fireMissiles()
         }
-        if (laserOn) {
+        if (laserOn || satelliteLaserOn) {
             laserInMs -= ms
             if (laserInMs <= 0L) {
                 laserInMs += Shmup.LASER_EVERY_MS
@@ -678,37 +712,45 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         sparks.removeAll { it.lifeMs <= 0L }
     }
 
-    /** Les missiles de l'arme actuelle : 1, 2 ou 3 selon le niveau (le laser des niveaux 4 et 5 s'y ajoute). */
+    /** Les missiles du vaisseau, puis ceux de chaque satellite (le laser du dernier niveau s'y ajoute, voir [laserHit]). */
     private fun fireMissiles() {
-        val y = playerY - Shmup.SHIP_H / 2f
+        volley(playerX, playerY - Shmup.SHIP_H / 2f, weapon, 0.3f)
+        for (i in 0 until satellites) volley(satelliteX(i), satelliteY(i) - Shmup.SAT_H / 2f, satWeapon, Shmup.SAT_SPREAD)
+    }
+
+    /** Une salve de missiles tirée de (x, y) au niveau [level] : 1, 2, 3 en éventail, ou 2 avec le laser (niveau 4). */
+    private fun volley(x: Float, y: Float, level: Int, spread: Float) {
         val speed = Shmup.MISSILE_SPEED
-        fun missile(x: Float, angle: Float) {
-            bullets += Bullet(x, y, sin(angle) * speed, -cos(angle) * speed, Shmup.MISSILE_DAMAGE, weapon)
+        fun missile(mx: Float, angle: Float) {
+            bullets += Bullet(mx, y, sin(angle) * speed, -cos(angle) * speed, Shmup.MISSILE_DAMAGE, level)
         }
-        when (weapon) {
-            1 -> missile(playerX, 0f)
+        when (level) {
+            1 -> missile(x, 0f)
             2, 4 -> {
-                missile(playerX - 0.3f, 0f)
-                missile(playerX + 0.3f, 0f)
+                missile(x - spread, 0f)
+                missile(x + spread, 0f)
             }
             else -> {
-                missile(playerX, 0f)
-                missile(playerX - 0.35f, -Shmup.SPREAD_ANGLE)
-                missile(playerX + 0.35f, Shmup.SPREAD_ANGLE)
+                missile(x, 0f)
+                missile(x - spread * 1.2f, -Shmup.SPREAD_ANGLE)
+                missile(x + spread * 1.2f, Shmup.SPREAD_ANGLE)
             }
         }
     }
 
-    /** Un coup de laser : tous les ennemis dans la colonne au-dessus du vaisseau perdent des points de vie. */
+    /** Un coup de laser : les lasers allumés (vaisseau et satellites) retirent un point de vie aux ennemis de leur colonne. */
     private fun laserHit() {
-        val half = if (weapon >= Shmup.MAX_WEAPON) Shmup.LASER_WIDE_HALF_W else Shmup.LASER_HALF_W
-        val damage = if (weapon >= Shmup.MAX_WEAPON) 2 else 1
-        val nose = playerY - Shmup.SHIP_H / 2f
+        if (laserOn) beam(playerX, playerY - Shmup.SHIP_H / 2f, Shmup.LASER_HALF_W)
+        if (satelliteLaserOn) {
+            for (i in 0 until satellites) beam(satelliteX(i), satelliteY(i) - Shmup.SAT_H / 2f, Shmup.SAT_LASER_HALF_W)
+        }
+    }
+
+    /** Un laser tiré de la colonne [x], au-dessus de [nose] : tous les ennemis dans cette colonne perdent un point de vie. */
+    private fun beam(x: Float, nose: Float, half: Float) {
         for (e in enemies) {
-            if (e.hp > 0 && e.y - e.type.hitH < nose && e.y + e.type.hitH > 0f &&
-                abs(e.x - playerX) < half + e.type.hitW
-            ) {
-                hit(e, damage, e.x, e.y + e.type.hitH)
+            if (e.hp > 0 && e.y - e.type.hitH < nose && e.y + e.type.hitH > 0f && abs(e.x - x) < half + e.type.hitW) {
+                hit(e, 1, e.x, e.y + e.type.hitH)
             }
         }
     }
@@ -734,10 +776,23 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         }
     }
 
-    /** Le vaisseau ramasse une pastille : un bonus monte l'arme d'un niveau (ou rapporte des points au maximum), un malus la baisse. */
+    /**
+     * Le vaisseau ramasse une pastille. Un bonus fait avancer l'armement : d'abord l'arme du vaisseau monte jusqu'au laser ;
+     * au laser, le bonus suivant la remet au niveau 1 et ajoute un satellite (jusqu'à 3) ; quand les 3 sont là et l'arme du
+     * vaisseau au laser, les bonus montent l'arme des satellites jusqu'au laser (le maximum : les bonus rapportent alors des
+     * points). Un malus ne baisse que l'arme du vaisseau, d'un niveau.
+     */
     private fun collect(p: Pickup) {
         if (p.bonus) {
-            if (weapon < Shmup.MAX_WEAPON) weapon++ else score += 200
+            when {
+                weapon < Shmup.MAX_WEAPON -> weapon++
+                satellites < Shmup.MAX_SATELLITES -> {
+                    weapon = 1
+                    satellites++
+                }
+                satWeapon < Shmup.MAX_WEAPON -> satWeapon++
+                else -> score += 200
+            }
         } else {
             weapon = max(1, weapon - 1)
         }
@@ -847,10 +902,16 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         for (k in 0 until count) shoot(x, y, offset + k * TWO_PI / count, speed)
     }
 
+    /** Le vaisseau est touché : il perd un satellite s'il en a, sinon une vie. Dans les deux cas il est protégé un moment. */
     private fun hurt() {
-        lives--
         invulnMs = Shmup.INVULN_MS
-        burst(playerX, playerY, 24)
+        if (satellites > 0) {
+            burst(satelliteX(satellites - 1), satelliteY(satellites - 1), 16)
+            satellites--
+        } else {
+            lives--
+            burst(playerX, playerY, 24)
+        }
     }
 
     private fun burst(x: Float, y: Float, count: Int) {
@@ -888,6 +949,9 @@ internal class ShmupGame(private val random: Random = Random.Default) {
         out += scrollSpeed.toRawBits()
         out += fireInMs.toInt()
         out += spawnInMs.toInt()
+        out += satellites
+        out += satWeapon
+        out += orbitAngle.toRawBits()
         for (list in listOf(bullets, enemyBullets)) {
             out += list.size
             for (b in list) {
@@ -923,7 +987,7 @@ internal class ShmupGame(private val random: Random = Random.Default) {
     }
 
     companion object {
-        private const val SAVE_VERSION = 3
+        private const val SAVE_VERSION = 4
         private const val MAX_SAVED = 500
 
         /** Une partie remise dans l'état de [data] (voir [save]), ou null si la liste est abîmée. */
@@ -958,6 +1022,11 @@ internal class ShmupGame(private val random: Random = Random.Default) {
             game.scrollSpeed = float()
             game.fireInMs = int().toLong()
             game.spawnInMs = int().toLong()
+            game.satellites = int()
+            require(game.satellites in 0..Shmup.MAX_SATELLITES)
+            game.satWeapon = int()
+            require(game.satWeapon in 1..Shmup.MAX_WEAPON)
+            game.orbitAngle = float()
             for (list in listOf(game.bullets, game.enemyBullets)) {
                 repeat(count()) { list += Bullet(float(), float(), float(), float(), int(), int()) }
             }

@@ -100,9 +100,9 @@ private const val BANNER_STAGE = 2
 
 private const val PI_F = 3.1415927f
 
-/** La couleur de chaque niveau d'arme (de 1 à 5) : celle des missiles, du laser et de la lueur autour du vaisseau. */
+/** La couleur de chaque niveau d'arme (de 1 à 4) : celle des missiles, du laser et de la lueur autour du vaisseau et des satellites. */
 private val SHMUP_WEAPON_COLORS = listOf(
-    Color(0xFF7FE8FF), Color(0xFFFFEB3B), Color(0xFFFF9800), Color(0xFFE040FB), Color(0xFFFFFFFF)
+    Color(0xFF7FE8FF), Color(0xFFFFEB3B), Color(0xFFFF9800), Color(0xFFE040FB)
 )
 
 /** Les traînées du saut en vitesse lumière (angle depuis le centre, position de départ, éclat), tirées une fois pour toutes. */
@@ -276,6 +276,8 @@ private fun ShmupPlayfield(
     var lives by remember { mutableIntStateOf(game.lives) }
     var level by remember { mutableIntStateOf(game.level) }
     var weapon by remember { mutableIntStateOf(game.weapon) }
+    var satellites by remember { mutableIntStateOf(game.satellites) }
+    var satWeapon by remember { mutableIntStateOf(game.satWeapon) }
     var banner by remember { mutableIntStateOf(BANNER_NONE) }
     var bannerStage by remember { mutableIntStateOf(game.stage + 1) }
     val finished by rememberUpdatedState(onOver)
@@ -294,6 +296,8 @@ private fun ShmupPlayfield(
             lives = game.lives
             level = game.level
             weapon = game.weapon
+            satellites = game.satellites
+            satWeapon = game.satWeapon
             banner = when {
                 game.phase == ShmupPhase.TRANSITION && game.transitionProgress >= 0.5f -> BANNER_STAGE
                 game.phase == ShmupPhase.BOSS && game.bossIntroMs > 0L -> BANNER_WARNING
@@ -323,7 +327,16 @@ private fun ShmupPlayfield(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = stringResource(R.string.shmup_stats, lives, level, weapon),
+                        text = stringResource(R.string.shmup_stats, lives, level),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = if (satellites > 0) {
+                            stringResource(R.string.shmup_weapon_sat, weapon, satellites, satWeapon)
+                        } else {
+                            stringResource(R.string.shmup_weapon, weapon)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -472,17 +485,13 @@ private fun DrawScope.drawShmupField(
         drawCircle(SHMUP_ENEMY_SHOT_COLOR, Shmup.ENEMY_BULLET_HIT * 1.2f * u, Offset(b.x * u, b.y * u))
     }
 
-    // Le laser du vaisseau (armes de niveau 4 et 5) : une colonne lumineuse jusqu'en haut du terrain.
+    // Les lasers (dernier niveau d'arme) : une colonne lumineuse jusqu'en haut du terrain, pour le vaisseau et chaque satellite.
     val weaponColor = SHMUP_WEAPON_COLORS[(game.weapon - 1).coerceIn(0, SHMUP_WEAPON_COLORS.size - 1)]
-    if (game.laserOn) {
-        val half = if (game.weapon >= Shmup.MAX_WEAPON) Shmup.LASER_WIDE_HALF_W else Shmup.LASER_HALF_W
-        val bottom = (game.playerY - Shmup.SHIP_H / 2f) * u
-        for ((width, color) in listOf(
-            3.6f to weaponColor.copy(alpha = 0.30f),
-            2f to weaponColor.copy(alpha = 0.75f),
-            0.9f to Color.White
-        )) {
-            drawRect(color, Offset((game.playerX - half * width / 2f * 2f) * u, 0f), Size(half * width * 2f * u, bottom))
+    val satColor = SHMUP_WEAPON_COLORS[(game.satWeapon - 1).coerceIn(0, SHMUP_WEAPON_COLORS.size - 1)]
+    if (game.laserOn) drawBeam(game.playerX, game.playerY - Shmup.SHIP_H / 2f, Shmup.LASER_HALF_W, weaponColor, u)
+    if (game.satelliteLaserOn) {
+        for (i in 0 until game.satellites) {
+            drawBeam(game.satelliteX(i), game.satelliteY(i) - Shmup.SAT_H / 2f, Shmup.SAT_LASER_HALF_W, satColor, u)
         }
     }
 
@@ -517,7 +526,26 @@ private fun DrawScope.drawShmupField(
         )
     }
 
+    // Les satellites : de petits vaisseaux qui tournent autour du vaisseau, avec une lueur à la couleur de leur niveau d'arme.
+    for (i in 0 until game.satellites) {
+        val sx = game.satelliteX(i)
+        val sy = game.satelliteY(i)
+        drawCircle(satColor.copy(alpha = 0.3f), 0.42f * u, Offset(sx * u, sy * u))
+        drawImage(
+            image = ship,
+            dstOffset = IntOffset(((sx - Shmup.SAT_W / 2f) * u).roundToInt(), ((sy - Shmup.SAT_H / 2f) * u).roundToInt()),
+            dstSize = IntSize((Shmup.SAT_W * u).roundToInt(), (Shmup.SAT_H * u).roundToInt())
+        )
+    }
+
     if (game.phase == ShmupPhase.TRANSITION) drawHyperspace(game.transitionProgress)
+}
+
+/** Une colonne de laser : du haut du terrain jusqu'au nez de l'engin qui tire, avec un halo et un cœur blanc. */
+private fun DrawScope.drawBeam(x: Float, noseY: Float, half: Float, color: Color, u: Float) {
+    for ((width, tint) in listOf(3.6f to color.copy(alpha = 0.30f), 2f to color.copy(alpha = 0.75f), 0.9f to Color.White)) {
+        drawRect(tint, Offset((x - half * width) * u, 0f), Size(half * width * 2f * u, noseY * u))
+    }
 }
 
 /**
