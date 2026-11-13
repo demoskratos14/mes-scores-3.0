@@ -1,6 +1,8 @@
 package com.aventure.messcores
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +26,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 /** Proportions des cartes du Skyjo Action (images découpées dans les photos du jeu). */
-private const val SKYJO_RATIO = 192f / 298f
+private const val SKYJO_RATIO = 216f / 335f
+
+/** La pioche des cartes action est posée sur le côté, en pile (skyjo_back_deck.webp : dos tourné d'un quart de tour, épaisseur comprise). */
+private const val SKYJO_DECK_RATIO = 335f / 224f
 
 @DrawableRes
 private fun skyjoNumberImage(card: Int): Int = when (card) {
@@ -108,6 +119,8 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
     var noneMode by remember(round.phase, round.turnNumber, round.roundNumber) { mutableStateOf(false) }
     var chosenThree by remember(round.phase, round.turnNumber, round.roundNumber) { mutableStateOf<Int?>(null) }
     var lookTarget by remember(round.phase, round.turnNumber, round.roundNumber) { mutableStateOf<Pair<Int, Int>?>(null) }
+    // La grille d'un autre joueur ouverte en grand (touchée dans la rangée des petites grilles).
+    var expanded by remember(round.current, round.roundNumber) { mutableStateOf<Int?>(null) }
 
     // Une manche qui vient de finir est inscrite tout de suite : quitter ensuite ne la fait pas perdre.
     LaunchedEffect(round.roundOver, round.roundNumber) {
@@ -119,7 +132,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
     if (over) {
         GameOverBanner(players = players, winners = viewModel.winners())
         if (round.roundOver) SkyjoRoundResult(round = round, players = players, canContinue = false, onNext = {})
-        SkyjoGrids(round = round, players = players, selectable = false, onCell = { _, _ -> }, onSteal = { _, _ -> })
+        SkyjoAllGrids(round = round, players = players, selectable = false, onCell = { _, _ -> }, onSteal = { _, _ -> })
         Button(onClick = onLeave, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.dice_leave_game))
         }
@@ -134,6 +147,37 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
 
     val phase = round.phase
     val actor = playerName(round.actor)
+
+    // Ce que fait un toucher sur une carte d'une grille, selon la phase.
+    val interactive = phase == SkyjoPhase.PLACE || phase == SkyjoPhase.THREE || phase == SkyjoPhase.SWAP ||
+        phase == SkyjoPhase.EXCHANGE || phase == SkyjoPhase.LOOK || phase == SkyjoPhase.METEOR
+    val onCell: (Int, Int) -> Unit = { player, cell ->
+        val ok = when (phase) {
+            SkyjoPhase.PLACE -> player == round.current &&
+                (if (flipMode) round.discardHeldAndFlip(cell) else round.placeHeld(cell))
+            SkyjoPhase.THREE -> player == round.current && (
+                if (noneMode) {
+                    round.threeNone(cell)
+                } else {
+                    chosenThree?.let { round.threeKeep(it, cell) } ?: false
+                }
+                )
+            SkyjoPhase.SWAP -> player == round.current && round.swapPick(cell)
+            SkyjoPhase.EXCHANGE -> round.exchangePick(player, cell)
+            SkyjoPhase.LOOK -> if (round.grids.getOrNull(player)?.getOrNull(cell) != null) {
+                lookTarget = player to cell
+                true
+            } else {
+                false
+            }
+            SkyjoPhase.METEOR -> round.meteorPick(player, cell)
+            else -> false
+        }
+        error = if (ok) null else R.string.skyjoa_err_move
+    }
+    val onSteal: (Int, Int) -> Unit = { player, index ->
+        error = if (round.steal(player, index)) null else R.string.skyjoa_err_move
+    }
 
     // ----- Les consignes -----
     CardPanel {
@@ -192,7 +236,38 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
     val canChoose = phase == SkyjoPhase.CHOOSE
     val canBonus = phase == SkyjoPhase.STAR_BONUS
     CardPanel {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
+            TablePile(label = stringResource(R.string.skyjoa_action_discard), modifier = Modifier.weight(1f)) { m ->
+                val top = round.actionDiscard.lastOrNull()
+                if (top == null) {
+                    Box(modifier = m.aspectRatio(SKYJO_RATIO))
+                } else {
+                    ImageCard(
+                        image = skyjoActionImage(top),
+                        description = actionName(top),
+                        playable = true,
+                        modifier = m,
+                        ratio = SKYJO_RATIO
+                    )
+                }
+            }
+            TablePile(label = stringResource(R.string.skyjoa_action_stock, round.actionStock.size), modifier = Modifier.weight(SKYJO_DECK_RATIO / SKYJO_RATIO)) { m ->
+                ImageCard(
+                    image = R.drawable.skyjo_back_deck,
+                    description = stringResource(R.string.skyjoa_action_stock, round.actionStock.size),
+                    playable = true,
+                    modifier = m,
+                    ratio = SKYJO_DECK_RATIO,
+                    onClick = if (canChoose || canBonus) {
+                        {
+                            val ok = if (canChoose) round.takeActionFromDeck() else round.takeBonusFromDeck()
+                            error = if (ok) null else if (round.finalTurn) R.string.skyjoa_err_final else R.string.skyjoa_err_move
+                        }
+                    } else {
+                        null
+                    }
+                )
+            }
             TablePile(
                 label = stringResource(R.string.skyjoa_stock, round.stock.size),
                 modifier = Modifier.weight(1f)
@@ -226,37 +301,6 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                         } else {
                             null
                         }
-                    )
-                }
-            }
-            TablePile(label = stringResource(R.string.skyjoa_action_stock, round.actionStock.size), modifier = Modifier.weight(1f)) { m ->
-                ImageCard(
-                    image = R.drawable.skyjo_act_back,
-                    description = stringResource(R.string.skyjoa_action_stock, round.actionStock.size),
-                    playable = true,
-                    modifier = m,
-                    ratio = SKYJO_RATIO,
-                    onClick = if (canChoose || canBonus) {
-                        {
-                            val ok = if (canChoose) round.takeActionFromDeck() else round.takeBonusFromDeck()
-                            error = if (ok) null else if (round.finalTurn) R.string.skyjoa_err_final else R.string.skyjoa_err_move
-                        }
-                    } else {
-                        null
-                    }
-                )
-            }
-            TablePile(label = stringResource(R.string.skyjoa_action_discard), modifier = Modifier.weight(1f)) { m ->
-                val top = round.actionDiscard.lastOrNull()
-                if (top == null) {
-                    Box(modifier = m.aspectRatio(SKYJO_RATIO))
-                } else {
-                    ImageCard(
-                        image = skyjoActionImage(top),
-                        description = actionName(top),
-                        playable = true,
-                        modifier = m,
-                        ratio = SKYJO_RATIO
                     )
                 }
             }
@@ -391,6 +435,19 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
         else -> Unit
     }
 
+    // ----- La grille du joueur en cours, sous les pioches -----
+    if (!round.roundOver) {
+        SkyjoGridPanel(
+            round = round,
+            players = players,
+            player = round.current,
+            fraction = 1f,
+            selectable = interactive,
+            onCell = onCell,
+            onSteal = onSteal
+        )
+    }
+
     // ----- Les cartes action du joueur : les jouer ou les défausser -----
     if (canChoose && round.hands.getOrElse(round.current) { emptyList() }.isNotEmpty()) {
         CardPanel {
@@ -428,41 +485,20 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
         SkyjoRoundResult(round = round, players = players, canContinue = round.settled, onNext = { round.nextRound() })
     }
 
-    // ----- Les grilles -----
-    val interactive = phase == SkyjoPhase.PLACE || phase == SkyjoPhase.THREE || phase == SkyjoPhase.SWAP ||
-        phase == SkyjoPhase.EXCHANGE || phase == SkyjoPhase.LOOK || phase == SkyjoPhase.METEOR
-    SkyjoGrids(
-        round = round,
-        players = players,
-        selectable = interactive,
-        onCell = { player, cell ->
-            val ok = when (phase) {
-                SkyjoPhase.PLACE -> player == round.current &&
-                    (if (flipMode) round.discardHeldAndFlip(cell) else round.placeHeld(cell))
-                SkyjoPhase.THREE -> player == round.current && (
-                    if (noneMode) {
-                        round.threeNone(cell)
-                    } else {
-                        chosenThree?.let { round.threeKeep(it, cell) } ?: false
-                    }
-                    )
-                SkyjoPhase.SWAP -> player == round.current && round.swapPick(cell)
-                SkyjoPhase.EXCHANGE -> round.exchangePick(player, cell)
-                SkyjoPhase.LOOK -> if (round.grids.getOrNull(player)?.getOrNull(cell) != null) {
-                    lookTarget = player to cell
-                    true
-                } else {
-                    false
-                }
-                SkyjoPhase.METEOR -> round.meteorPick(player, cell)
-                else -> false
-            }
-            error = if (ok) null else R.string.skyjoa_err_move
-        },
-        onSteal = { player, index ->
-            error = if (round.steal(player, index)) null else R.string.skyjoa_err_move
-        }
-    )
+    // ----- Les autres joueurs : une rangée de petites grilles, à ouvrir en grand en les touchant -----
+    if (round.roundOver) {
+        SkyjoAllGrids(round = round, players = players, selectable = false, onCell = onCell, onSteal = onSteal)
+    } else {
+        SkyjoOthers(
+            round = round,
+            players = players,
+            selectable = interactive,
+            open = setOfNotNull(expanded, if (phase == SkyjoPhase.METEOR) round.meteorQueue.firstOrNull() else null),
+            onToggle = { player -> expanded = if (expanded == player) null else player },
+            onCell = onCell,
+            onSteal = onSteal
+        )
+    }
 
     // « Regarder » : la ligne ou la colonne de la carte touchée.
     lookTarget?.let { (player, cell) ->
@@ -495,75 +531,174 @@ private fun TablePile(label: String, modifier: Modifier, card: @Composable (Modi
     }
 }
 
-/** Les grilles de tous les joueurs : celle du joueur qui joue en grand, les autres plus petites. */
+/** Les grilles de tous les joueurs (fin de manche et de partie) : celle du joueur courant en grand, les autres plus petites. */
 @Composable
-private fun SkyjoGrids(
+private fun SkyjoAllGrids(
     round: SkyjoActionRound,
     players: List<String>,
     selectable: Boolean,
     onCell: (Int, Int) -> Unit,
     onSteal: (Int, Int) -> Unit
 ) {
-    val actionNames = stringResource(R.string.skyjoa_action_names).split(',')
-    val stealing = round.phase == SkyjoPhase.STEAL
     for (player in players.indices) {
         val mine = !round.roundOver && player == round.current
-        val grid = round.grids.getOrNull(player) ?: continue
-        val selected = round.firstPick?.takeIf { it.first == player }?.second
-        CardPanel(spacing = 6) {
-            Text(
-                text = stringResource(R.string.skyjoa_grid_title, players[player]) +
-                    if (round.holdsProtection(player)) " " + stringResource(R.string.skyjoa_protected) else "",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = if (mine) FontWeight.Bold else FontWeight.Normal,
-                color = if (mine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-            )
-            Column(
-                modifier = Modifier.fillMaxWidth(if (mine) 1f else 0.62f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                grid.chunked(round.columns).forEachIndexed { row, line ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
-                        line.forEachIndexed { col, cell ->
-                            val index = row * round.columns + col
-                            if (cell == null) {
-                                Spacer(modifier = Modifier.weight(1f).aspectRatio(SKYJO_RATIO))
-                            } else {
-                                ImageCard(
-                                    image = if (cell.up) skyjoNumberImage(cell.card) else R.drawable.skyjo_back,
-                                    description = if (cell.up) skyjoCardLabel(cell.card) else stringResource(R.string.skyjoa_card_down),
-                                    playable = true,
-                                    modifier = Modifier.weight(1f),
-                                    ratio = SKYJO_RATIO,
-                                    selected = selected == index,
-                                    onClick = if (selectable) {
-                                        { onCell(player, index) }
+        SkyjoGridPanel(round, players, player, if (mine) 1f else 0.62f, selectable, onCell, onSteal)
+    }
+}
+
+/**
+ * Les autres joueurs sur une seule ligne : une petite grille chacun (avec leurs cartes action en dessous). On la touche pour
+ * l'ouvrir en grand juste en dessous (et la refermer) ; [open] : les joueurs dont la grille est ouverte.
+ */
+@Composable
+private fun SkyjoOthers(
+    round: SkyjoActionRound,
+    players: List<String>,
+    selectable: Boolean,
+    open: Set<Int>,
+    onToggle: (Int) -> Unit,
+    onCell: (Int, Int) -> Unit,
+    onSteal: (Int, Int) -> Unit
+) {
+    val others = players.indices.filter { it != round.current && round.grids.getOrNull(it) != null }
+    if (others.isEmpty()) return
+    val stealing = round.phase == SkyjoPhase.STEAL
+    CardPanel(spacing = 6) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+            for (player in others) {
+                val grid = round.grids[player]
+                val isOpen = player in open
+                val description = stringResource(R.string.skyjoa_grid_title, players[player])
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable(role = Role.Button) { onToggle(player) }
+                        .semantics { contentDescription = description },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = players[player],
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (isOpen) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isOpen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(1.dp), modifier = Modifier.fillMaxWidth()) {
+                        grid.chunked(round.columns).forEach { line ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(1.dp), modifier = Modifier.fillMaxWidth()) {
+                                line.forEach { cell ->
+                                    if (cell == null) {
+                                        Spacer(modifier = Modifier.weight(1f).aspectRatio(SKYJO_RATIO))
                                     } else {
-                                        null
+                                        Image(
+                                            painter = painterResource(if (cell.up) skyjoNumberImage(cell.card) else R.drawable.skyjo_back),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.FillBounds,
+                                            modifier = Modifier.weight(1f).aspectRatio(SKYJO_RATIO)
+                                        )
                                     }
+                                }
+                            }
+                        }
+                    }
+                    val held = round.hands.getOrElse(player) { emptyList() }
+                    if (held.isNotEmpty()) {
+                        val slots = held.size.coerceIn(2, 4)
+                        Row(horizontalArrangement = Arrangement.spacedBy(1.dp), modifier = Modifier.fillMaxWidth()) {
+                            held.take(4).forEachIndexed { index, card ->
+                                Image(
+                                    painter = painterResource(skyjoActionImage(card.action)),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.FillBounds,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(SKYJO_RATIO)
+                                        .then(if (stealing) Modifier.clickable { onSteal(player, index) } else Modifier)
                                 )
                             }
+                            repeat(slots - held.take(4).size) { Spacer(modifier = Modifier.weight(1f)) }
                         }
                     }
                 }
             }
-            val held = round.hands.getOrElse(player) { emptyList() }
-            if (held.isNotEmpty()) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    held.forEachIndexed { index, card ->
-                        ImageCard(
-                            image = skyjoActionImage(card.action),
-                            description = actionNames.getOrElse(card.action.ordinal) { "" },
-                            playable = true,
-                            modifier = Modifier.width(44.dp),
-                            ratio = SKYJO_RATIO,
-                            onClick = if (stealing && player != round.current) {
-                                { onSteal(player, index) }
-                            } else {
-                                null
-                            }
-                        )
+        }
+    }
+    for (player in others) {
+        if (player in open) SkyjoGridPanel(round, players, player, 0.8f, selectable, onCell, onSteal)
+    }
+}
+
+/** La grille d'un joueur (avec ses cartes action), sur la fraction [fraction] de la largeur. */
+@Composable
+private fun SkyjoGridPanel(
+    round: SkyjoActionRound,
+    players: List<String>,
+    player: Int,
+    fraction: Float,
+    selectable: Boolean,
+    onCell: (Int, Int) -> Unit,
+    onSteal: (Int, Int) -> Unit
+) {
+    val actionNames = stringResource(R.string.skyjoa_action_names).split(',')
+    val stealing = round.phase == SkyjoPhase.STEAL
+    val mine = !round.roundOver && player == round.current
+    val grid = round.grids.getOrNull(player) ?: return
+    val selected = round.firstPick?.takeIf { it.first == player }?.second
+    CardPanel(spacing = 6) {
+        Text(
+            text = stringResource(R.string.skyjoa_grid_title, players.getOrElse(player) { "" }) +
+                if (round.holdsProtection(player)) " " + stringResource(R.string.skyjoa_protected) else "",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = if (mine) FontWeight.Bold else FontWeight.Normal,
+            color = if (mine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+        )
+        Column(
+            modifier = Modifier.fillMaxWidth(fraction),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            grid.chunked(round.columns).forEachIndexed { row, line ->
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+                    line.forEachIndexed { col, cell ->
+                        val index = row * round.columns + col
+                        if (cell == null) {
+                            Spacer(modifier = Modifier.weight(1f).aspectRatio(SKYJO_RATIO))
+                        } else {
+                            ImageCard(
+                                image = if (cell.up) skyjoNumberImage(cell.card) else R.drawable.skyjo_back,
+                                description = if (cell.up) skyjoCardLabel(cell.card) else stringResource(R.string.skyjoa_card_down),
+                                playable = true,
+                                modifier = Modifier.weight(1f),
+                                ratio = SKYJO_RATIO,
+                                selected = selected == index,
+                                onClick = if (selectable) {
+                                    { onCell(player, index) }
+                                } else {
+                                    null
+                                }
+                            )
+                        }
                     }
+                }
+            }
+        }
+        val held = round.hands.getOrElse(player) { emptyList() }
+        if (held.isNotEmpty()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                held.forEachIndexed { index, card ->
+                    ImageCard(
+                        image = skyjoActionImage(card.action),
+                        description = actionNames.getOrElse(card.action.ordinal) { "" },
+                        playable = true,
+                        modifier = Modifier.width(44.dp),
+                        ratio = SKYJO_RATIO,
+                        onClick = if (stealing && player != round.current) {
+                            { onSteal(player, index) }
+                        } else {
+                            null
+                        }
+                    )
                 }
             }
         }

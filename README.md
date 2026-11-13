@@ -283,6 +283,16 @@ Premier jeu de cartes distribué par l'appli. En version jouable, le Huit améri
 - **Un seul téléphone** : `SINGLE_PHONE_GAMES` (`GameCategory.kt`) contient le Huit américain (un téléphone dessiné dans la liste) : les mains sont secrètes, le partage à plusieurs téléphones demanderait que chaque invité ne reçoive que sa main.
 - **Pour un autre jeu de cartes** : même recette — un moteur pur et testé (cartes, coups permis, points), un écran qui cache la main entre deux joueurs, l'inscription des points dans le tableau, un cas dans `gameRouteFor`, `isPlayableGame` et les textes dans les 5 langues.
 
+## Skyjo Action jouable
+
+Jeu de cartes jouable de la catégorie « Spéciaux » (`SKYJO_ACTION_ID`, route `skyjoaction`). Moteur pur dans `SkyjoActionRound.kt` (testé par `SkyjoActionRoundTest`), écran dans `SkyjoActionPanel.kt`, cartes découpées de photos dans `res/drawable-nodpi/skyjo_*.webp` (nombres, étoile, dos, 9 cartes action). La pioche des cartes action est posée sur le côté, comme sur la table (`skyjo_back_deck.webp` : le dos tourné d'un quart de tour, avec l'épaisseur de la pile).
+
+- **Paquet retenu** : 7 exemplaires de chaque valeur de −2 à 12, 15 étoiles (jokers) et 30 cartes action (`SkyjoActionScoring`). Grille de 12 cartes (9 à partir de 5 joueurs).
+- **Règles appliquées par l'appli** : un geste par tour, colonnes de 3 et lignes complètes identiques retirées, étoile = joker et bonus de carte action, 9 cartes action (Échange, Échange personnel, Piocher trois, Regarder, Météores, Double tour, Protection, Réactivation, Voleur), dernier tour sans carte action, points doublés pour qui termine sans le score le plus bas, 10 points par carte action non jouée.
+- **Un seul téléphone** : toutes les grilles sont visibles ; seule la carte Regarder montre un secret.
+- **Disposition** : la grille du joueur en cours est sous les pioches ; les autres joueurs sont en petit sur une seule ligne (`SkyjoOthers`), chaque petite grille s'ouvre en grand en dessous quand on la touche (`expanded`), et c'est aussi là qu'on touche leurs cartes pour Échange, Regarder, Météores et Voleur (la grille de la victime s'ouvre d'elle-même pour Météores).
+- Les points de chaque manche sont inscrits au tableau des scores (`SkyjoActionRound.settle`).
+
 ## Yaniv jouable
 
 Deuxième jeu de cartes à partir de `CardGameKit.kt` après le Huit américain (même écran-cadre `CardGameScreen`, mêmes cartes d'`FrenchCards`, même `ScoresCard` / `PassPhoneCard` / `RoundResultCard`). Il a son propre écran (`YanivScreen`, route `yaniv`) et se joue tour par tour (`YanivRound` et `YanivScoring`, `YanivPanel.kt` pour l'affichage ; testés par `YanivRoundTest`). Il garde sa feuille de scores en version « feuilles de scores seules » ; seule la version jouable change de route (`gameRouteFor`) :
