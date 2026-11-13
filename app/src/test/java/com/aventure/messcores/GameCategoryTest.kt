@@ -74,9 +74,12 @@ class GameCategoryTest {
     fun lesJeuxSoloSontLesJeuxJouablesPourUnSeulJoueur() {
         val solo = builtIns.filter { it.isSoloGame() }.map { it.id }.toSet()
         assertEquals(
-            setOf(RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, PANCAKE_ID, CIRCLES_ID, SIMON_ID),
+            setOf(RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, PANCAKE_ID, CIRCLES_ID, SIMON_ID, "builtin_yams", "builtin_shutbox"),
             solo
         )
+        // Le Yams et le Shut the box (minPlayers = 1, dés virtuels) se jouent aussi seul : ils sont dans « Jeux solo » ET dans « Jeux jouables ».
+        assertEquals(false, builtIns.single { it.id == "builtin_yams" }.isSoloOnlyGame())
+        assertEquals(false, builtIns.single { it.id == "builtin_shutbox" }.isSoloOnlyGame())
         // Les Ronds et Simon se jouent seul ou à plusieurs : ils sont dans « Jeux solo » ET dans « Jeux jouables ».
         assertEquals(false, builtIns.single { it.id == CIRCLES_ID }.isSoloOnlyGame())
         assertEquals(false, builtIns.single { it.id == SIMON_ID }.isSoloOnlyGame())
