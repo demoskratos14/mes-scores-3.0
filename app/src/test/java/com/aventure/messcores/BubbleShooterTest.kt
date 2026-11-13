@@ -21,6 +21,9 @@ class BubbleShooterTest {
             .filter { it != BubbleGame.EMPTY }
             .toSet()
 
+    /** Le nombre de bulles du niveau dessiné [level]. */
+    private fun handmadeBubbleCount(level: Int): Int = Bubble.handmade(level)!!.sumOf { row -> row.count { it != '.' } }
+
     // --- Le départ ---
 
     @Test
@@ -244,7 +247,7 @@ class BubbleShooterTest {
         assertEquals(2, game.level)
         assertEquals(3 * Bubble.POP_POINTS + Bubble.LEVEL_BONUS, game.score)
         assertFalse(game.isOver)
-        assertEquals(Bubble.rowsFor(2) * Bubble.COLS, game.bubbleCount)
+        assertEquals(handmadeBubbleCount(2), game.bubbleCount)
         assertEquals(0, game.shotsSinceDrop)
         assertTrue(colorsOnBoard(game).all { it < Bubble.colorsFor(2) })
         assertTrue(game.current in colorsOnBoard(game))
@@ -337,6 +340,218 @@ class BubbleShooterTest {
         assertTrue(game.lastEffects.isEmpty())
     }
 
+    // --- Les niveaux dessinés à la main ---
+
+    @Test
+    fun lesNiveauxDessinesSontValides() {
+        assertTrue(Bubble.HANDMADE.isNotEmpty())
+        for (number in 1..Bubble.HANDMADE.size) {
+            val pattern = Bubble.handmade(number)!!
+            assertTrue("niveau $number : trop de rangées", pattern.size <= Bubble.rowsFor(30))
+            pattern.forEach { row ->
+                assertEquals("niveau $number : une rangée n'a pas ${Bubble.COLS} cases", Bubble.COLS, row.length)
+                assertTrue("niveau $number : caractère inconnu", row.all { it == '.' || it in '0'..'5' })
+            }
+            val game = emptyGame()
+            game.loadLevel(number)
+            assertEquals(handmadeBubbleCount(number), game.bubbleCount)
+            assertTrue("niveau $number : couleur trop haute", colorsOnBoard(game).all { it < Bubble.colorsFor(number) })
+            // Aucune bulle ne flotte : elles tiennent toutes au plafond, directement ou par d'autres.
+            assertEquals("niveau $number : des bulles flottent", 0, game.dropFloating())
+            // La première rangée est pleine : le tableau s'accroche.
+            for (c in 0 until Bubble.COLS) assertEquals(pattern[0][c] != '.', game.colorAt(0, c) != BubbleGame.EMPTY)
+        }
+    }
+
+    @Test
+    fun apresLesNiveauxDessinesLesTableauxSontTiresAuHasard() {
+        val game = emptyGame()
+        val number = Bubble.HANDMADE.size + 1
+        game.loadLevel(number)
+        assertEquals(Bubble.rowsFor(number) * Bubble.COLS, game.bubbleCount)
+    }
+
+    // --- Les modes ---
+
+    @Test
+    fun enModeZenLePlafondNeDescendJamais() {
+        val game = newGame()
+        game.start(BubbleMode.ZEN)
+        game.clearBoard()
+        // Dix tirs manqués (des couleurs en alternance : aucun groupe) : au classique, le plafond serait descendu.
+        for (i in 0 until 10) game.settle(0, i, i % 2)
+        assertEquals(10, game.bubbleCount)
+        assertEquals(0, game.shotsSinceDrop)
+        assertFalse(game.isShifted(0))
+    }
+
+    @Test
+    fun leDefiDuJourDonneLeMemeDepartPourLaMemeGraine() {
+        assertEquals(20261114, Bubble.dailySeed(2026, 11, 14))
+        val a = BubbleGame(Random(1))
+        val b = BubbleGame(Random(99))
+        a.start(BubbleMode.DAILY, 20261114)
+        b.start(BubbleMode.DAILY, 20261114)
+        assertEquals(BubbleMode.DAILY, a.mode)
+        assertEquals(a.current, b.current)
+        assertEquals(a.next, b.next)
+        // Même un tableau tiré au hasard (au-delà des niveaux dessinés) est le même.
+        a.loadLevel(Bubble.HANDMADE.size + 2)
+        b.loadLevel(Bubble.HANDMADE.size + 2)
+        for (r in 0 until Bubble.MAX_ROWS) {
+            for (c in 0 until Bubble.COLS) assertEquals(a.colorAt(r, c), b.colorAt(r, c))
+        }
+        // Recommencer le même jour redonne le même départ.
+        val first = a.current
+        a.reset()
+        assertEquals(first, a.current)
+    }
+
+    @Test
+    fun lesNumerosDeModeInconnusDonnentLeClassique() {
+        assertEquals(BubbleMode.ZEN, BubbleMode.fromIndex(BubbleMode.ZEN.ordinal))
+        assertEquals(BubbleMode.CLASSIC, BubbleMode.fromIndex(99))
+        assertEquals(BubbleMode.CLASSIC, BubbleMode.fromIndex(-1))
+    }
+
+    // --- Les échanges ---
+
+    @Test
+    fun lesEchangesSontLimitesEtSeGagnentEnFaisantPartirDesBulles() {
+        val game = emptyGame()
+        assertEquals(Bubble.SWAPS_START, game.swapCharges)
+        assertTrue(game.swap())
+        assertEquals(0, game.swapCharges)
+        assertFalse(game.swap())
+        game.place(0, 9, 5) // garde le tableau non vide
+        for (i in 0 until 5) {
+            game.place(0, 0, 0)
+            game.place(0, 1, 0)
+            game.settle(0, 2, 0)
+            assertEquals(3, game.lastPopped)
+            assertEquals(minOf(i + 1, Bubble.SWAPS_MAX), game.swapCharges)
+        }
+        assertEquals(Bubble.SWAPS_MAX, game.swapCharges)
+    }
+
+    // --- Les bulles spéciales ---
+
+    @Test
+    fun lesBullesSpecialesSeDebloquentAvecLesNiveaux() {
+        assertTrue(Bubble.unlockedSpecials(1).isEmpty())
+        assertEquals(listOf(Bubble.BOMB), Bubble.unlockedSpecials(2))
+        assertEquals(listOf(Bubble.BOMB, Bubble.RAINBOW), Bubble.unlockedSpecials(3))
+        assertEquals(listOf(Bubble.BOMB, Bubble.RAINBOW, Bubble.LIGHTNING), Bubble.unlockedSpecials(4))
+        assertFalse(Bubble.isSpecial(Bubble.PALETTE - 1))
+        assertTrue(Bubble.isSpecial(Bubble.BOMB))
+    }
+
+    @Test
+    fun uneJaugePleineFaitArriverUneBulleSpecialeMaisPasAuNiveauUn() {
+        val game = emptyGame()
+        game.loadLevel(3)
+        game.clearBoard()
+        game.setSpecialCharge(Bubble.SPECIAL_THRESHOLD)
+        game.setQueue(0, 1)
+        game.settle(0, 0, 0)
+        assertTrue(game.next in listOf(Bubble.BOMB, Bubble.RAINBOW))
+
+        val first = emptyGame()
+        first.setSpecialCharge(Bubble.SPECIAL_THRESHOLD)
+        first.setQueue(0, 1)
+        first.settle(0, 0, 0)
+        assertFalse(Bubble.isSpecial(first.next))
+    }
+
+    @Test
+    fun laBombeFaitEclaterToutesSesVoisines() {
+        val game = emptyGame()
+        // La case (1, 5), en rangée décalée, a pour voisines (0, 5), (0, 6), (1, 4), (1, 6), (2, 5) et (2, 6).
+        game.place(0, 5, 0)
+        game.place(0, 6, 1)
+        game.place(1, 4, 2)
+        game.place(1, 6, 3)
+        game.place(2, 5, 4)
+        game.place(2, 6, 0)
+        game.place(0, 0, 5) // loin de la bombe, et accrochée au plafond
+        game.settle(1, 5, Bubble.BOMB)
+        assertEquals(6, game.lastPopped)
+        assertEquals(0, game.lastFallen)
+        assertEquals(6 * Bubble.POP_POINTS, game.score)
+        assertEquals(1, game.bubbleCount)
+        assertEquals(BubbleGame.EMPTY, game.colorAt(1, 5)) // la bombe ne reste pas
+        assertEquals(1, game.lastEffects.count { it.color == Bubble.BOMB })
+        assertEquals(6, game.lastEffects.count { it.color != Bubble.BOMB && !it.falling })
+    }
+
+    @Test
+    fun lEclairVideToutesLaRangeeOuIlSePose() {
+        val game = emptyGame()
+        game.place(0, 0, 0)
+        game.place(1, 0, 1)
+        game.place(2, 0, 2)
+        game.place(2, 3, 3)
+        game.place(2, 5, 4)
+        game.place(0, 7, 5)
+        game.settle(2, 8, Bubble.LIGHTNING)
+        assertEquals(3, game.lastPopped)
+        assertEquals(3 * Bubble.POP_POINTS, game.score)
+        assertEquals(3, game.bubbleCount)
+        for (c in 0 until Bubble.COLS) assertEquals(BubbleGame.EMPTY, game.colorAt(2, c))
+    }
+
+    @Test
+    fun lArcEnCielPrendLaCouleurQuiFaitLePlusGrosGroupe() {
+        val game = emptyGame()
+        game.place(0, 0, 1)
+        game.place(0, 1, 1)
+        game.place(2, 0, 3)
+        game.place(0, 9, 5) // garde le tableau non vide
+        // Posé en (1, 0) : en couleur 1 il fait un groupe de trois avec (0, 0) et (0, 1), en couleur 3 un groupe de deux avec (2, 0).
+        game.settle(1, 0, Bubble.RAINBOW)
+        assertEquals(3, game.lastPopped)
+        // La bulle (2, 0), n'étant plus tenue par (1, 0), tombe.
+        assertEquals(1, game.lastFallen)
+        assertEquals(3 * Bubble.POP_POINTS + Bubble.fallPoints(1), game.score)
+    }
+
+    @Test
+    fun lArcEnCielSansVoisinePrendUneCouleurDuTableau() {
+        val game = emptyGame()
+        game.place(0, 9, 4)
+        game.settle(0, 2, Bubble.RAINBOW)
+        val color = game.colorAt(0, 2)
+        assertTrue(color in 0 until Bubble.PALETTE)
+        assertEquals(2, game.bubbleCount)
+    }
+
+    @Test
+    fun leLanceurNeChargeJamaisUneCouleurAbsenteDuTableauApresDesTirsAuHasard() {
+        val random = Random(11)
+        val game = newGame(11)
+        var shots = 0
+        while (!game.isOver && shots < 150) {
+            if (!Bubble.isSpecial(game.current)) assertTrue(game.current in colorsOnBoard(game))
+            game.shoot(Bubble.MIN_ANGLE + random.nextFloat() * (Bubble.MAX_ANGLE - Bubble.MIN_ANGLE))
+            game.tick(5000)
+            shots++
+        }
+        assertTrue(shots > 0)
+    }
+
+    // --- Le guide ---
+
+    @Test
+    fun leGuideLongMontreAuMoinsAutantDeRebondsQueLeCourt() {
+        val game = emptyGame()
+        val none = game.trajectory(0.5f, 0)
+        val short = game.trajectory(0.5f, 2)
+        val long = game.trajectory(0.5f, 5)
+        assertEquals(3, none.size) // le lanceur, le premier rebond, puis la fin du tracé
+        assertTrue(short.size >= none.size)
+        assertTrue(long.size >= short.size)
+    }
+
     // --- La sauvegarde ---
 
     @Test
@@ -356,6 +571,42 @@ class BubbleShooterTest {
         for (r in 0 until Bubble.MAX_ROWS) {
             for (c in 0 until Bubble.COLS) assertEquals(game.colorAt(r, c), copy.colorAt(r, c))
         }
+    }
+
+    @Test
+    fun laSauvegardeGardeLeModeLesEchangesEtLaBulleEnVol() {
+        val game = newGame(5)
+        game.start(BubbleMode.ZEN)
+        game.swap()
+        assertTrue(game.shoot(1.2f))
+        game.tick(100) // deux unités de vol : la bulle est encore en l'air
+        assertTrue(game.isFlying)
+        val copy = BubbleGame.restore(game.save())
+        assertNotNull(copy)
+        copy!!
+        assertEquals(BubbleMode.ZEN, copy.mode)
+        assertEquals(game.swapCharges, copy.swapCharges)
+        assertTrue(copy.isFlying)
+        assertEquals(game.flightX, copy.flightX, 1e-6f)
+        assertEquals(game.flightY, copy.flightY, 1e-6f)
+        // Les deux terminent le même vol et posent la bulle au même endroit.
+        game.tick(5000)
+        copy.tick(5000)
+        assertFalse(copy.isFlying)
+        for (r in 0 until Bubble.MAX_ROWS) {
+            for (c in 0 until Bubble.COLS) assertEquals(game.colorAt(r, c), copy.colorAt(r, c))
+        }
+    }
+
+    @Test
+    fun uneSauvegardeAvecUnVolImpossibleEstRefusee() {
+        val data = newGame().save()
+        // Un vol annoncé, mais sans direction : la bulle n'ira nulle part.
+        assertNull(BubbleGame.restore(data.toMutableList().also { it[12] = 1 }))
+        // Un mode qui n'existe pas.
+        assertNull(BubbleGame.restore(data.toMutableList().also { it[8] = 7 }))
+        // Une ancienne version de la sauvegarde.
+        assertNull(BubbleGame.restore(data.toMutableList().also { it[0] = 1 }))
     }
 
     @Test

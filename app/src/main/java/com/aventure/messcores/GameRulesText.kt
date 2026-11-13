@@ -427,7 +427,8 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_bubble_1_title, R.string.rules_bubble_1_body),
         RulesSection(R.string.rules_bubble_2_title, R.string.rules_bubble_2_body),
         RulesSection(R.string.rules_bubble_3_title, R.string.rules_bubble_3_body),
-        RulesSection(R.string.rules_bubble_4_title, R.string.rules_bubble_4_body)
+        RulesSection(R.string.rules_bubble_4_title, R.string.rules_bubble_4_body),
+        RulesSection(R.string.rules_bubble_5_title, R.string.rules_bubble_5_body)
     ),
     "builtin_shmup" to listOf(
         RulesSection(R.string.rules_shmup_1_title, R.string.rules_shmup_1_body),

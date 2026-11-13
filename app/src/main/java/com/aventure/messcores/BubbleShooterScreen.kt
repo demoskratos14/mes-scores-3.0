@@ -5,6 +5,7 @@ import android.content.ContextWrapper
 import android.graphics.Paint
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,9 +78,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import java.time.LocalDate
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
@@ -145,6 +149,22 @@ private class BubbleParticle(
     var age = 0f
 }
 
+// Le guide de visée : sans, court (deux rebonds au plus) ou long (cinq). Le choix est gardé d'une séance à l'autre, comme le mode.
+private const val GUIDE_OFF = 0
+private const val GUIDE_SHORT = 1
+private const val GUIDE_LONG = 2
+
+/** Le nombre de rebonds que le guide montre, ou -1 s'il n'y a pas de guide. */
+private fun guideBounces(guide: Int): Int = when (guide) {
+    GUIDE_LONG -> 5
+    GUIDE_SHORT -> 2
+    else -> -1
+}
+
+private const val PREFS_NAME = "mes_scores_bubble"
+private const val PREF_MODE = "mode"
+private const val PREF_GUIDE = "guide"
+
 private val BubbleBoardColor = Color(0xFF14213D)
 private val BubbleShooterZoneColor = Color(0xFF1B2D52)
 private val BubbleLoseLineColor = Color(0xFFFF5252)
@@ -160,6 +180,34 @@ private val BubbleColors = listOf(
     Color(0xFF8E24AA), // violet
     Color(0xFFFB8C00) // orange
 )
+
+/** Les couleurs de l'arc-en-ciel, dans l'ordre, la première répétée à la fin pour que le tour se referme. */
+private val RainbowColors = listOf(
+    Color(0xFFE53935), Color(0xFFFB8C00), Color(0xFFFDD835), Color(0xFF43A047),
+    Color(0xFF1E88E5), Color(0xFF8E24AA), Color(0xFFE53935)
+)
+
+/** La couleur d'une bulle de numéro [index] : une des six couleurs, ou celle qui représente une bulle spéciale (anneaux, étincelles, guide). */
+private fun bubbleBase(index: Int): Color = when (index) {
+    Bubble.BOMB -> Color(0xFFFF7043)
+    Bubble.RAINBOW -> Color.White
+    Bubble.LIGHTNING -> Color(0xFFFFEB3B)
+    else -> BubbleColors[index.coerceAtLeast(0) % BubbleColors.size]
+}
+
+/** Le nom d'une bulle de numéro [kind] pour les lecteurs d'écran. */
+@StringRes
+private fun bubbleKindName(kind: Int): Int = when (kind) {
+    0 -> R.string.bubble_kind_0
+    1 -> R.string.bubble_kind_1
+    2 -> R.string.bubble_kind_2
+    3 -> R.string.bubble_kind_3
+    4 -> R.string.bubble_kind_4
+    5 -> R.string.bubble_kind_5
+    Bubble.BOMB -> R.string.bubble_kind_6
+    Bubble.RAINBOW -> R.string.bubble_kind_7
+    else -> R.string.bubble_kind_8
+}
 
 /** Le crayon des lettres du mode daltonien : A, B, C… sur chaque couleur. */
 private val CODE_PAINT = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -181,7 +229,9 @@ private val BubbleGameSaver = listSaver<BubbleGame, Int>(
  * trois bulles de même couleur éclate, et les bulles qui ne tiennent plus au plafond tombent. Les tirs manqués font descendre le
  * plafond ; une bulle sur la ligne rouge finit la partie. Le meilleur score est gardé d'une séance à l'autre. Vider le tableau
  * donne un bonus, une pluie de paillettes et le niveau suivant. Elle se met en pause quand l'appli passe en arrière-plan.
- * Tout est gardé quand l'écran tourne. [players] : le joueur dont le nom s'affiche au départ.
+ * Avant la partie, on choisit le mode (classique, zen, défi du jour : un record chacun) et le guide de visée (sans, court, long) ;
+ * les gros coups font arriver des bulles spéciales (bombe, arc-en-ciel, éclair) et les échanges de bulles sont comptés.
+ * Tout est gardé quand l'écran tourne, la bulle en vol comprise. [players] : le joueur dont le nom s'affiche au départ.
  */
 @Composable
 internal fun BubbleShooterScreen(players: List<String>) {
@@ -192,7 +242,24 @@ internal fun BubbleShooterScreen(players: List<String>) {
     var paused by rememberSaveable { mutableStateOf(false) }
     // Nombre de tableaux vidés : à chaque hausse, la pluie de paillettes tombe.
     var cleared by rememberSaveable { mutableIntStateOf(game.level - 1) }
-    val record = rememberSoloRecord(BUBBLE_ID)
+    // Le mode et le guide : gardés d'une séance à l'autre dans les préférences, et quand l'écran tourne.
+    val prefs = remember(context) { context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE) }
+    var modeIndex by rememberSaveable { mutableIntStateOf(prefs.getInt(PREF_MODE, 0)) }
+    var guide by rememberSaveable { mutableIntStateOf(prefs.getInt(PREF_GUIDE, GUIDE_SHORT).coerceIn(GUIDE_OFF, GUIDE_LONG)) }
+    val mode = BubbleMode.fromIndex(modeIndex)
+    // Le défi du jour est le même pour tout le monde, un jour donné : sa graine vient de la date.
+    val dailySeed = remember {
+        val today = LocalDate.now()
+        Bubble.dailySeed(today.year, today.monthValue, today.dayOfMonth)
+    }
+    // Un record par mode, et un par jour pour le défi du jour.
+    val record = rememberSoloRecord(
+        when (mode) {
+            BubbleMode.CLASSIC -> BUBBLE_ID
+            BubbleMode.ZEN -> BUBBLE_ID + "_zen"
+            BubbleMode.DAILY -> BUBBLE_ID + "_daily_" + dailySeed
+        }
+    )
 
     // La partie se met en pause quand l'appli passe en arrière-plan (et donc aussi quand l'écran tourne).
     val lifecycleOwner = remember(context) { findBubbleLifecycleOwner(context) }
@@ -208,7 +275,7 @@ internal fun BubbleShooterScreen(players: List<String>) {
 
     fun startGame() {
         record.clearNew()
-        game.reset()
+        game.start(mode, dailySeed)
         cleared = 0
         paused = false
         phase = BUBBLE_PHASE_PLAYING
@@ -218,6 +285,7 @@ internal fun BubbleShooterScreen(players: List<String>) {
         when (phase) {
             BUBBLE_PHASE_PLAYING -> BubblePlayfield(
                 game = game,
+                guide = guide,
                 paused = paused,
                 onPausedChange = { paused = it },
                 onCleared = { cleared = it },
@@ -253,6 +321,9 @@ internal fun BubbleShooterScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.bubble_play_again))
                 }
+                OutlinedButton(onClick = { phase = BUBBLE_PHASE_READY }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.bubble_change_mode))
+                }
             }
             else -> BubbleCard {
                 Text(
@@ -266,6 +337,18 @@ internal fun BubbleShooterScreen(players: List<String>) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
+                BubbleSetup(
+                    modeIndex = modeIndex,
+                    guide = guide,
+                    onModeChange = {
+                        modeIndex = it
+                        prefs.edit { putInt(PREF_MODE, it) }
+                    },
+                    onGuideChange = {
+                        guide = it
+                        prefs.edit { putInt(PREF_GUIDE, it) }
+                    }
+                )
                 SoloRecordLine(record)
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.bubble_go))
@@ -274,6 +357,70 @@ internal fun BubbleShooterScreen(players: List<String>) {
         }
         RecordSparkles(record)
         SparkleRain(cleared)
+    }
+}
+
+/**
+ * Les choix d'avant la partie : le mode (classique, zen, défi du jour) avec une phrase qui l'explique, et le guide de visée
+ * (sans, court, long). Le choix en cours est le bouton plein, les autres sont cernés.
+ */
+@Composable
+private fun BubbleSetup(
+    modeIndex: Int,
+    guide: Int,
+    onModeChange: (Int) -> Unit,
+    onGuideChange: (Int) -> Unit
+) {
+    val modes = listOf(
+        stringResource(R.string.bubble_mode_classic),
+        stringResource(R.string.bubble_mode_zen),
+        stringResource(R.string.bubble_mode_daily)
+    )
+    val guides = listOf(
+        stringResource(R.string.bubble_guide_off),
+        stringResource(R.string.bubble_guide_short),
+        stringResource(R.string.bubble_guide_long)
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        BubbleChoiceRow(labels = modes, selected = modeIndex, onSelect = onModeChange)
+        Text(
+            text = stringResource(
+                when (BubbleMode.fromIndex(modeIndex)) {
+                    BubbleMode.CLASSIC -> R.string.bubble_mode_classic_hint
+                    BubbleMode.ZEN -> R.string.bubble_mode_zen_hint
+                    BubbleMode.DAILY -> R.string.bubble_mode_daily_hint
+                }
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = stringResource(R.string.bubble_guide_title),
+            style = MaterialTheme.typography.labelLarge,
+            textAlign = TextAlign.Center
+        )
+        BubbleChoiceRow(labels = guides, selected = guide, onSelect = onGuideChange)
+    }
+}
+
+/** Une rangée de choix de même largeur : celui de numéro [selected] est un bouton plein, les autres sont cernés. */
+@Composable
+private fun BubbleChoiceRow(labels: List<String>, selected: Int, onSelect: (Int) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        labels.forEachIndexed { index, label ->
+            val modifier = Modifier.weight(1f)
+            val padding = PaddingValues(horizontal = 4.dp)
+            if (index == selected) {
+                Button(onClick = { onSelect(index) }, modifier = modifier, contentPadding = padding) {
+                    Text(text = label, maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                }
+            } else {
+                OutlinedButton(onClick = { onSelect(index) }, modifier = modifier, contentPadding = padding) {
+                    Text(text = label, maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
     }
 }
 
@@ -320,6 +467,7 @@ private fun BubbleCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun BubblePlayfield(
     game: BubbleGame,
+    guide: Int,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
     onCleared: (Int) -> Unit,
@@ -333,6 +481,11 @@ private fun BubblePlayfield(
     var score by remember { mutableIntStateOf(game.score) }
     var level by remember { mutableIntStateOf(game.level) }
     var untilDrop by remember { mutableIntStateOf(game.shotsUntilDrop) }
+    // Les échanges qui restent, le nombre de bulles et les deux bulles du lanceur : l'étiquette de l'échange et la description du plateau pour les lecteurs d'écran.
+    var swaps by remember { mutableIntStateOf(game.swapCharges) }
+    var bubbles by remember { mutableIntStateOf(game.bubbleCount) }
+    var currentKind by remember { mutableIntStateOf(game.current) }
+    var nextKind by remember { mutableIntStateOf(game.next) }
     // L'angle de visée, de l'horizontale : tout droit au départ, gardé quand l'écran tourne.
     var aim by rememberSaveable { mutableFloatStateOf(Bubble.START_ANGLE) }
     // Vrai pendant que la fête du tableau vidé se joue : les tirs attendent un instant.
@@ -345,6 +498,10 @@ private fun BubblePlayfield(
         score = game.score
         level = game.level
         untilDrop = game.shotsUntilDrop
+        swaps = game.swapCharges
+        bubbles = game.bubbleCount
+        currentKind = game.current
+        nextKind = game.next
     }
 
     // Les animations en cours : ni sauvegardées ni observées, le dessin les relit à chaque image (voir [revision]).
@@ -469,6 +626,14 @@ private fun BubblePlayfield(
         finished()
     }
 
+    val boardDescription = stringResource(
+        R.string.bubble_board_description,
+        level,
+        bubbles,
+        stringResource(bubbleKindName(currentKind)),
+        stringResource(bubbleKindName(nextKind))
+    )
+
     // La marge de la barre de navigation (boutons ou geste) garde les commandes du bas hors de ses touches.
     Column(
         modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
@@ -487,7 +652,11 @@ private fun BubblePlayfield(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = stringResource(R.string.bubble_stats, level, untilDrop),
+                        text = if (game.mode == BubbleMode.ZEN) {
+                            stringResource(R.string.bubble_stats_zen, level)
+                        } else {
+                            stringResource(R.string.bubble_stats, level, untilDrop)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -506,6 +675,7 @@ private fun BubblePlayfield(
                     .align(Alignment.Center)
                     .size(unit * Bubble.WIDTH, unit * Bubble.HEIGHT)
                     .clip(RoundedCornerShape(8.dp))
+                    .semantics { contentDescription = boardDescription }
                     // Poser le doigt vise, le glisser règle la visée, le relever tire. Toucher la bulle suivante l'échange avec celle du lanceur.
                     .pointerInput(Unit) {
                         awaitEachGesture {
@@ -534,7 +704,7 @@ private fun BubblePlayfield(
                         }
                     }
             ) {
-                Canvas(modifier = Modifier.fillMaxSize()) { drawBubbleBoard(game, aim, colorBlind, particles, revision) }
+                Canvas(modifier = Modifier.fillMaxSize()) { drawBubbleBoard(game, aim, guideBounces(guide), colorBlind, particles, revision) }
                 if (celebrating && !paused) {
                     Text(
                         text = stringResource(R.string.bubble_cleared_title, level),
@@ -585,7 +755,7 @@ private fun BubblePlayfield(
                 modifier = Modifier.weight(1.4f),
                 repeating = false,
                 onAction = { swapAction() }
-            ) { BubbleKeyLabel(stringResource(R.string.bubble_swap)) }
+            ) { BubbleKeyLabel(stringResource(R.string.bubble_swap_count, swaps), enabled = swaps > 0) }
             BubbleKey(
                 description = stringResource(R.string.bubble_fire),
                 modifier = Modifier.weight(1.4f),
@@ -654,12 +824,12 @@ private fun BubbleKey(
 }
 
 @Composable
-private fun BubbleKeyLabel(text: String) {
+private fun BubbleKeyLabel(text: String, enabled: Boolean = true) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSecondaryContainer,
+        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = if (enabled) 1f else 0.4f),
         textAlign = TextAlign.Center,
         maxLines = 1
     )
@@ -695,6 +865,7 @@ private fun BubbleChevron(pointsLeft: Boolean) {
 private fun DrawScope.drawBubbleBoard(
     game: BubbleGame,
     aim: Float,
+    guideBounces: Int,
     colorBlind: Boolean,
     particles: List<BubbleParticle>,
     @Suppress("UNUSED_PARAMETER") revision: Int
@@ -728,7 +899,7 @@ private fun DrawScope.drawBubbleBoard(
     for (p in particles) {
         val t = (p.age / p.life).coerceIn(0f, 1f)
         val position = Offset(p.x * u, p.y * u)
-        val base = BubbleColors[p.color.coerceAtLeast(0) % BubbleColors.size]
+        val base = bubbleBase(p.color)
         when (p.kind) {
             PARTICLE_RING -> {
                 if (t < 0.5f) drawBubble(position, radius * 0.96f * (1f - 2f * t), p.color, colorBlind)
@@ -752,8 +923,8 @@ private fun DrawScope.drawBubbleBoard(
     val flying = game.isFlying
 
     // Le guide de visée : un trait en pointillés (avec ses rebonds) et la place où la bulle se poserait.
-    if (!flying && !game.isOver) {
-        val path = game.trajectory(aim).map { Offset(it.first * u, it.second * u) }
+    if (!flying && !game.isOver && guideBounces >= 0) {
+        val path = game.trajectory(aim, guideBounces).map { Offset(it.first * u, it.second * u) }
         val dash = PathEffect.dashPathEffect(floatArrayOf(u * 0.18f, u * 0.22f))
         for (i in 0 until path.size - 1) {
             drawLine(
@@ -766,7 +937,7 @@ private fun DrawScope.drawBubbleBoard(
             )
         }
         drawCircle(
-            color = BubbleColors[game.current % BubbleColors.size].copy(alpha = 0.45f),
+            color = bubbleBase(game.current).copy(alpha = 0.45f),
             radius = radius * 0.96f,
             center = path.last(),
             style = Stroke(width = u * 0.08f)
@@ -797,7 +968,11 @@ private fun DrawScope.drawBubbleBoard(
 
 /** Une bulle : une bille brillante cernée d'un trait sombre, avec sa lettre en mode daltonien. */
 private fun DrawScope.drawBubble(center: Offset, radius: Float, index: Int, colorBlind: Boolean) {
-    val base = BubbleColors[index.coerceAtLeast(0) % BubbleColors.size]
+    if (Bubble.isSpecial(index)) {
+        drawSpecialBubble(center, radius, index)
+        return
+    }
+    val base = bubbleBase(index)
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(lerp(base, Color.White, 0.55f), base, lerp(base, Color.Black, 0.35f)),
@@ -819,6 +994,57 @@ private fun DrawScope.drawBubble(center: Offset, radius: Float, index: Int, colo
         paint.textSize = radius * 1.1f
         val letter = ('A' + index).toString()
         drawContext.canvas.nativeCanvas.drawText(letter, center.x, center.y - (paint.ascent() + paint.descent()) / 2f, paint)
+    }
+}
+
+/**
+ * Une bulle spéciale : la bombe (sombre, avec sa mèche allumée), l'arc-en-ciel (tous les tons en tour) ou l'éclair (jaune, avec
+ * son trait). Elles ne portent pas de lettre : leur forme suffit à les reconnaître, même sans les couleurs.
+ */
+private fun DrawScope.drawSpecialBubble(center: Offset, radius: Float, kind: Int) {
+    val base = bubbleBase(kind)
+    val fill = when (kind) {
+        Bubble.RAINBOW -> Brush.sweepGradient(colors = RainbowColors, center = center)
+        Bubble.BOMB -> Brush.radialGradient(
+            colors = listOf(Color(0xFF78909C), Color(0xFF263238), Color(0xFF000000)),
+            center = center - Offset(radius * 0.35f, radius * 0.35f),
+            radius = radius * 1.6f
+        )
+        else -> Brush.radialGradient(
+            colors = listOf(Color.White, base, lerp(base, Color.Black, 0.3f)),
+            center = center - Offset(radius * 0.35f, radius * 0.35f),
+            radius = radius * 1.6f
+        )
+    }
+    drawCircle(brush = fill, radius = radius, center = center)
+    drawCircle(
+        color = Color.Black.copy(alpha = 0.55f),
+        radius = radius,
+        center = center,
+        style = Stroke(width = radius * 0.08f)
+    )
+    when (kind) {
+        Bubble.BOMB -> {
+            // La mèche, et sa flamme.
+            val from = center + Offset(radius * 0.45f, -radius * 0.55f)
+            val to = center + Offset(radius * 0.75f, -radius * 0.95f)
+            drawLine(Color(0xFFBCAAA4), from, to, strokeWidth = radius * 0.14f, cap = StrokeCap.Round)
+            drawCircle(Color(0xFFFFB300), radius * 0.2f, to)
+            drawCircle(Color.White.copy(alpha = 0.35f), radius * 0.16f, center - Offset(radius * 0.38f, radius * 0.38f))
+        }
+        Bubble.LIGHTNING -> {
+            val bolt = Path().apply {
+                moveTo(center.x + radius * 0.15f, center.y - radius * 0.75f)
+                lineTo(center.x - radius * 0.4f, center.y + radius * 0.1f)
+                lineTo(center.x - radius * 0.02f, center.y + radius * 0.1f)
+                lineTo(center.x - radius * 0.2f, center.y + radius * 0.75f)
+                lineTo(center.x + radius * 0.4f, center.y - radius * 0.15f)
+                lineTo(center.x + radius * 0.02f, center.y - radius * 0.15f)
+                close()
+            }
+            drawPath(bolt, Color(0xFF263238))
+        }
+        else -> drawCircle(Color.White.copy(alpha = 0.5f), radius * 0.16f, center - Offset(radius * 0.38f, radius * 0.38f))
     }
 }
 
