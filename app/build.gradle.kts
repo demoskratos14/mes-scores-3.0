@@ -117,7 +117,7 @@ dependencies {
     testImplementation("org.json:json:20260814")
     // Robolectric simule Android sur la JVM : permet de tester ce qui passe par les SharedPreferences
     // (GameRepository, GameHistoryRepository, TournamentViewModel) sans émulateur.
-    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation("org.robolectric:robolectric:4.18")
     // Tests d'interface Compose, exécutés sur la JVM avec Robolectric (pas d'émulateur : ils tournent
     // dans le même ./gradlew testDebugUnitTest que les autres). La version vient du BOM Compose.
     testImplementation("androidx.compose.ui:ui-test-junit4")
