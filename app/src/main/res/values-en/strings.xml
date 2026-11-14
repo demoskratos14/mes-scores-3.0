@@ -670,11 +670,11 @@
     <string name="rules_dominos_1_title">Goal</string>
     <string name="rules_dominos_1_body">Be the first to get rid of all your dominoes. At the end of each round, the winner scores the sum of the points left in the other players’ hands. The first player to reach 100 points wins (some tables play to 200). The app finishes the current round, then announces the winner.</string>
     <string name="rules_dominos_2_title">Taking a turn</string>
-    <string name="rules_dominos_2_body">With a set of 28 dominoes (double-six), each player gets 7 with two players, or 5 with three or four players; the rest form the boneyard. On your turn, lay a domino with one side matching an end of the chain. If you cannot play, you draw (or pass when the boneyard is empty).</string>
+    <string name="rules_dominos_2_body">With a set of 28 dominoes (double-six), each player gets 7 with two players, or 5 with three or four players; the rest form the boneyard. On your turn, lay a domino with one side matching an end of the chain. If you cannot play, you draw (or pass when the boneyard is empty). The highest double opens the game; otherwise, the domino with the most points does.</string>
     <string name="rules_dominos_3_title">Scoring</string>
     <string name="rules_dominos_3_body">When a player has laid all their dominoes, they score the sum of the points of the dominoes left to the others. If the game is blocked, the player with the fewest points in hand scores the difference with the others (depending on the variants).</string>
     <string name="rules_dominos_4_title">In the app</string>
-    <string name="rules_dominos_4_body">At the end of each round, enter the points scored in the winner’s column (0 for the other players).</string>
+    <string name="rules_dominos_4_body">In the app, everything is automatic: the dominoes are dealt, the highest double opens the round, the app checks every domino laid, handles the boneyard and writes the points on the scoreboard. The phone is passed from player to player: the hand only appears after “Show my hand”.</string>
     <string name="rules_wizard_1_title">Goal</string>
     <string name="rules_wizard_1_body">Announce exactly the number of tricks you will win. With a 60-card deck (52 cards, 4 Wizards and 4 Jesters), the number of rounds equals 60 divided by the number of players (20 rounds with 3 players): in round n, everyone gets n cards. The app does not stop the game: play all the planned rounds.</string>
     <string name="rules_wizard_2_title">Taking a turn</string>
@@ -2651,4 +2651,24 @@
     <string name="skyjoa_look_text">Look at the row or the column of this card?</string>
     <string name="skyjoa_round_over">%1$s finished the round.</string>
     <string name="skyjoa_round_doubled">%1$s finished the round without the lowest score: their points are doubled.</string>
+    <string name="domino_tile_desc">Domino %1$d-%2$d</string>
+    <string name="domino_opened">%1$s opened with the %2$d-%3$d domino.</string>
+    <string name="domino_table_title">Table</string>
+    <string name="domino_ends">Ends of the chain: %1$d on the left, %2$d on the right</string>
+    <string name="domino_hand_points" tools:ignore="PluralsCandidate">Your hand: %1$d points</string>
+    <string name="domino_hint">Tap a domino, then the end where to lay it. With nothing to play, draw; if the boneyard is empty, pass.</string>
+    <string name="domino_select_first">Pick a domino first.</string>
+    <string name="domino_play_left" tools:ignore="PluralsCandidate">Play on the left (%1$d)</string>
+    <string name="domino_play_right" tools:ignore="PluralsCandidate">Play on the right (%1$d)</string>
+    <string name="domino_draw" tools:ignore="PluralsCandidate">Draw (%1$d)</string>
+    <string name="domino_pass">Pass</string>
+    <string name="domino_not_fit">This domino does not fit that end.</string>
+    <string name="domino_must_play">You have a domino to play.</string>
+    <string name="domino_stock_empty">The boneyard is empty.</string>
+    <string name="domino_stock_left">There are still dominoes to draw.</string>
+    <string name="domino_hands_title">Dominoes left at the end of the round</string>
+    <string name="domino_hand_line">%1$s: %2$s (%3$d)</string>
+    <string name="domino_round_won">%1$s laid their last domino!</string>
+    <string name="domino_round_blocked">Nobody can play any more: the round is blocked. %1$s has the fewest points.</string>
+    <string name="domino_round_tie">Nobody can play any more and two players are tied: nobody scores.</string>
 </resources>

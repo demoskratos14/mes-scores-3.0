@@ -48,7 +48,7 @@ private const val GRID_COLUMNS = 3
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
     MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID,
-    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID
+    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID
 )
 
 /**
@@ -148,6 +148,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             UNO_ID -> drawUno()
             FLIP7_ID -> drawFlip7()
             SKYJO_ACTION_ID -> drawSkyjoAction()
+            DOMINOS_ID -> drawDominos()
             else -> drawGeneric()
         }
     }
@@ -847,4 +848,30 @@ private fun DrawScope.drawFlip7() {
     card(Color(0xFFEF6C00), -26f, -s * 0.12f, seven = false)
     card(Color(0xFF29B6F6), 0f, 0f, seven = false)
     card(Color(0xFF26A69A), 26f, s * 0.12f, seven = true)
+}
+
+private fun DrawScope.drawDominos() {
+    paper(Color(0xFF1B5E20))
+    val s = size.minDimension
+    val w = s * 0.34f
+    val h = s * 0.62f
+    val ink = Color(0xFF212121)
+    // Deux dominos debout, légèrement penchés l'un vers l'autre ; chaque moitié porte ses points.
+    fun tile(angle: Float, cx: Float, top: List<Pair<Float, Float>>, bottom: List<Pair<Float, Float>>) {
+        val left = cx - w / 2f
+        val y = s / 2f - h / 2f
+        rotate(angle, pivot = Offset(cx, s / 2f)) {
+            drawRoundRect(Color(0xFFFAFAFA), topLeft = Offset(left, y), size = Size(w, h), cornerRadius = CornerRadius(s * 0.05f))
+            drawLine(ink, Offset(left + w * 0.1f, s / 2f), Offset(left + w * 0.9f, s / 2f), s * 0.02f)
+            val r = s * 0.032f
+            top.forEach { (dx, dy) -> drawCircle(ink, r, Offset(left + w * dx, y + h * 0.5f * dy)) }
+            bottom.forEach { (dx, dy) -> drawCircle(ink, r, Offset(left + w * dx, y + h * (0.5f + 0.5f * dy))) }
+        }
+    }
+    val three = listOf(0.3f to 0.25f, 0.5f to 0.5f, 0.7f to 0.75f)
+    val four = listOf(0.3f to 0.25f, 0.7f to 0.25f, 0.3f to 0.75f, 0.7f to 0.75f)
+    val one = listOf(0.5f to 0.5f)
+    val five = four + one
+    tile(-14f, s * 0.36f, three, four)
+    tile(14f, s * 0.64f, one, five)
 }

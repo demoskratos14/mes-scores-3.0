@@ -131,3 +131,18 @@ internal fun Flip7CardBack(modifier: Modifier = Modifier) {
         modifier = modifier.aspectRatio(FLIP7_CARD_RATIO)
     )
 }
+
+/** Les 28 dominos, dans l'ordre de [DominoScoring] (0-0, 0-1 … 6-6) : res/drawable-nodpi/domino_*.webp, une tuile debout, le petit côté en haut. */
+private val DOMINO_IMAGES = intArrayOf(
+    R.drawable.domino_0_0, R.drawable.domino_0_1, R.drawable.domino_0_2, R.drawable.domino_0_3, R.drawable.domino_0_4, R.drawable.domino_0_5, R.drawable.domino_0_6,
+    R.drawable.domino_1_1, R.drawable.domino_1_2, R.drawable.domino_1_3, R.drawable.domino_1_4, R.drawable.domino_1_5, R.drawable.domino_1_6, R.drawable.domino_2_2,
+    R.drawable.domino_2_3, R.drawable.domino_2_4, R.drawable.domino_2_5, R.drawable.domino_2_6, R.drawable.domino_3_3, R.drawable.domino_3_4, R.drawable.domino_3_5,
+    R.drawable.domino_3_6, R.drawable.domino_4_4, R.drawable.domino_4_5, R.drawable.domino_4_6, R.drawable.domino_5_5, R.drawable.domino_5_6, R.drawable.domino_6_6
+)
+
+/** L'image du domino [tile] (voir [DominoScoring]). */
+@DrawableRes
+internal fun dominoImage(tile: Int): Int = DOMINO_IMAGES[tile]
+
+/** Largeur / hauteur de l'image d'un domino debout. */
+internal const val DOMINO_RATIO = 107f / 207f

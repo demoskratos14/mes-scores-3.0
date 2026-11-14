@@ -174,6 +174,16 @@ class ScoreViewModel : ViewModel() {
         return SkyjoActionRound(players.size, startRound = roundsPlayed() + 1).also { skyjoActionRound = it }
     }
 
+    // La partie de dominos en cours : mains, pioche, chaîne posée, tour.
+    private var dominoRound: DominoRound? = null
+
+    /** La partie de dominos ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun dominoRound(): DominoRound {
+        val current = dominoRound
+        if (current != null && current.playerCount == players.size) return current
+        return DominoRound(players.size, startRound = roundsPlayed() + 1).also { dominoRound = it }
+    }
+
     // La partie de Qwixx en cours (plateau de chaque joueur, tour en cours). Elle vit ici pour la même raison ; une partie
     // reprise ou rouverte repart d'une partie neuve.
     private var qwixxRound: QwixxRound? = null
@@ -290,6 +300,7 @@ class ScoreViewModel : ViewModel() {
         unoRound = null
         heartsRound = null
         yanivRound = null
+        dominoRound = null
         flip7Round = null
         qwixxRound = null
         skyjoActionRound = null
@@ -328,6 +339,7 @@ class ScoreViewModel : ViewModel() {
             unoRound = null
             heartsRound = null
             yanivRound = null
+            dominoRound = null
             flip7Round = null
             qwixxRound = null
             skyjoActionRound = null
@@ -353,7 +365,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la partie ouverte contient au moins un score saisi (donc qu'il y a quelque chose à perdre). */
     fun hasProgress(): Boolean {
         if (!gameActive || players.isEmpty()) return false
-        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true
+        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true || dominoRound?.inProgress == true
     }
 
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
@@ -368,6 +380,7 @@ class ScoreViewModel : ViewModel() {
         unoRound = null
         heartsRound = null
         yanivRound = null
+        dominoRound = null
         flip7Round = null
         qwixxRound = null
         skyjoActionRound = null

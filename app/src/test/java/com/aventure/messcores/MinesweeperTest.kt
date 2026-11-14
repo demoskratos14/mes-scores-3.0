@@ -19,6 +19,13 @@ class MinesweeperTest {
         return MinesweeperGame.withMines(level, mines)
     }
 
+    /**
+     * Une partie sur le plateau de [cornerGame] qui ne peut pas être gagnée d'un seul dévoilement : ce plateau n'a que 71 cases
+     * sans mine et la cascade depuis le haut les ouvre toutes, ce qui gagne la partie (et pose alors les drapeaux). Le drapeau
+     * posé sur la case (0, 0) la garde fermée : la cascade ne l'ouvre jamais.
+     */
+    private fun unfinishedCornerGame(): MinesweeperGame = cornerGame().also { it.toggleFlag(0, 0) }
+
     private fun countMines(game: MinesweeperGame): Int =
         (0 until game.rows).sumOf { r -> (0 until game.cols).count { c -> game.isMine(c, r) } }
 
@@ -71,7 +78,7 @@ class MinesweeperTest {
 
     @Test
     fun uneCaseSansMineVoisineOuvreSesVoisinesDeProcheEnProche() {
-        val game = cornerGame()
+        val game = unfinishedCornerGame()
         game.reveal(8, 0)
         // Tout le haut est vide : la cascade s'arrête aux cases numérotées (rangée 7), sans jamais atteindre les mines.
         assertTrue(game.isOpen(8, 0))
@@ -105,10 +112,12 @@ class MinesweeperTest {
 
     @Test
     fun onNePosePasDeDrapeauSurUneCaseOuverte() {
-        val game = cornerGame()
+        val game = unfinishedCornerGame()
         game.reveal(8, 0)
+        assertTrue(game.isOpen(8, 0))
         assertFalse(game.toggleFlag(8, 0))
-        assertEquals(0, game.flags)
+        // Seul le drapeau posé au départ sur la case (0, 0) existe.
+        assertEquals(1, game.flags)
     }
 
     // --- Perdre et gagner ---
@@ -140,7 +149,7 @@ class MinesweeperTest {
 
     @Test
     fun toucherUnNombreEntoureDAutantDeDrapeauxOuvreLesAutresVoisines() {
-        val game = cornerGame()
+        val game = unfinishedCornerGame()
         game.reveal(1, 6)
         // (1, 6) touche la seule mine (0, 7) ; avec un drapeau dessus, ses autres voisines s'ouvrent.
         assertEquals(1, game.adjacentMines(1, 6))

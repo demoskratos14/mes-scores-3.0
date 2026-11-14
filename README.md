@@ -132,6 +132,7 @@ MesScores/
             │   ├── ShutBoxRound.kt, ShutBoxPanel.kt       Shut the Box tour par tour : clapets, combinaisons, un seul dé, boîte fermée, moteur de la partie (pur, testé par `ShutBoxRoundTest`) et son interface
             │   ├── HuitRound.kt, HuitPanel.kt             Huit américain tour par tour : règles des cartes (`HuitScoring`), moteur de la manche (pur, testé par `HuitRoundTest`) et son écran (`HuitScreen`), un seul téléphone qu'on se passe
             │   ├── YanivRound.kt, YanivPanel.kt           Yaniv tour par tour : règles des cartes (`YanivScoring` : jokers, paires, brelans, suites), moteur de la manche (pur, testé par `YanivRoundTest`) et son écran (`YanivScreen`), un seul téléphone qu'on se passe
+            │   ├── DominoRound.kt, DominoPanel.kt         Domino tour par tour : les 28 dominos (`DominoScoring`), moteur de la manche (pur, testé par `DominoRoundTest`) et son écran (chaîne posée à plat, main debout)
             │   ├── TicTacToe.kt, TicTacToeScreen.kt, TicTacToeOnline.kt, TicTacToeProtocol.kt   Morpion : règles, écran (un ou deux téléphones), table en ligne et messages
             │   ├── Connect4.kt, Connect4Screen.kt, Connect4Online.kt, Connect4Protocol.kt   Puissance 4 : règles, écran (un ou deux téléphones), table en ligne et messages
             │   ├── Nim.kt, NimScreen.kt, NimOnline.kt, NimProtocol.kt   Jeu des allumettes (Nim) : règles, écran (un ou deux téléphones), table en ligne et messages
@@ -305,6 +306,19 @@ Deuxième jeu de cartes à partir de `CardGameKit.kt` après le Huit américain 
 - **Points et fin de partie** : `settle` inscrit les points tout de suite dans la première ligne vide du tableau (une seule fois, comme au Huit) ; la fin de partie à 201 points (`endCondition` du jeu, le plus petit total gagne) et le journal viennent de ce tableau. `nextRound` distribue la suivante, commencée par le joueur qui suit celui qui avait commencé. La réduction de moitié d'un score pile à 100 ou 200 n'est **pas** appliquée (le tableau refuse les points négatifs) ; la fiche de règles le dit.
 - **Reprise** : la partie en cours vit dans `ScoreViewModel` (`yanivRound`). Une partie reprise continue avec la manche qui suit celles déjà inscrites ; la donne en cours n'est pas reprise. Quitter pendant une donne entamée demande confirmation (`YanivRound.inProgress`, pris en compte par `ScoreViewModel.hasProgress`).
 - **Un seul téléphone** : `SINGLE_PHONE_GAMES` (`GameCategory.kt`) contient Yaniv, pour la même raison que le Huit américain (mains secrètes).
+
+## Domino jouable
+
+Même cadre que le Huit américain et Yaniv (`CardGameScreen`, `ScoresCard`, `PassPhoneCard`, `RoundResultCard`, `writeRoundPoints`), avec des tuiles à la place des cartes. Le jeu garde sa feuille de scores (`builtin_dominos`, fin à 100 points) : en version jouable, l'appli distribue, vérifie et inscrit les points elle-même.
+
+- **Images** : les 28 dominos ont été découpés dans une planche (7 × 4) et rangés dans `res/drawable-nodpi/domino_<petit>_<grand>.webp` (fond transparent, tuile debout, petit côté en haut) ; `dominoImage` les retrouve par numéro de domino.
+- **Dominos** : `DominoScoring` numérote les dominos de 0 à 27 dans l'ordre 0-0, 0-1 … 6-6 (`tileOf`, `low`, `high`, `points`).
+- **Distribution et ouverture** : 7 dominos chacun à deux joueurs, 5 à trois ou quatre ; le reste est la pioche. Le plus fort double est posé tout de suite par son propriétaire, sinon le domino le plus lourd (`openingKey`) ; le joueur suivant joue.
+- **Le tour** : la main n'apparaît qu'après « Voir ma main ». On touche un domino, puis « Poser à gauche » ou « Poser à droite » (`DominoRound.play`) : le moteur refuse un domino qui ne correspond pas au bout choisi. Les boutons sont toujours affichés (aucune aide, comme pour les cartes) et la chaîne est dessinée à plat, chaque domino tourné du bon côté (`SidewaysDomino`).
+- **Piocher et passer** : sans domino à poser, on pioche (`draw`) jusqu'à en avoir un ; quand la pioche est vide, on passe (`pass`). Piocher avec un domino jouable, ou passer avant la fin de la pioche, est refusé.
+- **Points** : celui qui pose son dernier domino marque les points restés chez les autres. Si tous les joueurs passent l'un après l'autre, la manche est bloquée : le plus léger marque la différence avec chacun des autres ; à égalité pour le moins, personne ne marque (`roundPoints`).
+- **Reprise** : la partie en cours vit dans `ScoreViewModel` (`dominoRound`) ; `settle` inscrit les points dans la première ligne vide du tableau, une seule fois, et la manche suivante est distribuée par `nextRound`.
+- **Un seul téléphone** : `SINGLE_PHONE_GAMES` (`GameCategory.kt`) contient le Domino (mains secrètes).
 
 ## Couleurs des joueurs et mode daltonien
 

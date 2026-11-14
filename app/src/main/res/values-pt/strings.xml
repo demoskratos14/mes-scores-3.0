@@ -670,11 +670,11 @@
     <string name="rules_dominos_1_title">Objetivo</string>
     <string name="rules_dominos_1_body">Ser o primeiro a ficar sem peças de dominó. No fim de cada ronda, o vencedor marca a soma dos pontos que restam na mão dos outros jogadores. Ganha o primeiro jogador a atingir os 100 pontos (algumas mesas jogam até aos 200). A aplicação termina a ronda em curso e depois anuncia o vencedor.</string>
     <string name="rules_dominos_2_title">A tua vez</string>
-    <string name="rules_dominos_2_body">Com um jogo de 28 peças (duplo-seis), cada jogador recebe 7 com dois jogadores, ou 5 com três ou quatro jogadores; as restantes formam o monte. Na tua vez, coloca uma peça com um lado igual a uma das pontas da cadeia. Se não puderes jogar, tiras do monte (ou passas quando o monte está vazio).</string>
+    <string name="rules_dominos_2_body">Com um jogo de 28 peças (duplo-seis), cada jogador recebe 7 com dois jogadores, ou 5 com três ou quatro jogadores; as restantes formam o monte. Na tua vez, coloca uma peça com um lado igual a uma das pontas da cadeia. Se não puderes jogar, tiras do monte (ou passas quando o monte está vazio). O duplo mais alto abre o jogo; se não houver duplos, a peça com mais pontos.</string>
     <string name="rules_dominos_3_title">Pontuação</string>
     <string name="rules_dominos_3_body">Quando um jogador colocou todas as suas peças, marca a soma dos pontos das peças que restam aos outros. Se o jogo ficar bloqueado, o jogador com menos pontos na mão marca a diferença em relação aos outros (consoante as variantes).</string>
     <string name="rules_dominos_4_title">Na aplicação</string>
-    <string name="rules_dominos_4_body">No fim de cada ronda, introduz os pontos feitos na coluna do vencedor (0 para os outros jogadores).</string>
+    <string name="rules_dominos_4_body">Na aplicação, tudo é automático: as peças são distribuídas, o duplo mais alto abre a ronda, a aplicação verifica cada peça jogada, gere o monte e regista os pontos na tabela. O telemóvel passa de jogador em jogador: a mão só aparece depois de « Ver a minha mão ».</string>
     <string name="rules_wizard_1_title">Objetivo</string>
     <string name="rules_wizard_1_body">Anunciar exatamente o número de vazas que vais ganhar. Com um baralho de 60 cartas (52 cartas, 4 Wizards e 4 Jesters), o número de rondas é igual a 60 a dividir pelo número de jogadores (20 rondas com 3 jogadores): na ronda n, cada um recebe n cartas. A aplicação não pára a partida: joguem todas as rondas previstas.</string>
     <string name="rules_wizard_2_title">A tua vez</string>
@@ -2682,4 +2682,24 @@
     <string name="skyjoa_look_text">Olhar a linha ou a coluna desta carta?</string>
     <string name="skyjoa_round_over">%1$s terminou a ronda.</string>
     <string name="skyjoa_round_doubled">%1$s terminou a ronda sem ter a pontuação mais baixa: os seus pontos são dobrados.</string>
+    <string name="domino_tile_desc">Peça %1$d-%2$d</string>
+    <string name="domino_opened">%1$s abriu com a peça %2$d-%3$d.</string>
+    <string name="domino_table_title">Mesa</string>
+    <string name="domino_ends">Pontas da cadeia: %1$d à esquerda, %2$d à direita</string>
+    <string name="domino_hand_points" tools:ignore="PluralsCandidate">A tua mão: %1$d pontos</string>
+    <string name="domino_hint">Toca numa peça e depois na ponta onde a pôr. Sem peça para jogar, compra; se o monte estiver vazio, passa.</string>
+    <string name="domino_select_first">Escolhe primeiro uma peça.</string>
+    <string name="domino_play_left" tools:ignore="PluralsCandidate">Pôr à esquerda (%1$d)</string>
+    <string name="domino_play_right" tools:ignore="PluralsCandidate">Pôr à direita (%1$d)</string>
+    <string name="domino_draw" tools:ignore="PluralsCandidate">Comprar (%1$d)</string>
+    <string name="domino_pass">Passar</string>
+    <string name="domino_not_fit">Esta peça não encaixa nessa ponta.</string>
+    <string name="domino_must_play">Tens uma peça para jogar.</string>
+    <string name="domino_stock_empty">O monte está vazio.</string>
+    <string name="domino_stock_left">Ainda há peças para comprar.</string>
+    <string name="domino_hands_title">Peças que sobram no fim da ronda</string>
+    <string name="domino_hand_line">%1$s: %2$s (%3$d)</string>
+    <string name="domino_round_won">%1$s pôs a sua última peça!</string>
+    <string name="domino_round_blocked">Ninguém pode jogar: a ronda está bloqueada. %1$s tem menos pontos.</string>
+    <string name="domino_round_tie">Ninguém pode jogar e dois jogadores empatam: ninguém marca.</string>
 </resources>

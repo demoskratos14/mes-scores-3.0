@@ -39,13 +39,13 @@ private val SPECIAL_GAMES = setOf(
 /**
  * Vrai si le jeu se joue dans l'appli (accueil « Jeux jouables ») : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, Pierre-feuille-ciseaux, le Duel de réflexes, les Ronds, Simon, le jeu de rythme, le Tetris, le Casse-briques, les Astéroïdes, les Envahisseurs, le Xonix, le Snake, le Bubble Shooter, le Démineur, le Gomoku, la
  * Pipopipette, les dames, l'Othello, le Pendu et les échecs, qui ont leur propre écran, les jeux de dés qui ont des dés à lancer (voir [DiceSetups]) et le Huit américain, le Uno, Cœurs, Yaniv, Flip 7 et le Skyjo Action, jeux de cartes
- * distribués par l'appli (voir [HuitRound], [UnoRound], [HeartsRound], [YanivRound], [Flip7Round] et [SkyjoActionRound]). Les autres jeux de cartes, le poker compris, restent des feuilles de score :
+ * distribués par l'appli (voir [HuitRound], [UnoRound], [HeartsRound], [YanivRound], [Flip7Round], [SkyjoActionRound] et [DominoRound], ce dernier jouant avec des dominos). Les autres jeux de cartes, le poker compris, restent des feuilles de score :
  * les cartes n'y sont pas distribuées. King of Tokyo aussi : il n'a que des dés génériques sur sa feuille (voir [hasDiceOnSheet]), il n'est donc pas listé ici.
  */
 fun GameRules.isPlayableGame(): Boolean =
     id == MASTERMIND_ID || id == MORPION_ID || id == CONNECT4_ID || id == BATTLESHIP_ID || id == NIM_ID || id == PFC_ID || id == REFLEX_ID || id == CIRCLES_ID || id == SIMON_ID || id == RHYTHM_ID || id == TETRIS_ID || id == BREAKOUT_ID || id == ASTEROIDS_ID || id == INVADERS_ID || id == SHMUP_ID || id == XONIX_ID || id == SNAKE_ID || id == BUBBLE_ID || id == MINESWEEPER_ID || id == PANCAKE_ID ||
         id == GOMOKU_ID || id == DOTS_ID || id == DRAUGHTS_ID || id == OTHELLO_ID || id == HANGMAN_ID || id == CHESS_ID ||
-        id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || id == YANIV_ID || id == FLIP7_ID || id == SKYJO_ACTION_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
+        id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || id == YANIV_ID || id == FLIP7_ID || id == SKYJO_ACTION_ID || id == DOMINOS_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
 
 /**
  * Vrai si le jeu peut se jouer seul (accueil « Jeux solo ») : Tetris, Snake, Casse-briques… mais aussi les Ronds et Simon,
@@ -63,7 +63,7 @@ fun GameRules.hasScoreSheet(): Boolean =
 
 // Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : le Huit américain, dont chaque joueur cache sa main : on se passe le téléphone ; les Ronds et Simon, où chacun joue sa série à son tour sur le même téléphone.
 // Le Mastermind, le Morpion, le Duel de réflexes, le Gomoku, la Pipopipette, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
-private val SINGLE_PHONE_GAMES = setOf(HUIT_ID, UNO_ID, HEARTS_ID, YANIV_ID, FLIP7_ID, SKYJO_ACTION_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, CIRCLES_ID, SIMON_ID)
+private val SINGLE_PHONE_GAMES = setOf(HUIT_ID, UNO_ID, HEARTS_ID, YANIV_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, CIRCLES_ID, SIMON_ID)
 
 /** Vrai si le jeu jouable peut se jouer en connectant plusieurs téléphones (deux téléphones dessinés dans la liste). */
 fun GameRules.isMultiPhone(): Boolean = isPlayableGame() && id !in SINGLE_PHONE_GAMES

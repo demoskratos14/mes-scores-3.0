@@ -670,11 +670,11 @@
     <string name="rules_dominos_1_title">Objetivo</string>
     <string name="rules_dominos_1_body">Ser el primero en deshacerte de todas tus fichas de dominó. Al final de cada ronda, el ganador anota la suma de los puntos que quedan en la mano de los demás jugadores. Gana el primer jugador que alcanza los 100 puntos (en algunas mesas se juega a 200). La aplicación termina la ronda en curso y después anuncia al ganador.</string>
     <string name="rules_dominos_2_title">Cómo se juega un turno</string>
-    <string name="rules_dominos_2_body">Con un juego de 28 fichas (doble seis), cada jugador recibe 7 con dos jugadores, o 5 con tres o cuatro jugadores; el resto forma el pozo. En tu turno, coloca una ficha con un lado que coincida con un extremo de la cadena. Si no puedes jugar, robas (o pasas cuando el pozo está vacío).</string>
+    <string name="rules_dominos_2_body">Con un juego de 28 fichas (doble seis), cada jugador recibe 7 con dos jugadores, o 5 con tres o cuatro jugadores; el resto forma el pozo. En tu turno, coloca una ficha con un lado que coincida con un extremo de la cadena. Si no puedes jugar, robas (o pasas cuando el pozo está vacío). El doble más alto abre la partida; si no hay dobles, la ficha con más puntos.</string>
     <string name="rules_dominos_3_title">Puntuación</string>
     <string name="rules_dominos_3_body">Cuando un jugador ha colocado todas sus fichas, anota la suma de los puntos de las fichas que les quedan a los demás. Si el juego se bloquea, el jugador con menos puntos en la mano anota la diferencia con los demás (según las variantes).</string>
     <string name="rules_dominos_4_title">En la aplicación</string>
-    <string name="rules_dominos_4_body">Al final de cada ronda, introduce los puntos conseguidos en la columna del ganador (0 para los demás jugadores).</string>
+    <string name="rules_dominos_4_body">En la aplicación todo es automático: se reparten las fichas, el doble más alto abre la ronda, la aplicación comprueba cada ficha puesta, gestiona el pozo y anota los puntos en el marcador. El teléfono pasa de jugador en jugador: la mano solo aparece tras « Ver mi mano ».</string>
     <string name="rules_wizard_1_title">Objetivo</string>
     <string name="rules_wizard_1_body">Anunciar exactamente el número de bazas que vas a ganar. Con una baraja de 60 cartas (52 cartas, 4 Wizards y 4 Jesters), el número de rondas es igual a 60 dividido entre el número de jugadores (20 rondas con 3 jugadores): en la ronda n, cada uno recibe n cartas. La aplicación no detiene la partida: jugad todas las rondas previstas.</string>
     <string name="rules_wizard_2_title">Cómo se juega un turno</string>
@@ -2682,4 +2682,24 @@
     <string name="skyjoa_look_text">¿Mirar la fila o la columna de esta carta?</string>
     <string name="skyjoa_round_over">%1$s ha terminado la ronda.</string>
     <string name="skyjoa_round_doubled">%1$s ha terminado la ronda sin tener la puntuación más baja: sus puntos se duplican.</string>
+    <string name="domino_tile_desc">Ficha %1$d-%2$d</string>
+    <string name="domino_opened">%1$s abrió con la ficha %2$d-%3$d.</string>
+    <string name="domino_table_title">Mesa</string>
+    <string name="domino_ends">Extremos de la cadena: %1$d a la izquierda, %2$d a la derecha</string>
+    <string name="domino_hand_points" tools:ignore="PluralsCandidate">Tu mano: %1$d puntos</string>
+    <string name="domino_hint">Toca una ficha y luego el extremo donde colocarla. Si no tienes ninguna que poner, roba; si el pozo está vacío, pasa.</string>
+    <string name="domino_select_first">Elige primero una ficha.</string>
+    <string name="domino_play_left" tools:ignore="PluralsCandidate">Poner a la izquierda (%1$d)</string>
+    <string name="domino_play_right" tools:ignore="PluralsCandidate">Poner a la derecha (%1$d)</string>
+    <string name="domino_draw" tools:ignore="PluralsCandidate">Robar (%1$d)</string>
+    <string name="domino_pass">Pasar</string>
+    <string name="domino_not_fit">Esta ficha no encaja en ese extremo.</string>
+    <string name="domino_must_play">Tienes una ficha que poner.</string>
+    <string name="domino_stock_empty">El pozo está vacío.</string>
+    <string name="domino_stock_left">Aún quedan fichas por robar.</string>
+    <string name="domino_hands_title">Fichas restantes al final de la ronda</string>
+    <string name="domino_hand_line">%1$s: %2$s (%3$d)</string>
+    <string name="domino_round_won">¡%1$s ha puesto su última ficha!</string>
+    <string name="domino_round_blocked">Nadie puede jugar: la ronda está bloqueada. %1$s tiene menos puntos.</string>
+    <string name="domino_round_tie">Nadie puede jugar y dos jugadores empatan: nadie anota.</string>
 </resources>

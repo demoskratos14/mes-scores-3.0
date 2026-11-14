@@ -763,11 +763,11 @@
     <string name="rules_dominos_1_title">Obiettivo del gioco</string>
     <string name="rules_dominos_1_body">Liberarsi per primi di tutte le proprie tessere del domino. Alla fine di ogni round, il vincitore segna la somma dei punti rimasti nelle mani degli altri giocatori. Il primo giocatore a raggiungere 100 punti vince (alcuni tavoli giocano a 200). L\'app termina il round in corso, poi annuncia il vincitore.</string>
     <string name="rules_dominos_2_title">Svolgimento del turno</string>
-    <string name="rules_dominos_2_body">Con un set di 28 tessere (doppio sei), ogni giocatore ne riceve 7 in due giocatori, o 5 in tre o quattro giocatori; le altre formano il mazzo. Al proprio turno, si cala una tessera di cui un lato corrisponde a un\'estremità della catena. Se non si può giocare, si pesca (o si passa quando il mazzo è vuoto).</string>
+    <string name="rules_dominos_2_body">Con un set di 28 tessere (doppio sei), ogni giocatore ne riceve 7 in due giocatori, o 5 in tre o quattro giocatori; le altre formano il mazzo. Al proprio turno, si cala una tessera di cui un lato corrisponde a un\'estremità della catena. Se non si può giocare, si pesca (o si passa quando il mazzo è vuoto). Apre il doppio più alto; altrimenti la tessera con più punti.</string>
     <string name="rules_dominos_3_title">I punti</string>
     <string name="rules_dominos_3_body">Quando un giocatore ha calato tutte le sue tessere, segna la somma dei punti delle tessere rimaste agli altri. Se la partita è bloccata, il giocatore che ha meno punti in mano segna la differenza con gli altri (a seconda delle varianti).</string>
     <string name="rules_dominos_4_title">Nell\'app</string>
-    <string name="rules_dominos_4_body">Alla fine di ogni round, inserisci nella colonna del vincitore i punti segnati (0 per gli altri giocatori).</string>
+    <string name="rules_dominos_4_body">Nell’app tutto è automatico: le tessere vengono distribuite, il doppio più alto apre il round, l’app controlla ogni tessera calata, gestisce il mazzo e scrive i punti nel tabellone. Il telefono passa di giocatore in giocatore: la mano appare solo dopo « Vedi la mia mano ».</string>
     <string name="rules_wizard_1_title">Obiettivo del gioco</string>
     <string name="rules_wizard_1_body">Annunciare esattamente il numero di prese che si realizzeranno. Con un mazzo da 60 carte (52 carte, 4 Maghi e 4 Giullari), il numero di round è uguale a 60 diviso per il numero di giocatori (20 round in 3 giocatori): al round n, ognuno riceve n carte. L\'app non ferma la partita: giocate tutti i round previsti.</string>
     <string name="rules_wizard_2_title">Svolgimento del turno</string>
@@ -2692,4 +2692,24 @@
     <string name="skyjoa_look_text">Guardare la riga o la colonna di questa carta?</string>
     <string name="skyjoa_round_over">%1$s ha finito il round.</string>
     <string name="skyjoa_round_doubled">%1$s ha finito il round senza avere il punteggio più basso: i suoi punti sono raddoppiati.</string>
+    <string name="domino_tile_desc">Tessera %1$d-%2$d</string>
+    <string name="domino_opened">%1$s ha aperto con la tessera %2$d-%3$d.</string>
+    <string name="domino_table_title">Tavolo</string>
+    <string name="domino_ends">Estremi della catena: %1$d a sinistra, %2$d a destra</string>
+    <string name="domino_hand_points" tools:ignore="PluralsCandidate">La tua mano: %1$d punti</string>
+    <string name="domino_hint">Tocca una tessera, poi l’estremo dove calarla. Se non ne hai da giocare, pesca; se il mazzo è vuoto, passa.</string>
+    <string name="domino_select_first">Scegli prima una tessera.</string>
+    <string name="domino_play_left" tools:ignore="PluralsCandidate">Cala a sinistra (%1$d)</string>
+    <string name="domino_play_right" tools:ignore="PluralsCandidate">Cala a destra (%1$d)</string>
+    <string name="domino_draw" tools:ignore="PluralsCandidate">Pesca (%1$d)</string>
+    <string name="domino_pass">Passa</string>
+    <string name="domino_not_fit">Questa tessera non si attacca a quell’estremo.</string>
+    <string name="domino_must_play">Hai una tessera da giocare.</string>
+    <string name="domino_stock_empty">Il mazzo è vuoto.</string>
+    <string name="domino_stock_left">Ci sono ancora tessere da pescare.</string>
+    <string name="domino_hands_title">Tessere rimaste a fine round</string>
+    <string name="domino_hand_line">%1$s: %2$s (%3$d)</string>
+    <string name="domino_round_won">%1$s ha calato la sua ultima tessera!</string>
+    <string name="domino_round_blocked">Nessuno può più giocare: il round è bloccato. %1$s ha meno punti.</string>
+    <string name="domino_round_tie">Nessuno può più giocare e due giocatori sono pari: nessuno segna.</string>
 </resources>

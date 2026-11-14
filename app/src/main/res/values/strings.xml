@@ -768,11 +768,11 @@
     <string name="rules_dominos_1_title">But du jeu</string>
     <string name="rules_dominos_1_body">Se débarrasser de tous ses dominos le premier. À la fin de chaque manche, le gagnant marque la somme des points restant dans les mains des autres joueurs. Le premier joueur à atteindre 100 points gagne (certaines tables jouent à 200). L\'appli termine la manche en cours puis annonce le gagnant.</string>
     <string name="rules_dominos_2_title">Le tour de jeu</string>
-    <string name="rules_dominos_2_body">Avec un jeu de 28 dominos (double-six), chaque joueur en reçoit 7 à deux joueurs, ou 5 à trois ou quatre joueurs ; les autres forment la pioche. À son tour, on pose un domino dont un côté correspond à une extrémité de la chaîne. Si on ne peut pas jouer, on pioche (ou on passe quand la pioche est vide).</string>
+    <string name="rules_dominos_2_body">Avec un jeu de 28 dominos (double-six), chaque joueur en reçoit 7 à deux joueurs, ou 5 à trois ou quatre joueurs ; les autres forment la pioche. À son tour, on pose un domino dont un côté correspond à une extrémité de la chaîne. Si on ne peut pas jouer, on pioche (ou on passe quand la pioche est vide). Le plus fort double ouvre la partie ; sinon, c’est le domino qui a le plus de points.</string>
     <string name="rules_dominos_3_title">Les points</string>
     <string name="rules_dominos_3_body">Quand un joueur a posé tous ses dominos, il marque la somme des points des dominos restant aux autres. Si la partie est bloquée, le joueur qui a le moins de points en main marque la différence avec les autres (selon les variantes).</string>
     <string name="rules_dominos_4_title">Dans l\'appli</string>
-    <string name="rules_dominos_4_body">À la fin de chaque manche, saisis dans la colonne du gagnant les points marqués (0 pour les autres joueurs).</string>
+    <string name="rules_dominos_4_body">Dans l’appli, tout est automatique : les dominos sont distribués, le plus fort double ouvre la manche, l’appli vérifie chaque domino posé, gère la pioche et inscrit les points au tableau. Le téléphone se passe de joueur en joueur : la main n’apparaît qu’après « Voir ma main ».</string>
     <string name="rules_wizard_1_title">But du jeu</string>
     <string name="rules_wizard_1_body">Annoncer exactement le nombre de plis que l\'on va réaliser. Avec un jeu de 60 cartes (52 cartes, 4 Sorciers et 4 Bouffons), le nombre de manches est égal à 60 divisé par le nombre de joueurs (20 manches à 3 joueurs) : à la manche n, chacun reçoit n cartes. L\'appli n\'arrête pas la partie : jouez toutes les manches prévues.</string>
     <string name="rules_wizard_2_title">Le tour de jeu</string>
@@ -2698,4 +2698,24 @@
     <string name="skyjoa_look_text">Regarder la ligne ou la colonne de cette carte ?</string>
     <string name="skyjoa_round_over">%1$s a terminé la manche.</string>
     <string name="skyjoa_round_doubled">%1$s a terminé la manche sans avoir le plus petit score : ses points sont doublés.</string>
+    <string name="domino_tile_desc">Domino %1$d-%2$d</string>
+    <string name="domino_opened">%1$s a ouvert avec le domino %2$d-%3$d.</string>
+    <string name="domino_table_title">Table</string>
+    <string name="domino_ends">Bouts de la chaîne : %1$d à gauche, %2$d à droite</string>
+    <string name="domino_hand_points" tools:ignore="PluralsCandidate">Ta main : %1$d points</string>
+    <string name="domino_hint">Touche un domino, puis le bout où le poser. Sans domino à poser, pioche ; si la pioche est vide, passe.</string>
+    <string name="domino_select_first">Choisis d’abord un domino.</string>
+    <string name="domino_play_left" tools:ignore="PluralsCandidate">Poser à gauche (%1$d)</string>
+    <string name="domino_play_right" tools:ignore="PluralsCandidate">Poser à droite (%1$d)</string>
+    <string name="domino_draw" tools:ignore="PluralsCandidate">Piocher (%1$d)</string>
+    <string name="domino_pass">Passer</string>
+    <string name="domino_not_fit">Ce domino ne se pose pas à ce bout.</string>
+    <string name="domino_must_play">Tu as un domino à poser.</string>
+    <string name="domino_stock_empty">La pioche est vide.</string>
+    <string name="domino_stock_left">Il reste des dominos à piocher.</string>
+    <string name="domino_hands_title">Dominos restants en fin de manche</string>
+    <string name="domino_hand_line">%1$s : %2$s (%3$d)</string>
+    <string name="domino_round_won">%1$s a posé son dernier domino !</string>
+    <string name="domino_round_blocked">Plus personne ne peut jouer : la manche est bloquée. %1$s a le moins de points.</string>
+    <string name="domino_round_tie">Plus personne ne peut jouer et deux joueurs sont à égalité : personne ne marque.</string>
 </resources>
