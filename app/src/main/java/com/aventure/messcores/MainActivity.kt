@@ -123,6 +123,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     XONIX_ID to "xonix",
     SNAKE_ID to "snake",
     BUBBLE_ID to "bubble",
+    MINESWEEPER_ID to "minesweeper",
     PANCAKE_ID to "pancake",
     ASTEROIDS_ID to "asteroids",
     INVADERS_ID to "invaders",
@@ -133,7 +134,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
 
 /** Écrans de jeux jouables sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "battleship", "morpion", "connect4", "nim", "reflex", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "pancake", "asteroids", "invaders",
+    "battleship", "morpion", "connect4", "nim", "reflex", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "minesweeper", "pancake", "asteroids", "invaders",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -566,6 +567,9 @@ fun ScoreApp(
             }
             composable("bubble") {
                 BubbleShooterScreen(players = pendingPlayerNames)
+            }
+            composable("minesweeper") {
+                MinesweeperScreen(players = pendingPlayerNames)
             }
             composable("pancake") {
                 PancakeScreen(players = pendingPlayerNames)

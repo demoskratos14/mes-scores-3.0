@@ -423,6 +423,12 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_snake_3_title, R.string.rules_snake_3_body),
         RulesSection(R.string.rules_snake_4_title, R.string.rules_snake_4_body)
     ),
+    "builtin_minesweeper" to listOf(
+        RulesSection(R.string.rules_minesweeper_1_title, R.string.rules_minesweeper_1_body),
+        RulesSection(R.string.rules_minesweeper_2_title, R.string.rules_minesweeper_2_body),
+        RulesSection(R.string.rules_minesweeper_3_title, R.string.rules_minesweeper_3_body),
+        RulesSection(R.string.rules_minesweeper_4_title, R.string.rules_minesweeper_4_body)
+    ),
     "builtin_bubble" to listOf(
         RulesSection(R.string.rules_bubble_1_title, R.string.rules_bubble_1_body),
         RulesSection(R.string.rules_bubble_2_title, R.string.rules_bubble_2_body),

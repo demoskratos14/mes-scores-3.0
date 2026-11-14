@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, PANCAKE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID
 )
 
@@ -137,6 +137,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             XONIX_ID -> drawXonix()
             SNAKE_ID -> drawSnake()
             BUBBLE_ID -> drawBubbleShooter()
+            MINESWEEPER_ID -> drawMinesweeper()
             PANCAKE_ID -> drawPancake()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
@@ -485,6 +486,49 @@ private fun DrawScope.drawPancake() {
     drawRect(ink, Offset(s * 0.7f, s * 0.77f), Size(s * 0.14f, s * 0.05f))
     // La crêpe posée sur l'assiette.
     drawOval(red, Offset(s * 0.69f, s * 0.55f), Size(s * 0.16f, s * 0.06f))
+}
+
+private fun DrawScope.drawMinesweeper() {
+    paper(Color(0xFF37474F))
+    val s = size.minDimension
+    // Un petit plateau de 3 × 3 cases : des cases dévoilées avec un nombre, un drapeau, et une mine.
+    val unit = s * 0.25f
+    val left = s * 0.125f
+    val top = s * 0.125f
+    val corner = CornerRadius(unit * 0.16f)
+    fun block(col: Int, row: Int, color: Color) = drawRoundRect(
+        color = color,
+        topLeft = Offset(left + col * unit + unit * 0.05f, top + row * unit + unit * 0.05f),
+        size = Size(unit * 0.9f, unit * 0.9f),
+        cornerRadius = corner
+    )
+    val closed = Color(0xFF6B8AA3)
+    val open = Color(0xFFE8ECEF)
+    for (row in 0 until 3) for (col in 0 until 3) block(col, row, closed)
+    block(0, 0, open)
+    block(1, 0, open)
+    block(0, 1, open)
+    // Un chiffre 1 (un simple trait) sur deux cases dévoilées.
+    val one = Color(0xFF1565C0)
+    drawLine(one, Offset(left + 1.5f * unit, top + 0.25f * unit), Offset(left + 1.5f * unit, top + 0.75f * unit), strokeWidth = unit * 0.12f)
+    drawLine(one, Offset(left + 0.5f * unit, top + 1.25f * unit), Offset(left + 0.5f * unit, top + 1.75f * unit), strokeWidth = unit * 0.12f)
+    // Le drapeau.
+    val pole = Color(0xFF263238)
+    val fx = left + 2.4f * unit
+    drawLine(pole, Offset(fx, top + 0.2f * unit), Offset(fx, top + 0.85f * unit), strokeWidth = unit * 0.1f)
+    val pennant = Path().apply {
+        moveTo(fx, top + 0.2f * unit)
+        lineTo(fx + unit * 0.4f, top + 0.4f * unit)
+        lineTo(fx, top + 0.6f * unit)
+        close()
+    }
+    drawPath(pennant, Color(0xFFE53935))
+    // La mine.
+    val center = Offset(left + 1.5f * unit, top + 2.5f * unit)
+    drawCircle(Color(0xFF212121), unit * 0.26f, center)
+    drawLine(Color(0xFF212121), center - Offset(unit * 0.36f, 0f), center + Offset(unit * 0.36f, 0f), strokeWidth = unit * 0.1f)
+    drawLine(Color(0xFF212121), center - Offset(0f, unit * 0.36f), center + Offset(0f, unit * 0.36f), strokeWidth = unit * 0.1f)
+    drawCircle(Color.White, unit * 0.06f, center - Offset(unit * 0.09f, unit * 0.09f))
 }
 
 private fun DrawScope.drawBubbleShooter() {
