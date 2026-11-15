@@ -411,6 +411,13 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_xonix_3_title, R.string.rules_xonix_3_body),
         RulesSection(R.string.rules_xonix_4_title, R.string.rules_xonix_4_body)
     ),
+    "builtin_drive" to listOf(
+        RulesSection(R.string.rules_drive_1_title, R.string.rules_drive_1_body),
+        RulesSection(R.string.rules_drive_2_title, R.string.rules_drive_2_body),
+        RulesSection(R.string.rules_drive_3_title, R.string.rules_drive_3_body),
+        RulesSection(R.string.rules_drive_4_title, R.string.rules_drive_4_body),
+        RulesSection(R.string.rules_drive_5_title, R.string.rules_drive_5_body)
+    ),
     "builtin_pancake" to listOf(
         RulesSection(R.string.rules_pancake_1_title, R.string.rules_pancake_1_body),
         RulesSection(R.string.rules_pancake_2_title, R.string.rules_pancake_2_body),

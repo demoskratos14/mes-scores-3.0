@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID
 )
 
@@ -139,6 +139,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             BUBBLE_ID -> drawBubbleShooter()
             MINESWEEPER_ID -> drawMinesweeper()
             PANCAKE_ID -> drawPancake()
+            DRIVE_ID -> drawDrive()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -487,6 +488,32 @@ private fun DrawScope.drawPancake() {
     drawRect(ink, Offset(s * 0.7f, s * 0.77f), Size(s * 0.14f, s * 0.05f))
     // La crêpe posée sur l'assiette.
     drawOval(red, Offset(s * 0.69f, s * 0.55f), Size(s * 0.16f, s * 0.06f))
+}
+
+private fun DrawScope.drawDrive() {
+    paper(Color(0xFFF4F4F2))
+    val s = size.minDimension
+    val ink = Color(0xFF14161A)
+    val red = Color(0xFFE2001A)
+    // La coupole du drive : un toit rouge bombé sur un bandeau blanc, deux poteaux noirs.
+    drawRect(ink, Offset(s * 0.16f, s * 0.46f), Size(s * 0.05f, s * 0.36f))
+    drawRect(ink, Offset(s * 0.79f, s * 0.46f), Size(s * 0.05f, s * 0.36f))
+    val roof = Path().apply {
+        moveTo(s * 0.1f, s * 0.36f)
+        quadraticTo(s * 0.5f, s * 0.06f, s * 0.9f, s * 0.36f)
+        close()
+    }
+    drawPath(roof, red)
+    drawRect(Color.White, Offset(s * 0.14f, s * 0.36f), Size(s * 0.72f, s * 0.12f))
+    drawRect(ink, Offset(s * 0.14f, s * 0.46f), Size(s * 0.72f, s * 0.03f))
+    // Une voiture sous la coupole.
+    drawRoundRect(ink, Offset(s * 0.3f, s * 0.62f), Size(s * 0.4f, s * 0.14f), CornerRadius(s * 0.04f))
+    drawRoundRect(Color(0xFFC9D6E6), Offset(s * 0.38f, s * 0.54f), Size(s * 0.24f, s * 0.1f), CornerRadius(s * 0.03f))
+    drawCircle(red, s * 0.03f, Offset(s * 0.36f, s * 0.7f))
+    drawCircle(red, s * 0.03f, Offset(s * 0.64f, s * 0.7f))
+    // Le bandeau rouge et noir du bas, comme sur la console.
+    drawRect(red, Offset(s * 0.1f, s * 0.86f), Size(s * 0.5f, s * 0.04f))
+    drawRect(ink, Offset(s * 0.4f, s * 0.9f), Size(s * 0.5f, s * 0.03f))
 }
 
 private fun DrawScope.drawMinesweeper() {
