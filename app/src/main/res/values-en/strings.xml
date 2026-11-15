@@ -524,7 +524,7 @@
     <string name="rules_president_4_title">Suggested scoring</string>
     <string name="rules_president_4_body">A suggested set of points to track the standings: President +2, Vice-president +1, neutrals 0, Vice-scum −1, Scum −2. Adapt it to your table.</string>
     <string name="rules_president_5_title">In the app</string>
-    <string name="rules_president_5_body">After each round, enter in each player’s column the points matching their place (negative scores allowed with the +/− button). The standings put the highest total first.</string>
+    <string name="rules_president_5_body">The app runs the game: it deals the whole 52-card deck, checks every play, handles passes, equal values (the next player is skipped) and card exchanges, ranks the players and writes the points into the score table (President +2, vice-president +1, neutrals 0, vice-asshole −1, asshole −2; no vices with 3 players). Pass the phone around: a hand only appears after “Show my hand”. The asshole starts the next round; in the first round it is whoever holds the 3 of clubs. The asshole gives their 2 best cards to the President automatically, and the President chooses 2 cards from their hand to give back (not necessarily the worst ones; 1 card for the vices). There is no fixed end: leave the game whenever you like. On the score sheet alone, enter the points of each place yourself after every round (negative scores with the +/− button). Each on their own phone: share the game (Share button); everyone picks a seat and only sees their own hand, and seats nobody took are played on the host’s phone, which is passed around.</string>
     <string name="rules_coeurs_1_title">Goal</string>
     <string name="rules_coeurs_1_body">Collect as few points as possible. Each deal, every heart collected is worth 1 point and the queen of spades 13 points. The game ends when a player reaches 100 points: the player with the fewest wins. The app finishes the current round, then announces the winner.</string>
     <string name="rules_coeurs_2_title">Taking a turn</string>
@@ -2222,7 +2222,7 @@
     <string name="minesweeper_level_easy">Easy</string>
     <string name="minesweeper_level_medium">Medium</string>
     <string name="minesweeper_level_hard">Hard</string>
-    <string name="minesweeper_level_detail">%1$s: %2$d × %3$d, %4$d mines</string>
+    <string name="minesweeper_level_detail" tools:ignore="PluralsCandidate">%1$s: %2$d × %3$d, %4$d mines</string>
     <string name="minesweeper_go">Let’s go!</string>
     <string name="minesweeper_mines_left">Mines: %1$d</string>
     <string name="minesweeper_time">Time: %1$d s</string>
@@ -2683,7 +2683,7 @@
     <string name="skyjoa_round_over">%1$s finished the round.</string>
     <string name="skyjoa_round_doubled">%1$s finished the round without the lowest score: their points are doubled.</string>
     <string name="domino_tile_desc">Domino %1$d-%2$d</string>
-    <string name="domino_opened">%1$s opened with the %2$d-%3$d domino.</string>
+    <string name="domino_opened" tools:ignore="PluralsCandidate">%1$s opened with the %2$d-%3$d domino.</string>
     <string name="domino_table_title">Table</string>
     <string name="domino_ends">Ends of the chain: %1$d on the left, %2$d on the right</string>
     <string name="domino_hand_points" tools:ignore="PluralsCandidate">Your hand: %1$d points</string>
@@ -2702,4 +2702,91 @@
     <string name="domino_round_won">%1$s laid their last domino!</string>
     <string name="domino_round_blocked">Nobody can play any more: the round is blocked. %1$s has the fewest points.</string>
     <string name="domino_round_tie">Nobody can play any more and two players are tied: nobody scores.</string>
+
+    <!-- Président jouable et Chasse à l'émoji -->
+    <string name="president_table_title">Cards played</string>
+    <string name="president_table_empty">The trick is empty: %1$s opens it with 1 to 4 cards of the same value.</string>
+    <string name="president_last_by">Played by %1$s</string>
+    <string name="president_skipped">%1$s is skipped.</string>
+    <string name="president_out_line" tools:ignore="PluralsCandidate">%1$s: out, place %2$d</string>
+    <string name="president_exchange_title">Card exchanges</string>
+    <string name="president_hint_lead">Tap the cards to play (1 to 4 cards of the same value), then “Play”.</string>
+    <string name="president_hint_follow">Play as many cards as on the table, of equal or higher value, or pass. An equal value skips the next player.</string>
+    <string name="president_play">Play</string>
+    <string name="president_pass">Pass my turn</string>
+    <string name="president_select_first">Tap the cards to play first.</string>
+    <string name="president_not_set">These cards do not go together: play 1 to 4 cards of the same value.</string>
+    <string name="president_wrong_count">You must play as many cards as on the table.</string>
+    <string name="president_too_weak">These cards are weaker than the ones on the table (the 2 is the highest).</string>
+    <string name="president_round_title">Round over!</string>
+    <string name="president_result_line" tools:ignore="PluralsCandidate">%1$d. %2$s — %3$s (%4$s)</string>
+    <string name="president_role_president">President</string>
+    <string name="president_role_vice">Vice-president</string>
+    <string name="president_role_neutral">Neutral</string>
+    <string name="president_role_vice_trou">Vice-asshole</string>
+    <string name="president_role_trou">Asshole</string>
+    <string name="president_exchange_line">%1$s gives %2$s to %3$s.</string>
+    <string name="president_exchange_back">%1$s gives back %2$s.</string>
+    <string name="president_exchange_back_hidden">%1$s gives cards back to %2$s.</string>
+    <string name="president_exchange_waiting">%1$s is choosing the cards to give back.</string>
+    <string name="president_exchange_give" tools:ignore="PluralsCandidate">Choose %1$d card(s) to give back to %2$s.</string>
+    <string name="president_give">Give these cards</string>
+    <string name="president_give_count">Choose exactly the number of cards asked.</string>
+    <string name="president_waiting_remote">Waiting for %1$s, who plays on their own phone.</string>
+    <string name="president_seat_title">Your seat at the table</string>
+    <string name="president_seat_hint">Choose your seat above to get your hand on this phone.</string>
+    <string name="president_guest_wait">Waiting for the host’s game…</string>
+    <string name="president_turn_of">It is %1$s’s turn.</string>
+    <string name="game_emoji">Emoji Hunt</string>
+    <string name="rules_emoji_1_title">Goal</string>
+    <string name="rules_emoji_1_body">Find the requested picture as fast as you can among look-alikes: a smiling face and a winking one, the French flag and the Dutch one… Just touch it.</string>
+    <string name="rules_emoji_2_title">Levels</string>
+    <string name="rules_emoji_2_body">Each level has more decoys, they look more and more like the requested picture, and the time allowed gets shorter. From level 6, every picture moves and bounces off the edges of the screen, faster and faster. Touching a wrong picture costs 1 second: it is taken off the time left (solo) or added to your time (with several players). The wrong picture fades and can no longer be touched.</string>
+    <string name="rules_emoji_3_title">Solo</string>
+    <string name="rules_emoji_3_body">Chain the levels: every picture you find opens the next level. The run ends when time runs out. Your record is the number of levels cleared.</string>
+    <string name="rules_emoji_4_title">One phone each</string>
+    <string name="rules_emoji_4_body">2 to 8 players (“Play on separate phones”). The host waits until everyone has joined, then starts the game. Each round, all phones show the same board after a short random wait. Each phone times its own player from the moment the board appears, and the fastest wins the round; a slight delay between phones changes nothing. A tie at the best time, or nobody finding it: the round is replayed. The level goes up every round. The first to 5 rounds wins the game. Once the game has started nobody else can join; if a player leaves, the current round is cancelled and the others carry on.</string>
+    <string name="emoji_ready_hint">Find the requested picture among the others, as fast as you can! Touching a wrong picture costs 1 second.</string>
+    <string name="emoji_start">Let’s go!</string>
+    <string name="emoji_level">Level %1$d</string>
+    <string name="emoji_round">Round %1$d</string>
+    <string name="emoji_find">Find:</string>
+    <string name="emoji_mistakes">Mistakes: %1$d</string>
+    <string name="emoji_field_description">Game board: touch the requested picture</string>
+    <string name="emoji_over_title">Time’s up!</string>
+    <string name="emoji_over_levels">Levels cleared: %1$d</string>
+    <string name="emoji_new_game">Play again</string>
+    <string name="emoji_online_button">Play on separate phones</string>
+    <string name="emoji_online_waiting">Waiting for the other players… On the other phones, tap “Join a game”.</string>
+    <string name="emoji_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
+    <string name="emoji_online_notice_left_some">A player left the game: the current round is cancelled.</string>
+    <string name="emoji_online_host_left">The host disconnected: the game is over.</string>
+    <string name="emoji_online_vs">You are playing against %1$s</string>
+    <string name="emoji_online_leave">Leave the game</string>
+    <string name="emoji_quit_title">Leave the game?</string>
+    <string name="emoji_quit_message">The connection with the other phones will be cut and the session will end.</string>
+    <string name="emoji_sent_status">Result sent. Waiting for the other players…</string>
+    <string name="emoji_get_ready">Get ready… the picture to find is about to appear!</string>
+    <string name="emoji_start_round">Start the round</string>
+    <string name="emoji_next_round">Next round</string>
+    <string name="emoji_new_match">New game</string>
+    <string name="emoji_gather_host">When everyone is here, start the game!</string>
+    <string name="emoji_gather_guest">Waiting for the host to start the game…</string>
+    <string name="emoji_table_players">At the table: %1$s</string>
+    <string name="emoji_hint_online">Rounds to win: %1$d. The fastest to touch the right picture wins the round!</string>
+    <string name="emoji_draw">Round drawn: nobody scores, we replay it!</string>
+    <string name="emoji_match_won_n">%1$s wins the game!</string>
+    <string name="emoji_round_won">%1$s wins the round in %2$d ms!</string>
+    <string name="emoji_entry">%1$s: %2$s</string>
+    <string name="emoji_ms">%1$d ms</string>
+    <string name="emoji_none">–</string>
+    <string name="emoji_last_round">Last round — %1$s</string>
+    <string name="emoji_avg">Average time — %1$s</string>
+    <string name="emoji_duel_button">Face-off on this phone</string>
+    <string name="emoji_duel_hint">Put the phone down between you: each player uses their half of the screen, with the same board. Rounds to win: %1$d. The fastest to touch the right picture wins the round!</string>
+    <string name="emoji_duel_wait">Waiting for the other player…</string>
+    <string name="emoji_duel_missed">Time’s up</string>
+    <string name="emoji_duel_stop">Stop the face-off</string>
+    <string name="rules_emoji_5_title">Face-off on one phone</string>
+    <string name="rules_emoji_5_body">Two players on the same phone lying flat (“Face-off on this phone”): the screen is split in two and each player uses their half with the same board. The first to win 5 rounds wins the game. Each wrong picture touched costs 1 second; the round is a draw if nobody finds it or on an exact tie.</string>
 </resources>

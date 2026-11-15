@@ -114,6 +114,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     PFC_ID to "pfc",
     NIM_ID to "nim",
     REFLEX_ID to "reflex",
+    EMOJI_ID to "emoji",
     CIRCLES_ID to "circles",
     SIMON_ID to "simon",
     RHYTHM_ID to "rhythm",
@@ -135,7 +136,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
 
 /** Écrans de jeux jouables sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "battleship", "morpion", "connect4", "nim", "reflex", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
+    "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -166,6 +167,7 @@ fun ScoreApp(
     val battleshipOnline = syncViewModel.battleship
     val nimOnline = syncViewModel.nim
     val reflexOnline = syncViewModel.reflex
+    val emojiOnline = syncViewModel.emoji
     val rockPaperScissorsOnline = syncViewModel.rockPaperScissors
     val gomokuOnline = syncViewModel.gomoku
     val dotsOnline = syncViewModel.dots
@@ -207,8 +209,10 @@ fun ScoreApp(
     // Skyjo Action jouable : même principe.
     val onSkyjoActionRoute = currentRoute == "skyjoaction" && playable && viewModel.gameRules.id == SKYJO_ACTION_ID
     val onDominoRoute = currentRoute == "domino" && playable && viewModel.gameRules.id == DOMINOS_ID
+    // Président jouable : même principe.
+    val onPresidentRoute = currentRoute == "president" && playable && viewModel.gameRules.id == PRESIDENT_ID
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
-        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute
+        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onPresidentRoute
     var showQuitDialog by remember { mutableStateOf(false) }
 
     // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
@@ -276,6 +280,7 @@ fun ScoreApp(
         playable && rules.id == FLIP7_ID -> "flip7"
         playable && rules.id == SKYJO_ACTION_ID -> "skyjoaction"
         playable && rules.id == DOMINOS_ID -> "domino"
+        playable && rules.id == PRESIDENT_ID -> "president"
         playable && rules.isDiceOnly() -> "dice"
         else -> scoreRouteFor(rules)
     }
@@ -542,6 +547,25 @@ fun ScoreApp(
                     online = reflexOnline,
                     onExit = { leaveToSetup() },
                     onHostOnline = { navController.navigate("shareReflex") }
+                )
+            }
+            composable("emoji") {
+                EmojiScreen(
+                    players = pendingPlayerNames,
+                    online = emojiOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareEmoji") }
+                )
+            }
+            composable("shareEmoji") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.EMOJI,
+                    emoji = emojiOnline,
+                    // La table de la Chasse à l'émoji est l'écran du jeu, juste derrière.
+                    onHostedEmoji = { navController.popBackStack() }
                 )
             }
             composable("circles") {
@@ -878,6 +902,22 @@ fun ScoreApp(
                     }
                 )
             }
+            composable("president") {
+                PresidentScreen(
+                    viewModel = viewModel,
+                    session = sync,
+                    online = syncViewModel.president,
+                    onOpenShare = { navController.navigate("share") },
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
             composable("racket") {
                 RacketScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
             }
@@ -935,6 +975,8 @@ fun ScoreApp(
             onNimJoined = { navController.navigate("nim") { popUpTo("home") } },
             reflex = reflexOnline,
             onReflexJoined = { navController.navigate("reflex") { popUpTo("home") } },
+            emoji = emojiOnline,
+            onEmojiJoined = { navController.navigate("emoji") { popUpTo("home") } },
             rockPaperScissors = rockPaperScissorsOnline,
             onRockPaperScissorsJoined = { navController.navigate("pfc") { popUpTo("home") } },
             gomoku = gomokuOnline,
@@ -959,7 +1001,7 @@ fun ScoreApp(
         // Superposé à toutes les pages ci-dessus, sauf le poker (minuteur de blinds) et les jeux jouables
         // qui n'ont pas besoin d'horloge (les échecs ont la leur, le réflexe et le rythme mesurent le temps eux-mêmes).
         val hideTimer = currentRoute == "poker" || currentRoute in PLAYABLE_ROUTES_WITHOUT_TIMER ||
-            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute
+            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onYanivRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onPresidentRoute
         if (!hideTimer) TimerOverlay(viewModel = timerViewModel)
 
         if (showQuitDialog) {

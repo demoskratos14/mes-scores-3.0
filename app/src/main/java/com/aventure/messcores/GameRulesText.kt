@@ -366,6 +366,13 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_reflex_2_title, R.string.rules_reflex_2_body),
         RulesSection(R.string.rules_reflex_3_title, R.string.rules_reflex_3_body)
     ),
+    "builtin_emoji" to listOf(
+        RulesSection(R.string.rules_emoji_1_title, R.string.rules_emoji_1_body),
+        RulesSection(R.string.rules_emoji_2_title, R.string.rules_emoji_2_body),
+        RulesSection(R.string.rules_emoji_3_title, R.string.rules_emoji_3_body),
+        RulesSection(R.string.rules_emoji_4_title, R.string.rules_emoji_4_body),
+        RulesSection(R.string.rules_emoji_5_title, R.string.rules_emoji_5_body)
+    ),
     "builtin_circles" to listOf(
         RulesSection(R.string.rules_circles_1_title, R.string.rules_circles_1_body),
         RulesSection(R.string.rules_circles_2_title, R.string.rules_circles_2_body),

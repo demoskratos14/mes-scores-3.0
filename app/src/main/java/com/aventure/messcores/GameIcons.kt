@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID
 )
 
@@ -126,6 +126,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             NIM_ID -> drawNim()
             PFC_ID -> drawRockPaperScissors()
             REFLEX_ID -> drawReflex()
+            EMOJI_ID -> drawEmojiHunt()
             CIRCLES_ID -> drawCircles()
             SIMON_ID -> drawSimon()
             RHYTHM_ID -> drawRhythm()
@@ -265,6 +266,30 @@ private fun DrawScope.drawReflex() {
         drawLine(Color(0xFFFFB300), Offset(x, s * 0.3f), Offset(x - side * s * 0.06f, s * 0.5f), s * 0.035f, StrokeCap.Round)
         drawLine(Color(0xFFFFB300), Offset(x - side * s * 0.06f, s * 0.5f), Offset(x + side * s * 0.02f, s * 0.7f), s * 0.035f, StrokeCap.Round)
     }
+}
+
+private fun DrawScope.drawEmojiHunt() {
+    paper(Color(0xFFFFF8E1))
+    val s = size.minDimension
+    // Quatre visages presque identiques : un seul a un clin d'œil, et la loupe le désigne.
+    val faces = listOf(Offset(0.3f, 0.3f), Offset(0.7f, 0.3f), Offset(0.3f, 0.7f), Offset(0.7f, 0.7f))
+    faces.forEachIndexed { index, spot ->
+        val center = Offset(s * spot.x, s * spot.y)
+        drawCircle(Color(0xFFFFC107), radius = s * 0.16f, center = center)
+        drawCircle(Color(0xFF5D4037), radius = s * 0.022f, center = Offset(center.x - s * 0.06f, center.y - s * 0.03f))
+        if (index == 1) {
+            drawLine(Color(0xFF5D4037), Offset(center.x + s * 0.035f, center.y - s * 0.03f), Offset(center.x + s * 0.085f, center.y - s * 0.03f), s * 0.025f, StrokeCap.Round)
+        } else {
+            drawCircle(Color(0xFF5D4037), radius = s * 0.022f, center = Offset(center.x + s * 0.06f, center.y - s * 0.03f))
+        }
+        drawArc(
+            Color(0xFF5D4037), startAngle = 20f, sweepAngle = 140f, useCenter = false,
+            topLeft = Offset(center.x - s * 0.07f, center.y - s * 0.04f), size = Size(s * 0.14f, s * 0.12f),
+            style = Stroke(width = s * 0.02f, cap = StrokeCap.Round)
+        )
+    }
+    drawCircle(Color(0xFFE53935), radius = s * 0.2f, center = Offset(s * 0.7f, s * 0.3f), style = Stroke(width = s * 0.04f))
+    drawLine(Color(0xFFE53935), Offset(s * 0.84f, s * 0.44f), Offset(s * 0.94f, s * 0.54f), s * 0.05f, StrokeCap.Round)
 }
 
 private fun DrawScope.drawCircles() {

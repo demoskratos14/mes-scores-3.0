@@ -620,7 +620,7 @@
     <string name="rules_president_4_title">Le score proposé</string>
     <string name="rules_president_4_body">Une proposition de points pour suivre le classement : Président +2, Vice-président +1, neutres 0, Vice-trou −1, Trou −2. Adapte-la à ta table.</string>
     <string name="rules_president_5_title">Dans l\'appli</string>
-    <string name="rules_president_5_body">Après chaque manche, saisis dans la colonne de chaque joueur les points correspondant à sa place (scores négatifs autorisés avec le bouton +/−). Le classement met en tête le plus haut total.</string>
+    <string name="rules_president_5_body">L’appli joue la partie : elle distribue tout le paquet de 52 cartes, vérifie chaque pose, gère les passes, les valeurs égales (le joueur suivant est sauté) et les échanges de cartes, classe les joueurs et inscrit les points au tableau des scores (Président +2, vice-président +1, neutres 0, vice-trou −1, Trou −2 ; pas de vice à 3 joueurs). On se passe le téléphone : la main n’apparaît qu’après « Voir ma main ». Le Trou commence la manche suivante ; à la première manche, c’est celui qui a le 3 de trèfle. Le Trou donne d’office ses 2 meilleures cartes au Président, qui choisit 2 cartes de sa main à lui rendre (pas forcément ses plus mauvaises ; 1 carte pour les vices). Il n’y a pas de fin fixe : quitte la partie quand vous voulez. Sur la feuille de scores seule, saisis toi-même les points de chaque place après chaque manche (scores négatifs avec le bouton +/−). Chacun sur son téléphone : partage la partie (bouton Partager) ; chaque joueur choisit sa place et ne voit que sa main, et les places que personne n’a prises se jouent sur le téléphone de l’organisateur, qu’on se passe.</string>
     <string name="rules_coeurs_1_title">But du jeu</string>
     <string name="rules_coeurs_1_body">Ramasser le moins de points possible. À chaque donne, chaque cœur ramassé vaut 1 point et la dame de pique 13 points. La partie se termine quand un joueur atteint 100 points : le joueur qui en a le moins gagne. L\'appli termine la manche en cours puis annonce le gagnant.</string>
     <string name="rules_coeurs_2_title">Le tour de jeu</string>
@@ -2268,7 +2268,7 @@
     <string name="minesweeper_level_easy">Facile</string>
     <string name="minesweeper_level_medium">Moyen</string>
     <string name="minesweeper_level_hard">Difficile</string>
-    <string name="minesweeper_level_detail">%1$s : %2$d × %3$d, %4$d mines</string>
+    <string name="minesweeper_level_detail" tools:ignore="PluralsCandidate">%1$s : %2$d × %3$d, %4$d mines</string>
     <string name="minesweeper_go">C’est parti !</string>
     <string name="minesweeper_mines_left">Mines : %1$d</string>
     <string name="minesweeper_time">Temps : %1$d s</string>
@@ -2731,7 +2731,7 @@
     <string name="skyjoa_round_over">%1$s a terminé la manche.</string>
     <string name="skyjoa_round_doubled">%1$s a terminé la manche sans avoir le plus petit score : ses points sont doublés.</string>
     <string name="domino_tile_desc">Domino %1$d-%2$d</string>
-    <string name="domino_opened">%1$s a ouvert avec le domino %2$d-%3$d.</string>
+    <string name="domino_opened" tools:ignore="PluralsCandidate">%1$s a ouvert avec le domino %2$d-%3$d.</string>
     <string name="domino_table_title">Table</string>
     <string name="domino_ends">Bouts de la chaîne : %1$d à gauche, %2$d à droite</string>
     <string name="domino_hand_points" tools:ignore="PluralsCandidate">Ta main : %1$d points</string>
@@ -2750,4 +2750,91 @@
     <string name="domino_round_won">%1$s a posé son dernier domino !</string>
     <string name="domino_round_blocked">Plus personne ne peut jouer : la manche est bloquée. %1$s a le moins de points.</string>
     <string name="domino_round_tie">Plus personne ne peut jouer et deux joueurs sont à égalité : personne ne marque.</string>
+
+    <!-- Président jouable et Chasse à l'émoji -->
+    <string name="president_table_title">Cartes posées</string>
+    <string name="president_table_empty">Le pli est vide : %1$s l’ouvre avec 1 à 4 cartes de même valeur.</string>
+    <string name="president_last_by">Posé par %1$s</string>
+    <string name="president_skipped">%1$s est sauté.</string>
+    <string name="president_out_line" tools:ignore="PluralsCandidate">%1$s : sorti, place %2$d</string>
+    <string name="president_exchange_title">Échanges de cartes</string>
+    <string name="president_hint_lead">Touche les cartes à poser (1 à 4 cartes de même valeur), puis « Poser ».</string>
+    <string name="president_hint_follow">Pose autant de cartes que sur la table, d’une valeur égale ou supérieure, ou passe. Une valeur égale fait sauter le joueur suivant.</string>
+    <string name="president_play">Poser</string>
+    <string name="president_pass">Passer mon tour</string>
+    <string name="president_select_first">Touche d’abord les cartes à poser.</string>
+    <string name="president_not_set">Ces cartes ne vont pas ensemble : pose 1 à 4 cartes de la même valeur.</string>
+    <string name="president_wrong_count">Il faut poser autant de cartes que sur la table.</string>
+    <string name="president_too_weak">Ces cartes sont plus faibles que celles de la table (le 2 est la plus forte).</string>
+    <string name="president_round_title">Manche terminée !</string>
+    <string name="president_result_line" tools:ignore="PluralsCandidate">%1$d. %2$s — %3$s (%4$s)</string>
+    <string name="president_role_president">Président</string>
+    <string name="president_role_vice">Vice-président</string>
+    <string name="president_role_neutral">Neutre</string>
+    <string name="president_role_vice_trou">Vice-trou</string>
+    <string name="president_role_trou">Trou</string>
+    <string name="president_exchange_line">%1$s donne %2$s à %3$s.</string>
+    <string name="president_exchange_back">%1$s rend %2$s.</string>
+    <string name="president_exchange_back_hidden">%1$s rend des cartes à %2$s.</string>
+    <string name="president_exchange_waiting">%1$s choisit les cartes à rendre.</string>
+    <string name="president_exchange_give" tools:ignore="PluralsCandidate">Choisis %1$d carte(s) à rendre à %2$s.</string>
+    <string name="president_give">Rendre ces cartes</string>
+    <string name="president_give_count">Choisis exactement le nombre de cartes demandé.</string>
+    <string name="president_waiting_remote">En attente de %1$s, qui joue sur son téléphone.</string>
+    <string name="president_seat_title">Ta place à la table</string>
+    <string name="president_seat_hint">Choisis ta place ci-dessus pour recevoir ta main sur ce téléphone.</string>
+    <string name="president_guest_wait">En attente de la partie de l’organisateur…</string>
+    <string name="president_turn_of">C’est à %1$s de jouer.</string>
+    <string name="game_emoji">Chasse à l’émoji</string>
+    <string name="rules_emoji_1_title">But du jeu</string>
+    <string name="rules_emoji_1_body">Retrouver le plus vite possible le dessin demandé parmi des dessins qui lui ressemblent : un visage qui sourit et un autre qui fait un clin d’œil, le drapeau de la France et celui des Pays-Bas… Il suffit de le toucher.</string>
+    <string name="rules_emoji_2_title">Les niveaux</string>
+    <string name="rules_emoji_2_body">À chaque niveau, il y a plus de pièges, ils ressemblent de plus en plus au dessin demandé et le temps accordé diminue. À partir du niveau 6, tous les dessins se déplacent et rebondissent sur les bords de l’écran, de plus en plus vite. Toucher un mauvais dessin coûte 1 seconde : elle est retirée du temps restant (seul) ou ajoutée à ton temps (à plusieurs). Le mauvais dessin s’estompe et ne peut plus être touché.</string>
+    <string name="rules_emoji_3_title">Seul</string>
+    <string name="rules_emoji_3_body">Enchaîne les niveaux : chaque dessin trouvé t’ouvre le niveau suivant. La série s’arrête quand le temps est écoulé. Ton record est le nombre de niveaux réussis.</string>
+    <string name="rules_emoji_4_title">Chacun sur son téléphone</string>
+    <string name="rules_emoji_4_body">De 2 à 8 joueurs (« Jouer chacun sur son téléphone »). L’organisateur attend que tout le monde ait rejoint la partie, puis la lance. À chaque manche, tous les téléphones affichent le même plateau après une courte attente au hasard. Chaque téléphone mesure le temps de son joueur depuis l’affichage, et le plus rapide gagne la manche ; un léger décalage entre les téléphones ne change rien. Égalité au meilleur temps ou personne qui trouve : la manche est rejouée. Le niveau monte à chaque manche. Le premier à 5 manches gagne la partie. Une fois la partie lancée, plus personne ne peut la rejoindre ; si un joueur part, la manche en cours est annulée et les autres continuent.</string>
+    <string name="emoji_ready_hint">Retrouve le dessin demandé parmi les autres, le plus vite possible ! Un mauvais dessin touché coûte 1 seconde.</string>
+    <string name="emoji_start">C’est parti !</string>
+    <string name="emoji_level">Niveau %1$d</string>
+    <string name="emoji_round">Manche %1$d</string>
+    <string name="emoji_find">Trouve :</string>
+    <string name="emoji_mistakes">Erreurs : %1$d</string>
+    <string name="emoji_field_description">Plateau de jeu : touche le dessin demandé</string>
+    <string name="emoji_over_title">Temps écoulé !</string>
+    <string name="emoji_over_levels">Niveaux réussis : %1$d</string>
+    <string name="emoji_new_game">Rejouer</string>
+    <string name="emoji_online_button">Jouer chacun sur son téléphone</string>
+    <string name="emoji_online_waiting">En attente des autres joueurs… Sur les autres téléphones, touche « Rejoindre une partie ».</string>
+    <string name="emoji_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
+    <string name="emoji_online_notice_left_some">Un joueur a quitté la partie : la manche en cours est annulée.</string>
+    <string name="emoji_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
+    <string name="emoji_online_vs">Tu joues contre %1$s</string>
+    <string name="emoji_online_leave">Quitter la partie</string>
+    <string name="emoji_quit_title">Quitter la partie ?</string>
+    <string name="emoji_quit_message">La connexion avec les autres téléphones sera coupée et la séance sera terminée.</string>
+    <string name="emoji_sent_status">Résultat envoyé. On attend les autres joueurs…</string>
+    <string name="emoji_get_ready">Prépare-toi… le dessin à trouver va apparaître !</string>
+    <string name="emoji_start_round">Lancer la manche</string>
+    <string name="emoji_next_round">Manche suivante</string>
+    <string name="emoji_new_match">Nouvelle partie</string>
+    <string name="emoji_gather_host">Quand tout le monde est là, lance la partie !</string>
+    <string name="emoji_gather_guest">On attend que l’organisateur lance la partie…</string>
+    <string name="emoji_table_players">À la table : %1$s</string>
+    <string name="emoji_hint_online">Manches à gagner : %1$d. Le plus rapide à toucher le bon dessin gagne la manche !</string>
+    <string name="emoji_draw">Manche nulle : personne ne marque, on la rejoue !</string>
+    <string name="emoji_match_won_n">%1$s gagne la partie !</string>
+    <string name="emoji_round_won">%1$s gagne la manche en %2$d ms !</string>
+    <string name="emoji_entry">%1$s : %2$s</string>
+    <string name="emoji_ms">%1$d ms</string>
+    <string name="emoji_none">–</string>
+    <string name="emoji_last_round">Dernière manche — %1$s</string>
+    <string name="emoji_avg">Temps moyen — %1$s</string>
+    <string name="emoji_duel_button">Duel à deux sur ce téléphone</string>
+    <string name="emoji_duel_hint">Posez le téléphone entre vous : chacun joue sur sa moitié de l’écran, avec le même plateau. Manches à gagner : %1$d. Le plus rapide à toucher le bon dessin gagne la manche !</string>
+    <string name="emoji_duel_wait">On attend l’autre joueur…</string>
+    <string name="emoji_duel_missed">Temps écoulé</string>
+    <string name="emoji_duel_stop">Arrêter le duel</string>
+    <string name="rules_emoji_5_title">Duel sur un téléphone</string>
+    <string name="rules_emoji_5_body">À deux sur le même téléphone posé à plat (« Duel à deux sur ce téléphone ») : l’écran est coupé en deux, chacun joue sur sa moitié avec le même plateau. Le premier à 5 manches gagnées remporte la partie. Chaque mauvais dessin touché coûte 1 seconde ; la manche est nulle si personne ne trouve ou en cas d’égalité exacte.</string>
 </resources>

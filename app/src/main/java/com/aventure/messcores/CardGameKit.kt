@@ -57,19 +57,20 @@ internal val CardBlack = Color(0xFF212121)
 internal val CardRed = Color(0xFFC62828)
 
 /**
- * Inscrit [points] (un par joueur, dans l'ordre des joueurs) dans la première ligne vide du tableau des scores. Renvoie faux,
+ * Inscrit [points] (un par joueur, dans l'ordre des joueurs, négatifs permis) dans la première ligne vide du tableau des scores. Renvoie faux,
  * sans rien écrire, s'il n'y a plus de ligne libre.
  */
 internal fun writeRoundPoints(viewModel: ScoreViewModel, points: List<Int>): Boolean {
     val row = viewModel.scores.indexOfFirst { line -> line.all { it.baseValue == null } }
     if (row < 0) return false
-    points.forEachIndexed { player, value -> viewModel.setCell(row, player, value, false) }
+    // Un score négatif (Président) s'inscrit avec son signe : la case garde la valeur absolue et un drapeau « − ».
+    points.forEachIndexed { player, value -> viewModel.setCell(row, player, kotlin.math.abs(value), value < 0) }
     return true
 }
 
 /**
  * Le cadre de l'écran d'un jeu de cartes jouable : « Retour », la rubrique, le nom du jeu avec son bouton de règles, puis le
- * contenu du jeu dans une zone qui défile. [scrollKeys] : quand l'une de ces valeurs change (autre joueur, nouvelle manche,
+ * contenu du jeu dans une zone qui défile. [onOpenShare] : le bouton de partage entre téléphones, pour les jeux qui le permettent ([shareActive] quand un autre téléphone est connecté). [scrollKeys] : quand l'une de ces valeurs change (autre joueur, nouvelle manche,
  * main dévoilée), la page remonte en haut.
  */
 @Composable
@@ -77,6 +78,8 @@ internal fun CardGameScreen(
     viewModel: ScoreViewModel,
     onBack: () -> Unit,
     scrollKeys: List<Any?>,
+    onOpenShare: (() -> Unit)? = null,
+    shareActive: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val rules = viewModel.gameRules
@@ -108,6 +111,11 @@ internal fun CardGameScreen(
             )
             Spacer(modifier = Modifier.width(10.dp))
             RulesButton(rules = rules)
+        }
+        // Les jeux qui se jouent aussi chacun sur son téléphone (Président) proposent le partage, comme les jeux de dés.
+        if (onOpenShare != null) {
+            Spacer(modifier = Modifier.height(6.dp))
+            ShareButton(active = shareActive, onClick = onOpenShare)
         }
         Spacer(modifier = Modifier.height(12.dp))
         Column(

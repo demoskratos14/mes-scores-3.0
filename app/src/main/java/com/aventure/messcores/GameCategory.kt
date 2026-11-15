@@ -32,20 +32,20 @@ private val SPECIAL_GAMES = setOf(
     "builtin_rummikub", "builtin_dominos", "builtin_wizard", "builtin_phase10", "builtin_splendor",
     "builtin_dixit", "builtin_ttr", "builtin_azul", "builtin_carcassonne", "builtin_catane",
     "builtin_sevenwonders", "builtin_wingspan", "builtin_hanabi", "builtin_scrabble", "builtin_trivial",
-    "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc", "builtin_reflex", "builtin_circles", "builtin_simon", "builtin_rhythm", "builtin_tetris", "builtin_breakout", "builtin_asteroids", "builtin_invaders", "builtin_shmup", "builtin_xonix", "builtin_snake", "builtin_bubble", "builtin_minesweeper", "builtin_pancake", "builtin_drive",
+    "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc", "builtin_reflex", "builtin_emoji", "builtin_circles", "builtin_simon", "builtin_rhythm", "builtin_tetris", "builtin_breakout", "builtin_asteroids", "builtin_invaders", "builtin_shmup", "builtin_xonix", "builtin_snake", "builtin_bubble", "builtin_minesweeper", "builtin_pancake", "builtin_drive",
     "builtin_gomoku", "builtin_dots", "builtin_draughts", "builtin_othello", "builtin_hangman", "builtin_chess"
 )
 
 /**
- * Vrai si le jeu se joue dans l'appli (accueil « Jeux jouables ») : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, Pierre-feuille-ciseaux, le Duel de réflexes, les Ronds, Simon, le jeu de rythme, le Tetris, le Casse-briques, les Astéroïdes, les Envahisseurs, le Xonix, le Snake, le Bubble Shooter, le Démineur, le Gomoku, la
- * Pipopipette, les dames, l'Othello, le Pendu et les échecs, qui ont leur propre écran, les jeux de dés qui ont des dés à lancer (voir [DiceSetups]) et le Huit américain, le Uno, Cœurs, Yaniv, Flip 7 et le Skyjo Action, jeux de cartes
- * distribués par l'appli (voir [HuitRound], [UnoRound], [HeartsRound], [YanivRound], [Flip7Round], [SkyjoActionRound] et [DominoRound], ce dernier jouant avec des dominos). Les autres jeux de cartes, le poker compris, restent des feuilles de score :
+ * Vrai si le jeu se joue dans l'appli (accueil « Jeux jouables ») : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, Pierre-feuille-ciseaux, le Duel de réflexes, la Chasse à l'émoji, les Ronds, Simon, le jeu de rythme, le Tetris, le Casse-briques, les Astéroïdes, les Envahisseurs, le Xonix, le Snake, le Bubble Shooter, le Démineur, le Gomoku, la
+ * Pipopipette, les dames, l'Othello, le Pendu et les échecs, qui ont leur propre écran, les jeux de dés qui ont des dés à lancer (voir [DiceSetups]) et le Huit américain, le Uno, Cœurs, Yaniv, le Président, Flip 7 et le Skyjo Action, jeux de cartes
+ * distribués par l'appli (voir [HuitRound], [UnoRound], [HeartsRound], [YanivRound], [PresidentRound], [Flip7Round], [SkyjoActionRound] et [DominoRound], ce dernier jouant avec des dominos). Les autres jeux de cartes, le poker compris, restent des feuilles de score :
  * les cartes n'y sont pas distribuées. King of Tokyo aussi : il n'a que des dés génériques sur sa feuille (voir [hasDiceOnSheet]), il n'est donc pas listé ici.
  */
 fun GameRules.isPlayableGame(): Boolean =
-    id == MASTERMIND_ID || id == MORPION_ID || id == CONNECT4_ID || id == BATTLESHIP_ID || id == NIM_ID || id == PFC_ID || id == REFLEX_ID || id == CIRCLES_ID || id == SIMON_ID || id == RHYTHM_ID || id == TETRIS_ID || id == BREAKOUT_ID || id == ASTEROIDS_ID || id == INVADERS_ID || id == SHMUP_ID || id == XONIX_ID || id == SNAKE_ID || id == BUBBLE_ID || id == MINESWEEPER_ID || id == PANCAKE_ID || id == DRIVE_ID ||
+    id == MASTERMIND_ID || id == MORPION_ID || id == CONNECT4_ID || id == BATTLESHIP_ID || id == NIM_ID || id == PFC_ID || id == REFLEX_ID || id == EMOJI_ID || id == CIRCLES_ID || id == SIMON_ID || id == RHYTHM_ID || id == TETRIS_ID || id == BREAKOUT_ID || id == ASTEROIDS_ID || id == INVADERS_ID || id == SHMUP_ID || id == XONIX_ID || id == SNAKE_ID || id == BUBBLE_ID || id == MINESWEEPER_ID || id == PANCAKE_ID || id == DRIVE_ID ||
         id == GOMOKU_ID || id == DOTS_ID || id == DRAUGHTS_ID || id == OTHELLO_ID || id == HANGMAN_ID || id == CHESS_ID ||
-        id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || id == YANIV_ID || id == FLIP7_ID || id == SKYJO_ACTION_ID || id == DOMINOS_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
+        id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || id == YANIV_ID || id == PRESIDENT_ID || id == FLIP7_ID || id == SKYJO_ACTION_ID || id == DOMINOS_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
 
 /**
  * Vrai si le jeu peut se jouer seul (accueil « Jeux solo ») : Tetris, Snake, Casse-briques… mais aussi les Ronds et Simon,
@@ -58,7 +58,7 @@ fun GameRules.isSoloOnlyGame(): Boolean = isSoloGame() && maxPlayers == 1
 
 /** Vrai si le jeu a une feuille de scores : le Mastermind, le Morpion, le Puissance 4, le touché coulé, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont chacun leur écran, sans feuille. */
 fun GameRules.hasScoreSheet(): Boolean =
-    id != MASTERMIND_ID && id != MORPION_ID && id != CONNECT4_ID && id != BATTLESHIP_ID && id != NIM_ID && id != PFC_ID && id != REFLEX_ID && id != CIRCLES_ID && id != SIMON_ID && id != RHYTHM_ID && id != TETRIS_ID && id != BREAKOUT_ID && id != ASTEROIDS_ID && id != INVADERS_ID && id != SHMUP_ID && id != XONIX_ID && id != SNAKE_ID && id != BUBBLE_ID && id != MINESWEEPER_ID && id != PANCAKE_ID && id != DRIVE_ID &&
+    id != MASTERMIND_ID && id != MORPION_ID && id != CONNECT4_ID && id != BATTLESHIP_ID && id != NIM_ID && id != PFC_ID && id != REFLEX_ID && id != EMOJI_ID && id != CIRCLES_ID && id != SIMON_ID && id != RHYTHM_ID && id != TETRIS_ID && id != BREAKOUT_ID && id != ASTEROIDS_ID && id != INVADERS_ID && id != SHMUP_ID && id != XONIX_ID && id != SNAKE_ID && id != BUBBLE_ID && id != MINESWEEPER_ID && id != PANCAKE_ID && id != DRIVE_ID &&
         id != GOMOKU_ID && id != DOTS_ID && id != DRAUGHTS_ID && id != OTHELLO_ID && id != HANGMAN_ID && id != CHESS_ID
 
 // Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : le Huit américain, dont chaque joueur cache sa main : on se passe le téléphone ; les Ronds et Simon, où chacun joue sa série à son tour sur le même téléphone.

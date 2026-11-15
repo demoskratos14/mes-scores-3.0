@@ -329,6 +329,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Chasse à l'émoji : écran à part (voir EmojiScreen), seul, à deux sur le même téléphone (duel face à face) ou chacun sur le sien (de 2 à 8) ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = EMOJI_ID,
+        name = context.getString(R.string.game_emoji),
+        minPlayers = 1,
+        maxPlayers = 2,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Ronds : écran à part (voir CirclesScreen), seul ou jusqu'à huit joueurs sur un téléphone qu'on se passe ; le mode de score n'est pas utilisé.
     GameRules(
         id = CIRCLES_ID,

@@ -144,6 +144,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     internal val nim = NimOnline(session)
     internal val reflex = ReflexOnline(session)
 
+    /** Chasse à l'émoji chacun sur son téléphone, sur la même connexion. */
+    internal val emoji = EmojiOnline(session)
+
     /** Pierre-feuille-ciseaux chacun sur son téléphone, sur la même connexion. */
     internal val rockPaperScissors = RockPaperScissorsOnline(session)
 
@@ -158,6 +161,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Échecs chacun sur son téléphone, sur la même connexion. */
     internal val chess = ChessOnline(session)
+
+    /** Président chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val president = PresidentOnline(session)
 
     override fun onCleared() {
         session.disconnect()

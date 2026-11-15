@@ -15,7 +15,7 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 internal enum class SyncRole { NONE, HOST, GUEST }
 
 /** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des dames, un Othello, un Pendu ou des échecs chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -118,6 +118,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Le Duel de réflexes chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var reflex: ReflexOnline? = null
 
+    /** La Chasse à l'émoji chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var emoji: EmojiOnline? = null
+
     /** Pierre-feuille-ciseaux chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var rockPaperScissors: RockPaperScissorsOnline? = null
 
@@ -132,6 +135,12 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Les échecs chacun sur son téléphone, qui reçoivent leurs messages et les événements de connexion. */
     var chess: ChessOnline? = null
+
+    /** Le Président chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var president: PresidentOnline? = null
+
+    /** La partie de l'appli à laquelle la session est reliée (pour les jeux qui en lisent la partie en cours). */
+    internal val attachedGame: ScoreViewModel? get() = game
 
     /** Les jeux à deux joueurs (Gomoku, Pipopipette) chacun sur son téléphone : ils reçoivent leurs messages et les événements de connexion. */
     private val duoGames = mutableListOf<DuoOnline<*>>()
@@ -284,6 +293,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         transport.startHosting(deviceName)
     }
 
+    /** Annonce une Chasse à l'émoji chacun sur son téléphone : les autres joueurs la rejoignent comme une partie de score. */
+    fun startHostingEmoji(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.EMOJI
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
     /** Annonce un Pierre-feuille-ciseaux chacun sur son téléphone : l'autre joueur le rejoint comme une partie de score. */
     fun startHostingRockPaperScissors(deviceName: String) {
         reset()
@@ -375,6 +393,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         hostCanRedo = false
         diceTable = null
         dicePlayer = DICE_UNSET
+        president?.reset()
     }
 
     /** Choisit le joueur dont ce téléphone lance les dés ([DICE_ALL] : tous les joueurs). */
@@ -462,11 +481,13 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         battleship?.onPeerConnected(id)
         nim?.onPeerConnected(id)
         reflex?.onPeerConnected(id)
+        emoji?.onPeerConnected(id)
         rockPaperScissors?.onPeerConnected(id)
         draughts?.onPeerConnected(id)
         othello?.onPeerConnected(id)
         hangman?.onPeerConnected(id)
         chess?.onPeerConnected(id)
+        president?.onPeerConnected(id)
         duoGames.forEach { it.onPeerConnected(id) }
     }
 
@@ -483,11 +504,13 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         battleship?.onPeerDisconnected(id)
         nim?.onPeerDisconnected(id)
         reflex?.onPeerDisconnected(id)
+        emoji?.onPeerDisconnected(id)
         rockPaperScissors?.onPeerDisconnected(id)
         draughts?.onPeerDisconnected(id)
         othello?.onPeerDisconnected(id)
         hangman?.onPeerDisconnected(id)
         chess?.onPeerDisconnected(id)
+        president?.onPeerDisconnected(id)
         duoGames.forEach { it.onPeerDisconnected(id) }
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
@@ -523,6 +546,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
                 if (role == SyncRole.GUEST) kind = SyncKind.REFLEX
                 reflex?.onMessage(id, message.reflex)
             }
+            is SyncMessage.Emoji -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.EMOJI
+                emoji?.onMessage(id, message.emoji)
+            }
             is SyncMessage.Rps -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.PFC
                 rockPaperScissors?.onMessage(id, message.rps)
@@ -557,6 +584,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
                     receivedStates++
                 }
             }
+            is SyncMessage.Pres -> president?.onMessage(id, message.pres)
             is SyncMessage.Dice -> {
                 if (kind != SyncKind.SCORE || connected.isEmpty()) return
                 diceTable = message.table

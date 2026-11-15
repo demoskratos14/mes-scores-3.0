@@ -153,6 +153,17 @@ class ScoreViewModel : ViewModel() {
         return YanivRound(players.size, startPlayer = played % players.size.coerceAtLeast(1), startRound = played + 1).also { yanivRound = it }
     }
 
+    // La partie de Président en cours : mains, pli en cours, ordre de sortie. Une partie reprise repart d'une donne neuve,
+    // sans échange de cartes (on ne connaît plus le classement de la manche d'avant).
+    private var presidentRound: PresidentRound? = null
+
+    /** La partie de Président ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun presidentRound(): PresidentRound {
+        val current = presidentRound
+        if (current != null && current.playerCount == players.size) return current
+        return PresidentRound(players.size, startRound = roundsPlayed() + 1).also { presidentRound = it }
+    }
+
     // La partie de Flip 7 en cours : même principe (cartes devant chacun, pioche, défausse, tour).
     private var flip7Round: Flip7Round? = null
 
@@ -301,6 +312,7 @@ class ScoreViewModel : ViewModel() {
         heartsRound = null
         yanivRound = null
         dominoRound = null
+        presidentRound = null
         flip7Round = null
         qwixxRound = null
         skyjoActionRound = null
@@ -340,6 +352,7 @@ class ScoreViewModel : ViewModel() {
             heartsRound = null
             yanivRound = null
             dominoRound = null
+            presidentRound = null
             flip7Round = null
             qwixxRound = null
             skyjoActionRound = null
@@ -365,7 +378,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la partie ouverte contient au moins un score saisi (donc qu'il y a quelque chose à perdre). */
     fun hasProgress(): Boolean {
         if (!gameActive || players.isEmpty()) return false
-        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true || dominoRound?.inProgress == true
+        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true || dominoRound?.inProgress == true || presidentRound?.inProgress == true
     }
 
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
@@ -381,6 +394,7 @@ class ScoreViewModel : ViewModel() {
         heartsRound = null
         yanivRound = null
         dominoRound = null
+        presidentRound = null
         flip7Round = null
         qwixxRound = null
         skyjoActionRound = null

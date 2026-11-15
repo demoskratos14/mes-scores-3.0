@@ -524,7 +524,7 @@
     <string name="rules_president_4_title">Puntuación sugerida</string>
     <string name="rules_president_4_body">Un reparto de puntos sugerido para llevar la clasificación: Presidente +2, Vicepresidente +1, neutros 0, Vice-escoria −1, Escoria −2. Adáptalo a tu mesa.</string>
     <string name="rules_president_5_title">En la aplicación</string>
-    <string name="rules_president_5_body">Después de cada ronda, introduce en la columna de cada jugador los puntos que corresponden a su puesto (se permiten puntuaciones negativas con el botón +/−). La clasificación pone primero al total más alto.</string>
+    <string name="rules_president_5_body">La app juega la partida: reparte toda la baraja de 52 cartas, comprueba cada jugada, gestiona los pases, los valores iguales (se salta al jugador siguiente) y los intercambios de cartas, clasifica a los jugadores y anota los puntos en la tabla (Presidente +2, vicepresidente +1, neutros 0, vicecul −1, Culo −2; sin vices con 3 jugadores). Os pasáis el teléfono: la mano solo aparece después de « Ver mi mano ». El Culo empieza la ronda siguiente; en la primera ronda, quien tenga el 3 de tréboles. El Culo da de oficio sus 2 mejores cartas al Presidente, que elige 2 cartas de su mano para devolverle (no forzosamente las peores; 1 carta para los vices). No hay un final fijo: salid de la partida cuando queráis. Solo con la hoja de puntuación, introduce tú mismo los puntos de cada puesto tras cada ronda (puntuaciones negativas con el botón +/−). Cada uno en su teléfono: compartid la partida (botón Compartir); cada jugador elige su sitio y solo ve su mano, y los sitios que nadie ha tomado se juegan en el teléfono del organizador, que os pasáis.</string>
     <string name="rules_coeurs_1_title">Objetivo</string>
     <string name="rules_coeurs_1_body">Conseguir la menor cantidad de puntos posible. En cada mano, cada corazón recogido vale 1 punto y la dama de picas 13 puntos. La partida termina cuando un jugador alcanza los 100 puntos: gana el jugador con menos. La aplicación termina la ronda en curso y después anuncia al ganador.</string>
     <string name="rules_coeurs_2_title">Cómo se juega un turno</string>
@@ -2252,7 +2252,7 @@
     <string name="minesweeper_level_easy">Fácil</string>
     <string name="minesweeper_level_medium">Medio</string>
     <string name="minesweeper_level_hard">Difícil</string>
-    <string name="minesweeper_level_detail">%1$s: %2$d × %3$d, %4$d minas</string>
+    <string name="minesweeper_level_detail" tools:ignore="PluralsCandidate">%1$s: %2$d × %3$d, %4$d minas</string>
     <string name="minesweeper_go">¡Vamos!</string>
     <string name="minesweeper_mines_left">Minas: %1$d</string>
     <string name="minesweeper_time">Tiempo: %1$d s</string>
@@ -2714,7 +2714,7 @@
     <string name="skyjoa_round_over">%1$s ha terminado la ronda.</string>
     <string name="skyjoa_round_doubled">%1$s ha terminado la ronda sin tener la puntuación más baja: sus puntos se duplican.</string>
     <string name="domino_tile_desc">Ficha %1$d-%2$d</string>
-    <string name="domino_opened">%1$s abrió con la ficha %2$d-%3$d.</string>
+    <string name="domino_opened" tools:ignore="PluralsCandidate">%1$s abrió con la ficha %2$d-%3$d.</string>
     <string name="domino_table_title">Mesa</string>
     <string name="domino_ends">Extremos de la cadena: %1$d a la izquierda, %2$d a la derecha</string>
     <string name="domino_hand_points" tools:ignore="PluralsCandidate">Tu mano: %1$d puntos</string>
@@ -2733,4 +2733,91 @@
     <string name="domino_round_won">¡%1$s ha puesto su última ficha!</string>
     <string name="domino_round_blocked">Nadie puede jugar: la ronda está bloqueada. %1$s tiene menos puntos.</string>
     <string name="domino_round_tie">Nadie puede jugar y dos jugadores empatan: nadie anota.</string>
+
+    <!-- Président jouable et Chasse à l'émoji -->
+    <string name="president_table_title">Cartas jugadas</string>
+    <string name="president_table_empty">La baza está vacía: %1$s la abre con 1 a 4 cartas del mismo valor.</string>
+    <string name="president_last_by">Jugado por %1$s</string>
+    <string name="president_skipped">%1$s se salta el turno.</string>
+    <string name="president_out_line" tools:ignore="PluralsCandidate">%1$s: fuera, puesto %2$d</string>
+    <string name="president_exchange_title">Intercambios de cartas</string>
+    <string name="president_hint_lead">Toca las cartas que quieres jugar (1 a 4 cartas del mismo valor) y luego « Jugar ».</string>
+    <string name="president_hint_follow">Juega tantas cartas como hay en la mesa, de valor igual o superior, o pasa. Un valor igual hace saltar al jugador siguiente.</string>
+    <string name="president_play">Jugar</string>
+    <string name="president_pass">Pasar mi turno</string>
+    <string name="president_select_first">Toca primero las cartas que quieres jugar.</string>
+    <string name="president_not_set">Estas cartas no van juntas: juega de 1 a 4 cartas del mismo valor.</string>
+    <string name="president_wrong_count">Hay que jugar tantas cartas como hay en la mesa.</string>
+    <string name="president_too_weak">Estas cartas son más débiles que las de la mesa (el 2 es la más alta).</string>
+    <string name="president_round_title">¡Ronda terminada!</string>
+    <string name="president_result_line" tools:ignore="PluralsCandidate">%1$d. %2$s — %3$s (%4$s)</string>
+    <string name="president_role_president">Presidente</string>
+    <string name="president_role_vice">Vicepresidente</string>
+    <string name="president_role_neutral">Neutro</string>
+    <string name="president_role_vice_trou">Vicecul</string>
+    <string name="president_role_trou">Culo</string>
+    <string name="president_exchange_line">%1$s da %2$s a %3$s.</string>
+    <string name="president_exchange_back">%1$s devuelve %2$s.</string>
+    <string name="president_exchange_back_hidden">%1$s devuelve cartas a %2$s.</string>
+    <string name="president_exchange_waiting">%1$s elige las cartas que devuelve.</string>
+    <string name="president_exchange_give" tools:ignore="PluralsCandidate">Elige %1$d carta(s) para devolver a %2$s.</string>
+    <string name="president_give">Devolver estas cartas</string>
+    <string name="president_give_count">Elige exactamente el número de cartas pedido.</string>
+    <string name="president_waiting_remote">Esperando a %1$s, que juega en su teléfono.</string>
+    <string name="president_seat_title">Tu sitio en la mesa</string>
+    <string name="president_seat_hint">Elige tu sitio arriba para recibir tu mano en este teléfono.</string>
+    <string name="president_guest_wait">Esperando la partida del organizador…</string>
+    <string name="president_turn_of">Le toca jugar a %1$s.</string>
+    <string name="game_emoji">Caza de emojis</string>
+    <string name="rules_emoji_1_title">Objetivo</string>
+    <string name="rules_emoji_1_body">Encontrar lo más rápido posible el dibujo pedido entre dibujos parecidos: una cara sonriente y otra que guiña un ojo, la bandera de Francia y la de los Países Bajos… Basta con tocarlo.</string>
+    <string name="rules_emoji_2_title">Los niveles</string>
+    <string name="rules_emoji_2_body">En cada nivel hay más señuelos, se parecen cada vez más al dibujo pedido y el tiempo disponible disminuye. A partir del nivel 6, todos los dibujos se mueven y rebotan en los bordes de la pantalla, cada vez más rápido. Tocar un dibujo equivocado cuesta 1 segundo: se resta del tiempo restante (solo) o se suma a tu tiempo (con varios jugadores). El dibujo equivocado se atenúa y ya no se puede tocar.</string>
+    <string name="rules_emoji_3_title">Solo</string>
+    <string name="rules_emoji_3_body">Encadena los niveles: cada dibujo encontrado te abre el siguiente nivel. La serie termina cuando se acaba el tiempo. Tu récord es el número de niveles superados.</string>
+    <string name="rules_emoji_4_title">Cada uno con su teléfono</string>
+    <string name="rules_emoji_4_body">De 2 a 8 jugadores («Jugar cada uno en su teléfono»). El organizador espera a que todos se unan a la partida y luego la inicia. En cada ronda, todos los teléfonos muestran el mismo tablero tras una breve espera aleatoria. Cada teléfono mide el tiempo de su jugador desde que aparece el tablero y gana la ronda el más rápido; un ligero desfase entre teléfonos no cambia nada. Empate en el mejor tiempo o nadie lo encuentra: se repite la ronda. El nivel sube en cada ronda. El primero en llegar a 5 rondas gana la partida. Una vez iniciada la partida, nadie más puede unirse; si un jugador se va, la ronda en curso se anula y los demás continúan.</string>
+    <string name="emoji_ready_hint">¡Encuentra el dibujo pedido entre los demás lo más rápido posible! Tocar un dibujo equivocado cuesta 1 segundo.</string>
+    <string name="emoji_start">¡Vamos!</string>
+    <string name="emoji_level">Nivel %1$d</string>
+    <string name="emoji_round">Ronda %1$d</string>
+    <string name="emoji_find">Busca:</string>
+    <string name="emoji_mistakes">Errores: %1$d</string>
+    <string name="emoji_field_description">Tablero de juego: toca el dibujo pedido</string>
+    <string name="emoji_over_title">¡Se acabó el tiempo!</string>
+    <string name="emoji_over_levels">Niveles superados: %1$d</string>
+    <string name="emoji_new_game">Volver a jugar</string>
+    <string name="emoji_online_button">Jugar cada uno en su teléfono</string>
+    <string name="emoji_online_waiting">Esperando a los demás jugadores… En los otros teléfonos, toca «Unirse a una partida».</string>
+    <string name="emoji_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono se una de nuevo a la partida.</string>
+    <string name="emoji_online_notice_left_some">Un jugador ha salido de la partida: la ronda en curso se anula.</string>
+    <string name="emoji_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
+    <string name="emoji_online_vs">Juegas contra %1$s</string>
+    <string name="emoji_online_leave">Salir de la partida</string>
+    <string name="emoji_quit_title">¿Salir de la partida?</string>
+    <string name="emoji_quit_message">Se cortará la conexión con los demás teléfonos y la sesión terminará.</string>
+    <string name="emoji_sent_status">Resultado enviado. Esperando a los demás jugadores…</string>
+    <string name="emoji_get_ready">Prepárate… ¡el dibujo que hay que encontrar va a aparecer!</string>
+    <string name="emoji_start_round">Iniciar la ronda</string>
+    <string name="emoji_next_round">Siguiente ronda</string>
+    <string name="emoji_new_match">Nueva partida</string>
+    <string name="emoji_gather_host">Cuando estén todos, ¡inicia la partida!</string>
+    <string name="emoji_gather_guest">Esperando a que el organizador inicie la partida…</string>
+    <string name="emoji_table_players">En la mesa: %1$s</string>
+    <string name="emoji_hint_online">Rondas por ganar: %1$d. ¡El más rápido en tocar el dibujo correcto gana la ronda!</string>
+    <string name="emoji_draw">Ronda nula: nadie puntúa, ¡se repite!</string>
+    <string name="emoji_match_won_n">¡%1$s gana la partida!</string>
+    <string name="emoji_round_won">¡%1$s gana la ronda en %2$d ms!</string>
+    <string name="emoji_entry">%1$s: %2$s</string>
+    <string name="emoji_ms">%1$d ms</string>
+    <string name="emoji_none">–</string>
+    <string name="emoji_last_round">Última ronda — %1$s</string>
+    <string name="emoji_avg">Tiempo medio — %1$s</string>
+    <string name="emoji_duel_button">Duelo de dos en este teléfono</string>
+    <string name="emoji_duel_hint">Poned el teléfono entre vosotros: cada uno juega en su mitad de la pantalla, con el mismo tablero. Rondas por ganar: %1$d. ¡El más rápido en tocar el dibujo correcto gana la ronda!</string>
+    <string name="emoji_duel_wait">Esperando al otro jugador…</string>
+    <string name="emoji_duel_missed">Tiempo agotado</string>
+    <string name="emoji_duel_stop">Terminar el duelo</string>
+    <string name="rules_emoji_5_title">Duelo en un teléfono</string>
+    <string name="rules_emoji_5_body">Dos jugadores en el mismo teléfono apoyado en una mesa («Duelo de dos en este teléfono»): la pantalla se divide en dos y cada uno juega en su mitad con el mismo tablero. El primero en ganar 5 rondas gana la partida. Cada dibujo equivocado cuesta 1 segundo; la ronda es nula si nadie lo encuentra o en caso de empate exacto.</string>
 </resources>

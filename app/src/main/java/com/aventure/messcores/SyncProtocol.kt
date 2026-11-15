@@ -73,6 +73,9 @@ internal sealed interface SyncMessage {
     /** Un message du Duel de réflexes chacun sur son téléphone (voir [ReflexOnline]). */
     data class Reflex(val reflex: ReflexMessage) : SyncMessage
 
+    /** Un message de la Chasse à l'émoji chacun sur son téléphone (voir [EmojiOnline]). */
+    data class Emoji(val emoji: EmojiMessage) : SyncMessage
+
     /** Un message de Pierre-feuille-ciseaux chacun sur son téléphone (voir [RockPaperScissorsOnline]). */
     data class Rps(val rps: RpsMessage) : SyncMessage
 
@@ -90,6 +93,9 @@ internal sealed interface SyncMessage {
 
     /** Un message des échecs chacun sur son téléphone (voir [ChessOnline]). */
     data class Chess(val chess: ChessMessage) : SyncMessage
+
+    /** Un message du Président chacun sur son téléphone, sur la connexion de la feuille de scores (voir [PresidentOnline]). */
+    data class Pres(val pres: PresMessage) : SyncMessage
 
     /** Le tour de dés en cours, envoyé par le téléphone du joueur qui joue (l'organisateur le relaie aux autres). */
     data class Dice(val table: DiceTable) : SyncMessage
@@ -191,12 +197,14 @@ internal object SyncCodec {
             is SyncMessage.C4 -> json.put("t", "c4").put("c4", message.c4.toJson())
             is SyncMessage.Nim -> json.put("t", "nim").put("nim", message.nim.toJson())
             is SyncMessage.Reflex -> json.put("t", "rfx").put("rfx", message.reflex.toJson())
+            is SyncMessage.Emoji -> json.put("t", "emo").put("emo", message.emoji.toJson())
             is SyncMessage.Rps -> json.put("t", "rps").put("rps", message.rps.toJson())
             is SyncMessage.Duo -> json.put("t", "duo").put("g", message.kind.name).put("duo", message.duo.toJson())
             is SyncMessage.Dr -> json.put("t", "dr").put("dr", message.dr.toJson())
             is SyncMessage.Oth -> json.put("t", "oth").put("oth", message.oth.toJson())
             is SyncMessage.Hg -> json.put("t", "hg").put("hg", message.hg.toJson())
             is SyncMessage.Chess -> json.put("t", "chess").put("chess", message.chess.toJson())
+            is SyncMessage.Pres -> json.put("t", "pres").put("pres", message.pres.toJson())
             is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
                 .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
                 .put("pig", message.table.pigTotal).put("bust", message.table.pigBust)
@@ -226,6 +234,7 @@ internal object SyncCodec {
                 "c4" -> c4MessageFromJson(json.getJSONObject("c4"))?.let { SyncMessage.C4(it) }
                 "nim" -> nimMessageFromJson(json.getJSONObject("nim"))?.let { SyncMessage.Nim(it) }
                 "rfx" -> reflexMessageFromJson(json.getJSONObject("rfx"))?.let { SyncMessage.Reflex(it) }
+                "emo" -> emojiMessageFromJson(json.getJSONObject("emo"))?.let { SyncMessage.Emoji(it) }
                 "rps" -> rpsMessageFromJson(json.getJSONObject("rps"))?.let { SyncMessage.Rps(it) }
                 "duo" -> {
                     val kind = SyncKind.valueOf(json.getString("g"))
@@ -236,6 +245,7 @@ internal object SyncCodec {
                 "oth" -> othMessageFromJson(json.getJSONObject("oth"))?.let { SyncMessage.Oth(it) }
                 "hg" -> hgMessageFromJson(json.getJSONObject("hg"))?.let { SyncMessage.Hg(it) }
                 "chess" -> chessMessageFromJson(json.getJSONObject("chess"))?.let { SyncMessage.Chess(it) }
+                "pres" -> presMessageFromJson(json.getJSONObject("pres"))?.let { SyncMessage.Pres(it) }
                 "dice" -> {
                     val turn = json.getJSONArray("turn")
                     SyncMessage.Dice(
