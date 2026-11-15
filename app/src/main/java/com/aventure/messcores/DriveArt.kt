@@ -99,6 +99,9 @@ private object Geo {
 
 private val Ink = Color(0xFF20241F)
 private val Red = Color(0xFFE2001A)
+
+/** La couleur d'une lettre : A en rouge, B en noir (les boutons, les tapis, les commandes et les voitures s'y retrouvent). */
+internal fun driveLetterColor(glyph: Int): Color = if (glyph == GLYPH_A) Red else Color(0xFF111111)
 private val Paper = Color(0xFFE3E6D9)
 private val PaperLight = Color(0xFFF6F6EE)
 
@@ -437,8 +440,10 @@ internal fun DrawScope.drawDriveScene(labels: DriveLabels, measurer: TextMeasure
             ),
             Paper.fade(0.97f), Ink, 2f
         )
-        val middle = g.at(fx, Drive.S_NEAR, g.HT - g.DECK / 2f)
-        driveGlyph(if (Drive.beltLabel(zone) == 0) GLYPH_A else GLYPH_B, middle.x, middle.y, 9f * g.k(Drive.S_NEAR), Ink)
+        // La lettre du tapis est peinte au sol, juste devant lui, bien grande et de la couleur de sa touche.
+        val glyph = if (Drive.beltLabel(zone) == 0) GLYPH_A else GLYPH_B
+        val mark = g.at(fx, 0.09f, 0f)
+        driveGlyph(glyph, mark.x, mark.y - 14f, 30f, driveLetterColor(glyph))
     }
     // Les chariots : quatre par ligne, du fond au devant, chacun deux bacs l'un sur l'autre posés sur des roulettes.
     val rows = arrayOf(floatArrayOf(0.74f, 0.90f), floatArrayOf(0.54f, 0.70f), floatArrayOf(0.34f, 0.50f), floatArrayOf(0.14f, 0.30f))
@@ -545,7 +550,8 @@ private fun DrawScope.phone(game: DriveGame) {
         val left = max(0f, 1f - game.phone.elapsedMs / game.phone.limitMs)
         drawCircle(Paper.fade(0.95f), 22f, Offset(bx, by))
         drawCircle(Ink, 22f, Offset(bx, by), style = Stroke(3f))
-        driveGlyph(glyphFor(game.phone.want), bx, by, 24f, Ink)
+        val askGlyph = glyphFor(game.phone.want)
+        driveGlyph(askGlyph, bx, by, 24f, if (askGlyph == GLYPH_UP) Ink else driveLetterColor(askGlyph))
         drawRect(Ink.fade(0.2f), Offset(bx - 24f, by + 30f), Size(48f, 7f))
         drawRect(Ink, Offset(bx - 24f, by + 30f), Size(48f * left, 7f))
     }
@@ -560,8 +566,9 @@ private fun DrawScope.orderPanel(lane: DriveLane, labels: DriveLabels, measurer:
     val fill = if (lane.done) Color(0xFFF0A43A).fade(0.85f) else PaperLight.fade(0.93f)
     drawRoundRect(fill, Offset(bx - bw / 2f, by), Size(bw, bh), CornerRadius(4f))
     drawRoundRect(Ink, Offset(bx - bw / 2f, by), Size(bw, bh), CornerRadius(4f), style = Stroke(2f))
-    drawCircle(Ink, 9f, Offset(bx, by + 14f))
-    driveGlyph(if (lane.tag == 0) GLYPH_A else GLYPH_B, bx, by + 14.5f, 10f, Color(0xFFF4F4EC))
+    val tagGlyph = if (lane.tag == 0) GLYPH_A else GLYPH_B
+    drawCircle(driveLetterColor(tagGlyph), 9f, Offset(bx, by + 14f))
+    driveGlyph(tagGlyph, bx, by + 14.5f, 10f, Color(0xFFF4F4EC))
     if (lane.done) {
         word(measurer, labels.ready, bx, by + bh / 2f + 14f, 10f, Ink)
         return
@@ -604,7 +611,8 @@ private fun DrawScope.cars(game: DriveGame) {
                 val left = max(0f, 1f - bay.elapsedMs / bay.limitMs)
                 drawCircle(PaperLight.fade(0.96f), 17f, Offset(bx, by))
                 drawCircle(Ink, 17f, Offset(bx, by), style = Stroke(3f))
-                driveGlyph(if (bay.want == 0) GLYPH_A else GLYPH_B, bx, by, 20f, Ink)
+                val wantGlyph = if (bay.want == 0) GLYPH_A else GLYPH_B
+                driveGlyph(wantGlyph, bx, by, 20f, driveLetterColor(wantGlyph))
                 drawRect(Ink.fade(0.2f), Offset(bx - 20f, by + 22f), Size(40f, 6f))
                 drawRect(Ink, Offset(bx - 20f, by + 22f), Size(40f * left, 6f))
             }
@@ -677,9 +685,9 @@ internal fun DrawScope.drawDriveLive(game: DriveGame, sprites: DriveSprites, lab
     counter(measurer, game.orders, labels.orders, 82f)
     counter(measurer, game.errors, labels.errors, 140f)
     word(measurer, labels.stock, 12f, 196f, 12f, Ink.fade(0.65f), leftAligned = true)
-    driveGlyph(GLYPH_A, 22f, 220f, 16f, Ink.fade(0.8f))
+    driveGlyph(GLYPH_A, 22f, 220f, 16f, driveLetterColor(GLYPH_A))
     digit(game.stock[0], 36f, 211f, 0.9f, 0.55f)
-    driveGlyph(GLYPH_B, 76f, 220f, 16f, Ink.fade(0.8f))
+    driveGlyph(GLYPH_B, 76f, 220f, 16f, driveLetterColor(GLYPH_B))
     digit(game.stock[1], 90f, 211f, 0.9f, 0.55f)
     if (game.mouse.mode != MOUSE_NONE) mouse(game.mouse.x, game.mouse.mode == MOUSE_RUN, game.clockMs)
     hero(game, sprites)

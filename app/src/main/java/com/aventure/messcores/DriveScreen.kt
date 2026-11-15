@@ -176,6 +176,7 @@ internal fun DriveScreen(players: List<String>) {
     var points by remember { mutableIntStateOf(game.points) }
     var errors by remember { mutableIntStateOf(game.errors) }
     var orders by remember { mutableIntStateOf(game.orders) }
+    var deliveries by remember { mutableIntStateOf(game.deliveries) }
     // Les boutons de la console actuellement enfoncés (un bit chacun, voir PRESS_LEFT et les suivants).
     var pressed by remember { mutableIntStateOf(0) }
     val sprites = remember { loadDriveSprites(context) }
@@ -217,6 +218,7 @@ internal fun DriveScreen(players: List<String>) {
         points = game.points
         errors = game.errors
         orders = game.orders
+        deliveries = game.deliveries
     }
 
     fun press(bit: Int, down: Boolean) {
@@ -355,7 +357,7 @@ internal fun DriveScreen(players: List<String>) {
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    text = stringResource(R.string.drive_over_summary, errors, orders, points),
+                                    text = stringResource(R.string.drive_over_summary, deliveries, orders, points),
                                     style = MaterialTheme.typography.bodyMedium,
                                     textAlign = TextAlign.Center
                                 )
@@ -521,13 +523,13 @@ private fun DrawScope.padButton(cx: Float, cy: Float, direction: Int, k: Float) 
     withTransform({ scale(k, k, pivot = Offset.Zero) }) { drawPath(triangle, Color.White) }
 }
 
-/** Un bouton rouge bombé (A ou B) avec sa lettre blanche. */
+/** Un bouton bombé avec sa lettre blanche : rouge pour A, noir pour B. */
 private fun DrawScope.capButton(cx: Float, cy: Float, letter: Int, k: Float) {
     val r = CAP_RADIUS
     drawCircle(Color.Black.copy(alpha = 0.35f), r * k, Offset(cx * k, (cy + 5f) * k))
     drawCircle(
         brush = Brush.radialGradient(
-            colors = listOf(CapLight, ConsoleRed, CapDark),
+            colors = if (letter == GLYPH_A) listOf(CapLight, ConsoleRed, CapDark) else listOf(PadLight, PadMid, PadDark),
             center = Offset((cx - r * 0.3f) * k, (cy - r * 0.35f) * k),
             radius = r * 1.5f * k
         ),

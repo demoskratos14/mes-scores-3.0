@@ -49,7 +49,9 @@ internal const val MOUSE_RUN = 2
  * voisin) fait tomber le produit au bout du tapis dans le bac. Une commande complète donne 5 points et rejoint le stock des
  * commandes prêtes (A ou B). Dehors, une voiture surgit sur une piste après un avertissement et demande A ou B : la bonne commande
  * donne 10 points. Une souris traverse le bureau (on saute par-dessus) et le téléphone sonne (réclamation d'un client : décrocher
- * dans la dernière zone, puis la touche demandée). Trois erreurs et le joueur est licencié.
+ * dans la dernière zone, puis la touche demandée). Un produit qui tombe du tapis ne coûte rien ; un mauvais produit dans une commande, une
+ * mauvaise touche en livrant ou au téléphone font perdre des points. Seules quatre fautes sont des erreurs : être touché par la souris,
+ * laisser sonner ou ne pas répondre à temps, ne pas livrer une voiture, se faire percuter par elle. Trois erreurs et le joueur est licencié.
  *
  * Tout ce fichier est du Kotlin pur (sans Android) pour pouvoir être testé : voir [DriveGame].
  */
@@ -314,10 +316,6 @@ internal class DriveGame(private val random: Random = Random.Default) {
     private val mouseSitMs: Float get() = lerp(2200f, 1100f) + random.nextFloat() * lerp(1400f, 700f)
     private val mouseSpeed: Float get() = lerp(145f, 180f)
 
-    /** Le malus d'un produit utile qui s'échappe : rien au début, 1 point à partir de 30 %, 2 à partir de 65 %. */
-    private val missPenalty: Int
-        get() = if (difficulty < 0.3f) 0 else if (difficulty < 0.65f) 1 else 2
-
     // ---------------------------------------------------------------- commandes
 
     /** La lettre de la prochaine commande : celle qu'on a le moins (en stock et en cours), pour que A et B restent équilibrées. */
@@ -378,8 +376,7 @@ internal class DriveGame(private val random: Random = Random.Default) {
             }
             while (belt.items.isNotEmpty() && belt.items[0].depth < Drive.S_NEAR - 0.025f) {
                 val item = belt.items.removeAt(0)
-                // Un produit utile qui s'échappe coûte des points une fois le rodage passé.
-                if (isNeeded(belt, item.product)) points = max(0, points - missPenalty)
+                // Un produit qui tombe du tapis ne coûte rien : seul un mauvais produit mis dans une commande fait perdre des points.
                 falls.add(DriveFall(item.product, true, belt.x, belt.x, Drive.S_NEAR, Drive.S_NEAR - 0.06f, 0f, 380f))
             }
         }
@@ -487,17 +484,18 @@ internal class DriveGame(private val random: Random = Random.Default) {
     private fun deliver(key: Int) {
         val bay = waitingCar() ?: return
         val tag = if (key == DRIVE_A) 0 else 1
-        if (stock[tag] <= 0) return
-        stock[tag]--
-        if (tag == bay.want) {
-            points += 10
-            deliveries++
-            bay.mode = CAR_LEAVE
-            bay.elapsedMs = 0f
-        } else {
+        if (tag != bay.want) { // mauvais bouton : des points en moins (la commande n'est remise que s'il y en a une en stock)
+            if (stock[tag] > 0) stock[tag]--
             points = max(0, points - WRONG_ORDER_PENALTY)
             flash = 0.6f
+            return
         }
+        if (stock[tag] <= 0) return
+        stock[tag]--
+        points += 10
+        deliveries++
+        bay.mode = CAR_LEAVE
+        bay.elapsedMs = 0f
     }
 
     // ---------------------------------------------------------------- téléphone et souris
@@ -526,7 +524,12 @@ internal class DriveGame(private val random: Random = Random.Default) {
             DRIVE_B -> 1
             else -> 2
         }
-        if (pressed == phone.want) points++ else error()
+        if (pressed == phone.want) {
+            points++
+        } else { // mauvais bouton : des points en moins, mais pas une erreur (seul le silence en est une)
+            points = max(0, points - WRONG_ANSWER_PENALTY)
+            flash = 0.6f
+        }
         hangUp()
     }
 
@@ -763,6 +766,9 @@ internal class DriveGame(private val random: Random = Random.Default) {
         /** Les pénalités : un mauvais produit dans une commande, une mauvaise commande remise à une voiture. */
         const val WRONG_PRODUCT_PENALTY = 2
         const val WRONG_ORDER_PENALTY = 5
+
+        /** Une mauvaise touche en réponse à un appel client. */
+        const val WRONG_ANSWER_PENALTY = 2
 
         /** Retrouve une partie sauvegardée par [save] ; une partie neuve si la liste ne convient pas. */
         fun restore(values: List<Double>): DriveGame {

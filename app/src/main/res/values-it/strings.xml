@@ -2323,7 +2323,7 @@
     <string name="drive_paused_title">Partita in pausa</string>
     <string name="drive_resume">Riprendi</string>
     <string name="drive_over_title">SEI LICENZIATO</string>
-    <string name="drive_over_summary">Errori: %1$d · Ordini preparati: %2$d · Punti: %3$d</string>
+    <string name="drive_over_summary">Ordini consegnati: %1$d · Ordini preparati: %2$d · Punti: %3$d</string>
     <string name="drive_replay_hint">Premi A per giocare ancora.</string>
     <string name="drive_button_up">Salta</string>
     <string name="drive_button_a">Pulsante A</string>

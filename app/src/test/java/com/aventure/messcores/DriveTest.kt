@@ -157,7 +157,28 @@ class DriveTest {
     }
 
     @Test
-    fun deliveryWithoutStockDoesNothing() {
+    fun wrongDeliveryButtonCostsPointsEvenWithoutStock() {
+        val g = game()
+        g.stock[0] = 1
+        val first = g.bays[0]
+        first.mode = CAR_WAIT
+        first.want = 0
+        first.limitMs = 99999f
+        walkTo(g, first.zone - 1)
+        g.press(DRIVE_A) // 10 points
+        val bay = g.bays[1]
+        bay.mode = CAR_WAIT
+        bay.want = 0
+        bay.limitMs = 99999f
+        walkTo(g, bay.zone - 1)
+        g.press(DRIVE_B) // rien en stock, mais ce n'est pas le bon bouton
+        assertEquals(10 - DriveGame.WRONG_ORDER_PENALTY, g.points)
+        assertEquals(CAR_WAIT, bay.mode)
+        assertEquals(0, g.errors)
+    }
+
+    @Test
+    fun deliveryWithTheRightButtonButNoStockDoesNothing() {
         val g = game()
         val bay = g.bays[0]
         bay.mode = CAR_WAIT
@@ -208,25 +229,58 @@ class DriveTest {
     }
 
     @Test
-    fun wrongAnswerOrSilenceAreErrors() {
+    fun lateAnswerOrSilenceAreErrors() {
         val g = game()
         g.phone.mode = PHONE_CALL
         g.phone.want = 0
-        g.phone.limitMs = 2000f
-        g.press(DRIVE_B)
-        assertEquals(1, g.errors)
-
-        g.phone.mode = PHONE_CALL
-        g.phone.elapsedMs = 0f
         g.phone.limitMs = 500f
         g.tick(600f)
-        assertEquals(2, g.errors)
+        assertEquals(1, g.errors)
 
         g.phone.mode = PHONE_RING
         g.phone.ringAgeMs = 0f
         g.tick(20000f)
-        assertEquals(3, g.errors)
-        assertTrue(g.over)
+        assertEquals(2, g.errors)
+    }
+
+    @Test
+    fun wrongPhoneButtonCostsPointsButIsNotAnError() {
+        val g = game()
+        g.stock[0] = 1
+        val bay = g.bays[0]
+        bay.mode = CAR_WAIT
+        bay.want = 0
+        bay.limitMs = 99999f
+        walkTo(g, bay.zone - 1)
+        g.press(DRIVE_A) // 10 points
+        walkTo(g, 0)
+        g.phone.mode = PHONE_CALL
+        g.phone.want = 0
+        g.phone.limitMs = 2000f
+        g.press(DRIVE_B)
+        assertEquals(10 - DriveGame.WRONG_ANSWER_PENALTY, g.points)
+        assertEquals(0, g.errors)
+        assertEquals(PHONE_IDLE, g.phone.mode)
+    }
+
+    @Test
+    fun itemFallingOffABeltCostsNothing() {
+        val g = game()
+        g.stock[0] = 1
+        val bay = g.bays[0]
+        bay.mode = CAR_WAIT
+        bay.want = 0
+        bay.limitMs = 99999f
+        walkTo(g, bay.zone - 1)
+        g.press(DRIVE_A) // 10 points
+        val lane = g.lanes[0]
+        val belt = g.belts.first { kotlin.math.abs(it.zone - lane.zone) == 1 }
+        belt.items.clear()
+        belt.items.add(DriveItem(lane.need[0], Drive.S_NEAR - 0.03f))
+        g.tick(100f)
+        assertTrue(belt.items.isEmpty())
+        assertEquals(10, g.points)
+        assertEquals(0, g.errors)
     }
 
     @Test
@@ -269,8 +323,9 @@ class DriveTest {
         repeat(3) {
             g.phone.mode = PHONE_CALL
             g.phone.want = 0
-            g.phone.limitMs = 1000f
-            g.press(DRIVE_B)
+            g.phone.elapsedMs = 0f
+            g.phone.limitMs = 500f
+            g.tick(600f)
         }
         assertTrue(g.over)
         g.press(DRIVE_RIGHT)

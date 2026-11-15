@@ -2329,7 +2329,7 @@
     <string name="drive_paused_title">Partie en pause</string>
     <string name="drive_resume">Reprendre</string>
     <string name="drive_over_title">VOUS ÊTES LICENCIÉ</string>
-    <string name="drive_over_summary">Erreurs : %1$d · Commandes préparées : %2$d · Points : %3$d</string>
+    <string name="drive_over_summary">Commandes livrées : %1$d · Commandes préparées : %2$d · Points : %3$d</string>
     <string name="drive_replay_hint">Appuie sur A pour rejouer.</string>
     <string name="drive_button_up">Sauter</string>
     <string name="drive_button_a">Bouton A</string>

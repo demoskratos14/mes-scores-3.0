@@ -2313,7 +2313,7 @@
     <string name="drive_paused_title">Partida en pausa</string>
     <string name="drive_resume">Reanudar</string>
     <string name="drive_over_title">ESTÁS DESPEDIDO</string>
-    <string name="drive_over_summary">Errores: %1$d · Pedidos preparados: %2$d · Puntos: %3$d</string>
+    <string name="drive_over_summary">Pedidos entregados: %1$d · Pedidos preparados: %2$d · Puntos: %3$d</string>
     <string name="drive_replay_hint">Pulsa A para jugar de nuevo.</string>
     <string name="drive_button_up">Saltar</string>
     <string name="drive_button_a">Botón A</string>

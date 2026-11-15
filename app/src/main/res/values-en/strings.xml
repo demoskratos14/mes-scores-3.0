@@ -2283,7 +2283,7 @@
     <string name="drive_paused_title">Game paused</string>
     <string name="drive_resume">Resume</string>
     <string name="drive_over_title">YOU’RE FIRED</string>
-    <string name="drive_over_summary">Errors: %1$d · Orders prepared: %2$d · Points: %3$d</string>
+    <string name="drive_over_summary">Orders delivered: %1$d · Orders prepared: %2$d · Points: %3$d</string>
     <string name="drive_replay_hint">Press A to play again.</string>
     <string name="drive_button_up">Jump</string>
     <string name="drive_button_a">Button A</string>
