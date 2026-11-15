@@ -408,7 +408,7 @@ class Flip7RoundTest {
     }
 
     @Test
-    fun uneCibleHorsDeLaListeEstRefusee() {
+    fun uneCibleHorsDeLaListeEstRefuseeParUnJoueurDistant() {
         val r = table(listOf(freeze, 4, 4), current = 1)
         r.hitFor(1)
 
