@@ -90,6 +90,31 @@ internal enum class Flip7EventKind { DRAW, BUST, SAVED, FLIP7, STAY, FREEZE, FLI
 internal data class Flip7Event(val kind: Flip7EventKind, val player: Int, val card: Int = -1, val other: Int = -1)
 
 /**
+ * La table de Flip 7 : tout est public (aucune carte n'est cachée), donc tous les joueurs reçoivent la même. C'est ce que
+ * l'organisateur envoie à chaque invité. Seul ce que chacun peut faire dépend de sa place (voir [Flip7Round.hitFor]).
+ */
+internal data class Flip7Table(
+    val playerCount: Int,
+    val roundNumber: Int,
+    val current: Int,
+    val status: List<Flip7Status>,
+    val numbers: List<List<Int>>,
+    val extras: List<List<Int>>,
+    val stockSize: Int,
+    val pending: Flip7Pending?,
+    val lastEvent: Flip7Event?,
+    val roundOver: Boolean,
+    val flip7Player: Int,
+    val winner: Int,
+    val settled: Boolean,
+    val started: Boolean,
+    /** Points que chacun marquerait maintenant (0 pour celui qui a sauté). */
+    val points: List<Int>,
+    /** Vrai si le joueur dont c'est le tour peut piocher ou s'arrêter. */
+    val canAct: Boolean
+)
+
+/**
  * Une partie de Flip 7 jouée sur un seul téléphone (3 joueurs ou plus). Aucune carte n'est cachée : tout le monde voit la
  * table, on se passe simplement le tour.
  *
@@ -264,6 +289,37 @@ internal class Flip7Round(
         advance()
         return true
     }
+
+    // ---------- Les joueurs d'un autre téléphone ----------
+
+    /** La table telle que la voient tous les joueurs (rien n'y est caché). */
+    fun tableFor(): Flip7Table = Flip7Table(
+        playerCount = playerCount,
+        roundNumber = roundNumber,
+        current = current,
+        status = status,
+        numbers = numbers,
+        extras = extras,
+        stockSize = stock.size,
+        pending = pending,
+        lastEvent = lastEvent,
+        roundOver = roundOver,
+        flip7Player = flip7Player,
+        winner = winner,
+        settled = settled,
+        started = inProgress,
+        points = roundPoints(),
+        canAct = canAct
+    )
+
+    /** [hit] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun hitFor(seat: Int): Boolean = seat == current && hit()
+
+    /** [stay] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun stayFor(seat: Int): Boolean = seat == current && stay()
+
+    /** [chooseTarget] pour le joueur [seat], qui doit être celui qui a pioché la carte Action en attente ([Flip7Pending.source]). */
+    fun chooseTargetFor(seat: Int, target: Int): Boolean = pending?.source == seat && chooseTarget(target)
 
     // ---------- Déroulement ----------
 

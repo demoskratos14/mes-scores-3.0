@@ -875,6 +875,9 @@ fun ScoreApp(
             composable("flip7") {
                 Flip7Screen(
                     viewModel = viewModel,
+                    session = sync,
+                    online = syncViewModel.flip7,
+                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {

@@ -106,6 +106,9 @@ internal sealed interface SyncMessage {
     /** Un message du Yaniv chacun sur son téléphone, sur la connexion de la feuille de scores (voir [YanivOnline]). */
     data class YanivMsg(val yaniv: YanivMessage) : SyncMessage
 
+    /** Un message de Flip 7 chacun sur son téléphone, sur la connexion de la feuille de scores (voir [Flip7Online]). */
+    data class Flip7Msg(val flip7: Flip7Message) : SyncMessage
+
     /** Le tour de dés en cours, envoyé par le téléphone du joueur qui joue (l'organisateur le relaie aux autres). */
     data class Dice(val table: DiceTable) : SyncMessage
 }
@@ -217,6 +220,7 @@ internal object SyncCodec {
             is SyncMessage.Hearts -> json.put("t", "hearts").put("hearts", message.hearts.toJson())
             is SyncMessage.UnoMsg -> json.put("t", "uno").put("uno", message.uno.toJson())
             is SyncMessage.YanivMsg -> json.put("t", "yaniv").put("yaniv", message.yaniv.toJson())
+            is SyncMessage.Flip7Msg -> json.put("t", "flip7").put("flip7", message.flip7.toJson())
             is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
                 .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
                 .put("pig", message.table.pigTotal).put("bust", message.table.pigBust)
@@ -261,6 +265,7 @@ internal object SyncCodec {
                 "hearts" -> heartsMsgFromJson(json.getJSONObject("hearts"))?.let { SyncMessage.Hearts(it) }
                 "uno" -> unoMessageFromJson(json.getJSONObject("uno"))?.let { SyncMessage.UnoMsg(it) }
                 "yaniv" -> yanivMessageFromJson(json.getJSONObject("yaniv"))?.let { SyncMessage.YanivMsg(it) }
+                "flip7" -> flip7MessageFromJson(json.getJSONObject("flip7"))?.let { SyncMessage.Flip7Msg(it) }
                 "dice" -> {
                     val turn = json.getJSONArray("turn")
                     SyncMessage.Dice(

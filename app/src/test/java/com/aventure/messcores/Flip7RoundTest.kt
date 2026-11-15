@@ -350,10 +350,69 @@ class Flip7RoundTest {
     }
 
     @Test
-    fun flip7EstUnJeuJouableSurUnSeulTelephone() {
+    fun flip7EstUnJeuJouableSurPlusieursTelephones() {
         val rules = rules()
         assertTrue(rules.isPlayableGame())
-        assertFalse(rules.isMultiPhone())
+        assertTrue(rules.isMultiPhone())
         assertTrue(rules.hasScoreSheet())
+    }
+
+    // ---------- Plusieurs téléphones ----------
+
+    @Test
+    fun laTableMontreToutCeQuiEstSurLaTable() {
+        val r = table(listOf(5, 9, 3), current = 0)
+        r.hit()
+
+        val view = r.tableFor()
+        assertEquals(listOf(5), view.numbers[0])
+        assertEquals(2, view.stockSize)
+        assertEquals(1, view.current)
+        assertEquals(listOf(5, 0, 0), view.points)
+        assertTrue(view.canAct)
+        assertFalse(view.roundOver)
+        assertEquals(Flip7EventKind.DRAW, view.lastEvent?.kind)
+    }
+
+    @Test
+    fun seuleLaPlaceDontCEstLeTourPeutPiocherOuSArreter() {
+        val r = table(listOf(5, 9, 3), current = 1)
+
+        assertFalse(r.hitFor(0))
+        assertFalse(r.stayFor(2))
+        assertEquals(1, r.current)
+        assertEquals(3, r.stock.size)
+
+        assertTrue(r.hitFor(1))
+        assertEquals(listOf(5), r.numbers[1])
+        assertEquals(2, r.current)
+        assertTrue(r.stayFor(2))
+        assertEquals(Flip7Status.STAYED, r.status[2])
+    }
+
+    @Test
+    fun seulCeluiQuiAPiocheUneCarteActionEnChoisitLaCible() {
+        val r = table(listOf(freeze, 4, 4), current = 1)
+        assertTrue(r.hitFor(1))
+
+        assertEquals(1, r.pending?.source)
+        // Ni le joueur suivant ni un autre ne peut choisir à sa place ; ni piocher tant que le choix n'est pas fait.
+        assertFalse(r.chooseTargetFor(0, 2))
+        assertFalse(r.chooseTargetFor(2, 2))
+        assertFalse(r.hitFor(1))
+        assertNotNull(r.pending)
+
+        assertTrue(r.chooseTargetFor(1, 2))
+        assertEquals(Flip7Status.FROZEN, r.status[2])
+        assertNull(r.pending)
+    }
+
+    @Test
+    fun uneCibleHorsDeLaListeEstRefusee() {
+        val r = table(listOf(freeze, 4, 4), current = 1)
+        r.hitFor(1)
+
+        assertFalse(r.chooseTargetFor(1, 7))
+        assertNotNull(r.pending)
     }
 }
