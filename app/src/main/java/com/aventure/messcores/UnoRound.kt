@@ -76,6 +76,9 @@ internal object UnoScoring {
     /** Points d'une main. */
     fun handPoints(hand: List<Int>): Int = hand.sumOf { points(it) }
 
+    /** Clé de tri d'une main : par couleur (jokers à la fin), puis par nature de carte. */
+    fun sortKey(card: Int): Int = (if (isWild(card)) COLORS else color(card)) * 100 + kind(card)
+
     /**
      * Vrai si [card], tirée de la main [hand], peut être posée sur [top] quand la couleur demandée est [askedColor] : même
      * couleur que celle demandée (la couleur de [top], ou celle choisie après un joker), même chiffre ou même symbole que [top],
@@ -93,6 +96,42 @@ internal object UnoScoring {
  * [drawn] cartes ; un joker choisit la couleur, une inversion change le sens (c'est visible sur la table).
  */
 internal data class UnoEvent(val player: Int, val card: Int, val victim: Int, val drawn: Int)
+
+/**
+ * La table vue par un joueur : tout ce qui est public, plus sa propre main ([hand]) et, si c'est son tour, ce qu'il peut faire
+ * ([canDraw], [mustPass], [drawnCard]). C'est ce que l'organisateur envoie à chaque invité : jamais la main des autres.
+ */
+internal data class UnoTable(
+    val playerCount: Int,
+    val roundNumber: Int,
+    val current: Int,
+    val direction: Int,
+    val askedColor: Int,
+    val top: Int,
+    val stockSize: Int,
+    val handSizes: List<Int>,
+    val lastEvent: UnoEvent?,
+    val roundOver: Boolean,
+    val winner: Int,
+    val blocked: Boolean,
+    val settled: Boolean,
+    val started: Boolean,
+    val points: List<Int>,
+    val hand: List<Int>,
+    val drawnCard: Int,
+    val canDraw: Boolean,
+    val mustPass: Boolean
+) {
+    /** Vrai si [card], de la main du joueur, peut être posée maintenant (après une pioche, seule la carte piochée le peut). */
+    fun isPlayable(card: Int): Boolean =
+        card in hand && (drawnCard < 0 || card == drawnCard) && UnoScoring.isPlayable(card, top, askedColor, hand)
+
+    /** Vrai si le joueur a au moins une carte jouable. */
+    val hasPlayable: Boolean get() = hand.any { isPlayable(it) }
+
+    /** Vrai si [player] n'a plus qu'une carte : l'appli annonce « UNO ! » à sa place. */
+    fun hasUno(player: Int): Boolean = !roundOver && handSizes.getOrNull(player) == 1
+}
 
 /**
  * Une partie de Uno jouée tour par tour sur un seul téléphone que l'on se passe.
@@ -228,6 +267,35 @@ internal class UnoRound(
         return hands.indices.map { if (it == winner) total else 0 }
     }
 
+    /**
+     * La table telle que la voit le joueur [viewer] : le public et sa main. [viewer] hors des joueurs (-1) : un spectateur, qui
+     * ne voit aucune main. Ce que le joueur peut faire ([UnoTable.canDraw]…) n'est renseigné que si c'est son tour.
+     */
+    fun tableFor(viewer: Int): UnoTable {
+        val mine = viewer >= 0 && viewer == current && !roundOver
+        return UnoTable(
+            playerCount = playerCount,
+            roundNumber = roundNumber,
+            current = current,
+            direction = direction,
+            askedColor = askedColor,
+            top = top,
+            stockSize = stock.size,
+            handSizes = hands.map { it.size },
+            lastEvent = lastEvent,
+            roundOver = roundOver,
+            winner = winner,
+            blocked = blocked,
+            settled = settled,
+            started = inProgress,
+            points = roundPoints(),
+            hand = hands.getOrElse(viewer) { emptyList() }.sortedBy { UnoScoring.sortKey(it) },
+            drawnCard = if (mine) drawnCard else -1,
+            canDraw = mine && canDraw,
+            mustPass = mine && mustPass
+        )
+    }
+
     // ---------- Le tour ----------
 
     /** Le joueur dont c'est le tour montre sa main (les autres ne regardent pas). */
@@ -310,6 +378,25 @@ internal class UnoRound(
         drawnCard = -1
         if (passes >= playerCount) finishBlocked() else advance(1)
         return true
+    }
+
+    // ---------- Les joueurs d'un autre téléphone ----------
+    // Un invité n'a pas à « voir sa main » sur le téléphone de l'organisateur : on la dévoile le temps de son coup.
+
+    /** [play] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun playFor(seat: Int, card: Int, color: Int = -1): Boolean = asSeat(seat) { play(card, color) }
+
+    /** [draw] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun drawFor(seat: Int): Boolean = asSeat(seat) { draw() != null }
+
+    /** [pass] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun passFor(seat: Int): Boolean = asSeat(seat) { pass() }
+
+    private fun asSeat(seat: Int, action: () -> Boolean): Boolean {
+        if (seat != current || roundOver) return false
+        val before = revealed
+        revealed = true
+        return action().also { if (!it) revealed = before }
     }
 
     /** Le joueur qui suit celui qui joue, dans le sens du jeu. */

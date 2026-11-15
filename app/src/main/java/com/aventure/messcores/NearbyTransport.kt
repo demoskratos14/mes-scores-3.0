@@ -165,6 +165,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Président chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val president = PresidentOnline(session)
 
+    /** Uno chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val uno = UnoOnline(session)
+
     override fun onCleared() {
         session.disconnect()
     }

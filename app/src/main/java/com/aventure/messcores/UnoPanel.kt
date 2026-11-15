@@ -1,10 +1,14 @@
 package com.aventure.messcores
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -17,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -71,37 +76,74 @@ private fun rememberUnoLabels(): UnoLabels = UnoLabels(
 )
 
 /**
- * L'écran du Uno jouable : il n'y a pas de feuille de scores derrière, tout s'affiche ici (voir [UnoSection]).
- * « Retour » et la fin de partie quittent la partie ([onBack]).
+ * L'écran du Uno jouable : il n'y a pas de feuille de scores derrière, tout s'affiche ici.
+ *
+ * - Sur un seul téléphone, ou sur celui de l'organisateur : [UnoHostSection], où l'on se passe le téléphone.
+ * - Sur un téléphone invité : [UnoGuestSection], qui affiche la main du joueur à sa place et envoie ses actions à l'organisateur.
+ *
+ * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
  */
 @Composable
-internal fun UnoScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
+internal fun UnoScreen(
+    viewModel: ScoreViewModel,
+    session: SyncSession,
+    online: UnoOnline,
+    onOpenShare: () -> Unit,
+    onBack: () -> Unit
+) {
     if (viewModel.gameRules.id != UNO_ID) {
         // Aucune partie de Uno ouverte (partie fermée entre-temps) : retour.
         LaunchedEffect(Unit) { onBack() }
         return
     }
+    val guest = session.role == SyncRole.GUEST && session.isConnected && session.kind == SyncKind.SCORE
+    if (guest) {
+        val table = online.table
+        CardGameScreen(
+            viewModel = viewModel,
+            onBack = onBack,
+            scrollKeys = listOf(table?.current, table?.roundOver, table?.roundNumber, online.mySeat),
+            onOpenShare = onOpenShare,
+            shareActive = true
+        ) {
+            UnoGuestSection(viewModel = viewModel, online = online)
+        }
+        return
+    }
     val round = remember(viewModel, viewModel.players.size) { viewModel.unoRound() }
+    // Les invités reçoivent leur vue de la table à chaque changement ; une manche finie est inscrite tout de suite.
+    LaunchedEffect(round, online) {
+        snapshotFlow { round.tableFor(-1) }.collect { online.publish() }
+    }
+    LaunchedEffect(round, round.roundOver) {
+        if (round.roundOver) round.settle(viewModel)
+    }
     // Un autre joueur, une nouvelle manche ou la main qu'on vient de dévoiler : on remonte en haut de la page.
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber)
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber),
+        onOpenShare = onOpenShare,
+        shareActive = session.isConnected
     ) {
-        UnoSection(viewModel = viewModel, round = round, onLeave = onBack)
+        UnoHostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }
 }
 
 /**
  * Le Uno tour par tour (voir [UnoRound]) : l'appli distribue, vérifie chaque carte posée, applique les cartes action, fait
- * piocher, annonce « UNO ! », compte les points de la manche et les inscrit au tableau des scores. Le téléphone se passe de
- * joueur en joueur : la main n'apparaît qu'après « Voir ma main ».
+ * piocher, annonce « UNO ! », compte les points de la manche et les inscrit au tableau des scores. Les places que personne n'a
+ * prises sur un autre téléphone se jouent ici : le téléphone se passe de joueur en joueur et la main n'apparaît qu'après
+ * « Voir ma main ».
  */
 @Composable
-internal fun UnoSection(viewModel: ScoreViewModel, round: UnoRound, onLeave: () -> Unit) {
+internal fun UnoHostSection(viewModel: ScoreViewModel, round: UnoRound, online: UnoOnline, onLeave: () -> Unit) {
     val players = viewModel.players
     val labels = rememberUnoLabels()
     val over = viewModel.isGameOver()
+    val remote = online.isRemote(round.current)
+    // La main n'est montrée que quand le joueur de ce téléphone l'a demandée ; celle d'un autre téléphone ne vient jamais ici.
+    val table = round.tableFor(if (round.revealed && !remote) round.current else -1)
     // Le texte (ressource) refusant la pioche touchée ; effacé dès que la main ou le tour change.
     var stockError by remember(round.current, round.roundNumber, round.currentHand.size) { mutableStateOf<Int?>(null) }
 
@@ -115,7 +157,7 @@ internal fun UnoSection(viewModel: ScoreViewModel, round: UnoRound, onLeave: () 
     if (over) {
         // La partie est finie (ou reprise déjà finie) : le vainqueur, les points de la dernière manche s'il y en a une, puis la sortie.
         GameOverBanner(players = players, winners = viewModel.winners())
-        if (round.roundOver) UnoRoundResult(round = round, players = players, canContinue = false, onNext = {})
+        if (round.roundOver) UnoRoundResult(table = table, players = players, canContinue = false, onNext = {})
         Button(onClick = onLeave, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.dice_leave_game))
         }
@@ -130,16 +172,16 @@ internal fun UnoSection(viewModel: ScoreViewModel, round: UnoRound, onLeave: () 
 
     // La pioche est à côté de la dernière carte posée : touchable seulement quand la main est dévoilée.
     UnoTableCard(
-        round = round,
+        table = table,
         labels = labels,
         players = players,
         stockError = stockError,
-        onStockClick = if (round.revealed && !round.roundOver) {
+        onStockClick = if (round.revealed && !remote && !round.roundOver) {
             {
                 stockError = when {
-                    round.drawnCard >= 0 -> R.string.uno_already_drawn
-                    round.hasPlayable -> R.string.card_draw_forbidden
-                    round.canDraw -> {
+                    table.drawnCard >= 0 -> R.string.uno_already_drawn
+                    table.hasPlayable -> R.string.card_draw_forbidden
+                    table.canDraw -> {
                         round.draw()
                         null
                     }
@@ -152,16 +194,18 @@ internal fun UnoSection(viewModel: ScoreViewModel, round: UnoRound, onLeave: () 
     )
 
     if (round.roundOver) {
-        UnoRoundResult(
-            round = round,
-            players = players,
-            canContinue = round.settled,
-            onNext = { round.nextRound() }
-        )
+        UnoRoundResult(table = table, players = players, canContinue = round.settled, onNext = { round.nextRound() })
         return
     }
 
     val name = players.getOrElse(round.current) { "" }
+    if (remote) {
+        // Ce joueur joue sur son téléphone : rien à faire ici que d'attendre.
+        CardPanel {
+            Text(stringResource(R.string.president_waiting_remote, name), style = MaterialTheme.typography.bodyMedium)
+        }
+        return
+    }
     if (!round.revealed) {
         // Le téléphone change de mains : la main reste cachée jusqu'à ce que son joueur la demande.
         PassPhoneCard(name = name, onReveal = { round.reveal() })
@@ -169,15 +213,113 @@ internal fun UnoSection(viewModel: ScoreViewModel, round: UnoRound, onLeave: () 
     }
 
     UnoHandCard(
-        round = round,
+        table = table,
         labels = labels,
+        players = players,
         name = name,
+        active = true,
         onPlay = { card, color ->
             if (round.play(card, color)) settleIfOver()
         },
         onPass = {
             if (round.pass()) settleIfOver()
         }
+    )
+}
+
+/**
+ * Le Uno sur un téléphone invité : l'invité choisit sa place à la table, voit sa main (et elle seule) en permanence et joue
+ * quand c'est son tour ; l'organisateur vérifie et applique ses actions.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun UnoGuestSection(viewModel: ScoreViewModel, online: UnoOnline) {
+    val players = viewModel.players
+    val labels = rememberUnoLabels()
+    val table = online.table
+    val seat = online.mySeat
+    val over = viewModel.isGameOver()
+    var stockError by remember(table?.current, table?.roundNumber, table?.hand?.size) { mutableStateOf<Int?>(null) }
+
+    ScoresCard(viewModel = viewModel, current = if (table == null || over || table.roundOver) -1 else table.current)
+
+    CardPanel {
+        Text(stringResource(R.string.president_seat_title), style = MaterialTheme.typography.labelLarge)
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            players.forEachIndexed { index, name ->
+                FilterChip(
+                    selected = index == seat,
+                    // Une place jouée sur un autre téléphone ne se prend pas ; toucher la sienne la libère.
+                    enabled = index == seat || index !in online.taken,
+                    onClick = { online.claim(if (index == seat) -1 else index) },
+                    label = { Text(name) }
+                )
+            }
+        }
+    }
+
+    if (table == null) {
+        Text(stringResource(R.string.president_guest_wait), style = MaterialTheme.typography.bodyMedium, color = Color.White)
+        return
+    }
+
+    if (over) {
+        // La partie est finie : le vainqueur et les points de la dernière manche ; l'organisateur n'en distribue plus.
+        GameOverBanner(players = players, winners = viewModel.winners())
+        if (table.roundOver) UnoRoundResult(table = table, players = players, canContinue = false, onNext = {})
+        return
+    }
+
+    Text(
+        text = stringResource(R.string.huit_round, table.roundNumber),
+        style = MaterialTheme.typography.labelLarge,
+        color = Color.White
+    )
+
+    val myTurn = seat >= 0 && table.current == seat && !table.roundOver
+    UnoTableCard(
+        table = table,
+        labels = labels,
+        players = players,
+        stockError = stockError,
+        // La pioche n'est touchable que pour le joueur dont c'est le tour ; l'organisateur la vérifie de toute façon.
+        onStockClick = if (myTurn) {
+            {
+                stockError = when {
+                    table.drawnCard >= 0 -> R.string.uno_already_drawn
+                    table.hasPlayable -> R.string.card_draw_forbidden
+                    table.canDraw -> {
+                        online.draw()
+                        null
+                    }
+                    else -> R.string.huit_must_pass
+                }
+            }
+        } else {
+            null
+        }
+    )
+
+    if (table.roundOver) {
+        UnoRoundResult(table = table, players = players, canContinue = table.settled, onNext = { online.next() })
+        return
+    }
+    if (seat < 0) {
+        Text(stringResource(R.string.president_seat_hint), style = MaterialTheme.typography.bodyMedium, color = Color.White)
+        return
+    }
+
+    UnoHandCard(
+        table = table,
+        labels = labels,
+        players = players,
+        name = players.getOrElse(seat) { "" },
+        active = myTurn,
+        onPlay = { card, color -> online.play(card, color) },
+        onPass = { online.pass() }
     )
 }
 
@@ -206,7 +348,7 @@ private fun eventText(event: UnoEvent, labels: UnoLabels, players: List<String>)
  */
 @Composable
 private fun UnoTableCard(
-    round: UnoRound,
+    table: UnoTable,
     labels: UnoLabels,
     players: List<String>,
     stockError: Int?,
@@ -219,28 +361,28 @@ private fun UnoTableCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         CardTableRow(
-            stockCount = round.stock.size,
+            stockCount = table.stockSize,
             onStockClick = onStockClick,
-            top = { UnoCardFace(card = round.top, labels = labels, playable = true, modifier = it) },
+            top = { UnoCardFace(card = table.top, labels = labels, playable = true, modifier = it) },
             pile = { UnoCardBack(it) }
         ) {
             Text(
-                text = stringResource(R.string.uno_asked_color, labels.colorName(round.askedColor)),
+                text = stringResource(R.string.uno_asked_color, labels.colorName(table.askedColor)),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = unoInk(round.askedColor)
+                color = unoInk(table.askedColor)
             )
             Text(
-                text = stringResource(if (round.direction > 0) R.string.uno_direction_forward else R.string.uno_direction_backward),
+                text = stringResource(if (table.direction > 0) R.string.uno_direction_forward else R.string.uno_direction_backward),
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = stringResource(R.string.huit_stock, round.stock.size),
+                text = stringResource(R.string.huit_stock, table.stockSize),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
         stockError?.let { CardErrorText(stringResource(it)) }
-        round.lastEvent?.let { event ->
+        table.lastEvent?.let { event ->
             Text(
                 text = eventText(event, labels, players),
                 style = MaterialTheme.typography.bodyMedium,
@@ -253,42 +395,44 @@ private fun UnoTableCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         players.forEachIndexed { index, name ->
-            val line = stringResource(R.string.dice_pig_score_line, name, round.hands.getOrNull(index)?.size ?: 0)
+            val line = stringResource(R.string.dice_pig_score_line, name, table.handSizes.getOrNull(index) ?: 0)
             Text(
-                text = if (round.hasUno(index)) line + " — " + stringResource(R.string.uno_call) else line,
+                text = if (table.hasUno(index)) line + " — " + stringResource(R.string.uno_call) else line,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = if (round.hasUno(index)) FontWeight.Bold else FontWeight.Normal
+                fontWeight = if (table.hasUno(index)) FontWeight.Bold else FontWeight.Normal
             )
         }
     }
 }
 
 /**
- * La main du joueur qui joue : ses cartes (les jouables sont touchables), le choix de la couleur après un joker, piocher,
- * garder la carte piochée ou passer.
+ * La main d'un joueur : ses cartes, le choix de la couleur après un joker, garder la carte piochée ou passer. [active] : c'est
+ * son tour, les cartes jouables sont touchables ; sinon (invité qui attend) la main est seulement affichée.
  */
 @Composable
 private fun UnoHandCard(
-    round: UnoRound,
+    table: UnoTable,
     labels: UnoLabels,
+    players: List<String>,
     name: String,
+    active: Boolean,
     onPlay: (card: Int, color: Int) -> Unit,
     onPass: () -> Unit
 ) {
     // Le joker que le joueur vient de toucher et dont il doit encore choisir la couleur (-1 : aucun).
-    var pendingWild by rememberSaveable(round.current, round.roundNumber) { mutableIntStateOf(-1) }
-    val hand = round.currentHand.sortedWith(
-        compareBy({ if (UnoScoring.isWild(it)) UnoScoring.COLORS else UnoScoring.color(it) }, { UnoScoring.kind(it) })
-    )
-    val choosing = pendingWild in hand
+    var pendingWild by rememberSaveable(table.current, table.roundNumber) { mutableIntStateOf(-1) }
+    val hand = table.hand
+    val choosing = active && pendingWild in hand
     // Le texte (ressource) refusant la dernière carte ou pioche touchée ; effacé dès que la main ou le tour change.
-    var error by remember(round.current, round.roundNumber, hand.size) { mutableStateOf<Int?>(null) }
+    var error by remember(table.current, table.roundNumber, hand.size) { mutableStateOf<Int?>(null) }
 
     CardPanel(spacing = 10) {
-        Text(
-            text = stringResource(R.string.dice_bunco_turn, name),
-            style = MaterialTheme.typography.titleMedium
-        )
+        if (active) {
+            Text(
+                text = stringResource(R.string.dice_bunco_turn, name),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
         Text(
             text = stringResource(R.string.huit_hand_title),
             style = MaterialTheme.typography.labelLarge,
@@ -300,21 +444,25 @@ private fun UnoHandCard(
                 card = card,
                 labels = labels,
                 playable = true,
-                selected = card == pendingWild || card == round.drawnCard,
+                selected = active && (card == pendingWild || card == table.drawnCard),
                 modifier = cardModifier,
-                onClick = {
-                    if (!round.isPlayable(card)) {
-                        // Après une pioche, seule la carte piochée peut être posée.
-                        error = if (round.drawnCard >= 0 && card != round.drawnCard) R.string.uno_drawn_only else R.string.uno_not_playable
-                    } else {
-                        error = null
-                        if (UnoScoring.isWild(card) && hand.size > 1) {
-                            pendingWild = if (pendingWild == card) -1 else card
+                onClick = if (active) {
+                    {
+                        if (!table.isPlayable(card)) {
+                            // Après une pioche, seule la carte piochée peut être posée.
+                            error = if (table.drawnCard >= 0 && card != table.drawnCard) R.string.uno_drawn_only else R.string.uno_not_playable
                         } else {
-                            pendingWild = -1
-                            onPlay(card, -1)
+                            error = null
+                            if (UnoScoring.isWild(card) && hand.size > 1) {
+                                pendingWild = if (pendingWild == card) -1 else card
+                            } else {
+                                pendingWild = -1
+                                onPlay(card, -1)
+                            }
                         }
                     }
+                } else {
+                    null
                 }
             )
         }
@@ -322,6 +470,10 @@ private fun UnoHandCard(
         error?.let { CardErrorText(stringResource(it)) }
 
         when {
+            !active -> Text(
+                text = stringResource(R.string.president_turn_of, players.getOrElse(table.current) { "" }),
+                style = MaterialTheme.typography.bodyMedium
+            )
             choosing -> {
                 Text(stringResource(R.string.uno_pick_color), style = MaterialTheme.typography.bodyMedium)
                 for (pair in listOf(0 to 1, 2 to 3)) {
@@ -348,14 +500,14 @@ private fun UnoHandCard(
                     Text(stringResource(R.string.common_cancel))
                 }
             }
-            round.drawnCard >= 0 -> {
+            table.drawnCard >= 0 -> {
                 // Après la pioche : on pose la carte piochée si on le peut, sinon on passe (sans dire si elle est jouable).
                 Text(stringResource(R.string.uno_already_drawn), style = MaterialTheme.typography.bodyMedium)
                 OutlinedButton(onClick = onPass, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.huit_pass))
                 }
             }
-            round.mustPass -> {
+            table.mustPass -> {
                 Text(stringResource(R.string.huit_must_pass), style = MaterialTheme.typography.bodyMedium)
                 Button(onClick = onPass, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.huit_pass))
@@ -368,13 +520,13 @@ private fun UnoHandCard(
 
 /** La fin de la manche : qui a gagné, les points de chacun (déjà inscrits au tableau) et la manche suivante. */
 @Composable
-private fun UnoRoundResult(round: UnoRound, players: List<String>, canContinue: Boolean, onNext: () -> Unit) {
-    val winnerName = players.getOrElse(round.winner) { "" }
+private fun UnoRoundResult(table: UnoTable, players: List<String>, canContinue: Boolean, onNext: () -> Unit) {
+    val winnerName = players.getOrElse(table.winner) { "" }
     RoundResultCard(
-        title = stringResource(if (round.blocked) R.string.huit_round_blocked else R.string.huit_round_won, winnerName),
+        title = stringResource(if (table.blocked) R.string.huit_round_blocked else R.string.huit_round_won, winnerName),
         players = players,
-        points = round.roundPoints(),
-        winner = round.winner,
+        points = table.points,
+        winner = table.winner,
         canContinue = canContinue,
         onNext = onNext
     )

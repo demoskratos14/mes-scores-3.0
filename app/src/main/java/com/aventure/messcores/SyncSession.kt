@@ -139,6 +139,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Le Président chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var president: PresidentOnline? = null
 
+    /** Le Uno chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var uno: UnoOnline? = null
+
     /** La partie de l'appli à laquelle la session est reliée (pour les jeux qui en lisent la partie en cours). */
     internal val attachedGame: ScoreViewModel? get() = game
 
@@ -394,6 +397,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         diceTable = null
         dicePlayer = DICE_UNSET
         president?.reset()
+        uno?.reset()
     }
 
     /** Choisit le joueur dont ce téléphone lance les dés ([DICE_ALL] : tous les joueurs). */
@@ -488,6 +492,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         hangman?.onPeerConnected(id)
         chess?.onPeerConnected(id)
         president?.onPeerConnected(id)
+        uno?.onPeerConnected(id)
         duoGames.forEach { it.onPeerConnected(id) }
     }
 
@@ -511,6 +516,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         hangman?.onPeerDisconnected(id)
         chess?.onPeerDisconnected(id)
         president?.onPeerDisconnected(id)
+        uno?.onPeerDisconnected(id)
         duoGames.forEach { it.onPeerDisconnected(id) }
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
@@ -585,6 +591,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
                 }
             }
             is SyncMessage.Pres -> president?.onMessage(id, message.pres)
+            is SyncMessage.UnoMsg -> uno?.onMessage(id, message.uno)
             is SyncMessage.Dice -> {
                 if (kind != SyncKind.SCORE || connected.isEmpty()) return
                 diceTable = message.table

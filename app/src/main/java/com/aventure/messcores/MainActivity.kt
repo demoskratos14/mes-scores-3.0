@@ -827,6 +827,9 @@ fun ScoreApp(
             composable("uno") {
                 UnoScreen(
                     viewModel = viewModel,
+                    session = sync,
+                    online = syncViewModel.uno,
+                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
