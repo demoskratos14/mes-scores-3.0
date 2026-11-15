@@ -96,11 +96,12 @@ class PresidentRoundTest {
 
     @Test
     fun onNePoseQueLeMemeNombreDeCartesEtPlusFortes() {
-        val r = table(listOf(c(spade, 5), c(club, 9)), listOf(c(spade, 6), c(heart, 4), c(heart, 8)), listOf(c(heart, 7)))
+        val r = table(listOf(c(spade, 5), c(club, 9)), listOf(c(spade, 6), c(heart, 4), c(heart, 6)), listOf(c(heart, 7)))
         r.play(listOf(c(spade, 5)))
         r.reveal()
         assertEquals(PlayCheck.TOO_WEAK, r.check(listOf(c(heart, 4))))
-        assertEquals(PlayCheck.WRONG_COUNT, r.check(listOf(c(spade, 6), c(heart, 8))))
+        // Une vraie paire (deux 6) sur une seule carte : la valeur est bonne, mais pas le nombre de cartes.
+        assertEquals(PlayCheck.WRONG_COUNT, r.check(listOf(c(spade, 6), c(heart, 6))))
         assertEquals(PlayCheck.OK, r.play(listOf(c(spade, 6))))
     }
 
