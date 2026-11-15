@@ -76,6 +76,9 @@ internal sealed interface SyncMessage {
     /** Un message de la Chasse à l'émoji chacun sur son téléphone (voir [EmojiOnline]). */
     data class Emoji(val emoji: EmojiMessage) : SyncMessage
 
+    /** Un message du Simon chacun sur son téléphone (voir [SimonOnline]). */
+    data class SimonMsg(val simon: SimonMessage) : SyncMessage
+
     /** Un message de Pierre-feuille-ciseaux chacun sur son téléphone (voir [RockPaperScissorsOnline]). */
     data class Rps(val rps: RpsMessage) : SyncMessage
 
@@ -216,6 +219,7 @@ internal object SyncCodec {
             is SyncMessage.Nim -> json.put("t", "nim").put("nim", message.nim.toJson())
             is SyncMessage.Reflex -> json.put("t", "rfx").put("rfx", message.reflex.toJson())
             is SyncMessage.Emoji -> json.put("t", "emo").put("emo", message.emoji.toJson())
+            is SyncMessage.SimonMsg -> json.put("t", "simon").put("simon", message.simon.toJson())
             is SyncMessage.Rps -> json.put("t", "rps").put("rps", message.rps.toJson())
             is SyncMessage.Duo -> json.put("t", "duo").put("g", message.kind.name).put("duo", message.duo.toJson())
             is SyncMessage.Dr -> json.put("t", "dr").put("dr", message.dr.toJson())
@@ -259,6 +263,7 @@ internal object SyncCodec {
                 "nim" -> nimMessageFromJson(json.getJSONObject("nim"))?.let { SyncMessage.Nim(it) }
                 "rfx" -> reflexMessageFromJson(json.getJSONObject("rfx"))?.let { SyncMessage.Reflex(it) }
                 "emo" -> emojiMessageFromJson(json.getJSONObject("emo"))?.let { SyncMessage.Emoji(it) }
+                "simon" -> simonMessageFromJson(json.getJSONObject("simon"))?.let { SyncMessage.SimonMsg(it) }
                 "rps" -> rpsMessageFromJson(json.getJSONObject("rps"))?.let { SyncMessage.Rps(it) }
                 "duo" -> {
                     val kind = SyncKind.valueOf(json.getString("g"))

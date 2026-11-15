@@ -382,7 +382,8 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
     "builtin_simon" to listOf(
         RulesSection(R.string.rules_simon_1_title, R.string.rules_simon_1_body),
         RulesSection(R.string.rules_simon_2_title, R.string.rules_simon_2_body),
-        RulesSection(R.string.rules_simon_3_title, R.string.rules_simon_3_body)
+        RulesSection(R.string.rules_simon_3_title, R.string.rules_simon_3_body),
+        RulesSection(R.string.rules_simon_4_title, R.string.rules_simon_4_body)
     ),
     "builtin_tetris" to listOf(
         RulesSection(R.string.rules_tetris_1_title, R.string.rules_tetris_1_body),

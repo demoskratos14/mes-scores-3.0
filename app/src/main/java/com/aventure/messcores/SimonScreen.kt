@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.media.AudioManager
 import android.media.ToneGenerator
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,12 +23,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -109,7 +112,7 @@ private const val NO_STATUS = "\u00A0"
 private val IntListSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
 
 /**
- * Jeu Simon sur un seul téléphone qu'on se passe : l'appli allume une suite de couleurs (avec un son) et le joueur la
+ * Jeu Simon, sur un seul téléphone qu'on se passe ou chacun sur son téléphone (voir [SimonOnline] et [OnlineSimon]) : l'appli allume une suite de couleurs (avec un son) et le joueur la
  * reproduit de mémoire ; la suite s'allonge d'une couleur et va un peu plus vite à chaque manche réussie. Seul, on
  * joue sa série (voir [SimonRun]). À plusieurs, deux modes au choix : « chacun sa série » (chacun sa suite, le meilleur
  * score gagne, voir [SimonGame]) ou « chacun son tour » (une seule suite pour tous, une erreur élimine, le dernier en
@@ -117,11 +120,64 @@ private val IntListSaver = listSaver<List<Int>, Int>(save = { it }, restore = { 
  * centre. Chaque touche porte aussi une forme pour la reconnaître sans les couleurs.
  */
 @Composable
-internal fun SimonScreen(players: List<String>) {
+internal fun SimonScreen(
+    players: List<String>,
+    online: SimonOnline,
+    onExit: () -> Unit,
+    onHostOnline: () -> Unit
+) {
+    var showQuit by rememberSaveable { mutableStateOf(false) }
+    // Hors partie à plusieurs téléphones, le retour système quitte simplement l'écran.
+    BackHandler(enabled = online.active) {
+        if (online.notice == SimonNotice.HOST_LEFT) {
+            online.leave()
+            onExit()
+        } else {
+            showQuit = true
+        }
+    }
+
+    if (online.active) {
+        OnlineSimon(online = online, onQuit = { showQuit = true }, onClose = {
+            online.leave()
+            onExit()
+        })
+    } else {
+        LocalSimon(players = players, onPlayOnline = onHostOnline)
+    }
+
+    if (showQuit && online.active) {
+        AlertDialog(
+            onDismissRequest = { showQuit = false },
+            title = { Text(stringResource(R.string.simon_quit_title)) },
+            text = { Text(stringResource(R.string.simon_quit_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showQuit = false
+                    online.leave()
+                    onExit()
+                }) {
+                    Text(stringResource(R.string.mm_quit_confirm), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showQuit = false }) { Text(stringResource(R.string.quit_continue)) }
+            }
+        )
+    }
+}
+
+/** Simon sur un seul téléphone qu'on se passe : seul, ou à plusieurs avec le choix du mode. [onPlayOnline] ouvre une table pour jouer chacun sur son téléphone. */
+@Composable
+private fun LocalSimon(players: List<String>, onPlayOnline: () -> Unit) {
     val names = players.take(Simon.MAX_PLAYERS).ifEmpty { listOf("1") }
     var mode by rememberSaveable { mutableIntStateOf(if (names.size >= 2) MODE_MENU else MODE_SERIES) }
     when (mode) {
-        MODE_SERIES -> SimonSeries(names = names, onChangeMode = if (names.size >= 2) ({ mode = MODE_MENU }) else null)
+        MODE_SERIES -> SimonSeries(
+            names = names,
+            onChangeMode = if (names.size >= 2) ({ mode = MODE_MENU }) else null,
+            onPlayOnline = onPlayOnline
+        )
         MODE_TURNS -> SimonTurnsMode(names = names, onChangeMode = { mode = MODE_MENU })
         else -> SimonCard {
             Text(
@@ -147,13 +203,16 @@ internal fun SimonScreen(players: List<String>) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.simon_online_button))
+            }
         }
     }
 }
 
 /** Le mode « chacun sa série » : chacun joue sa série à son tour, avec sa propre suite, puis on compare les scores. */
 @Composable
-private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?) {
+private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?, onPlayOnline: () -> Unit) {
     var scores by rememberSaveable(stateSaver = IntListSaver) { mutableStateOf(listOf<Int>()) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var lastScore by rememberSaveable { mutableIntStateOf(0) }
@@ -219,6 +278,12 @@ private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?) {
                 }
                 Button(onClick = { phase = PHASE_PLAYING }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.simon_go))
+                }
+                // Avant la première série, on peut aussi ouvrir une table pour jouer chacun sur son téléphone.
+                if (scores.isEmpty()) {
+                    OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.simon_online_button))
+                    }
                 }
             }
         }
@@ -309,7 +374,7 @@ private fun SimonTurnsMode(names: List<String>, onChangeMode: () -> Unit) {
 
 /** La carte de la séance : le titre du jeu, ses règles, puis [content]. */
 @Composable
-private fun SimonCard(content: @Composable ColumnScope.() -> Unit) {
+internal fun SimonCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -344,7 +409,7 @@ private fun SimonCard(content: @Composable ColumnScope.() -> Unit) {
 
 /** Le bandeau du résultat : le titre, puis [headline] sur fond jaune. */
 @Composable
-private fun SimonResultsHeader(headline: String) {
+internal fun SimonResultsHeader(headline: String) {
     Text(
         text = stringResource(R.string.simon_results_title),
         style = MaterialTheme.typography.titleLarge,
@@ -541,7 +606,7 @@ private fun ColumnScope.SimonBoard(lit: Int, started: Boolean, onStart: () -> Un
  * nombre de suites reproduites en entier. Tout est gardé quand l'écran tourne ; la suite est alors remontrée depuis le début.
  */
 @Composable
-private fun SimonPlayfield(name: String, onFinished: (Int) -> Unit) {
+internal fun SimonPlayfield(name: String, onFinished: (Int) -> Unit) {
     KeepScreenOn()
     val sound = rememberSimonSound()
     val scope = rememberCoroutineScope()
@@ -627,7 +692,7 @@ private fun SimonPlayfield(name: String, onFinished: (Int) -> Unit) {
  * tourne ; la suite est alors remontrée depuis le début.
  */
 @Composable
-private fun SimonTurnPlayfield(name: String, sequence: List<Int>, onResult: (Boolean) -> Unit) {
+internal fun SimonTurnPlayfield(name: String, sequence: List<Int>, onResult: (Boolean) -> Unit) {
     KeepScreenOn()
     val sound = rememberSimonSound()
     val scope = rememberCoroutineScope()

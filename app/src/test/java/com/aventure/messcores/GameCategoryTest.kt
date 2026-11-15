@@ -92,6 +92,14 @@ class GameCategoryTest {
     }
 
     @Test
+    fun simonSeJoueSurUnTelephoneOuChacunSurLeSienSansFeuilleDeScores() {
+        val simon = builtIns.single { it.id == SIMON_ID }
+        assertEquals(true, simon.isPlayableGame())
+        assertEquals(true, simon.isMultiPhone())
+        assertEquals(false, simon.hasScoreSheet())
+    }
+
+    @Test
     fun kingOfTokyoNEstPasUnJeuJouableMaisGardeSaFeuilleEtSesDes() {
         val kot = builtIns.single { it.id == "builtin_kot" }
         assertEquals(false, kot.isPlayableGame())

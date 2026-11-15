@@ -147,6 +147,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Chasse à l'émoji chacun sur son téléphone, sur la même connexion. */
     internal val emoji = EmojiOnline(session)
 
+    /** Simon chacun sur son téléphone, sur la même connexion. */
+    internal val simon = SimonOnline(session)
+
     /** Pierre-feuille-ciseaux chacun sur son téléphone, sur la même connexion. */
     internal val rockPaperScissors = RockPaperScissorsOnline(session)
 
