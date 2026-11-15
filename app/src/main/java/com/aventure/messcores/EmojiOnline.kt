@@ -259,7 +259,7 @@ internal class EmojiOnline(
             // Le résultat d'un invité n'est pris que pour la manche en cours, et une seule fois.
             is EmojiMessage.Result -> {
                 if (!running || message.round != round || results.getOrNull(guestSeat) != null) return
-                results[guestSeat] = message.reactionMs
+                results[guestSeat] = message.timeMs
                 resolveIfComplete()
             }
             EmojiMessage.NewMatch -> if (match.isOver) {
