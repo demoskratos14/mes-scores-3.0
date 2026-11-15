@@ -532,14 +532,117 @@ class YanivRoundTest {
     // ---------- Jeu jouable ----------
 
     @Test
-    fun yanivEstUnJeuJouableSurUnSeulTelephoneAvecSaFeuilleDeScores() {
+    fun yanivEstUnJeuJouableSurPlusieursTelephonesAvecSaFeuilleDeScores() {
         val yaniv = rules()
         assertTrue(yaniv.isPlayableGame())
-        assertFalse(yaniv.isMultiPhone())
+        assertTrue(yaniv.isMultiPhone())
         assertTrue(yaniv.hasScoreSheet())
         assertFalse(yaniv.isDiceOnly())
         assertEquals(GameCategory.CARDS, yaniv.category())
         assertEquals(2, yaniv.minPlayers)
         assertEquals(8, yaniv.maxPlayers)
+    }
+
+    // ---------- Plusieurs téléphones ----------
+
+    @Test
+    fun laVueDUnJoueurNeMontreQueSaMainEtLaTailleDesAutres() {
+        val round = table(
+            a = listOf(c(spade, 7), c(club, 13)),
+            b = listOf(c(heart, 3), c(club, 1), jokerA),
+            cc = listOf(c(diamond, 6))
+        )
+        val view = round.tableFor(1)
+
+        assertEquals(listOf(c(heart, 3), c(club, 1), jokerA).sortedBy { YanivScoring.sortKey(it) }, view.hand)
+        assertEquals(listOf(2, 3, 1), view.handSizes)
+        assertTrue(view.finalHands.isEmpty())
+        assertFalse(view.roundOver)
+        assertEquals(listOf(c(club, 9)), view.lastDiscard)
+        assertEquals(3, view.stockSize)
+    }
+
+    @Test
+    fun laVueDUnSpectateurNeMontreAucuneMain() {
+        val round = round(3)
+        val view = round.tableFor(-1)
+
+        assertTrue(view.hand.isEmpty())
+        assertTrue(view.pending.isEmpty())
+        assertFalse(view.canCallYaniv)
+        assertEquals(List(3) { YanivScoring.HAND_SIZE }, view.handSizes)
+    }
+
+    @Test
+    fun lesCartesDefausseesNeSontVuesQuePourCeluiQuiJoue() {
+        val round = table(listOf(c(spade, 7), c(club, 7), c(heart, 5)), listOf(c(club, 1)), listOf(c(club, 2)))
+
+        assertTrue(round.discardFor(0, listOf(c(spade, 7), c(club, 7))))
+
+        assertEquals(2, round.tableFor(0).pending.size)
+        assertTrue(round.tableFor(0).drawing)
+        assertTrue(round.tableFor(1).pending.isEmpty())
+        assertTrue(round.tableFor(1).drawing)
+        assertEquals(listOf(1), round.tableFor(0).handSizes.take(1))
+    }
+
+    @Test
+    fun uneActionPourUneAutrePlaceQueCelleQuiJoueEstRefusee() {
+        val round = table(listOf(c(spade, 7)), listOf(c(club, 1)), listOf(c(club, 2)), current = 0)
+
+        assertFalse(round.discardFor(1, listOf(c(club, 1))))
+        assertFalse(round.callYanivFor(2))
+        assertEquals(0, round.current)
+        assertEquals(1, round.currentHand.size)
+    }
+
+    @Test
+    fun laMainResteCacheeSurLeTelephoneApresUneActionDUnePlaceDistante() {
+        val round = table(listOf(c(spade, 7)), listOf(c(club, 1)), listOf(c(club, 2)), current = 0)
+
+        assertTrue(round.discardFor(0, listOf(c(spade, 7))))
+        assertFalse(round.revealed)
+        assertTrue(round.drawFromStockFor(0))
+        assertFalse(round.revealed)
+        assertEquals(1, round.current)
+    }
+
+    @Test
+    fun uneActionRefuseeNeChangeRienEtNeDevoileRien() {
+        val round = table(listOf(c(spade, 7), c(club, 13)), listOf(c(club, 1)), listOf(c(club, 2)), current = 0)
+
+        // Une paire de valeurs différentes n'est pas une défausse permise.
+        assertFalse(round.discardFor(0, listOf(c(spade, 7), c(club, 13))))
+        // Piocher avant d'avoir défaussé, et annoncer Yaniv avec trop de points : refusés.
+        assertFalse(round.drawFromStockFor(0))
+        assertFalse(round.callYanivFor(0))
+        assertFalse(round.revealed)
+        assertEquals(2, round.currentHand.size)
+    }
+
+    @Test
+    fun laVueDeFinDeMancheMontreToutesLesMains() {
+        val round = table(listOf(c(spade, 2)), listOf(c(diamond, 6)), listOf(c(club, 13)), current = 0)
+
+        assertTrue(round.callYanivFor(0))
+
+        val view = round.tableFor(2)
+        assertTrue(view.roundOver)
+        assertEquals(0, view.caller)
+        assertEquals(-1, view.assafBy)
+        assertEquals(listOf(listOf(c(spade, 2)), listOf(c(diamond, 6)), listOf(c(club, 13))), view.finalHands)
+        assertEquals(listOf(0, 6, 10), view.points)
+        assertEquals(0, view.winner)
+    }
+
+    @Test
+    fun seulLeJoueurDontCEstLeTourPeutAnnoncerYanivDansSaVue() {
+        val round = table(listOf(c(spade, 2)), listOf(c(diamond, 1)), listOf(c(club, 3)), current = 0)
+
+        assertTrue(round.tableFor(0).canCallYaniv)
+        assertFalse(round.tableFor(1).canCallYaniv)
+        round.discardFor(0, listOf(c(spade, 2)))
+        // Une fois défaussé, il ne peut plus annoncer : il doit piocher.
+        assertFalse(round.tableFor(0).canCallYaniv)
     }
 }

@@ -97,6 +97,41 @@ internal object YanivScoring {
 internal enum class YanivPhase { DISCARD, DRAW }
 
 /**
+ * La table vue par un joueur : tout ce qui est public, plus sa propre main ([hand]) et les cartes qu'il vient de défausser
+ * ([pending]). C'est ce que l'organisateur envoie à chaque invité : jamais la main des autres, sauf en fin de manche
+ * ([finalHands], que « Yaniv » montre à tout le monde).
+ */
+internal data class YanivTable(
+    val playerCount: Int,
+    val roundNumber: Int,
+    val current: Int,
+    /** Vrai quand le joueur dont c'est le tour a défaussé et doit piocher. */
+    val drawing: Boolean,
+    val lastDiscard: List<Int>,
+    val stockSize: Int,
+    val handSizes: List<Int>,
+    val roundOver: Boolean,
+    val caller: Int,
+    val assafBy: Int,
+    val winner: Int,
+    val settled: Boolean,
+    val started: Boolean,
+    val points: List<Int>,
+    /** Les mains de tous les joueurs, une fois la manche finie ; vide avant. */
+    val finalHands: List<List<Int>>,
+    val hand: List<Int>,
+    val pending: List<Int>,
+    val canCallYaniv: Boolean,
+    val canDrawFromStock: Boolean
+) {
+    /** Points de la main du joueur. */
+    val handPoints: Int get() = YanivScoring.handPoints(hand)
+
+    /** Les cartes qu'on peut reprendre dans la dernière défausse. */
+    val drawable: List<Int> get() = YanivScoring.drawable(lastDiscard)
+}
+
+/**
  * Une partie de Yaniv jouée tour par tour sur un seul téléphone que l'on se passe (2 à 8 joueurs).
  *
  * - L'appli distribue 5 cartes à chacun et retourne une carte (la défausse). Le joueur dont c'est le tour voit sa main une
@@ -288,6 +323,59 @@ internal class YanivRound(
         current = (current + 1) % playerCount.coerceAtLeast(1)
         revealed = false
         moves++
+    }
+
+    // ---------- Les joueurs d'un autre téléphone ----------
+    // Un invité n'a pas à « voir sa main » sur le téléphone de l'organisateur : on la dévoile le temps de son coup.
+
+    /**
+     * La table telle que la voit le joueur [viewer] : le public et sa main. [viewer] hors des joueurs (-1) : un spectateur, qui
+     * ne voit aucune main avant la fin de la manche.
+     */
+    fun tableFor(viewer: Int): YanivTable {
+        val mine = viewer >= 0 && viewer == current && !roundOver
+        val hand = hands.getOrElse(viewer) { emptyList() }.sortedBy { YanivScoring.sortKey(it) }
+        return YanivTable(
+            playerCount = playerCount,
+            roundNumber = roundNumber,
+            current = current,
+            drawing = phase == YanivPhase.DRAW,
+            lastDiscard = lastDiscard,
+            stockSize = stock.size,
+            handSizes = hands.map { it.size },
+            roundOver = roundOver,
+            caller = caller,
+            assafBy = assafBy,
+            winner = winner,
+            settled = settled,
+            started = inProgress,
+            points = if (roundOver) roundPoints() else hands.map { 0 },
+            finalHands = if (roundOver) hands.map { list -> list.sortedBy { YanivScoring.sortKey(it) } } else emptyList(),
+            hand = hand,
+            pending = if (mine) pending else emptyList(),
+            canCallYaniv = mine && phase == YanivPhase.DISCARD && YanivScoring.handPoints(hand) <= YanivScoring.YANIV_MAX,
+            canDrawFromStock = canDrawFromStock
+        )
+    }
+
+    /** [discard] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun discardFor(seat: Int, cards: List<Int>): Boolean = asSeat(seat) { discard(cards) }
+
+    /** [drawFromStock] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun drawFromStockFor(seat: Int): Boolean = asSeat(seat) { drawFromStock() }
+
+    /** [takeFromDiscard] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun takeFromDiscardFor(seat: Int, card: Int): Boolean = asSeat(seat) { takeFromDiscard(card) }
+
+    /** [callYaniv] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun callYanivFor(seat: Int): Boolean = asSeat(seat) { callYaniv() }
+
+    // La main redevient cachée sur ce téléphone dès le coup joué : une place qui revient à l'organisateur ne dévoile rien.
+    private fun asSeat(seat: Int, action: () -> Boolean): Boolean {
+        if (seat != current || roundOver) return false
+        val before = revealed
+        revealed = true
+        return action().also { revealed = before }
     }
 
     // ---------- Manches et scores ----------
