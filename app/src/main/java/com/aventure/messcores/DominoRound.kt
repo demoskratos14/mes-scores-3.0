@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
 
 /** Identifiant du Domino parmi les jeux prédéfinis (rubrique « Spéciaux »), le même que celui de sa feuille de scores. */
 internal const val DOMINOS_ID = "builtin_dominos"
@@ -331,6 +332,52 @@ internal class DominoRound(
         openingTile = -1
         passes = 0
         moves = 0
+    }
+
+    // ---------- Chacun sur son téléphone ----------
+
+    /** Recouvre la main du joueur qui joue (sa place n'est plus jouée sur ce téléphone). */
+    fun hide() {
+        revealed = false
+    }
+
+    /**
+     * La table envoyée au téléphone de la place [viewer] (-1 : une place sans téléphone) : la chaîne, les tailles des mains et de
+     * la pioche, et sa propre main. Les autres mains et l'ordre de la pioche ne partent jamais, sauf une fois la manche finie
+     * (les mains restantes sont alors montrées à tous, comme sur l'écran de fin de manche).
+     */
+    fun tableFor(viewer: Int): DominoView = DominoView(
+        playerCount = playerCount,
+        roundNumber = roundNumber,
+        current = current,
+        chain = chain,
+        stockSize = stock.size,
+        hands = hands.mapIndexed { player, hand -> if (roundOver || player == viewer) hand else List(hand.size) { 0 } },
+        opener = opener,
+        openingTile = openingTile,
+        roundOver = roundOver,
+        blocked = blocked,
+        settled = settled
+    )
+
+    /**
+     * Sur un téléphone invité : recopie la table reçue de l'organisateur dans cette manche, qui ne sert alors qu'à l'affichage (les
+     * actions de l'invité partent vers l'organisateur). Les mains des autres et la pioche sont des dominos sans valeur, de la bonne taille.
+     */
+    fun applyTable(view: DominoView) {
+        Snapshot.withMutableSnapshot {
+            roundNumber = view.roundNumber
+            current = view.current
+            hands = view.hands
+            stock = List(view.stockSize) { 0 }
+            chain = view.chain
+            opener = view.opener
+            openingTile = view.openingTile
+            revealed = false
+            roundOver = view.roundOver
+            blocked = view.blocked
+            settled = view.settled
+        }
     }
 
     /**

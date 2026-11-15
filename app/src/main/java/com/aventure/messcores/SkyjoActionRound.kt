@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
 
 internal const val SKYJO_ACTION_ID = "builtin_skyjo_action"
 
@@ -722,6 +723,76 @@ internal class SkyjoActionRound(
         events = emptyList()
         pendingEvents = emptyList()
         moves = 0
+    }
+
+    // ---------- Chacun sur son téléphone ----------
+
+    /**
+     * La table envoyée au téléphone de la place [viewer] (-1 : une place sans téléphone). Les valeurs des cartes cachées ne partent
+     * jamais, ni la taille exacte des pioches. Seul celui qui doit agir reçoit ses secrets : la carte en main, les trois cartes
+     * piochées et les cartes regardées.
+     */
+    fun tableFor(viewer: Int): SkyjoTable {
+        val secrets = viewer >= 0 && viewer == actor && !roundOver
+        return SkyjoTable(
+            playerCount = playerCount,
+            roundNumber = roundNumber,
+            current = current,
+            phase = phase,
+            turnNumber = turnNumber,
+            endBy = endBy,
+            roundOver = roundOver,
+            settled = settled,
+            grids = grids.map { grid -> grid.map { cell -> cell?.let { if (it.up) it else it.copy(card = 0) } } },
+            stockSize = stock.size,
+            discardSize = discard.size,
+            discardTop = discard.lastOrNull(),
+            actionRow = actionRow,
+            actionStockSize = actionStock.size,
+            actionDiscard = actionDiscard,
+            hands = hands,
+            held = if (secrets) held else null,
+            heldFromDiscard = heldFromDiscard,
+            three = if (secrets) three else emptyList(),
+            firstPick = firstPick,
+            meteorQueue = meteorQueue,
+            peek = if (secrets) peek else emptyList(),
+            bonusQueue = bonusQueue,
+            events = events
+        )
+    }
+
+    /**
+     * Sur un téléphone invité : recopie la table reçue de l'organisateur dans cette manche, qui ne sert alors qu'à l'affichage (les
+     * actions de l'invité partent vers l'organisateur). Les pioches reçoivent des cartes sans valeur, de la bonne taille.
+     */
+    fun applyTable(table: SkyjoTable) {
+        Snapshot.withMutableSnapshot {
+            roundNumber = table.roundNumber
+            grids = table.grids
+            stock = List(table.stockSize) { 0 }
+            discard = List((table.discardSize - 1).coerceAtLeast(0)) { 0 } + listOfNotNull(table.discardTop)
+            actionRow = table.actionRow
+            actionStock = List(table.actionStockSize) { SkyjoAction.EXCHANGE }
+            actionDiscard = table.actionDiscard
+            hands = table.hands
+            current = table.current
+            phase = table.phase
+            held = table.held
+            heldFromDiscard = table.heldFromDiscard
+            three = table.three
+            firstPick = table.firstPick
+            meteorQueue = table.meteorQueue
+            peek = table.peek
+            // Les cartes regardées sont pour celui qui les reçoit : pas de couverture à lever.
+            peekShown = table.peek.isNotEmpty()
+            bonusQueue = table.bonusQueue
+            endBy = table.endBy
+            turnNumber = table.turnNumber
+            roundOver = table.roundOver
+            settled = table.settled
+            events = table.events
+        }
     }
 
     /** Installe une table précise : sert aux tests. */

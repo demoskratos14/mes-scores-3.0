@@ -891,6 +891,9 @@ fun ScoreApp(
             composable("skyjoaction") {
                 SkyjoActionScreen(
                     viewModel = viewModel,
+                    session = sync,
+                    online = syncViewModel.skyjo,
+                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -904,6 +907,9 @@ fun ScoreApp(
             composable("domino") {
                 DominoScreen(
                     viewModel = viewModel,
+                    session = sync,
+                    online = syncViewModel.domino,
+                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {

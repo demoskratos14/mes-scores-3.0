@@ -177,6 +177,12 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Flip 7 chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val flip7 = Flip7Online(session)
 
+    /** Skyjo Action chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val skyjo = SkyjoActionOnline(session)
+
+    /** Domino chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val domino = DominoOnline(session)
+
     override fun onCleared() {
         session.disconnect()
     }

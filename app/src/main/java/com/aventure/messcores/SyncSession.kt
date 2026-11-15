@@ -151,6 +151,12 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Flip 7 chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var flip7: Flip7Online? = null
 
+    /** Le Skyjo Action chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var skyjo: SkyjoActionOnline? = null
+
+    /** Le Domino chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var domino: DominoOnline? = null
+
     /** La partie de l'appli à laquelle la session est reliée (pour les jeux qui en lisent la partie en cours). */
     internal val attachedGame: ScoreViewModel? get() = game
 
@@ -410,6 +416,8 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         uno?.reset()
         yaniv?.reset()
         flip7?.reset()
+        skyjo?.reset()
+        domino?.reset()
     }
 
     /** Choisit le joueur dont ce téléphone lance les dés ([DICE_ALL] : tous les joueurs). */
@@ -508,6 +516,8 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         uno?.onPeerConnected(id)
         yaniv?.onPeerConnected(id)
         flip7?.onPeerConnected(id)
+        skyjo?.onPeerConnected(id)
+        domino?.onPeerConnected(id)
         duoGames.forEach { it.onPeerConnected(id) }
     }
 
@@ -535,6 +545,8 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         uno?.onPeerDisconnected(id)
         yaniv?.onPeerDisconnected(id)
         flip7?.onPeerDisconnected(id)
+        skyjo?.onPeerDisconnected(id)
+        domino?.onPeerDisconnected(id)
         duoGames.forEach { it.onPeerDisconnected(id) }
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
@@ -613,6 +625,8 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.UnoMsg -> uno?.onMessage(id, message.uno)
             is SyncMessage.YanivMsg -> yaniv?.onMessage(id, message.yaniv)
             is SyncMessage.Flip7Msg -> flip7?.onMessage(id, message.flip7)
+            is SyncMessage.SkyjoMsg -> skyjo?.onMessage(id, message.skyjo)
+            is SyncMessage.DominoMsg -> domino?.onMessage(id, message.domino)
             is SyncMessage.Dice -> {
                 if (kind != SyncKind.SCORE || connected.isEmpty()) return
                 diceTable = message.table

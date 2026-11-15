@@ -1,11 +1,15 @@
 package com.aventure.messcores
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -15,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -33,24 +38,109 @@ private const val CHAIN_PER_ROW = 4
 
 /**
  * L'écran du Domino jouable : il n'y a pas de feuille de scores derrière, tout s'affiche ici (voir [DominoSection]).
- * « Retour » et la fin de partie quittent la partie ([onBack]).
+ *
+ * - Sur un seul téléphone, ou sur celui de l'organisateur : la partie elle-même, où l'on se passe le téléphone. Les places prises
+ *   par un autre téléphone y sont jouées chez leur joueur : ici on ne touche à rien pour elles.
+ * - Sur un téléphone invité : [DominoGuestSection], qui affiche la table reçue et envoie les actions de l'invité à l'organisateur.
+ *
+ * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
  */
 @Composable
-internal fun DominoScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
+internal fun DominoScreen(
+    viewModel: ScoreViewModel,
+    session: SyncSession,
+    online: DominoOnline,
+    onOpenShare: () -> Unit,
+    onBack: () -> Unit
+) {
     if (viewModel.gameRules.id != DOMINOS_ID) {
         // Aucune partie de dominos ouverte (partie fermée entre-temps) : retour.
         LaunchedEffect(Unit) { onBack() }
         return
     }
+    val guest = session.role == SyncRole.GUEST && session.isConnected && session.kind == SyncKind.SCORE
+    if (guest) {
+        val shown = online.mirror
+        CardGameScreen(
+            viewModel = viewModel,
+            onBack = onBack,
+            scrollKeys = listOf(shown?.current, shown?.roundOver, shown?.roundNumber),
+            onOpenShare = onOpenShare,
+            shareActive = true
+        ) {
+            DominoGuestSection(viewModel = viewModel, online = online, onLeave = onBack)
+        }
+        return
+    }
     val round = remember(viewModel, viewModel.players.size) { viewModel.dominoRound() }
+    // Les invités reçoivent leur table à chaque changement (leur main seulement, jamais celle des autres).
+    LaunchedEffect(round, online) {
+        snapshotFlow { round.hands to round.tableFor(-1) }.collect { online.publish() }
+    }
     // Un autre joueur, une nouvelle manche ou la main qu'on vient de dévoiler : on remonte en haut de la page.
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber)
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber),
+        onOpenShare = onOpenShare,
+        shareActive = session.isConnected
     ) {
-        DominoSection(viewModel = viewModel, round = round, onLeave = onBack)
+        DominoSection(
+            viewModel = viewModel,
+            round = round,
+            onLeave = onBack,
+            // Le joueur dont c'est le tour joue-t-il sur ce téléphone ?
+            canAct = !online.isRemote(round.current)
+        )
     }
+}
+
+/**
+ * Domino sur un téléphone invité : l'invité choisit sa place à la table, voit la table et sa main, et joue quand c'est son tour ;
+ * l'organisateur vérifie et applique ses actions.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun DominoGuestSection(viewModel: ScoreViewModel, online: DominoOnline, onLeave: () -> Unit) {
+    val players = viewModel.players
+    val seat = online.mySeat
+    val shown = online.mirror
+
+    CardPanel {
+        Text(stringResource(R.string.president_seat_title), style = MaterialTheme.typography.labelLarge)
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            players.forEachIndexed { index, name ->
+                FilterChip(
+                    selected = index == seat,
+                    // Une place jouée sur un autre téléphone ne se prend pas ; toucher la sienne la libère.
+                    enabled = index == seat || index !in online.taken,
+                    onClick = { online.claim(if (index == seat) -1 else index) },
+                    label = { Text(name) }
+                )
+            }
+        }
+    }
+
+    if (shown == null) {
+        Text(stringResource(R.string.president_guest_wait), style = MaterialTheme.typography.bodyMedium, color = Color.White)
+        return
+    }
+    if (seat < 0) {
+        Text(stringResource(R.string.president_seat_hint), style = MaterialTheme.typography.bodyMedium, color = Color.White)
+    }
+    DominoSection(
+        viewModel = viewModel,
+        round = shown,
+        onLeave = onLeave,
+        // L'organisateur vérifie de toute façon que c'est bien à cette place de jouer.
+        canAct = seat >= 0 && shown.current == seat && !shown.roundOver,
+        guest = true,
+        mySeat = seat,
+        move = { op, tile, atLeft -> online.send(op, tile, atLeft) }
+    )
 }
 
 /**
@@ -58,7 +148,19 @@ internal fun DominoScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
  * et les inscrit au tableau des scores. Le téléphone se passe de joueur en joueur : la main n'apparaît qu'après « Voir ma main ».
  */
 @Composable
-internal fun DominoSection(viewModel: ScoreViewModel, round: DominoRound, onLeave: () -> Unit) {
+internal fun DominoSection(
+    viewModel: ScoreViewModel,
+    round: DominoRound,
+    onLeave: () -> Unit,
+    // Ce téléphone joue-t-il maintenant ? Sinon on regarde seulement : sa main n'est pas dévoilée ici.
+    canAct: Boolean = true,
+    // Téléphone invité : [round] n'est que la copie de la table, l'organisateur inscrit les points, et il n'y a pas de téléphone à passer.
+    guest: Boolean = false,
+    // La place de cet invité (-1 : aucune), pour lui montrer sa main même quand ce n'est pas son tour.
+    mySeat: Int = -1,
+    // Fait l'action demandée : directement sur la manche, ou envoyée à l'organisateur sur un téléphone invité.
+    move: (DominoOp, Int, Boolean) -> Boolean = { op, tile, atLeft -> round.perform(op, tile, atLeft) }
+) {
     val players = viewModel.players
     val over = viewModel.isGameOver()
     // Le texte (ressource) refusant le dernier coup ; effacé dès que la main ou le tour change.
@@ -66,7 +168,7 @@ internal fun DominoSection(viewModel: ScoreViewModel, round: DominoRound, onLeav
 
     // Une manche qui vient de finir est inscrite tout de suite : quitter ensuite ne la fait pas perdre.
     fun settleIfOver() {
-        if (round.roundOver) round.settle(viewModel)
+        if (round.roundOver && !guest) round.settle(viewModel)
     }
 
     ScoresCard(viewModel = viewModel, current = if (over || round.roundOver) -1 else round.current)
@@ -90,12 +192,32 @@ internal fun DominoSection(viewModel: ScoreViewModel, round: DominoRound, onLeav
     DominoTable(round = round, players = players)
 
     if (round.roundOver) {
-        DominoRoundResult(round = round, players = players, canContinue = round.settled, onNext = { round.nextRound() })
+        DominoRoundResult(round = round, players = players, canContinue = round.settled, onNext = { move(DominoOp.NEXT, -1, false) })
         return
     }
 
     val name = players.getOrElse(round.current) { "" }
-    if (!round.revealed) {
+    if (!canAct) {
+        // Ce n'est pas à ce téléphone de jouer : on dit à qui c'est, et un invité garde sa main sous les yeux.
+        CardPanel {
+            Text(stringResource(R.string.dice_bunco_turn, name), style = MaterialTheme.typography.titleMedium)
+        }
+        if (guest && mySeat >= 0) {
+            DominoHand(
+                round = round,
+                hand = round.hands.getOrElse(mySeat) { emptyList() },
+                name = players.getOrElse(mySeat) { "" },
+                enabled = false,
+                error = null,
+                onError = {},
+                onPlay = { _, _ -> },
+                onDraw = {},
+                onPass = {}
+            )
+        }
+        return
+    }
+    if (!guest && !round.revealed) {
         // Le téléphone change de mains : la main reste cachée jusqu'à ce que son joueur la demande.
         PassPhoneCard(name = name, onReveal = { round.reveal() })
         return
@@ -103,11 +225,13 @@ internal fun DominoSection(viewModel: ScoreViewModel, round: DominoRound, onLeav
 
     DominoHand(
         round = round,
+        hand = round.currentHand,
         name = name,
+        enabled = true,
         error = error,
         onError = { error = it },
         onPlay = { tile, atLeft ->
-            if (round.play(tile, atLeft)) {
+            if (move(DominoOp.PLAY, tile, atLeft)) {
                 error = null
                 settleIfOver()
             } else {
@@ -116,13 +240,13 @@ internal fun DominoSection(viewModel: ScoreViewModel, round: DominoRound, onLeav
         },
         onDraw = {
             error = when {
-                round.draw() -> null
+                move(DominoOp.DRAW, -1, false) -> null
                 round.canPlayAny -> R.string.domino_must_play
                 else -> R.string.domino_stock_empty
             }
         },
         onPass = {
-            if (round.pass()) {
+            if (move(DominoOp.PASS, -1, false)) {
                 error = null
                 settleIfOver()
             } else {
@@ -232,24 +356,27 @@ private fun DominoTable(round: DominoRound, players: List<String>) {
 @Composable
 private fun DominoHand(
     round: DominoRound,
+    hand: List<Int>,
     name: String,
+    enabled: Boolean,
     error: Int?,
     onError: (Int?) -> Unit,
     onPlay: (tile: Int, atLeft: Boolean) -> Unit,
     onDraw: () -> Unit,
     onPass: () -> Unit
 ) {
-    val hand = round.currentHand
     // Le domino choisi ; remis à zéro dès que la main ou le tour change.
-    var selection by remember(round.current, round.roundNumber, round.hands) { mutableStateOf<Int?>(null) }
+    var selection by remember(round.current, round.roundNumber, hand) { mutableStateOf<Int?>(null) }
 
     CardPanel(spacing = 10) {
+        if (enabled) {
+            Text(
+                text = stringResource(R.string.dice_bunco_turn, name),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
         Text(
-            text = stringResource(R.string.dice_bunco_turn, name),
-            style = MaterialTheme.typography.titleMedium
-        )
-        Text(
-            text = stringResource(R.string.domino_hand_points, round.currentPoints),
+            text = stringResource(R.string.domino_hand_points, DominoScoring.handPoints(hand)),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -271,18 +398,18 @@ private fun DominoHand(
             if (tile == null) onError(R.string.domino_select_first) else onPlay(tile, atLeft)
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { place(true) }, modifier = Modifier.weight(1f)) {
+            Button(onClick = { place(true) }, enabled = enabled, modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.domino_play_left, round.leftEnd))
             }
-            Button(onClick = { place(false) }, modifier = Modifier.weight(1f)) {
+            Button(onClick = { place(false) }, enabled = enabled, modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.domino_play_right, round.rightEnd))
             }
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onDraw, modifier = Modifier.weight(1f)) {
+            OutlinedButton(onClick = onDraw, enabled = enabled, modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.domino_draw, round.stock.size))
             }
-            OutlinedButton(onClick = onPass, modifier = Modifier.weight(1f)) {
+            OutlinedButton(onClick = onPass, enabled = enabled, modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.domino_pass))
             }
         }

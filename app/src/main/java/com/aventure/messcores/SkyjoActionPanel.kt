@@ -3,6 +3,7 @@ package com.aventure.messcores
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -23,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -82,23 +87,109 @@ private fun skyjoCardLabel(card: Int): String =
 
 /**
  * L'écran du Skyjo Action jouable : il n'y a pas de feuille de scores derrière, tout s'affiche ici (voir [SkyjoActionSection]).
- * « Retour » et la fin de partie quittent la partie ([onBack]).
+ *
+ * - Sur un seul téléphone, ou sur celui de l'organisateur : la partie elle-même, où l'on se passe le téléphone. Les places prises
+ *   par un autre téléphone y sont jouées chez leur joueur : ici on ne touche à rien pour elles.
+ * - Sur un téléphone invité : [SkyjoActionGuestSection], qui affiche la table reçue et envoie les actions de l'invité à l'organisateur.
+ *
+ * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
  */
 @Composable
-internal fun SkyjoActionScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
+internal fun SkyjoActionScreen(
+    viewModel: ScoreViewModel,
+    session: SyncSession,
+    online: SkyjoActionOnline,
+    onOpenShare: () -> Unit,
+    onBack: () -> Unit
+) {
     if (viewModel.gameRules.id != SKYJO_ACTION_ID) {
         // Aucune partie de Skyjo Action ouverte (partie fermée entre-temps) : retour.
         LaunchedEffect(Unit) { onBack() }
         return
     }
+    val guest = session.role == SyncRole.GUEST && session.isConnected && session.kind == SyncKind.SCORE
+    if (guest) {
+        val shown = online.mirror
+        CardGameScreen(
+            viewModel = viewModel,
+            onBack = onBack,
+            scrollKeys = listOf(shown?.actor, shown?.roundOver, shown?.roundNumber, shown?.phase),
+            onOpenShare = onOpenShare,
+            shareActive = true
+        ) {
+            SkyjoActionGuestSection(viewModel = viewModel, online = online, onLeave = onBack)
+        }
+        return
+    }
     val round = remember(viewModel, viewModel.players.size) { viewModel.skyjoActionRound() }
+    // Les invités reçoivent leur table à chaque changement (les secrets ne partent que vers celui qui joue).
+    LaunchedEffect(round, online) {
+        snapshotFlow { round.tableFor(round.actor) }.collect { online.publish() }
+    }
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.actor, round.roundOver, round.roundNumber, round.phase)
+        scrollKeys = listOf(round.actor, round.roundOver, round.roundNumber, round.phase),
+        onOpenShare = onOpenShare,
+        shareActive = session.isConnected
     ) {
-        SkyjoActionSection(viewModel = viewModel, round = round, onLeave = onBack)
+        SkyjoActionSection(
+            viewModel = viewModel,
+            round = round,
+            onLeave = onBack,
+            // Le joueur dont c'est le tour joue-t-il sur ce téléphone ?
+            canAct = !online.isRemote(round.actor)
+        )
     }
+}
+
+/**
+ * Skyjo Action sur un téléphone invité : l'invité choisit sa place à la table, voit toute la table (sans les cartes cachées des
+ * grilles) et joue quand c'est son tour ; l'organisateur vérifie et applique ses actions.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun SkyjoActionGuestSection(viewModel: ScoreViewModel, online: SkyjoActionOnline, onLeave: () -> Unit) {
+    val players = viewModel.players
+    val seat = online.mySeat
+    val shown = online.mirror
+
+    CardPanel {
+        Text(stringResource(R.string.president_seat_title), style = MaterialTheme.typography.labelLarge)
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            players.forEachIndexed { index, name ->
+                FilterChip(
+                    selected = index == seat,
+                    // Une place jouée sur un autre téléphone ne se prend pas ; toucher la sienne la libère.
+                    enabled = index == seat || index !in online.taken,
+                    onClick = { online.claim(if (index == seat) -1 else index) },
+                    label = { Text(name) }
+                )
+            }
+        }
+    }
+
+    if (shown == null) {
+        Text(stringResource(R.string.president_guest_wait), style = MaterialTheme.typography.bodyMedium, color = Color.White)
+        return
+    }
+    if (seat < 0) {
+        Text(stringResource(R.string.president_seat_hint), style = MaterialTheme.typography.bodyMedium, color = Color.White)
+    }
+    SkyjoActionSection(
+        viewModel = viewModel,
+        round = shown,
+        onLeave = onLeave,
+        // L'organisateur vérifie de toute façon que c'est bien à cette place d'agir.
+        canAct = seat >= 0 && shown.actor == seat && !shown.roundOver,
+        guest = true,
+        // Sa propre grille en grand, même quand ce n'est pas son tour.
+        focus = if (seat >= 0) seat else shown.current,
+        move = { op, a, b, flag -> online.send(op, a, b, flag) }
+    )
 }
 
 /**
@@ -107,7 +198,21 @@ internal fun SkyjoActionScreen(viewModel: ScoreViewModel, onBack: () -> Unit) {
  * carte « Regarder » montre un secret, au joueur seul.
  */
 @Composable
-internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRound, onLeave: () -> Unit) {
+internal fun SkyjoActionSection(
+    viewModel: ScoreViewModel,
+    round: SkyjoActionRound,
+    onLeave: () -> Unit,
+    // Ce téléphone joue-t-il maintenant ? Sinon on regarde seulement : rien n'est touchable et les secrets (carte en main,
+    // trois cartes, cartes regardées) restent cachés.
+    canAct: Boolean = true,
+    // Téléphone invité : [round] n'est que la copie de la table, l'organisateur inscrit les points.
+    guest: Boolean = false,
+    // Le joueur dont la grille s'affiche en grand.
+    focus: Int = round.current,
+    // Fait l'action demandée : directement sur la manche, ou envoyée à l'organisateur sur un téléphone invité.
+    move: (SkyjoOp, Int, Int, Boolean) -> Boolean = { op, a, b, flag -> round.perform(op, a, b, flag) }
+) {
+    fun go(op: SkyjoOp, a: Int = -1, b: Int = -1, flag: Boolean = false): Boolean = move(op, a, b, flag)
     val players = viewModel.players
     val over = viewModel.isGameOver()
     val actionNames = stringResource(R.string.skyjoa_action_names).split(',')
@@ -123,8 +228,8 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
     var expanded by remember(round.current, round.roundNumber) { mutableStateOf<Int?>(null) }
 
     // Une manche qui vient de finir est inscrite tout de suite : quitter ensuite ne la fait pas perdre.
-    LaunchedEffect(round.roundOver, round.roundNumber) {
-        if (round.roundOver) round.settle(viewModel)
+    LaunchedEffect(round.roundOver, round.roundNumber, guest) {
+        if (round.roundOver && !guest) round.settle(viewModel)
     }
 
     ScoresCard(viewModel = viewModel, current = if (over || round.roundOver) -1 else round.actor)
@@ -149,34 +254,34 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
     val actor = playerName(round.actor)
 
     // Ce que fait un toucher sur une carte d'une grille, selon la phase.
-    val interactive = phase == SkyjoPhase.PLACE || phase == SkyjoPhase.THREE || phase == SkyjoPhase.SWAP ||
-        phase == SkyjoPhase.EXCHANGE || phase == SkyjoPhase.LOOK || phase == SkyjoPhase.METEOR
+    val interactive = canAct && (phase == SkyjoPhase.PLACE || phase == SkyjoPhase.THREE || phase == SkyjoPhase.SWAP ||
+        phase == SkyjoPhase.EXCHANGE || phase == SkyjoPhase.LOOK || phase == SkyjoPhase.METEOR)
     val onCell: (Int, Int) -> Unit = { player, cell ->
         val ok = when (phase) {
             SkyjoPhase.PLACE -> player == round.current &&
-                (if (flipMode) round.discardHeldAndFlip(cell) else round.placeHeld(cell))
+                (if (flipMode) go(SkyjoOp.FLIP, cell) else go(SkyjoOp.PLACE, cell))
             SkyjoPhase.THREE -> player == round.current && (
                 if (noneMode) {
-                    round.threeNone(cell)
+                    go(SkyjoOp.THREE_NONE, cell)
                 } else {
-                    chosenThree?.let { round.threeKeep(it, cell) } ?: false
+                    chosenThree?.let { go(SkyjoOp.THREE_KEEP, it, cell) } ?: false
                 }
                 )
-            SkyjoPhase.SWAP -> player == round.current && round.swapPick(cell)
-            SkyjoPhase.EXCHANGE -> round.exchangePick(player, cell)
+            SkyjoPhase.SWAP -> player == round.current && go(SkyjoOp.SWAP, cell)
+            SkyjoPhase.EXCHANGE -> go(SkyjoOp.EXCHANGE, player, cell)
             SkyjoPhase.LOOK -> if (round.grids.getOrNull(player)?.getOrNull(cell) != null) {
                 lookTarget = player to cell
                 true
             } else {
                 false
             }
-            SkyjoPhase.METEOR -> round.meteorPick(player, cell)
+            SkyjoPhase.METEOR -> go(SkyjoOp.METEOR, player, cell)
             else -> false
         }
         error = if (ok) null else R.string.skyjoa_err_move
     }
     val onSteal: (Int, Int) -> Unit = { player, index ->
-        error = if (round.steal(player, index)) null else R.string.skyjoa_err_move
+        if (canAct) error = if (go(SkyjoOp.STEAL, player, index)) null else R.string.skyjoa_err_move
     }
 
     // ----- Les consignes -----
@@ -233,8 +338,8 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
     }
 
     // ----- La table : pioches, défausses et cartes action visibles -----
-    val canChoose = phase == SkyjoPhase.CHOOSE
-    val canBonus = phase == SkyjoPhase.STAR_BONUS
+    val canChoose = canAct && phase == SkyjoPhase.CHOOSE
+    val canBonus = canAct && phase == SkyjoPhase.STAR_BONUS
     CardPanel {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
             TablePile(label = stringResource(R.string.skyjoa_action_discard), modifier = Modifier.weight(1f)) { m ->
@@ -260,7 +365,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                     ratio = SKYJO_DECK_RATIO,
                     onClick = if (canChoose || canBonus) {
                         {
-                            val ok = if (canChoose) round.takeActionFromDeck() else round.takeBonusFromDeck()
+                            val ok = if (canChoose) go(SkyjoOp.TAKE_ACTION_DECK) else go(SkyjoOp.BONUS_DECK)
                             error = if (ok) null else if (round.finalTurn) R.string.skyjoa_err_final else R.string.skyjoa_err_move
                         }
                     } else {
@@ -279,7 +384,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                     modifier = m,
                     ratio = SKYJO_RATIO,
                     onClick = if (canChoose) {
-                        { error = if (round.drawFromStock()) null else R.string.skyjoa_err_move }
+                        { error = if (go(SkyjoOp.DRAW_STOCK)) null else R.string.skyjoa_err_move }
                     } else {
                         null
                     }
@@ -297,7 +402,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                         modifier = m,
                         ratio = SKYJO_RATIO,
                         onClick = if (canChoose) {
-                            { error = if (round.takeFromDiscard()) null else R.string.skyjoa_err_move }
+                            { error = if (go(SkyjoOp.TAKE_DISCARD)) null else R.string.skyjoa_err_move }
                         } else {
                             null
                         }
@@ -320,7 +425,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                     ratio = SKYJO_RATIO,
                     onClick = if (canChoose || canBonus) {
                         {
-                            val ok = if (canChoose) round.takeActionFromRow(index) else round.takeBonusFromRow(index)
+                            val ok = if (canChoose) go(SkyjoOp.TAKE_ACTION_ROW, index) else go(SkyjoOp.BONUS_ROW, index)
                             error = if (ok) null else if (round.finalTurn) R.string.skyjoa_err_final else R.string.skyjoa_err_move
                         }
                     } else {
@@ -331,7 +436,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
             repeat(SkyjoActionScoring.ACTION_ROW - round.actionRow.size) { Spacer(modifier = Modifier.weight(1f)) }
         }
         if (canBonus) {
-            OutlinedButton(onClick = { round.skipBonus() }, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = { go(SkyjoOp.SKIP_BONUS) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.skyjoa_btn_skip_star))
             }
         }
@@ -341,7 +446,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
     when (phase) {
         SkyjoPhase.PLACE -> {
             val card = round.held
-            if (card != null) {
+            if (canAct && card != null) {
                 CardPanel {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         ImageCard(
@@ -360,7 +465,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                 }
             }
         }
-        SkyjoPhase.THREE -> CardPanel {
+        SkyjoPhase.THREE -> if (canAct) CardPanel {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 round.three.forEachIndexed { index, card ->
                     ImageCard(
@@ -388,7 +493,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                 Text(stringResource(if (noneMode) R.string.skyjoa_btn_none_cancel else R.string.skyjoa_btn_none))
             }
         }
-        SkyjoPhase.REACTIVATE -> CardPanel {
+        SkyjoPhase.REACTIVATE -> if (canAct) CardPanel {
             CardRows(cards = round.reactivatable(), perRow = 4) { index, m ->
                 val action = round.actionDiscard[index]
                 ImageCard(
@@ -397,13 +502,13 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                     playable = true,
                     modifier = m,
                     ratio = SKYJO_RATIO,
-                    onClick = { error = if (round.reactivate(index)) null else R.string.skyjoa_err_move }
+                    onClick = { error = if (go(SkyjoOp.REACTIVATE, index)) null else R.string.skyjoa_err_move }
                 )
             }
         }
-        SkyjoPhase.PEEK -> CardPanel {
+        SkyjoPhase.PEEK -> if (canAct) CardPanel {
             if (!round.peekShown) {
-                Button(onClick = { round.showPeek() }, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = { go(SkyjoOp.SHOW_PEEK) }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.skyjoa_btn_show_peek))
                 }
             } else {
@@ -427,7 +532,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                         )
                     }
                 }
-                Button(onClick = { round.closePeek() }, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = { go(SkyjoOp.CLOSE_PEEK) }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.skyjoa_btn_hide_peek))
                 }
             }
@@ -440,7 +545,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
         SkyjoGridPanel(
             round = round,
             players = players,
-            player = round.current,
+            player = focus,
             fraction = 1f,
             selectable = interactive,
             onCell = onCell,
@@ -468,10 +573,10 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
                     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(text = actionName(held.action), style = MaterialTheme.typography.titleSmall)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = { error = if (round.playAction(index)) null else R.string.skyjoa_err_locked }) {
+                            Button(onClick = { error = if (go(SkyjoOp.PLAY_ACTION, index)) null else R.string.skyjoa_err_locked }) {
                                 Text(stringResource(R.string.skyjoa_btn_play))
                             }
-                            OutlinedButton(onClick = { error = if (round.discardAction(index)) null else R.string.skyjoa_err_locked }) {
+                            OutlinedButton(onClick = { error = if (go(SkyjoOp.DISCARD_ACTION, index)) null else R.string.skyjoa_err_locked }) {
                                 Text(stringResource(R.string.skyjoa_btn_throw))
                             }
                         }
@@ -482,7 +587,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
     }
 
     if (round.roundOver) {
-        SkyjoRoundResult(round = round, players = players, canContinue = round.settled, onNext = { round.nextRound() })
+        SkyjoRoundResult(round = round, players = players, canContinue = round.settled, onNext = { go(SkyjoOp.NEXT) })
     }
 
     // ----- Les autres joueurs : une rangée de petites grilles, à ouvrir en grand en les touchant -----
@@ -492,6 +597,7 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
         SkyjoOthers(
             round = round,
             players = players,
+            focus = focus,
             selectable = interactive,
             open = setOfNotNull(expanded, if (phase == SkyjoPhase.METEOR) round.meteorQueue.firstOrNull() else null),
             onToggle = { player -> expanded = if (expanded == player) null else player },
@@ -508,13 +614,13 @@ internal fun SkyjoActionSection(viewModel: ScoreViewModel, round: SkyjoActionRou
             text = { Text(stringResource(R.string.skyjoa_look_text)) },
             confirmButton = {
                 TextButton(onClick = {
-                    error = if (round.look(player, cell, row = true)) null else R.string.skyjoa_err_no_hidden
+                    error = if (go(SkyjoOp.LOOK, player, cell, true)) null else R.string.skyjoa_err_no_hidden
                     lookTarget = null
                 }) { Text(stringResource(R.string.skyjoa_btn_row)) }
             },
             dismissButton = {
                 TextButton(onClick = {
-                    error = if (round.look(player, cell, row = false)) null else R.string.skyjoa_err_no_hidden
+                    error = if (go(SkyjoOp.LOOK, player, cell, false)) null else R.string.skyjoa_err_no_hidden
                     lookTarget = null
                 }) { Text(stringResource(R.string.skyjoa_btn_column)) }
             }
@@ -554,13 +660,14 @@ private fun SkyjoAllGrids(
 private fun SkyjoOthers(
     round: SkyjoActionRound,
     players: List<String>,
+    focus: Int,
     selectable: Boolean,
     open: Set<Int>,
     onToggle: (Int) -> Unit,
     onCell: (Int, Int) -> Unit,
     onSteal: (Int, Int) -> Unit
 ) {
-    val others = players.indices.filter { it != round.current && round.grids.getOrNull(it) != null }
+    val others = players.indices.filter { it != focus && round.grids.getOrNull(it) != null }
     if (others.isEmpty()) return
     val stealing = round.phase == SkyjoPhase.STEAL
     CardPanel(spacing = 6) {
