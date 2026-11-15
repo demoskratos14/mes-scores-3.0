@@ -63,7 +63,7 @@ fun GameRules.hasScoreSheet(): Boolean =
 
 // Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : le Huit américain, dont chaque joueur cache sa main : on se passe le téléphone ; les Ronds et Simon, où chacun joue sa série à son tour sur le même téléphone.
 // Le Mastermind, le Morpion, le Duel de réflexes, le Gomoku, la Pipopipette, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
-private val SINGLE_PHONE_GAMES = setOf(HUIT_ID, UNO_ID, HEARTS_ID, YANIV_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID, CIRCLES_ID, SIMON_ID)
+private val SINGLE_PHONE_GAMES = setOf(HUIT_ID, UNO_ID, YANIV_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID, CIRCLES_ID, SIMON_ID)
 
 /** Vrai si le jeu jouable peut se jouer en connectant plusieurs téléphones (deux téléphones dessinés dans la liste). */
 fun GameRules.isMultiPhone(): Boolean = isPlayableGame() && id !in SINGLE_PHONE_GAMES

@@ -139,6 +139,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Le Président chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var president: PresidentOnline? = null
 
+    /** Les Cœurs chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var hearts: HeartsOnline? = null
+
     /** Le Uno chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var uno: UnoOnline? = null
 
@@ -397,6 +400,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         diceTable = null
         dicePlayer = DICE_UNSET
         president?.reset()
+        hearts?.reset()
         uno?.reset()
     }
 
@@ -492,6 +496,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         hangman?.onPeerConnected(id)
         chess?.onPeerConnected(id)
         president?.onPeerConnected(id)
+        hearts?.onPeerConnected(id)
         uno?.onPeerConnected(id)
         duoGames.forEach { it.onPeerConnected(id) }
     }
@@ -516,6 +521,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         hangman?.onPeerDisconnected(id)
         chess?.onPeerDisconnected(id)
         president?.onPeerDisconnected(id)
+        hearts?.onPeerDisconnected(id)
         uno?.onPeerDisconnected(id)
         duoGames.forEach { it.onPeerDisconnected(id) }
         if (role == SyncRole.GUEST && connected.isEmpty()) {
@@ -591,6 +597,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
                 }
             }
             is SyncMessage.Pres -> president?.onMessage(id, message.pres)
+            is SyncMessage.Hearts -> hearts?.onMessage(id, message.hearts)
             is SyncMessage.UnoMsg -> uno?.onMessage(id, message.uno)
             is SyncMessage.Dice -> {
                 if (kind != SyncKind.SCORE || connected.isEmpty()) return

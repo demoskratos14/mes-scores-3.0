@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -386,13 +387,81 @@ class HeartsRoundTest {
     // ---------- Jeu jouable ----------
 
     @Test
-    fun coeursEstUnJeuJouableSurUnSeulTelephoneAvecSaFeuilleDeScores() {
+    fun coeursEstUnJeuJouableSurPlusieursTelephonesAvecSaFeuilleDeScores() {
         val game = rules()
         assertTrue(game.isPlayableGame())
-        assertFalse(game.isMultiPhone())
+        assertTrue(game.isMultiPhone())
         assertTrue(game.hasScoreSheet())
         assertEquals(GameCategory.CARDS, game.category())
         assertEquals(3, game.minPlayers)
         assertEquals(6, game.maxPlayers)
+    }
+
+    // ---------- Chacun sur son téléphone ----------
+
+    @Test
+    fun laPasseSeFaitDansLOrdreQueLOnVeutQuandOnJoueChacunSurSonTelephone() {
+        val round = HeartsRound(4) { }
+        // Le joueur 2 choisit avant les autres, sans « voir sa main » ni attendre son tour.
+        assertTrue(round.passFor(2, round.hands[2].take(3)))
+        assertTrue(round.hasPassed(2))
+        assertFalse(round.passFor(2, round.hands[2].takeLast(3)))
+        assertFalse(round.passFor(1, round.hands[0].take(3))) // pas sa main
+        assertEquals(0, round.current)
+        assertTrue(round.passFor(0, round.hands[0].take(3)))
+        // Le téléphone passe au suivant qui n'a pas choisi : 1 (2 l'a déjà fait).
+        assertEquals(1, round.current)
+        assertTrue(round.passFor(3, round.hands[3].take(3)))
+        assertEquals(HeartsPhase.PASSING, round.phase)
+        assertTrue(round.passFor(1, round.hands[1].take(3)))
+        assertEquals(HeartsPhase.PLAYING, round.phase)
+        assertEquals(List(4) { 13 }, round.hands.map { it.size })
+        assertTrue((0 until 4).none { round.hasPassed(it) })
+    }
+
+    @Test
+    fun focusPassDonneLeTelephoneAUnJoueurQuiNAPasChoisi() {
+        val round = HeartsRound(4) { }
+        round.passFor(0, round.hands[0].take(3))
+        round.focusPass(3)
+        assertEquals(3, round.current)
+        round.passFor(3, round.hands[3].take(3))
+        round.focusPass(0) // 0 a déjà choisi : rien ne change
+        assertNotEquals(0, round.current)
+    }
+
+    @Test
+    fun uneVueNeMontreQueLaMainDeSonJoueur() {
+        val round = HeartsRound(3) { }
+        val hands = listOf(
+            listOf(twoOfClubs, c(heart, 5)), listOf(c(club, 9), c(spade, 3)), listOf(c(diamond, 7), c(heart, 9))
+        )
+        round.load(hands, current = 0)
+        val view = round.tableFor(1)
+        assertEquals(listOf(c(club, 9), c(spade, 3)).sortedWith(compareBy({ FrenchCards.suit(it) }, { FrenchCards.strength(it) })), view.hand)
+        assertEquals(listOf(2, 2, 2), view.handSizes)
+        assertTrue(round.tableFor(-1).hand.isEmpty())
+    }
+
+    @Test
+    fun uneCartePoseePourUnePlaceDoitEtreCelleDuJoueurQuiJoue() {
+        val round = HeartsRound(3) { }
+        round.load(
+            listOf(listOf(twoOfClubs, c(heart, 5)), listOf(c(club, 9), c(spade, 3)), listOf(c(diamond, 7), c(heart, 9))),
+            current = 0
+        )
+        assertFalse(round.playFor(1, c(club, 9))) // pas son tour
+        assertFalse(round.playFor(0, c(heart, 5))) // pas le 2 de trèfle au premier pli
+        assertTrue(round.playFor(0, twoOfClubs))
+        assertEquals(1, round.current)
+        assertTrue(round.playFor(1, c(club, 9)))
+        assertTrue(round.playFor(2, c(diamond, 7)))
+        assertTrue(round.trickDone)
+        assertFalse(round.playFor(0, c(heart, 5))) // le pli est complet
+        // Le 9 de trèfle ramasse le pli : lui seul peut l'empocher.
+        assertEquals(1, round.trickWinner)
+        assertFalse(round.collectFor(0))
+        assertTrue(round.collectFor(1))
+        assertEquals(1, round.current)
     }
 }

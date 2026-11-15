@@ -843,6 +843,9 @@ fun ScoreApp(
             composable("hearts") {
                 HeartsScreen(
                     viewModel = viewModel,
+                    session = sync,
+                    online = syncViewModel.hearts,
+                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {

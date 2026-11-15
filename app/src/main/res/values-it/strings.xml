@@ -2144,6 +2144,8 @@
     <string name="hearts_continue">Continua</string>
     <string name="hearts_round_over">Mano terminata</string>
     <string name="hearts_moon">%1$s fa il gran slam: gli altri segnano 26 punti!</string>
+    <string name="hearts_pass_wait">Le tue carte sono scelte: in attesa degli altri giocatori.</string>
+    <string name="hearts_wait_turn">Non è il tuo turno: aspetta che gli altri abbiano giocato.</string>
     <string name="game_reflex">Duello di riflessi</string>
     <string name="rules_reflex_1_title">Obiettivo</string>
     <string name="rules_reflex_1_body">Essere il più veloce: il primo a toccare la propria zona quando diventa verde vince il turno. Il primo a vincere 3 turni vince la partita.</string>

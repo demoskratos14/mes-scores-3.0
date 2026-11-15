@@ -48,6 +48,25 @@ internal object HeartsScoring {
     fun handSize(playerCount: Int): Int = (FrenchCards.DECK - removedCards(playerCount).size) / playerCount.coerceAtLeast(1)
 
     /**
+     * Vrai si [card] peut être posée par un joueur qui a [hand] en main, dans un pli [trick] (vide : il l'ouvre), à [tricksPlayed]
+     * plis ramassés et [heartsBroken] cœurs ouverts. Sert aussi à un invité, qui prévient son joueur sans attendre l'organisateur.
+     */
+    fun canPlay(card: Int, hand: List<Int>, trick: List<HeartsPlay>, tricksPlayed: Int, heartsBroken: Boolean): Boolean {
+        if (card !in hand) return false
+        val firstTrick = tricksPlayed == 0
+        if (trick.isEmpty()) {
+            // Au premier pli, celui qui a le 2 de trèfle le pose.
+            if (firstTrick) return card == TWO_OF_CLUBS
+            val isHeart = FrenchCards.suit(card) == FrenchCards.HEART
+            return !(isHeart && !heartsBroken && hand.any { FrenchCards.suit(it) != FrenchCards.HEART })
+        }
+        val led = FrenchCards.suit(trick.first().card)
+        if (hand.any { FrenchCards.suit(it) == led }) return FrenchCards.suit(card) == led
+        // Sans la couleur demandée : on défausse ce qu'on veut, sauf des points au premier pli (quand on a autre chose).
+        return !(firstTrick && isPoints(card) && hand.any { !isPoints(it) })
+    }
+
+    /**
      * Décalage de la passe de la manche [roundNumber] : 1 (au joueur suivant, « à gauche »), -1 (au précédent, « à droite »),
      * la moitié de la table (« en face », seulement à 4 et 6 joueurs) ou 0 (pas de passe), dans cet ordre, en boucle.
      */
@@ -64,7 +83,48 @@ internal data class HeartsPlay(val player: Int, val card: Int)
 internal enum class HeartsPhase { PASSING, PLAYING }
 
 /**
- * Une partie de Cœurs jouée tour par tour sur un seul téléphone que l'on se passe (3 à 6 joueurs).
+ * La table de Cœurs telle que la voit un joueur : tout le public, sa main et les cartes qu'il vient de recevoir, jamais la main des
+ * autres (voir [HeartsRound.tableFor]). C'est ce que l'organisateur envoie à chaque invité (voir [HeartsOnline]).
+ */
+internal data class HeartsTable(
+    val playerCount: Int,
+    val roundNumber: Int,
+    val phase: HeartsPhase,
+    val current: Int,
+    val passOffset: Int,
+    /** Pour chaque joueur : a-t-il déjà choisi ses cartes à passer ? */
+    val passed: List<Boolean>,
+    val trick: List<HeartsPlay>,
+    val trickWinner: Int,
+    val tricksPlayed: Int,
+    val heartsBroken: Boolean,
+    val roundOver: Boolean,
+    val settled: Boolean,
+    val started: Boolean,
+    val handSizes: List<Int>,
+    /** Points de chacun pour la manche (ce qu'il a ramassé ; le grand chelem une fois la manche finie). */
+    val points: List<Int>,
+    val moonShooter: Int,
+    val hand: List<Int>,
+    val received: List<Int>
+) {
+    /** Vrai quand tous ont joué dans le pli : on le montre à tous avant que le gagnant ne le ramasse. */
+    val trickDone: Boolean get() = trick.size == playerCount && playerCount > 0
+
+    /** Le joueur qui reçoit les cartes de [player] à la passe. */
+    fun passTarget(player: Int): Int = Math.floorMod(player + passOffset, playerCount.coerceAtLeast(1))
+
+    /** Points d'un pli (cœurs et dame de pique qu'il contient). */
+    fun trickPoints(): Int = trick.sumOf { HeartsScoring.points(it.card) }
+
+    /** Vrai si [card] peut être posée par le joueur de cette vue (sa main, ce pli) ; ne dit pas si c'est son tour. */
+    fun isPlayable(card: Int): Boolean = phase == HeartsPhase.PLAYING && !roundOver && !trickDone &&
+        HeartsScoring.canPlay(card, hand, trick, tricksPlayed, heartsBroken)
+}
+
+/**
+ * Une partie de Cœurs jouée tour par tour sur un seul téléphone que l'on se passe, ou chacun sur son téléphone (voir [HeartsOnline] :
+ * l'organisateur tient cette partie et n'envoie à chaque joueur que [tableFor] sa place) ; 3 à 6 joueurs.
  *
  * - L'appli distribue tout le paquet (voir [HeartsScoring.removedCards] à 3, 5 et 6 joueurs). Chacun, à son tour, voit sa main
  *   ([reveal]) et choisit 3 cartes à passer ([confirmPass]) ; une fois que tous ont choisi, les cartes changent de main (le
@@ -139,8 +199,8 @@ internal class HeartsRound(
     var roundNumber by mutableIntStateOf(startRound.coerceAtLeast(1))
         private set
 
-    /** Les cartes choisies par ceux qui ont déjà passé, dans l'ordre des joueurs. */
-    private var given: List<List<Int>> = emptyList()
+    /** Les cartes choisies à passer par chaque joueur (null : pas encore choisi). */
+    private var given: List<List<Int>?> = emptyList()
 
     /** Coups joués (cartes passées ou posées, plis ramassés) depuis la dernière distribution. */
     private var moves by mutableIntStateOf(0)
@@ -175,20 +235,36 @@ internal class HeartsRound(
     /** Vrai si [card] peut être posée maintenant par le joueur qui agit (voir la description de la classe). */
     fun isPlayable(card: Int): Boolean {
         if (phase != HeartsPhase.PLAYING || roundOver || trickDone) return false
-        val hand = currentHand
-        if (card !in hand) return false
-        val firstTrick = tricksPlayed == 0
-        if (trick.isEmpty()) {
-            // Au premier pli, celui qui a le 2 de trèfle le pose.
-            if (firstTrick) return card == HeartsScoring.TWO_OF_CLUBS
-            val isHeart = FrenchCards.suit(card) == FrenchCards.HEART
-            return !(isHeart && !heartsBroken && hand.any { FrenchCards.suit(it) != FrenchCards.HEART })
-        }
-        val led = ledSuit
-        if (hand.any { FrenchCards.suit(it) == led }) return FrenchCards.suit(card) == led
-        // Sans la couleur demandée : on défausse ce qu'on veut, sauf des points au premier pli (quand on a autre chose).
-        return !(firstTrick && HeartsScoring.isPoints(card) && hand.any { !HeartsScoring.isPoints(it) })
+        return HeartsScoring.canPlay(card, currentHand, trick, tricksPlayed, heartsBroken)
     }
+
+    /** Vrai si le joueur [player] a déjà choisi ses cartes à passer (pendant la passe). */
+    fun hasPassed(player: Int): Boolean = given.getOrNull(player) != null
+
+    /**
+     * La table telle que la voit le joueur [viewer] : le public, sa main et les cartes qu'il vient de recevoir. [viewer] hors des
+     * joueurs (-1) : un spectateur, qui ne voit aucune main.
+     */
+    fun tableFor(viewer: Int): HeartsTable = HeartsTable(
+        playerCount = playerCount,
+        roundNumber = roundNumber,
+        phase = phase,
+        current = current,
+        passOffset = passOffset,
+        passed = List(playerCount) { hasPassed(it) },
+        trick = trick,
+        trickWinner = trickWinner,
+        tricksPlayed = tricksPlayed,
+        heartsBroken = heartsBroken,
+        roundOver = roundOver,
+        settled = settled,
+        started = inProgress,
+        handSizes = hands.map { it.size },
+        points = roundPoints(),
+        moonShooter = moonShooter,
+        hand = hands.getOrElse(viewer) { emptyList() }.sortedWith(compareBy({ FrenchCards.suit(it) }, { FrenchCards.strength(it) })),
+        received = received.getOrElse(viewer) { emptySet() }.toList()
+    )
 
     /** Le joueur qui a ramassé tous les points de la manche (grand chelem) ; -1 s'il n'y en a pas, ou tant que la manche n'est pas finie. */
     val moonShooter: Int
@@ -217,24 +293,51 @@ internal class HeartsRound(
      */
     fun confirmPass(cards: List<Int>): Boolean {
         if (phase != HeartsPhase.PASSING || !revealed || roundOver) return false
-        if (cards.size != HeartsScoring.PASS_COUNT || cards.distinct().size != cards.size || !currentHand.containsAll(cards)) return false
-        given = given + listOf(cards)
+        return recordPass(current, cards)
+    }
+
+    /** Enregistre les cartes à passer de [player] ; quand tous ont choisi, les cartes changent de main. */
+    private fun recordPass(player: Int, cards: List<Int>): Boolean {
+        if (player !in 0 until playerCount || hasPassed(player)) return false
+        if (cards.size != HeartsScoring.PASS_COUNT || cards.distinct().size != cards.size || !hands[player].containsAll(cards)) return false
+        given = given.mapIndexed { index, chosen -> if (index == player) cards else chosen }
         moves++
-        if (current + 1 < playerCount) {
-            current++
-            revealed = false
-        } else {
+        if (given.all { it != null }) {
             exchange()
+        } else if (hasPassed(current)) {
+            // Celui dont c'était le tour de choisir a fini : le téléphone passe au suivant qui n'a pas choisi.
+            current = nextToPass(current)
+            revealed = false
         }
         return true
+    }
+
+    /** Le premier joueur après [from] (en tournant) qui n'a pas encore choisi ses cartes. */
+    private fun nextToPass(from: Int): Int {
+        for (step in 1..playerCount) {
+            val index = (from + step) % playerCount
+            if (!hasPassed(index)) return index
+        }
+        return from
+    }
+
+    /**
+     * Donne le téléphone à [player] pour qu'il choisisse ses cartes à passer, s'il ne l'a pas fait : chacun sur son téléphone,
+     * l'organisateur ne doit pas attendre un joueur distant pour faire choisir ceux qui jouent sur son téléphone.
+     */
+    fun focusPass(player: Int) {
+        if (phase != HeartsPhase.PASSING || roundOver || player == current || player !in 0 until playerCount || hasPassed(player)) return
+        current = player
+        revealed = false
     }
 
     private fun exchange() {
         val offset = passOffset
         val count = playerCount
-        received = List(count) { player -> given[Math.floorMod(player - offset, count)].toSet() }
-        hands = hands.mapIndexed { player, hand -> hand.filter { it !in given[player] } + given[Math.floorMod(player - offset, count)] }
-        given = emptyList()
+        val chosen = given.map { it.orEmpty() }
+        received = List(count) { player -> chosen[Math.floorMod(player - offset, count)].toSet() }
+        hands = hands.mapIndexed { player, hand -> hand.filter { it !in chosen[player] } + chosen[Math.floorMod(player - offset, count)] }
+        given = List(count) { null }
         startPlaying()
     }
 
@@ -328,7 +431,7 @@ internal class HeartsRound(
         heartsBroken = false
         roundOver = false
         settled = false
-        given = emptyList()
+        given = List(count) { null }
         moves = 0
         if (passOffset == 0) {
             startPlaying()
@@ -361,7 +464,25 @@ internal class HeartsRound(
         revealed = false
         roundOver = false
         settled = false
-        given = emptyList()
+        given = List(playerCount) { null }
         moves = 0
     }
+
+    // ---------- Chacun sur son téléphone ----------
+
+    /** Le joueur [seat] choisit ses cartes à passer, à son rythme (il n'a pas besoin de « voir sa main » : il l'a sur son téléphone). */
+    fun passFor(seat: Int, cards: List<Int>): Boolean {
+        if (phase != HeartsPhase.PASSING || roundOver) return false
+        return recordPass(seat, cards)
+    }
+
+    /** [play] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun playFor(seat: Int, card: Int): Boolean {
+        if (seat != current || phase != HeartsPhase.PLAYING || trickDone || roundOver) return false
+        revealed = true
+        return play(card).also { if (!it) revealed = false }
+    }
+
+    /** [collectTrick] pour le joueur [seat], qui doit être celui qui ramasse le pli. */
+    fun collectFor(seat: Int): Boolean = seat == trickWinner && collectTrick()
 }

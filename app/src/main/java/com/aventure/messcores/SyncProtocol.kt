@@ -97,6 +97,9 @@ internal sealed interface SyncMessage {
     /** Un message du Président chacun sur son téléphone, sur la connexion de la feuille de scores (voir [PresidentOnline]). */
     data class Pres(val pres: PresMessage) : SyncMessage
 
+    /** Un message de Cœurs chacun sur son téléphone, sur la connexion de la feuille de scores (voir [HeartsOnline]). */
+    data class Hearts(val hearts: HeartsMsg) : SyncMessage
+
     /** Un message du Uno chacun sur son téléphone, sur la connexion de la feuille de scores (voir [UnoOnline]). */
     data class UnoMsg(val uno: UnoMessage) : SyncMessage
 
@@ -208,6 +211,7 @@ internal object SyncCodec {
             is SyncMessage.Hg -> json.put("t", "hg").put("hg", message.hg.toJson())
             is SyncMessage.Chess -> json.put("t", "chess").put("chess", message.chess.toJson())
             is SyncMessage.Pres -> json.put("t", "pres").put("pres", message.pres.toJson())
+            is SyncMessage.Hearts -> json.put("t", "hearts").put("hearts", message.hearts.toJson())
             is SyncMessage.UnoMsg -> json.put("t", "uno").put("uno", message.uno.toJson())
             is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
                 .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
@@ -250,6 +254,7 @@ internal object SyncCodec {
                 "hg" -> hgMessageFromJson(json.getJSONObject("hg"))?.let { SyncMessage.Hg(it) }
                 "chess" -> chessMessageFromJson(json.getJSONObject("chess"))?.let { SyncMessage.Chess(it) }
                 "pres" -> presMessageFromJson(json.getJSONObject("pres"))?.let { SyncMessage.Pres(it) }
+                "hearts" -> heartsMsgFromJson(json.getJSONObject("hearts"))?.let { SyncMessage.Hearts(it) }
                 "uno" -> unoMessageFromJson(json.getJSONObject("uno"))?.let { SyncMessage.UnoMsg(it) }
                 "dice" -> {
                     val turn = json.getJSONArray("turn")

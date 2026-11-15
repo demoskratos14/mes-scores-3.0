@@ -2134,6 +2134,8 @@
     <string name="hearts_continue">Continuar</string>
     <string name="hearts_round_over">Mão terminada</string>
     <string name="hearts_moon">%1$s faz o grande slam: os outros marcam 26 pontos!</string>
+    <string name="hearts_pass_wait">As tuas cartas estão escolhidas: a aguardar os outros jogadores.</string>
+    <string name="hearts_wait_turn">Não é a tua vez: espera que os outros joguem.</string>
     <string name="game_reflex">Duelo de reflexos</string>
     <string name="rules_reflex_1_title">Objetivo</string>
     <string name="rules_reflex_1_body">Ser o mais rápido: o primeiro a tocar na sua zona quando ela ficar verde ganha a ronda. O primeiro a ganhar 3 rondas vence o jogo.</string>

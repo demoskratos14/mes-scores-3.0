@@ -2150,6 +2150,8 @@
     <string name="hearts_continue">Continuer</string>
     <string name="hearts_round_over">Manche terminée</string>
     <string name="hearts_moon">%1$s réussit le grand chelem : les autres marquent 26 points !</string>
+    <string name="hearts_pass_wait">Tes cartes sont choisies : en attente des autres joueurs.</string>
+    <string name="hearts_wait_turn">Ce n’est pas ton tour : attends que les autres aient joué.</string>
     <string name="game_reflex">Duel de réflexes</string>
     <string name="rules_reflex_1_title">But du jeu</string>
     <string name="rules_reflex_1_body">Être le plus rapide : le premier à toucher sa zone quand elle passe au vert gagne la manche. Le premier à 3 manches gagne la partie.</string>

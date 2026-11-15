@@ -2105,6 +2105,8 @@
     <string name="hearts_continue">Continue</string>
     <string name="hearts_round_over">Round over</string>
     <string name="hearts_moon">%1$s shoots the moon: the others score 26 points!</string>
+    <string name="hearts_pass_wait">Your cards are chosen: waiting for the other players.</string>
+    <string name="hearts_wait_turn">It’s not your turn: wait for the others to play.</string>
     <string name="game_reflex">Reflex duel</string>
     <string name="rules_reflex_1_title">Goal</string>
     <string name="rules_reflex_1_body">Be the fastest: the first to touch their zone when it turns green wins the round. The first to win 3 rounds wins the game.</string>
