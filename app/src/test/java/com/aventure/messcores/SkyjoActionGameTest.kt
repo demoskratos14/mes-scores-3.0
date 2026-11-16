@@ -22,10 +22,10 @@ class SkyjoActionGameTest {
     private fun grid(up: Set<Int> = emptySet()): List<SkyjoCell?> = (1..12).map { SkyjoCell(it, (it - 1) in up) }
 
     @Test
-    fun leSkyjoActionEstUnJeuJouableSurUnSeulTelephoneAvecSaFeuilleDeScores() {
+    fun leSkyjoActionEstUnJeuJouableSurPlusieursTelephonesAvecSaFeuilleDeScores() {
         val game = rules()
         assertTrue(game.isPlayableGame())
-        assertFalse(game.isMultiPhone())
+        assertTrue(game.isMultiPhone())
         assertTrue(game.hasScoreSheet())
         assertEquals(GameCategory.SPECIAL, game.category())
         assertEquals(2, game.minPlayers)

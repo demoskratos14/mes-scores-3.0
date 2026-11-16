@@ -412,11 +412,11 @@ class DominoRoundTest {
     }
 
     @Test
-    fun leDominoEstUnJeuJouableSurUnSeulTelephone() {
+    fun leDominoEstUnJeuJouableSurPlusieursTelephones() {
         val rules = rules()
         assertTrue(rules.isPlayableGame())
         assertTrue(rules.hasScoreSheet())
-        assertFalse(rules.isMultiPhone())
+        assertTrue(rules.isMultiPhone())
         assertTrue(DOMINOS_ID in GAME_ICON_IDS)
     }
 }

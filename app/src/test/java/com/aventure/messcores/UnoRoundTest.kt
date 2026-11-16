@@ -494,10 +494,10 @@ class UnoRoundTest {
     // ---------- Jeu jouable ----------
 
     @Test
-    fun leUnoEstUnJeuJouableSurUnSeulTelephoneAvecSaFeuilleDeScores() {
+    fun leUnoEstUnJeuJouableSurPlusieursTelephonesAvecSaFeuilleDeScores() {
         val uno = rules()
         assertTrue(uno.isPlayableGame())
-        assertFalse(uno.isMultiPhone())
+        assertTrue(uno.isMultiPhone())
         assertTrue(uno.hasScoreSheet())
         assertFalse(uno.isDiceOnly())
         assertEquals(GameCategory.SPECIAL, uno.category())
