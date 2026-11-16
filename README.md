@@ -291,7 +291,7 @@ Jeu de cartes jouable de la catégorie « Spéciaux » (`SKYJO_ACTION_ID`, route
 
 - **Paquet retenu** : 7 exemplaires de chaque valeur de −2 à 12, 15 étoiles (jokers) et 30 cartes action (`SkyjoActionScoring`). Grille de 12 cartes (9 à partir de 5 joueurs).
 - **Règles appliquées par l'appli** : un geste par tour, colonnes de 3 et lignes complètes identiques retirées, étoile = joker et bonus de carte action, 9 cartes action (Échange, Échange personnel, Piocher trois, Regarder, Météores, Double tour, Protection, Réactivation, Voleur), dernier tour sans carte action, points doublés pour qui termine sans le score le plus bas, 10 points par carte action non jouée.
-- **Un seul téléphone** : toutes les grilles sont visibles ; seule la carte Regarder montre un secret.
+- **Plusieurs téléphones** : `SkyjoActionOnline.kt` ; le jeu n'est plus dans `SINGLE_PHONE_GAMES` (`GameCategory.kt`), donc dessiné avec deux téléphones dans la liste. Toutes les grilles sont visibles ; seule la carte Regarder montre un secret.
 - **Disposition** : la grille du joueur en cours est sous les pioches ; les autres joueurs sont en petit sur une seule ligne (`SkyjoOthers`), chaque petite grille s'ouvre en grand en dessous quand on la touche (`expanded`), et c'est aussi là qu'on touche leurs cartes pour Échange, Regarder, Météores et Voleur (la grille de la victime s'ouvre d'elle-même pour Météores).
 - Les points de chaque manche sont inscrits au tableau des scores (`SkyjoActionRound.settle`).
 
@@ -332,7 +332,7 @@ Même cadre que le Huit américain et Yaniv (`CardGameScreen`, `ScoresCard`, `Pa
 - **Points** : celui qui pose son dernier domino marque les points restés chez les autres. Si tous les joueurs passent l'un après l'autre, la manche est bloquée : le plus léger marque la différence avec chacun des autres ; à égalité pour le moins, personne ne marque (`roundPoints`).
 - **Reprise** : la partie en cours vit dans `ScoreViewModel` (`dominoRound`) ; `settle` inscrit les points dans la première ligne vide du tableau, une seule fois, et la manche suivante est distribuée par `nextRound`.
 - **Chacun sur son téléphone** : comme Skyjo Action et Flip 7, sur la connexion du partage de la feuille de scores (`DominoOnline.kt`, messages dans `DominoProtocol.kt`, testés par `DominoOnlineTest`). L'organisateur tient la partie, chaque invité choisit sa place et envoie ses actions (`DominoRound.perform`) ; chacun ne reçoit que sa propre main, la taille des autres mains et de la pioche (les mains restantes ne sont montrées qu'à la fin de la manche).
-- **Un seul téléphone** : `SINGLE_PHONE_GAMES` (`GameCategory.kt`) contient le Domino (mains secrètes).
+- **Deux téléphones dessinés** : le Domino, le Uno et Skyjo Action ne sont plus dans `SINGLE_PHONE_GAMES` (`GameCategory.kt`), ils s'affichent donc comme jeu à plusieurs téléphones dans la liste.
 
 ## Couleurs des joueurs et mode daltonien
 
