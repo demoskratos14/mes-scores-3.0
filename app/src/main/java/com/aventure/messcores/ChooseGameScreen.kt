@@ -159,6 +159,8 @@ fun ChooseGameScreen(
                                     title = stringResource(category.label),
                                     games = inCategory,
                                     selectedId = selected.id,
+                                    // Les téléphones ne se dessinent que dans « Jeux jouables », pas dans « Jeux solo ».
+                                    showPhones = !soloOnly,
                                     onSelect = { game ->
                                         selectedId = game.id
                                         errorMessage = null
