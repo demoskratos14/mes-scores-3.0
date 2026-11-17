@@ -461,10 +461,10 @@ class HuitRoundTest {
     // ---------- Jeu jouable ----------
 
     @Test
-    fun leHuitAmericainEstUnJeuJouableSurUnSeulTelephoneAvecSaFeuilleDeScores() {
+    fun leHuitAmericainEstUnJeuJouableMultiTelephonesAvecSaFeuilleDeScores() {
         val huit = rules()
         assertTrue(huit.isPlayableGame())
-        assertFalse(huit.isMultiPhone())
+        assertTrue(huit.isMultiPhone())
         assertTrue(huit.hasScoreSheet())
         assertFalse(huit.isDiceOnly())
         assertEquals(GameCategory.CARDS, huit.category())
@@ -479,5 +479,66 @@ class HuitRoundTest {
         // 52 - 35 cartes distribuées - 1 carte retournée.
         assertEquals(16, round.stock.size)
         assertFalse(HuitScoring.rank(round.top) == HuitScoring.EIGHT)
+    }
+
+    // ---------- Table vue par un joueur (chacun sur son téléphone) ----------
+
+    @Test
+    fun laTableVueParUnJoueurNeMontreQueSaMain() {
+        val round = table(first = listOf(c(heart, 7), c(spade, 2)), second = listOf(c(club, 9), c(diamond, 4)), top = c(heart, 5))
+
+        val seen = round.tableFor(0)
+
+        assertEquals(listOf(c(spade, 2), c(heart, 7)), seen.hand)
+        assertEquals(listOf(2, 2), seen.handSizes)
+        // Un spectateur ne voit aucune main.
+        assertTrue(round.tableFor(-1).hand.isEmpty())
+        // Les points des mains ne se montrent qu'à la fin de la manche.
+        assertEquals(listOf(0, 0), seen.points)
+    }
+
+    @Test
+    fun seulLeJoueurDontCEstLeTourSaitCeQuIlPeutFaire() {
+        val round = table(first = listOf(c(club, 9)), second = listOf(c(spade, 2)), top = c(heart, 5), stock = listOf(c(diamond, 3)))
+
+        assertTrue(round.tableFor(0).canDraw)
+        assertFalse(round.tableFor(1).canDraw)
+        assertFalse(round.tableFor(0).hasPlayable)
+    }
+
+    @Test
+    fun uneCarteSeJoueDeLaPlaceSansVoirSaMain() {
+        val round = table(first = listOf(c(heart, 7), c(spade, 2)), second = listOf(c(club, 9)), top = c(heart, 5))
+
+        // Ce n'est pas à la place 1 de jouer.
+        assertFalse(round.playFor(1, c(club, 9)))
+        assertFalse(round.revealed)
+        assertTrue(round.playFor(0, c(heart, 7)))
+        assertEquals(c(heart, 7), round.top)
+        assertEquals(1, round.current)
+        // Une carte injouable est refusée et ne dévoile rien.
+        assertFalse(round.playFor(1, c(spade, 3)))
+        assertFalse(round.revealed)
+    }
+
+    @Test
+    fun unHuitJoueDeLaPlaceChoisitLaCouleurQuiSuit() {
+        val round = table(first = listOf(c(spade, 8), c(spade, 2)), second = listOf(c(club, 9)), top = c(heart, 5))
+
+        // Sans couleur choisie, le 8 est refusé tant qu'il reste d'autres cartes en main.
+        assertFalse(round.playFor(0, c(spade, 8)))
+        assertTrue(round.playFor(0, c(spade, 8), club))
+        assertEquals(club, round.askedSuit)
+        assertEquals(1, round.current)
+    }
+
+    @Test
+    fun laPiocheDeLaPlacePiocheSeulementSansCarteJouable() {
+        val round = table(first = listOf(c(club, 9)), second = listOf(c(spade, 2)), top = c(heart, 5), stock = listOf(c(diamond, 3)))
+
+        assertTrue(round.drawFor(0))
+        assertEquals(2, round.hands[0].size)
+        // Ce n'est pas à la place 1 de piocher.
+        assertFalse(round.drawFor(1))
     }
 }

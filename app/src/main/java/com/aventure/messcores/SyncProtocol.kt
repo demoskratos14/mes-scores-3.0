@@ -106,6 +106,9 @@ internal sealed interface SyncMessage {
     /** Un message du Uno chacun sur son téléphone, sur la connexion de la feuille de scores (voir [UnoOnline]). */
     data class UnoMsg(val uno: UnoMessage) : SyncMessage
 
+    /** Un message du Huit américain chacun sur son téléphone, sur la connexion de la feuille de scores (voir [HuitOnline]). */
+    data class HuitMsg(val huit: HuitMessage) : SyncMessage
+
     /** Un message du Yaniv chacun sur son téléphone, sur la connexion de la feuille de scores (voir [YanivOnline]). */
     data class YanivMsg(val yaniv: YanivMessage) : SyncMessage
 
@@ -229,6 +232,7 @@ internal object SyncCodec {
             is SyncMessage.Pres -> json.put("t", "pres").put("pres", message.pres.toJson())
             is SyncMessage.Hearts -> json.put("t", "hearts").put("hearts", message.hearts.toJson())
             is SyncMessage.UnoMsg -> json.put("t", "uno").put("uno", message.uno.toJson())
+            is SyncMessage.HuitMsg -> json.put("t", "huit").put("huit", message.huit.toJson())
             is SyncMessage.YanivMsg -> json.put("t", "yaniv").put("yaniv", message.yaniv.toJson())
             is SyncMessage.Flip7Msg -> json.put("t", "flip7").put("flip7", message.flip7.toJson())
             is SyncMessage.SkyjoMsg -> json.put("t", "skyjo").put("skyjo", message.skyjo.toJson())
@@ -277,6 +281,7 @@ internal object SyncCodec {
                 "pres" -> presMessageFromJson(json.getJSONObject("pres"))?.let { SyncMessage.Pres(it) }
                 "hearts" -> heartsMsgFromJson(json.getJSONObject("hearts"))?.let { SyncMessage.Hearts(it) }
                 "uno" -> unoMessageFromJson(json.getJSONObject("uno"))?.let { SyncMessage.UnoMsg(it) }
+                "huit" -> huitMessageFromJson(json.getJSONObject("huit"))?.let { SyncMessage.HuitMsg(it) }
                 "yaniv" -> yanivMessageFromJson(json.getJSONObject("yaniv"))?.let { SyncMessage.YanivMsg(it) }
                 "flip7" -> flip7MessageFromJson(json.getJSONObject("flip7"))?.let { SyncMessage.Flip7Msg(it) }
                 "skyjo" -> skyjoMessageFromJson(json.getJSONObject("skyjo"))?.let { SyncMessage.SkyjoMsg(it) }

@@ -59,7 +59,38 @@ internal object HuitScoring {
 }
 
 /**
- * Une partie de Huit américain jouée tour par tour sur un seul téléphone que l'on se passe.
+ * La table vue par un joueur : tout ce qui est public, plus sa propre main ([hand]) et, si c'est son tour, ce qu'il peut faire
+ * ([canDraw], [mustPass]). C'est ce que l'organisateur envoie à chaque invité : jamais la main des autres.
+ */
+internal data class HuitTable(
+    val playerCount: Int,
+    val roundNumber: Int,
+    val current: Int,
+    val askedSuit: Int,
+    val top: Int,
+    val stockSize: Int,
+    val handSizes: List<Int>,
+    val roundOver: Boolean,
+    val winner: Int,
+    val blocked: Boolean,
+    val settled: Boolean,
+    val started: Boolean,
+    val points: List<Int>,
+    val hand: List<Int>,
+    val canDraw: Boolean,
+    val mustPass: Boolean
+) {
+    /** Vrai si [card], de la main du joueur, peut être posée maintenant. */
+    fun isPlayable(card: Int): Boolean = card in hand && HuitScoring.isPlayable(card, top, askedSuit)
+
+    /** Vrai si le joueur a au moins une carte jouable. */
+    val hasPlayable: Boolean get() = hand.any { isPlayable(it) }
+}
+
+/**
+ * Une partie de Huit américain jouée tour par tour sur un seul téléphone que l'on se passe, ou chacun sur le sien (voir
+ * [HuitOnline] : les places d'un autre téléphone se jouent avec [playFor], [drawFor] et [passFor], et ce téléphone ne reçoit que
+ * [tableFor], jamais la main des autres).
  *
  * - L'appli distribue les cartes ([HuitScoring.handSize]) et retourne la première carte (jamais un 8). Le joueur dont c'est
  *   le tour voit sa main une fois qu'il l'a demandée ([reveal]) : les autres ne la voient pas.
@@ -164,6 +195,33 @@ internal class HuitRound(
     fun roundPoints(): List<Int> =
         hands.mapIndexed { player, hand -> if (roundOver && player == winner) 0 else HuitScoring.handPoints(hand) }
 
+    /**
+     * La table telle que la voit le joueur [viewer] : le public et sa main. [viewer] hors des joueurs (-1) : un spectateur, qui
+     * ne voit aucune main. Ce que le joueur peut faire ([HuitTable.canDraw]…) n'est renseigné que si c'est son tour.
+     */
+    fun tableFor(viewer: Int): HuitTable {
+        val mine = viewer >= 0 && viewer == current && !roundOver
+        return HuitTable(
+            playerCount = playerCount,
+            roundNumber = roundNumber,
+            current = current,
+            askedSuit = askedSuit,
+            top = top,
+            stockSize = stock.size,
+            handSizes = hands.map { it.size },
+            roundOver = roundOver,
+            winner = winner,
+            blocked = blocked,
+            settled = settled,
+            started = inProgress,
+            // Les points des mains ne se montrent qu'une fois la manche finie.
+            points = if (roundOver) roundPoints() else hands.map { 0 },
+            hand = hands.getOrElse(viewer) { emptyList() }.sortedWith(compareBy({ HuitScoring.suit(it) }, { HuitScoring.rank(it) })),
+            canDraw = mine && canDraw,
+            mustPass = mine && mustPass
+        )
+    }
+
     // ---------- Le tour ----------
 
     /** Le joueur dont c'est le tour montre sa main (les autres ne regardent pas). */
@@ -210,6 +268,25 @@ internal class HuitRound(
         moves++
         if (passes >= playerCount) finishBlocked() else advance()
         return true
+    }
+
+    // ---------- Les joueurs d'un autre téléphone ----------
+    // Un invité n'a pas à « voir sa main » sur le téléphone de l'organisateur : on la dévoile le temps de son coup.
+
+    /** [play] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun playFor(seat: Int, card: Int, suit: Int = -1): Boolean = asSeat(seat) { play(card, suit) }
+
+    /** [draw] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun drawFor(seat: Int): Boolean = asSeat(seat) { draw() != null }
+
+    /** [pass] pour le joueur [seat], qui doit être celui dont c'est le tour. */
+    fun passFor(seat: Int): Boolean = asSeat(seat) { pass() }
+
+    private fun asSeat(seat: Int, action: () -> Boolean): Boolean {
+        if (seat != current || roundOver) return false
+        val before = revealed
+        revealed = true
+        return action().also { if (!it) revealed = before }
     }
 
     /** Remélange les cartes posées, sauf la dernière, pour refaire la pioche. */

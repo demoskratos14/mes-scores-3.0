@@ -148,6 +148,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Le Uno chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var uno: UnoOnline? = null
 
+    /** Le Huit américain chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var huit: HuitOnline? = null
+
     /** Le Yaniv chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var yaniv: YanivOnline? = null
 
@@ -426,6 +429,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         president?.reset()
         hearts?.reset()
         uno?.reset()
+        huit?.reset()
         yaniv?.reset()
         flip7?.reset()
         skyjo?.reset()
@@ -527,6 +531,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         president?.onPeerConnected(id)
         hearts?.onPeerConnected(id)
         uno?.onPeerConnected(id)
+        huit?.onPeerConnected(id)
         yaniv?.onPeerConnected(id)
         flip7?.onPeerConnected(id)
         skyjo?.onPeerConnected(id)
@@ -557,6 +562,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         president?.onPeerDisconnected(id)
         hearts?.onPeerDisconnected(id)
         uno?.onPeerDisconnected(id)
+        huit?.onPeerDisconnected(id)
         yaniv?.onPeerDisconnected(id)
         flip7?.onPeerDisconnected(id)
         skyjo?.onPeerDisconnected(id)
@@ -641,6 +647,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Pres -> president?.onMessage(id, message.pres)
             is SyncMessage.Hearts -> hearts?.onMessage(id, message.hearts)
             is SyncMessage.UnoMsg -> uno?.onMessage(id, message.uno)
+            is SyncMessage.HuitMsg -> huit?.onMessage(id, message.huit)
             is SyncMessage.YanivMsg -> yaniv?.onMessage(id, message.yaniv)
             is SyncMessage.Flip7Msg -> flip7?.onMessage(id, message.flip7)
             is SyncMessage.SkyjoMsg -> skyjo?.onMessage(id, message.skyjo)

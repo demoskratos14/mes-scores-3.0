@@ -174,6 +174,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Uno chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val uno = UnoOnline(session)
 
+    /** Huit américain chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val huit = HuitOnline(session)
+
     /** Yaniv chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val yaniv = YanivOnline(session)
 
