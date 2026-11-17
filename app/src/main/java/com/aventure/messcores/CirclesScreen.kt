@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -17,12 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,12 +78,65 @@ private val CIRCLE_COLORS = listOf(
 private val IntListSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
 
 /**
- * Jeu des Ronds sur un seul téléphone qu'on se passe : des ronds apparaissent au hasard sur l'écran et rétrécissent
- * jusqu'à disparaître ; il faut toucher chacun avant qu'il s'efface. La série s'arrête au premier rond qui disparaît
- * sans avoir été touché, et la plus longue série de la table gagne (voir [CirclesGame]). Tout est gardé quand l'écran tourne.
+ * Jeu des Ronds, sur un seul téléphone qu'on se passe ou chacun sur son téléphone (voir [CirclesOnline] et
+ * [OnlineCircles]) : des ronds apparaissent au hasard sur l'écran et rétrécissent jusqu'à disparaître ; il faut toucher
+ * chacun avant qu'il s'efface. La série s'arrête au premier rond qui disparaît sans avoir été touché, et la plus longue
+ * série de la table gagne (voir [CirclesGame]). Tout est gardé quand l'écran tourne.
  */
 @Composable
-internal fun CirclesScreen(players: List<String>) {
+internal fun CirclesScreen(
+    players: List<String>,
+    online: CirclesOnline,
+    onExit: () -> Unit,
+    onHostOnline: () -> Unit
+) {
+    var showQuit by rememberSaveable { mutableStateOf(false) }
+    // Hors partie à plusieurs téléphones, le retour système quitte simplement l'écran.
+    BackHandler(enabled = online.active) {
+        if (online.notice == CirclesNotice.HOST_LEFT) {
+            online.leave()
+            onExit()
+        } else {
+            showQuit = true
+        }
+    }
+
+    if (online.active) {
+        OnlineCircles(online = online, onQuit = { showQuit = true }, onClose = {
+            online.leave()
+            onExit()
+        })
+    } else {
+        LocalCircles(players = players, onPlayOnline = onHostOnline)
+    }
+
+    if (showQuit && online.active) {
+        AlertDialog(
+            onDismissRequest = { showQuit = false },
+            title = { Text(stringResource(R.string.circles_quit_title)) },
+            text = { Text(stringResource(R.string.circles_quit_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showQuit = false
+                    online.leave()
+                    onExit()
+                }) {
+                    Text(stringResource(R.string.mm_quit_confirm), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showQuit = false }) { Text(stringResource(R.string.quit_continue)) }
+            }
+        )
+    }
+}
+
+/**
+ * Les Ronds sur un seul téléphone qu'on se passe : chacun joue sa série à son tour, puis on compare. [onPlayOnline]
+ * ouvre une table pour jouer chacun sur son téléphone (proposé tant que personne n'a joué).
+ */
+@Composable
+private fun LocalCircles(players: List<String>, onPlayOnline: () -> Unit) {
     val names = players.take(Circles.MAX_PLAYERS).ifEmpty { listOf("1") }
     var streaks by rememberSaveable(stateSaver = IntListSaver) { mutableStateOf(listOf<Int>()) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
@@ -191,6 +248,12 @@ internal fun CirclesScreen(players: List<String>) {
                 Button(onClick = { phase = PHASE_PLAYING }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.circles_go))
                 }
+                // Avant la première série, on peut aussi ouvrir une table pour jouer chacun sur son téléphone.
+                if (streaks.isEmpty()) {
+                    OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.circles_online_button))
+                    }
+                }
             }
         }
         RecordSparkles(record)
@@ -199,7 +262,7 @@ internal fun CirclesScreen(players: List<String>) {
 
 /** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. */
 @Composable
-private fun CirclesCard(content: @Composable ColumnScope.() -> Unit) {
+internal fun CirclesCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -285,7 +348,7 @@ private fun CirclesResults(game: CirclesGame, names: List<String>, record: SoloR
  * et disparaissent avec lui : en toucher une arrête aussitôt la série ([onFinished] reçoit alors `true` en second).
  */
 @Composable
-private fun CirclesPlayfield(name: String, level: CirclesLevel, onFinished: (streak: Int, hitSkull: Boolean) -> Unit) {
+internal fun CirclesPlayfield(name: String, level: CirclesLevel, onFinished: (streak: Int, hitSkull: Boolean) -> Unit) {
     KeepScreenOn()
     val maxRadius = with(LocalDensity.current) { MAX_RADIUS_DP.dp.toPx() }
     val skullRadius = maxRadius * Circles.SKULL_RADIUS_FRACTION
@@ -393,7 +456,7 @@ private fun CirclesPlayfield(name: String, level: CirclesLevel, onFinished: (str
 }
 
 /** Le nom du niveau [level] dans la liste de choix. */
-private fun levelName(level: CirclesLevel): Int = when (level) {
+internal fun levelName(level: CirclesLevel): Int = when (level) {
     CirclesLevel.NORMAL -> R.string.circles_level_normal
     CirclesLevel.HARD -> R.string.circles_level_hard
 }

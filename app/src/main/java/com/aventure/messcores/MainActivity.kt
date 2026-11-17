@@ -169,6 +169,7 @@ fun ScoreApp(
     val reflexOnline = syncViewModel.reflex
     val emojiOnline = syncViewModel.emoji
     val simonOnline = syncViewModel.simon
+    val circlesOnline = syncViewModel.circles
     val rockPaperScissorsOnline = syncViewModel.rockPaperScissors
     val gomokuOnline = syncViewModel.gomoku
     val dotsOnline = syncViewModel.dots
@@ -570,7 +571,23 @@ fun ScoreApp(
                 )
             }
             composable("circles") {
-                CirclesScreen(players = pendingPlayerNames)
+                CirclesScreen(
+                    players = pendingPlayerNames,
+                    online = circlesOnline,
+                    onExit = { leaveToSetup() },
+                    onHostOnline = { navController.navigate("shareCircles") }
+                )
+            }
+            composable("shareCircles") {
+                ShareScreen(
+                    game = viewModel,
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    kind = ShareKind.CIRCLES,
+                    circles = circlesOnline,
+                    // La table des Ronds est l'écran du jeu, juste derrière.
+                    onHostedCircles = { navController.popBackStack() }
+                )
             }
             composable("simon") {
                 SimonScreen(
@@ -1017,6 +1034,8 @@ fun ScoreApp(
             onEmojiJoined = { navController.navigate("emoji") { popUpTo("home") } },
             simon = simonOnline,
             onSimonJoined = { navController.navigate("simon") { popUpTo("home") } },
+            circles = circlesOnline,
+            onCirclesJoined = { navController.navigate("circles") { popUpTo("home") } },
             rockPaperScissors = rockPaperScissorsOnline,
             onRockPaperScissorsJoined = { navController.navigate("pfc") { popUpTo("home") } },
             gomoku = gomokuOnline,

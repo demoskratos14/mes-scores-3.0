@@ -339,7 +339,7 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
-    // Ronds : écran à part (voir CirclesScreen), seul ou jusqu'à huit joueurs sur un téléphone qu'on se passe ; le mode de score n'est pas utilisé.
+    // Ronds : écran à part (voir CirclesScreen), seul ou jusqu'à huit joueurs sur un téléphone qu'on se passe, ou chacun sur son téléphone (voir CirclesOnline) ; le mode de score n'est pas utilisé.
     GameRules(
         id = CIRCLES_ID,
         name = context.getString(R.string.game_circles),

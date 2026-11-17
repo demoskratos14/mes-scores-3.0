@@ -87,7 +87,7 @@ internal fun nearbyPermissions(sdk: Int): List<String> = when {
 }
 
 /** Ce que l'écran de partage organise. */
-internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, SIMON, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
+internal enum class ShareKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, SIMON, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS, CIRCLES }
 
 private const val MAX_NAME_LENGTH = 24
 private const val ACTION_HOST = "host"
@@ -122,6 +122,8 @@ internal fun ShareScreen(
     onHostedEmoji: () -> Unit = {},
     simon: SimonOnline? = null,
     onHostedSimon: () -> Unit = {},
+    circles: CirclesOnline? = null,
+    onHostedCircles: () -> Unit = {},
     rockPaperScissors: RockPaperScissorsOnline? = null,
     onHostedRockPaperScissors: () -> Unit = {},
     // Le Gomoku et la Pipopipette (ShareKind.GOMOKU ou DOTS) : la table du jeu à organiser.
@@ -194,6 +196,11 @@ internal fun ShareScreen(
                 session.startHostingSimon(deviceName)
                 simon.openLobby(deviceName)
                 onHostedSimon()
+            }
+            kind == ShareKind.CIRCLES && circles != null -> {
+                session.startHostingCircles(deviceName)
+                circles.openLobby(deviceName)
+                onHostedCircles()
             }
             kind == ShareKind.PFC && rockPaperScissors != null -> {
                 session.startHostingRockPaperScissors(deviceName)
@@ -424,6 +431,8 @@ internal fun SyncEffects(
     onEmojiJoined: () -> Unit,
     simon: SimonOnline,
     onSimonJoined: () -> Unit,
+    circles: CirclesOnline,
+    onCirclesJoined: () -> Unit,
     rockPaperScissors: RockPaperScissorsOnline,
     onRockPaperScissorsJoined: () -> Unit,
     gomoku: DuoOnline<GomokuMatch>,
@@ -485,6 +494,11 @@ internal fun SyncEffects(
         if (simon.joined == 0 || simon.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup" || current == "shareSimon") onSimonJoined()
+    }
+    LaunchedEffect(circles.joined) {
+        if (circles.joined == 0 || circles.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "shareCircles") onCirclesJoined()
     }
     LaunchedEffect(rockPaperScissors.joined) {
         if (rockPaperScissors.joined == 0 || rockPaperScissors.isHost) return@LaunchedEffect

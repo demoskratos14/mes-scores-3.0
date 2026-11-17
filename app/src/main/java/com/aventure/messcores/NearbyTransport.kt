@@ -150,6 +150,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Simon chacun sur son téléphone, sur la même connexion. */
     internal val simon = SimonOnline(session)
 
+    /** Ronds chacun sur son téléphone, sur la même connexion. */
+    internal val circles = CirclesOnline(session)
+
     /** Pierre-feuille-ciseaux chacun sur son téléphone, sur la même connexion. */
     internal val rockPaperScissors = RockPaperScissorsOnline(session)
 

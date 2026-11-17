@@ -501,7 +501,6 @@ private fun lookOf(game: MinesweeperGame, col: Int, row: Int): Int {
  * Le plateau : une case par composable (TalkBack lit chacune et peut la dévoiler ou la marquer), et un geste du doigt sur tout
  * le plateau, qui retrouve la case touchée. [revision] change à chaque action pour redessiner le plateau.
  */
-@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun MinesweeperBoard(
     game: MinesweeperGame,
@@ -517,6 +516,11 @@ private fun MinesweeperBoard(
     val flagLabel = stringResource(R.string.minesweeper_mode_flag)
     val tapLabel = if (flagMode) flagLabel else revealLabel
     val longLabel = if (flagMode) revealLabel else flagLabel
+    // Les cases ne sont pas un état Compose : on relit leur aspect à chaque [revision]. Le paramètre doit être réellement lu ici,
+    // sinon le compilateur Compose ignore son changement et le plateau ne se redessine pas après un geste.
+    val looks = remember(revision, game) {
+        IntArray(game.cols * game.rows) { lookOf(game, it % game.cols, it / game.cols) }
+    }
 
     Column(
         modifier = Modifier
@@ -542,7 +546,7 @@ private fun MinesweeperBoard(
         for (r in 0 until game.rows) {
             Row {
                 for (c in 0 until game.cols) {
-                    val look = lookOf(game, c, r)
+                    val look = looks[r * game.cols + c]
                     MineCell(
                         look = look,
                         count = if (look == LOOK_OPEN) game.adjacentMines(c, r) else 0,

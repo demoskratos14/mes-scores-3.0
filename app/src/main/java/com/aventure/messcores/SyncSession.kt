@@ -14,8 +14,8 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 
 internal enum class SyncRole { NONE, HOST, GUEST }
 
-/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des dames, un Othello, un Pendu ou des échecs chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, SIMON, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS }
+/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des Ronds, des dames, un Othello, un Pendu ou des échecs chacun sur son téléphone. */
+internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, SIMON, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS, CIRCLES }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -123,6 +123,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Le Simon chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var simon: SimonOnline? = null
+
+    /** Les Ronds chacun sur son téléphone, qui reçoivent leurs messages et les événements de connexion. */
+    var circles: CirclesOnline? = null
 
     /** Pierre-feuille-ciseaux chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var rockPaperScissors: RockPaperScissorsOnline? = null
@@ -335,6 +338,15 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         transport.startHosting(deviceName)
     }
 
+    /** Annonce des Ronds chacun sur son téléphone : les autres joueurs les rejoignent comme une partie de score. */
+    fun startHostingCircles(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.CIRCLES
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
     /** Annonce un Pierre-feuille-ciseaux chacun sur son téléphone : l'autre joueur le rejoint comme une partie de score. */
     fun startHostingRockPaperScissors(deviceName: String) {
         reset()
@@ -523,6 +535,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         reflex?.onPeerConnected(id)
         emoji?.onPeerConnected(id)
         simon?.onPeerConnected(id)
+        circles?.onPeerConnected(id)
         rockPaperScissors?.onPeerConnected(id)
         draughts?.onPeerConnected(id)
         othello?.onPeerConnected(id)
@@ -554,6 +567,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         reflex?.onPeerDisconnected(id)
         emoji?.onPeerDisconnected(id)
         simon?.onPeerDisconnected(id)
+        circles?.onPeerDisconnected(id)
         rockPaperScissors?.onPeerDisconnected(id)
         draughts?.onPeerDisconnected(id)
         othello?.onPeerDisconnected(id)
@@ -609,6 +623,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.SimonMsg -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.SIMON
                 simon?.onMessage(id, message.simon)
+            }
+            is SyncMessage.CirclesMsg -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.CIRCLES
+                circles?.onMessage(id, message.circles)
             }
             is SyncMessage.Rps -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.PFC

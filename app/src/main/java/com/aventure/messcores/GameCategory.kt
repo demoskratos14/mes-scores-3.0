@@ -61,10 +61,10 @@ fun GameRules.hasScoreSheet(): Boolean =
     id != MASTERMIND_ID && id != MORPION_ID && id != CONNECT4_ID && id != BATTLESHIP_ID && id != NIM_ID && id != PFC_ID && id != REFLEX_ID && id != EMOJI_ID && id != CIRCLES_ID && id != SIMON_ID && id != RHYTHM_ID && id != TETRIS_ID && id != BREAKOUT_ID && id != ASTEROIDS_ID && id != INVADERS_ID && id != SHMUP_ID && id != XONIX_ID && id != SNAKE_ID && id != BUBBLE_ID && id != MINESWEEPER_ID && id != PANCAKE_ID && id != DRIVE_ID &&
         id != GOMOKU_ID && id != DOTS_ID && id != DRAUGHTS_ID && id != OTHELLO_ID && id != HANGMAN_ID && id != CHESS_ID
 
-// Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : les Ronds, où chacun joue sa série à son tour sur le même téléphone, et les jeux d'adresse ou d'arcade qui se jouent seul.
+// Jeux jouables qui ne se partagent pas (encore) entre plusieurs téléphones : les jeux d'adresse ou d'arcade qui se jouent seul.
 // Le Huit américain (voir [HuitOnline]), Cœurs, le Président, Yaniv, Flip 7, le Domino (voir [DominoOnline]), le Uno (voir [UnoOnline]) et Skyjo Action (voir [SkyjoActionOnline]) se jouent chacun sur son téléphone : chaque invité ne reçoit que sa main.
-// Le Mastermind, le Morpion, Simon, le Duel de réflexes, le Gomoku, la Pipopipette, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
-private val SINGLE_PHONE_GAMES = setOf(RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID, CIRCLES_ID)
+// Le Mastermind, le Morpion, Simon, les Ronds (voir [CirclesOnline]), le Duel de réflexes, le Gomoku, la Pipopipette, le jeu des allumettes, les dames, l'Othello, le Pendu et les échecs ont leur table en ligne, et les jeux de dés se partagent comme leur feuille de scores (dés compris).
+private val SINGLE_PHONE_GAMES = setOf(RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID)
 
 /** Vrai si le jeu jouable peut se jouer en connectant plusieurs téléphones (deux téléphones dessinés dans la liste). */
 fun GameRules.isMultiPhone(): Boolean = isPlayableGame() && id !in SINGLE_PHONE_GAMES
