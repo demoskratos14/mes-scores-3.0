@@ -95,7 +95,13 @@ class TrioRoundTest {
         assertEquals(2, r.highIndex(1))
         assertTrue(r.flipHand(1, high = false))
         assertEquals(listOf(2, 4), r.reveals.map { it.value })
+        // 2 puis 4 : deux cartes différentes, le tour est perdu et plus rien ne se retourne.
+        assertTrue(r.mismatch)
+        assertFalse(r.flipHand(1, high = true))
+        // Le tour terminé, les cartes sont recachées et la plus grande peut être retournée.
+        assertTrue(r.endTurn())
         assertTrue(r.flipHand(1, high = true))
+        assertEquals(listOf(8), r.reveals.map { it.value })
     }
 
     @Test
