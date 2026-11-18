@@ -45,11 +45,12 @@ class SkyjoActionRoundTest {
     }
 
     @Test
-    fun laDistributionDonneDouzeCartesJusqua4JoueursEtNeufAuDela() {
+    fun laDistributionDonneToujoursDouzeCartesEnQuatreColonnes() {
         val four = SkyjoActionRound(4)
         assertTrue(four.grids.all { it.size == 12 && it.count { c -> c!!.up } == 2 })
         val five = SkyjoActionRound(5)
-        assertTrue(five.grids.all { it.size == 9 && it.count { c -> c!!.up } == 1 })
+        assertTrue(five.grids.all { it.size == 12 && it.count { c -> c!!.up } == 2 })
+        assertEquals(4, five.columns)
         assertEquals(4, four.actionRow.size)
         assertEquals(26, four.actionStock.size)
         assertEquals(1, four.discard.size)

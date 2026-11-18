@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -82,6 +83,16 @@ private const val SNAKE_PHASE_READY = 0 // on attend que le joueur lance la part
 private const val SNAKE_PHASE_PLAYING = 1 // le serpent avance
 private const val SNAKE_PHASE_OVER = 2 // le serpent s'est mordu, ou remplit le plateau : la partie est finie
 
+/** Les actions du Snake réglables à la manette : les quatre directions (croix ou stick gauche par défaut) et la pause. */
+private val SNAKE_PAD_ACTIONS = listOf(
+    padDirection("up", R.string.snake_up, horizontal = false, sign = -1),
+    padDirection("down", R.string.snake_down, horizontal = false, sign = 1),
+    padDirection("left", R.string.snake_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.snake_right, horizontal = true, sign = 1),
+    // Start met en pause, reprend, et lance une partie depuis l'écran d'accueil ou de fin.
+    PadAction("pause", R.string.snake_pad_pause, listOf(PadInput.Key(KeyEvent.KEYCODE_BUTTON_START)))
+)
+
 /** Plus long temps d'une image pris en compte : après un à-coup, le serpent ne doit pas sauter plusieurs cases d'un coup. */
 private const val MAX_FRAME_MS = 100L
 
@@ -123,6 +134,8 @@ internal fun SnakeScreen(players: List<String>) {
     val game = rememberSaveable(saver = SnakeGameSaver) { SnakeGame() }
     var phase by rememberSaveable { mutableIntStateOf(SNAKE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
+    // Vrai pendant que le réglage de la manette est affiché à la place de l'écran d'accueil ou de fin.
+    var showPad by remember { mutableStateOf(false) }
     // Nombre de plateaux remplis : à chaque hausse, la pluie de paillettes tombe.
     var cleared by rememberSaveable { mutableIntStateOf(game.boardsCleared) }
     val record = rememberSoloRecord(SNAKE_ID)
@@ -147,8 +160,34 @@ internal fun SnakeScreen(players: List<String>) {
         phase = SNAKE_PHASE_PLAYING
     }
 
+    // La manette : les directions tournent le serpent ; Start met en pause, reprend ou lance la partie.
+    GamepadListener { input ->
+        val action = GamepadBindings.resolve(context, SNAKE_ID, SNAKE_PAD_ACTIONS, input)
+        val dir = when (action) {
+            "up" -> SnakeDir.UP
+            "down" -> SnakeDir.DOWN
+            "left" -> SnakeDir.LEFT
+            "right" -> SnakeDir.RIGHT
+            else -> null
+        }
+        when {
+            dir != null -> {
+                if (phase == SNAKE_PHASE_PLAYING && !paused && !game.isOver) game.turn(dir)
+                // Hors partie, les directions restent libres de déplacer le focus entre les boutons.
+                phase == SNAKE_PHASE_PLAYING
+            }
+            action == "pause" -> {
+                if (phase == SNAKE_PHASE_PLAYING) paused = !paused else startGame()
+                true
+            }
+            else -> false
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        when (phase) {
+        when {
+            showPad -> SnakeCard { GamepadSettings(SNAKE_ID, SNAKE_PAD_ACTIONS) { showPad = false } }
+            else -> when (phase) {
             SNAKE_PHASE_PLAYING -> SnakePlayfield(
                 game = game,
                 paused = paused,
@@ -186,6 +225,9 @@ internal fun SnakeScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.snake_play_again))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
             }
             else -> SnakeCard {
                 Text(
@@ -203,6 +245,10 @@ internal fun SnakeScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.snake_go))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
+            }
             }
         }
         RecordSparkles(record)

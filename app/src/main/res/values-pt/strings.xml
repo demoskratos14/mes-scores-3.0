@@ -2722,7 +2722,7 @@
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>
     <string name="rules_skyjoa_1_title">Objetivo do jogo</string>
-    <string name="rules_skyjoa_1_body">Como no Skyjo: fazer o menor número de pontos possível. Cada jogador tem uma grelha de cartas viradas para baixo (12 cartas, ou 9 a partir de 5 jogadores), das quais 2 (1 a partir de 5 jogadores) são viradas no início. O jogo termina quando um jogador chega a 100 pontos ou mais: ganha o total mais baixo.</string>
+    <string name="rules_skyjoa_1_body">Como no Skyjo: fazer o menor número de pontos possível. Cada jogador tem uma grelha de cartas viradas para baixo (12 cartas), das quais 2 são viradas no início. O jogo termina quando um jogador chega a 100 pontos ou mais: ganha o total mais baixo.</string>
     <string name="rules_skyjoa_2_title">A vez de jogar</string>
     <string name="rules_skyjoa_2_body">Na sua vez, o jogador faz apenas uma destas ações: comprar uma carta e trocá-la por uma da sua grelha (a antiga vai para o descarte), ou descartá-la e virar uma carta escondida; pegar a última carta do descarte e trocá-la; pegar uma carta de ação (uma das 4 visíveis ou a primeira do baralho de ação); jogar ou descartar uma carta de ação que já tem (não a que acabou de pegar). Uma coluna de 3 cartas iguais visíveis, ou uma linha completa de cartas iguais, é retirada da grelha; a estrela é um curinga para estas linhas. Colocar ou virar uma estrela permite pegar uma carta de ação.</string>
     <string name="rules_skyjoa_3_title">As cartas de ação</string>
@@ -3030,4 +3030,19 @@
     <string name="trio_win_most">Todos os trios foram tirados: %1$s tem mais.</string>
     <string name="trio_win_none">Todos os trios foram tirados e há empate: ninguém marca.</string>
     <string name="trio_trios_title">Trios ganhos</string>
+    <!-- Manette -->
+    <string name="snake_pad_pause">Pausa / Iniciar</string>
+    <string name="gamepad_title">Comando</string>
+    <string name="gamepad_none">Nenhum comando detetado. Liga-o por Bluetooth nas definições do telemóvel.</string>
+    <string name="gamepad_connected">Comando detetado: %1$s</string>
+    <string name="gamepad_change">Mudar</string>
+    <string name="gamepad_press">Prime um botão ou inclina um stick…</string>
+    <string name="gamepad_cancel">Cancelar</string>
+    <string name="gamepad_reset">Repor tudo</string>
+    <string name="gamepad_close">Fechar</string>
+    <string name="gamepad_left">esquerdo</string>
+    <string name="gamepad_right">direito</string>
+    <string name="gamepad_dpad">Cruzeta %1$s</string>
+    <string name="gamepad_stick">Stick %1$s %2$s</string>
+    <string name="gamepad_stick_click">Clique do stick %1$s</string>
 </resources>

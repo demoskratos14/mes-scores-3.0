@@ -2732,7 +2732,7 @@
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>
     <string name="rules_skyjoa_1_title">Obiettivo del gioco</string>
-    <string name="rules_skyjoa_1_body">Come nello Skyjo: totalizzare meno punti possibile. Ogni giocatore ha una griglia di carte coperte (12 carte, oppure 9 da 5 giocatori in su), di cui 2 (1 da 5 giocatori in su) scoperte all’inizio. La partita finisce quando un giocatore raggiunge 100 punti o più: vince il totale più basso.</string>
+    <string name="rules_skyjoa_1_body">Come nello Skyjo: totalizzare meno punti possibile. Ogni giocatore ha una griglia di carte coperte (12 carte), di cui 2 scoperte all’inizio. La partita finisce quando un giocatore raggiunge 100 punti o più: vince il totale più basso.</string>
     <string name="rules_skyjoa_2_title">Il turno</string>
     <string name="rules_skyjoa_2_body">Al proprio turno si fa una sola di queste azioni: pescare una carta e scambiarla con una della propria griglia (la vecchia va negli scarti), oppure scartarla e scoprire una carta coperta; prendere l’ultima carta degli scarti e scambiarla; prendere una carta azione (una delle 4 scoperte o la prima del mazzo azione); giocare o scartare una carta azione già in mano (non quella appena presa). Una colonna di 3 carte identiche scoperte, o una riga completa di carte identiche, viene tolta dalla griglia; la stella è un jolly per queste linee. Mettere o scoprire una stella permette di prendere una carta azione.</string>
     <string name="rules_skyjoa_3_title">Le carte azione</string>
@@ -3040,4 +3040,19 @@
     <string name="trio_win_most">Tutti i tris sono stati presi: %1$s ne ha di più.</string>
     <string name="trio_win_none">Tutti i tris sono stati presi e due giocatori sono pari: nessuno segna.</string>
     <string name="trio_trios_title">Tris vinti</string>
+    <!-- Manette -->
+    <string name="snake_pad_pause">Pausa / Avvia</string>
+    <string name="gamepad_title">Controller</string>
+    <string name="gamepad_none">Nessun controller rilevato. Collegalo via Bluetooth nelle impostazioni del telefono.</string>
+    <string name="gamepad_connected">Controller rilevato: %1$s</string>
+    <string name="gamepad_change">Cambia</string>
+    <string name="gamepad_press">Premi un pulsante o inclina uno stick…</string>
+    <string name="gamepad_cancel">Annulla</string>
+    <string name="gamepad_reset">Ripristina tutto</string>
+    <string name="gamepad_close">Chiudi</string>
+    <string name="gamepad_left">sinistro</string>
+    <string name="gamepad_right">destro</string>
+    <string name="gamepad_dpad">Croce %1$s</string>
+    <string name="gamepad_stick">Stick %1$s %2$s</string>
+    <string name="gamepad_stick_click">Clic dello stick %1$s</string>
 </resources>

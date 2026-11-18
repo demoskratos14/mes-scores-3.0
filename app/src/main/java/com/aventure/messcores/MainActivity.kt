@@ -3,6 +3,8 @@ package com.aventure.messcores
 import androidx.compose.ui.res.stringResource
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.MotionEvent
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -41,6 +43,14 @@ import androidx.navigation.navArgument
 // AppCompatActivity (et non ComponentActivity) : c'est ce qui permet à AppCompatDelegate.setApplicationLocales
 // de changer la langue de l'appli depuis le bouton drapeau sur Android 12 et moins.
 class MainActivity : AppCompatActivity() {
+
+    // Les boutons et sticks d'une manette (Switch, Xbox…) sont transmis à l'écran de jeu qui les écoute.
+    // Sans écouteur, ou pour toute autre touche, l'événement suit son cours normal.
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        GamepadHub.onKey(event) || super.dispatchKeyEvent(event)
+
+    override fun dispatchGenericMotionEvent(ev: MotionEvent): Boolean =
+        GamepadHub.onMotion(ev) || super.dispatchGenericMotionEvent(ev)
 
     // Même instance que celle récupérée par viewModel() dans ScoreApp (même Activity, même clé).
     private val scoreViewModel: ScoreViewModel by viewModels()

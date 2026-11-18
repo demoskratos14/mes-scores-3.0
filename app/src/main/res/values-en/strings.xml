@@ -2691,7 +2691,7 @@
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>
     <string name="rules_skyjoa_1_title">Goal of the game</string>
-    <string name="rules_skyjoa_1_body">As in Skyjo: score as few points as possible. Each player has a grid of face-down cards (12 cards, or 9 from 5 players up), of which 2 (1 from 5 players up) are turned up at the start. The game ends when a player reaches 100 points or more: the lowest total wins.</string>
+    <string name="rules_skyjoa_1_body">As in Skyjo: score as few points as possible. Each player has a grid of face-down cards (12 cards), of which 2 are turned up at the start. The game ends when a player reaches 100 points or more: the lowest total wins.</string>
     <string name="rules_skyjoa_2_title">A turn</string>
     <string name="rules_skyjoa_2_body">On your turn you do just one of these: draw a card and swap it with a card in your grid (the old card goes to the discard pile), or discard it and turn a face-down card up; take the top discard and swap it in; take an action card (one of the 4 face-up ones or the top of the action deck); play or discard an action card you already hold (not the one you just took). A column of 3 identical face-up cards, or a complete row of identical cards, is removed from the grid; the star is a wild card for these lines. Placing or turning up a star lets you take an action card.</string>
     <string name="rules_skyjoa_3_title">The action cards</string>
@@ -2998,4 +2998,19 @@
     <string name="trio_win_most">Every trio is taken: %1$s has the most.</string>
     <string name="trio_win_none">Every trio is taken and two players are tied: nobody scores.</string>
     <string name="trio_trios_title">Trios won</string>
+    <!-- Manette -->
+    <string name="snake_pad_pause">Pause / Start</string>
+    <string name="gamepad_title">Controller</string>
+    <string name="gamepad_none">No controller detected. Connect it over Bluetooth in the phone settings.</string>
+    <string name="gamepad_connected">Controller detected: %1$s</string>
+    <string name="gamepad_change">Change</string>
+    <string name="gamepad_press">Press a button or tilt a stick…</string>
+    <string name="gamepad_cancel">Cancel</string>
+    <string name="gamepad_reset">Reset all</string>
+    <string name="gamepad_close">Close</string>
+    <string name="gamepad_left">left</string>
+    <string name="gamepad_right">right</string>
+    <string name="gamepad_dpad">D-pad %1$s</string>
+    <string name="gamepad_stick">%1$s stick %2$s</string>
+    <string name="gamepad_stick_click">%1$s stick click</string>
 </resources>

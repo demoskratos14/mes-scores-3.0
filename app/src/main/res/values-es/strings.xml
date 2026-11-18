@@ -2722,7 +2722,7 @@
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>
     <string name="rules_skyjoa_1_title">Objetivo del juego</string>
-    <string name="rules_skyjoa_1_body">Como en el Skyjo: sumar el menor número de puntos posible. Cada jugador tiene una cuadrícula de cartas boca abajo (12 cartas, o 9 a partir de 5 jugadores), de las cuales 2 (1 a partir de 5 jugadores) se descubren al empezar. La partida termina cuando un jugador llega a 100 puntos o más: gana el total más bajo.</string>
+    <string name="rules_skyjoa_1_body">Como en el Skyjo: sumar el menor número de puntos posible. Cada jugador tiene una cuadrícula de cartas boca abajo (12 cartas), de las cuales 2 se descubren al empezar. La partida termina cuando un jugador llega a 100 puntos o más: gana el total más bajo.</string>
     <string name="rules_skyjoa_2_title">El turno</string>
     <string name="rules_skyjoa_2_body">En su turno, cada jugador hace una sola de estas acciones: robar una carta y cambiarla por una de su cuadrícula (la antigua va al descarte), o descartarla y descubrir una carta oculta; coger la última carta del descarte y cambiarla; coger una carta de acción (una de las 4 visibles o la primera del mazo de acción); jugar o descartar una carta de acción que ya tiene (no la que acaba de coger). Una columna de 3 cartas idénticas visibles, o una fila completa de cartas idénticas, se retira de la cuadrícula; la estrella es un comodín para estas líneas. Colocar o descubrir una estrella permite coger una carta de acción.</string>
     <string name="rules_skyjoa_3_title">Las cartas de acción</string>
@@ -3030,4 +3030,19 @@
     <string name="trio_win_most">Se han agotado todos los tríos: %1$s tiene más.</string>
     <string name="trio_win_none">Se han agotado todos los tríos y hay empate: nadie puntúa.</string>
     <string name="trio_trios_title">Tríos ganados</string>
+    <!-- Manette -->
+    <string name="snake_pad_pause">Pausa / Empezar</string>
+    <string name="gamepad_title">Mando</string>
+    <string name="gamepad_none">No se detecta ningún mando. Conéctalo por Bluetooth en los ajustes del teléfono.</string>
+    <string name="gamepad_connected">Mando detectado: %1$s</string>
+    <string name="gamepad_change">Cambiar</string>
+    <string name="gamepad_press">Pulsa un botón o inclina un stick…</string>
+    <string name="gamepad_cancel">Cancelar</string>
+    <string name="gamepad_reset">Restablecer todo</string>
+    <string name="gamepad_close">Cerrar</string>
+    <string name="gamepad_left">izquierdo</string>
+    <string name="gamepad_right">derecho</string>
+    <string name="gamepad_dpad">Cruceta %1$s</string>
+    <string name="gamepad_stick">Stick %1$s %2$s</string>
+    <string name="gamepad_stick_click">Clic del stick %1$s</string>
 </resources>
