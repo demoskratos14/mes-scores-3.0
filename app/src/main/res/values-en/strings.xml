@@ -2950,7 +2950,7 @@
     <string name="tarot_trick_won">%1$s wins the trick.</string>
     <string name="tarot_discard_pick" tools:ignore="PluralsCandidate">Discard %1$d cards: no kings, no oudlers, and no trumps while you have anything else.</string>
     <string name="tarot_discard_none">No dog to take: no discard. You can announce a slam before starting.</string>
-    <string name="tarot_discard_count">%1$d / %2$d cards chosen</string>
+    <string name="tarot_discard_count" tools:ignore="PluralsCandidate">%1$d / %2$d cards chosen</string>
     <string name="tarot_discard_confirm">Discard these cards</string>
     <string name="tarot_start_play">Start playing</string>
     <string name="tarot_discard_refused">Discard refused: no kings, no oudlers, and no trumps while you have other cards.</string>
@@ -2959,7 +2959,7 @@
     <string name="tarot_play_hint">Tap a card to see it larger, then tap it again (or “Play”) to play it. Follow suit; if you cannot, play a trump, higher than the trick’s trumps if you can; the Excuse can be played any time.</string>
     <string name="tarot_not_playable">This card cannot be played: follow suit; without it, play a trump (higher than the trick’s trumps if you can); without trumps, play anything.</string>
     <string name="tarot_handful_button">Show a handful (%1$s)</string>
-    <string name="tarot_result_points">%1$s scored %2$d points with %3$s (contract: %4$d).</string>
+    <string name="tarot_result_points" tools:ignore="PluralsCandidate">%1$s scored %2$d points with %3$s (contract: %4$d).</string>
     <string name="tarot_result_petit">Petit au bout: %1$s</string>
     <string name="tarot_result_handful">Handfuls: %1$s</string>
     <string name="tarot_delta_line">%1$s: %2$s</string>
