@@ -2906,7 +2906,7 @@
     <string name="ohhell_tally_title">Apuestas y bazas ganadas</string>
     <string name="ohhell_bid_made">%1$s apuesta %2$d</string>
     <string name="ohhell_bid_pending">%1$s: aún sin apostar</string>
-    <string name="ohhell_bids_total">Total de las apuestas: %1$d para %2$d bazas</string>
+    <string name="ohhell_bids_total">Total de las apuestas: %1$d (bazas por ganar: %2$d)</string>
     <string name="ohhell_bid_line">%1$s: apuesta %2$d, bazas ganadas %3$d</string>
     <string name="ohhell_bid_hint">¿Cuántas bazas vas a hacer? El repartidor apuesta el último y no puede apostar el número que haría que el total de las apuestas sea igual al número de bazas.</string>
     <string name="ohhell_bid_choose">Elige tu apuesta</string>
@@ -2915,5 +2915,5 @@
     <string name="ohhell_hint">Sigue el palo pedido si puedes; si no, juega lo que quieras (un triunfo gana a los demás palos). El triunfo más alto, o si no la carta más alta del palo pedido, gana la baza.</string>
     <string name="ohhell_not_playable">Esa carta no se puede jugar: tienes que seguir el palo pedido si lo tienes.</string>
     <string name="ohhell_trick_won">%1$s se lleva la baza.</string>
-    <string name="ohhell_result_line">%1$s: apuesta %2$d, bazas %3$d → %4$+d puntos</string>
+    <string name="ohhell_result_line">%1$s: apuesta %2$d, bazas %3$d → puntuación %4$+d</string>
 </resources>

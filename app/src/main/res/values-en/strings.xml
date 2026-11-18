@@ -2874,7 +2874,7 @@
     <string name="ohhell_tally_title">Bids and tricks won</string>
     <string name="ohhell_bid_made">%1$s bids %2$d</string>
     <string name="ohhell_bid_pending">%1$s: no bid yet</string>
-    <string name="ohhell_bids_total">Total of the bids: %1$d for %2$d tricks</string>
+    <string name="ohhell_bids_total">Total of the bids: %1$d (tricks to win: %2$d)</string>
     <string name="ohhell_bid_line">%1$s: bid %2$d, tricks won %3$d</string>
     <string name="ohhell_bid_hint">How many tricks will you take? The dealer bids last and cannot bid the number that would make the total of the bids equal the number of tricks.</string>
     <string name="ohhell_bid_choose">Choose your bid</string>
@@ -2883,5 +2883,5 @@
     <string name="ohhell_hint">Follow the suit led if you can; otherwise play anything you like (a trump beats the other suits). The highest trump, or failing that the highest card of the suit led, wins the trick.</string>
     <string name="ohhell_not_playable">That card cannot be played: you must follow the suit led if you have it.</string>
     <string name="ohhell_trick_won">%1$s wins the trick.</string>
-    <string name="ohhell_result_line">%1$s: bid %2$d, tricks %3$d → %4$+d points</string>
+    <string name="ohhell_result_line">%1$s: bid %2$d, tricks %3$d → score %4$+d</string>
 </resources>

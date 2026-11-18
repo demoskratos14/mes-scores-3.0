@@ -2923,7 +2923,7 @@
     <string name="ohhell_tally_title">Annonces et plis réalisés</string>
     <string name="ohhell_bid_made">%1$s annonce %2$d</string>
     <string name="ohhell_bid_pending">%1$s : pas encore annoncé</string>
-    <string name="ohhell_bids_total">Total des annonces : %1$d pour %2$d plis</string>
+    <string name="ohhell_bids_total">Total des annonces : %1$d (plis à faire : %2$d)</string>
     <string name="ohhell_bid_line">%1$s : annonce %2$d, plis réalisés %3$d</string>
     <string name="ohhell_bid_hint">Combien de plis vas-tu faire ? Le donneur annonce en dernier et ne peut pas annoncer le nombre qui ferait que le total des annonces égale le nombre de plis.</string>
     <string name="ohhell_bid_choose">Choisis ton annonce</string>
@@ -2932,5 +2932,5 @@
     <string name="ohhell_hint">Fournis la couleur demandée si tu le peux ; sinon pose ce que tu veux (un atout bat les autres couleurs). Le plus gros atout, ou à défaut la plus forte carte de la couleur demandée, ramasse le pli.</string>
     <string name="ohhell_not_playable">Cette carte ne peut pas être jouée : tu dois fournir la couleur demandée si tu en as.</string>
     <string name="ohhell_trick_won">%1$s ramasse le pli.</string>
-    <string name="ohhell_result_line">%1$s : annonce %2$d, plis %3$d → %4$+d points</string>
+    <string name="ohhell_result_line">%1$s : annonce %2$d, plis %3$d → score %4$+d</string>
 </resources>

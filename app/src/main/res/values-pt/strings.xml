@@ -2906,7 +2906,7 @@
     <string name="ohhell_tally_title">Licitações e vazas ganhas</string>
     <string name="ohhell_bid_made">%1$s licita %2$d</string>
     <string name="ohhell_bid_pending">%1$s: ainda não licitou</string>
-    <string name="ohhell_bids_total">Total das licitações: %1$d para %2$d vazas</string>
+    <string name="ohhell_bids_total">Total das licitações: %1$d (vazas a ganhar: %2$d)</string>
     <string name="ohhell_bid_line">%1$s: licitou %2$d, vazas ganhas %3$d</string>
     <string name="ohhell_bid_hint">Quantas vazas vais fazer? O dador licita em último e não pode licitar o número que faria o total das licitações igual ao número de vazas.</string>
     <string name="ohhell_bid_choose">Escolhe a tua licitação</string>
@@ -2915,5 +2915,5 @@
     <string name="ohhell_hint">Assiste ao naipe jogado se puderes; caso contrário, joga o que quiseres (um trunfo ganha aos outros naipes). O trunfo mais alto, ou na falta dele a carta mais alta do naipe jogado, ganha a vaza.</string>
     <string name="ohhell_not_playable">Essa carta não pode ser jogada: tens de assistir ao naipe jogado se o tiveres.</string>
     <string name="ohhell_trick_won">%1$s ganha a vaza.</string>
-    <string name="ohhell_result_line">%1$s: licitou %2$d, vazas %3$d → %4$+d pontos</string>
+    <string name="ohhell_result_line">%1$s: licitou %2$d, vazas %3$d → pontuação %4$+d</string>
 </resources>

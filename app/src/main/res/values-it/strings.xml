@@ -2916,7 +2916,7 @@
     <string name="ohhell_tally_title">Annunci e prese realizzate</string>
     <string name="ohhell_bid_made">%1$s annuncia %2$d</string>
     <string name="ohhell_bid_pending">%1$s: non ha ancora annunciato</string>
-    <string name="ohhell_bids_total">Totale degli annunci: %1$d per %2$d prese</string>
+    <string name="ohhell_bids_total">Totale degli annunci: %1$d (prese da fare: %2$d)</string>
     <string name="ohhell_bid_line">%1$s: annuncio %2$d, prese realizzate %3$d</string>
     <string name="ohhell_bid_hint">Quante prese farai? Il mazziere annuncia per ultimo e non può annunciare il numero che farebbe coincidere il totale degli annunci con il numero di prese.</string>
     <string name="ohhell_bid_choose">Scegli il tuo annuncio</string>
@@ -2925,5 +2925,5 @@
     <string name="ohhell_hint">Rispondi al seme richiesto se puoi; altrimenti gioca ciò che vuoi (una briscola batte gli altri semi). La briscola più alta, o in mancanza la carta più alta del seme richiesto, vince la presa.</string>
     <string name="ohhell_not_playable">Questa carta non può essere giocata: devi rispondere al seme richiesto se ce l’hai.</string>
     <string name="ohhell_trick_won">%1$s vince la presa.</string>
-    <string name="ohhell_result_line">%1$s: annuncio %2$d, prese %3$d → %4$+d punti</string>
+    <string name="ohhell_result_line">%1$s: annuncio %2$d, prese %3$d → punteggio %4$+d</string>
 </resources>
