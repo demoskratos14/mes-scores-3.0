@@ -106,6 +106,9 @@ internal sealed interface SyncMessage {
     /** Un message de Cœurs chacun sur son téléphone, sur la connexion de la feuille de scores (voir [HeartsOnline]). */
     data class Hearts(val hearts: HeartsMsg) : SyncMessage
 
+    /** Un message de Barbu chacun sur son téléphone, sur la connexion de la feuille de scores (voir [BarbuOnline]). */
+    data class Barbu(val barbu: BarbuMsg) : SyncMessage
+
     /** Un message du Uno chacun sur son téléphone, sur la connexion de la feuille de scores (voir [UnoOnline]). */
     data class UnoMsg(val uno: UnoMessage) : SyncMessage
 
@@ -235,6 +238,7 @@ internal object SyncCodec {
             is SyncMessage.Chess -> json.put("t", "chess").put("chess", message.chess.toJson())
             is SyncMessage.Pres -> json.put("t", "pres").put("pres", message.pres.toJson())
             is SyncMessage.Hearts -> json.put("t", "hearts").put("hearts", message.hearts.toJson())
+            is SyncMessage.Barbu -> json.put("t", "barbu").put("barbu", message.barbu.toJson())
             is SyncMessage.UnoMsg -> json.put("t", "uno").put("uno", message.uno.toJson())
             is SyncMessage.HuitMsg -> json.put("t", "huit").put("huit", message.huit.toJson())
             is SyncMessage.YanivMsg -> json.put("t", "yaniv").put("yaniv", message.yaniv.toJson())
@@ -285,6 +289,7 @@ internal object SyncCodec {
                 "chess" -> chessMessageFromJson(json.getJSONObject("chess"))?.let { SyncMessage.Chess(it) }
                 "pres" -> presMessageFromJson(json.getJSONObject("pres"))?.let { SyncMessage.Pres(it) }
                 "hearts" -> heartsMsgFromJson(json.getJSONObject("hearts"))?.let { SyncMessage.Hearts(it) }
+                "barbu" -> barbuMsgFromJson(json.getJSONObject("barbu"))?.let { SyncMessage.Barbu(it) }
                 "uno" -> unoMessageFromJson(json.getJSONObject("uno"))?.let { SyncMessage.UnoMsg(it) }
                 "huit" -> huitMessageFromJson(json.getJSONObject("huit"))?.let { SyncMessage.HuitMsg(it) }
                 "yaniv" -> yanivMessageFromJson(json.getJSONObject("yaniv"))?.let { SyncMessage.YanivMsg(it) }

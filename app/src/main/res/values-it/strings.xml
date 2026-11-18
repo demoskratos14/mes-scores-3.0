@@ -743,7 +743,7 @@
     <string name="rules_barbu_2_title">I contratti</string>
     <string name="rules_barbu_2_body">Niente prese: −2 per ogni presa raccolta. Niente cuori: −5 per ogni cuore raccolto. Niente regine: −10 per ogni regina raccolta. Niente re di cuori: −20 per chi lo raccoglie (il « Barbu »). Niente ultima presa: −40 per chi raccoglie l\'ultima presa. Insalata: tutte queste penalità insieme. Domino: si calano le carte come tessere del domino, e la classifica dà punti o penalità a seconda dell\'ordine in cui ci si libera delle carte.</string>
     <string name="rules_barbu_3_title">Nell\'app</string>
-    <string name="rules_barbu_3_body">Alla fine di ogni mano, inserisci nella colonna di ciascun giocatore i suoi punti (il pulsante +/− permette di inserire un punteggio negativo). I valori dei contratti variano da tavolo a tavolo: adattali al tuo.</string>
+    <string name="rules_barbu_3_body">Alla fine di ogni mano, inserisci nella colonna di ciascun giocatore i suoi punti (il pulsante +/− permette di inserire un punteggio negativo). I valori dei contratti variano da tavolo a tavolo: adattali al tuo. Nella versione giocabile, l’app distribuisce le carte, fa annunciare un contratto a ogni mano (sette per giocatore, una volta ciascuno), controlla le carte giocate e scrive i punti nella tabella, su un solo telefono o ognuno sul proprio. Al Domino, il primo a liberarsi delle carte vince 40 punti e l’ultimo ne perde 40.</string>
     <string name="rules_ohhell_1_title">Obiettivo del gioco</string>
     <string name="rules_ohhell_1_body">Realizzare esattamente il numero di prese annunciato, né più né meno. Con 52 carte, il numero di carte distribuite sale da 1 fino al massimo possibile, poi ridiscende. La partita non ha una fine automatica: giocate tutti i round previsti.</string>
     <string name="rules_ohhell_2_title">Svolgimento del turno</string>
@@ -2871,4 +2871,42 @@
     <string name="emoji_duel_stop">Interrompi la sfida</string>
     <string name="rules_emoji_5_title">Sfida su un telefono</string>
     <string name="rules_emoji_5_body">Due giocatori sullo stesso telefono appoggiato su un tavolo («Sfida in due su questo telefono»): lo schermo è diviso in due e ognuno gioca sulla sua metà con lo stesso tabellone. Il primo a vincere 5 round vince la partita. Ogni disegno sbagliato costa 1 secondo; il round è nullo se nessuno lo trova o in caso di parità esatta.</string>
+
+    <!-- Barbu jouable -->
+    <string name="barbu_contract_notricks">Niente prese (−2 per presa)</string>
+    <string name="barbu_contract_nohearts">Niente cuori (−5 per cuore)</string>
+    <string name="barbu_contract_noqueens">Niente regine (−10 per regina)</string>
+    <string name="barbu_contract_noking">Niente re di cuori (−20)</string>
+    <string name="barbu_contract_nolast">Niente ultima presa (−40)</string>
+    <string name="barbu_contract_salad">Insalata (tutte le penalità)</string>
+    <string name="barbu_contract_domino">Domino (per ordine di arrivo)</string>
+    <string name="barbu_deal">Mano %1$d di %2$d</string>
+    <string name="barbu_declarer">%1$s annuncia il contratto di questa mano.</string>
+    <string name="barbu_contract_now">%1$s ha annunciato: %2$s</string>
+    <string name="barbu_choose_hint">%1$s, annuncia il contratto di questa mano. Ogni contratto si gioca una sola volta per giocatore.</string>
+    <string name="barbu_remaining_title">Contratti ancora da annunciare</string>
+    <string name="barbu_trick_won">%1$s raccoglie la presa.</string>
+    <string name="barbu_tricks_title">Prese raccolte in questa mano</string>
+    <string name="barbu_not_playable">Questa carta non può essere giocata: rispondi al seme richiesto, se puoi.</string>
+    <string name="barbu_not_playable_domino">Questa carta non può essere posata: deve prolungare un seme già aperto (subito sopra o sotto) o aprire un seme con il valore di partenza.</string>
+    <string name="barbu_not_startable">Questo valore non può aprire il gioco: una delle sue carte è tolta dal mazzo (con 3, 5 o 6 giocatori).</string>
+    <string name="barbu_hint_tricks">Rispondi al seme richiesto, se puoi; altrimenti scarta quello che vuoi.</string>
+    <string name="barbu_hint_domino_first">Apri il gioco: il valore della carta che posi è quello da cui parte ogni seme (non un valore di cui una carta è tolta dal mazzo con 3, 5 o 6 giocatori).</string>
+    <string name="barbu_hint_domino">Posa una carta che prolunghi un seme aperto, subito sopra o sotto (l’asso sta sopra il re), oppure la carta del valore di partenza per aprire un altro seme. Se non hai carte giocabili, salti il turno.</string>
+    <string name="barbu_domino_title">Carte posate</string>
+    <string name="barbu_domino_empty">Nessuna carta è ancora stata posata.</string>
+    <string name="barbu_domino_base">Valore di partenza: %1$s</string>
+    <string name="barbu_domino_suit_closed">%1$s: non ancora aperto</string>
+    <string name="barbu_domino_suit_single">%1$s: %2$s</string>
+    <string name="barbu_domino_suit_line">%1$s: da %2$s a %3$s</string>
+    <string name="barbu_domino_skipped">Nessuna carta giocabile per %1$s: turno saltato.</string>
+    <string name="barbu_domino_order">Ordine di arrivo</string>
+    <string name="barbu_domino_place">%1$d. %2$s</string>
+    <string name="barbu_hand_sizes_title">Carte rimaste</string>
+    <string name="barbu_round_over">Mano terminata: %1$s</string>
+    <plurals name="barbu_remaining_line">
+        <item quantity="one">%1$s: %2$d contratto rimasto</item>
+        <item quantity="many">%1$s: %2$d di contratti rimasti</item>
+        <item quantity="other">%1$s: %2$d contratti rimasti</item>
+    </plurals>
 </resources>

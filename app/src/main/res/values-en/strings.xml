@@ -650,7 +650,7 @@
     <string name="rules_barbu_2_title">The contracts</string>
     <string name="rules_barbu_2_body">No tricks: −2 per trick collected. No hearts: −5 per heart collected. No queens: −10 per queen collected. No king of hearts: −20 for whoever collects it (the “Barbu”). No last trick: −40 for whoever takes the last trick. Salad: all these penalties at once. Domino: you lay your cards like dominoes, and the ranking gives points or penalties depending on the order in which players empty their hands.</string>
     <string name="rules_barbu_3_title">In the app</string>
-    <string name="rules_barbu_3_body">At the end of each deal, enter in each player’s column their points (the +/− button lets you enter a negative score). The contract values vary between tables: adapt them to yours.</string>
+    <string name="rules_barbu_3_body">At the end of each deal, enter in each player’s column their points (the +/− button lets you enter a negative score). The contract values vary between tables: adapt them to yours. In the playable version, the app deals the cards, has a contract announced at each deal (seven per player, once each), checks the cards played and writes the points to the table, on a single phone or each on their own. In Domino, the first player to empty their hand wins 40 points and the last loses 40.</string>
     <string name="rules_ohhell_1_title">Goal</string>
     <string name="rules_ohhell_1_body">Win exactly the number of tricks you bid, no more and no less. With 52 cards, the number of cards dealt goes up from 1 to the maximum possible, then back down. The game has no automatic end: play all the planned rounds.</string>
     <string name="rules_ohhell_2_title">Taking a turn</string>
@@ -2830,4 +2830,41 @@
     <string name="emoji_duel_stop">Stop the face-off</string>
     <string name="rules_emoji_5_title">Face-off on one phone</string>
     <string name="rules_emoji_5_body">Two players on the same phone lying flat (“Face-off on this phone”): the screen is split in two and each player uses their half with the same board. The first to win 5 rounds wins the game. Each wrong picture touched costs 1 second; the round is a draw if nobody finds it or on an exact tie.</string>
+
+    <!-- Barbu jouable -->
+    <string name="barbu_contract_notricks">No tricks (−2 per trick)</string>
+    <string name="barbu_contract_nohearts">No hearts (−5 per heart)</string>
+    <string name="barbu_contract_noqueens">No queens (−10 per queen)</string>
+    <string name="barbu_contract_noking">No king of hearts (−20)</string>
+    <string name="barbu_contract_nolast">No last trick (−40)</string>
+    <string name="barbu_contract_salad">Salad (all the penalties)</string>
+    <string name="barbu_contract_domino">Domino (by finishing order)</string>
+    <string name="barbu_deal">Deal %1$d of %2$d</string>
+    <string name="barbu_declarer">%1$s announces the contract for this deal.</string>
+    <string name="barbu_contract_now">%1$s announced: %2$s</string>
+    <string name="barbu_choose_hint">%1$s, announce the contract for this deal. Each contract can only be played once per player.</string>
+    <string name="barbu_remaining_title">Contracts still to announce</string>
+    <string name="barbu_trick_won">%1$s takes the trick.</string>
+    <string name="barbu_tricks_title">Tricks taken this deal</string>
+    <string name="barbu_not_playable">This card cannot be played: follow the suit led if you can.</string>
+    <string name="barbu_not_playable_domino">This card cannot be placed: it must extend a suit that is already open (just above or below) or open a suit with the starting value.</string>
+    <string name="barbu_not_startable">This value cannot open the game: one of its cards is removed from the deck (at 3, 5 or 6 players).</string>
+    <string name="barbu_hint_tricks">Follow the suit led if you can; otherwise discard anything you like.</string>
+    <string name="barbu_hint_domino_first">You open the game: the value of the card you play is the one every suit starts from (not a value with a card removed from the deck at 3, 5 or 6 players).</string>
+    <string name="barbu_hint_domino">Play a card that extends an open suit, just above or below (the ace is above the king), or the card of the starting value to open another suit. With no playable card, your turn is skipped.</string>
+    <string name="barbu_domino_title">Cards laid</string>
+    <string name="barbu_domino_empty">No card has been laid yet.</string>
+    <string name="barbu_domino_base">Starting value: %1$s</string>
+    <string name="barbu_domino_suit_closed">%1$s: not open yet</string>
+    <string name="barbu_domino_suit_single">%1$s: %2$s</string>
+    <string name="barbu_domino_suit_line">%1$s: from %2$s to %3$s</string>
+    <string name="barbu_domino_skipped">No playable card for %1$s: turn skipped.</string>
+    <string name="barbu_domino_order">Finishing order</string>
+    <string name="barbu_domino_place">%1$d. %2$s</string>
+    <string name="barbu_hand_sizes_title">Cards left</string>
+    <string name="barbu_round_over">Deal over: %1$s</string>
+    <plurals name="barbu_remaining_line">
+        <item quantity="one">%1$s: %2$d contract left</item>
+        <item quantity="other">%1$s: %2$d contracts left</item>
+    </plurals>
 </resources>

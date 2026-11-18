@@ -650,7 +650,7 @@
     <string name="rules_barbu_2_title">Los contratos</string>
     <string name="rules_barbu_2_body">Sin bazas: −2 por baza recogida. Sin corazones: −5 por corazón recogido. Sin damas: −10 por dama recogida. Sin rey de corazones: −20 para quien lo recoja (el “Barbu”). Sin última baza: −40 para quien se lleve la última baza. Ensalada: todas estas penalizaciones a la vez. Dominó: se colocan las cartas como fichas de dominó, y la clasificación da puntos o penalizaciones según el orden en que los jugadores vacían su mano.</string>
     <string name="rules_barbu_3_title">En la aplicación</string>
-    <string name="rules_barbu_3_body">Al final de cada mano, introduce en la columna de cada jugador sus puntos (el botón +/− permite introducir una puntuación negativa). Los valores de los contratos varían según la mesa: adáptalos a la tuya.</string>
+    <string name="rules_barbu_3_body">Al final de cada mano, introduce en la columna de cada jugador sus puntos (el botón +/− permite introducir una puntuación negativa). Los valores de los contratos varían según la mesa: adáptalos a la tuya. En la versión jugable, la app reparte las cartas, hace anunciar un contrato en cada reparto (siete por jugador, una vez cada uno), comprueba las cartas jugadas y anota los puntos en la tabla, en un solo teléfono o cada uno en el suyo. En el Dominó, el primero en vaciar su mano gana 40 puntos y el último pierde 40.</string>
     <string name="rules_ohhell_1_title">Objetivo</string>
     <string name="rules_ohhell_1_body">Ganar exactamente el número de bazas que has apostado, ni más ni menos. Con 52 cartas, el número de cartas repartidas sube de 1 hasta el máximo posible y luego vuelve a bajar. La partida no tiene un final automático: jugad todas las rondas previstas.</string>
     <string name="rules_ohhell_2_title">Cómo se juega un turno</string>
@@ -2861,4 +2861,42 @@
     <string name="emoji_duel_stop">Terminar el duelo</string>
     <string name="rules_emoji_5_title">Duelo en un teléfono</string>
     <string name="rules_emoji_5_body">Dos jugadores en el mismo teléfono apoyado en una mesa («Duelo de dos en este teléfono»): la pantalla se divide en dos y cada uno juega en su mitad con el mismo tablero. El primero en ganar 5 rondas gana la partida. Cada dibujo equivocado cuesta 1 segundo; la ronda es nula si nadie lo encuentra o en caso de empate exacto.</string>
+
+    <!-- Barbu jouable -->
+    <string name="barbu_contract_notricks">Sin bazas (−2 por baza)</string>
+    <string name="barbu_contract_nohearts">Sin corazones (−5 por corazón)</string>
+    <string name="barbu_contract_noqueens">Sin damas (−10 por dama)</string>
+    <string name="barbu_contract_noking">Sin rey de corazones (−20)</string>
+    <string name="barbu_contract_nolast">Sin última baza (−40)</string>
+    <string name="barbu_contract_salad">Ensalada (todas las penalizaciones)</string>
+    <string name="barbu_contract_domino">Dominó (según el orden de llegada)</string>
+    <string name="barbu_deal">Reparto %1$d de %2$d</string>
+    <string name="barbu_declarer">%1$s anuncia el contrato de este reparto.</string>
+    <string name="barbu_contract_now">%1$s ha anunciado: %2$s</string>
+    <string name="barbu_choose_hint">%1$s, anuncia el contrato de este reparto. Cada contrato solo se juega una vez por jugador.</string>
+    <string name="barbu_remaining_title">Contratos que quedan por anunciar</string>
+    <string name="barbu_trick_won">%1$s se lleva la baza.</string>
+    <string name="barbu_tricks_title">Bazas recogidas en este reparto</string>
+    <string name="barbu_not_playable">Esta carta no se puede jugar: sirve el palo que se ha jugado si puedes.</string>
+    <string name="barbu_not_playable_domino">Esta carta no se puede colocar: debe prolongar un palo ya abierto (justo por encima o por debajo) o abrir un palo con el valor de salida.</string>
+    <string name="barbu_not_startable">Este valor no puede abrir el juego: se ha retirado una de sus cartas de la baraja (con 3, 5 o 6 jugadores).</string>
+    <string name="barbu_hint_tricks">Sirve el palo que se ha jugado si puedes; si no, descarta lo que quieras.</string>
+    <string name="barbu_hint_domino_first">Abres el juego: el valor de la carta que colocas es el valor por el que empieza cada palo (no un valor del que se ha retirado una carta de la baraja con 3, 5 o 6 jugadores).</string>
+    <string name="barbu_hint_domino">Coloca una carta que prolongue un palo abierto, justo por encima o por debajo (el as está por encima del rey), o la carta del valor de salida para abrir otro palo. Si no tienes ninguna carta jugable, pierdes el turno.</string>
+    <string name="barbu_domino_title">Cartas colocadas</string>
+    <string name="barbu_domino_empty">Todavía no hay ninguna carta colocada.</string>
+    <string name="barbu_domino_base">Valor de salida: %1$s</string>
+    <string name="barbu_domino_suit_closed">%1$s: todavía no abierto</string>
+    <string name="barbu_domino_suit_single">%1$s: %2$s</string>
+    <string name="barbu_domino_suit_line">%1$s: de %2$s a %3$s</string>
+    <string name="barbu_domino_skipped">%1$s no tiene ninguna carta jugable: turno perdido.</string>
+    <string name="barbu_domino_order">Orden de llegada</string>
+    <string name="barbu_domino_place">%1$d. %2$s</string>
+    <string name="barbu_hand_sizes_title">Cartas restantes</string>
+    <string name="barbu_round_over">Reparto terminado: %1$s</string>
+    <plurals name="barbu_remaining_line">
+        <item quantity="one">%1$s: %2$d contrato restante</item>
+        <item quantity="many">%1$s: %2$d de contratos restantes</item>
+        <item quantity="other">%1$s: %2$d contratos restantes</item>
+    </plurals>
 </resources>

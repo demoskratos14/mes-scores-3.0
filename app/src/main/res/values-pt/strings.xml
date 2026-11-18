@@ -650,7 +650,7 @@
     <string name="rules_barbu_2_title">Os contratos</string>
     <string name="rules_barbu_2_body">Sem vazas: −2 por vaza recolhida. Sem copas: −5 por copa recolhida. Sem damas: −10 por dama recolhida. Sem rei de copas: −20 para quem o recolher (o “Barbu”). Sem última vaza: −40 para quem fizer a última vaza. Salada: todas estas penalizações ao mesmo tempo. Dominó: as cartas são colocadas como num dominó, e a classificação dá pontos ou penalizações consoante a ordem em que os jogadores ficam sem cartas.</string>
     <string name="rules_barbu_3_title">Na aplicação</string>
-    <string name="rules_barbu_3_body">No fim de cada mão, introduz na coluna de cada jogador os seus pontos (o botão +/− permite introduzir uma pontuação negativa). Os valores dos contratos variam consoante a mesa: adapta-os à tua.</string>
+    <string name="rules_barbu_3_body">No fim de cada mão, introduz na coluna de cada jogador os seus pontos (o botão +/− permite introduzir uma pontuação negativa). Os valores dos contratos variam consoante a mesa: adapta-os à tua. Na versão jogável, a app distribui as cartas, faz anunciar um contrato em cada distribuição (sete por jogador, uma vez cada), verifica as cartas jogadas e regista os pontos na tabela, num único telemóvel ou cada um no seu. No Dominó, o primeiro a ficar sem cartas ganha 40 pontos e o último perde 40.</string>
     <string name="rules_ohhell_1_title">Objetivo</string>
     <string name="rules_ohhell_1_body">Ganhar exatamente o número de vazas que licitaste, nem mais nem menos. Com 52 cartas, o número de cartas distribuídas sobe de 1 até ao máximo possível e depois volta a descer. O jogo não tem fim automático: joguem todas as rondas previstas.</string>
     <string name="rules_ohhell_2_title">A tua vez</string>
@@ -2861,4 +2861,42 @@
     <string name="emoji_duel_stop">Terminar o duelo</string>
     <string name="rules_emoji_5_title">Duelo num telemóvel</string>
     <string name="rules_emoji_5_body">Dois jogadores no mesmo telemóvel pousado numa mesa («Duelo a dois neste telemóvel»): o ecrã é dividido ao meio e cada um joga na sua metade com o mesmo tabuleiro. O primeiro a ganhar 5 rondas ganha o jogo. Cada desenho errado custa 1 segundo; a ronda é nula se ninguém o encontrar ou em caso de empate exato.</string>
+
+    <!-- Barbu jouable -->
+    <string name="barbu_contract_notricks">Sem vazas (−2 por vaza)</string>
+    <string name="barbu_contract_nohearts">Sem copas (−5 por copa)</string>
+    <string name="barbu_contract_noqueens">Sem damas (−10 por dama)</string>
+    <string name="barbu_contract_noking">Sem rei de copas (−20)</string>
+    <string name="barbu_contract_nolast">Sem última vaza (−40)</string>
+    <string name="barbu_contract_salad">Salada (todas as penalizações)</string>
+    <string name="barbu_contract_domino">Dominó (pela ordem de chegada)</string>
+    <string name="barbu_deal">Distribuição %1$d de %2$d</string>
+    <string name="barbu_declarer">%1$s anuncia o contrato desta distribuição.</string>
+    <string name="barbu_contract_now">%1$s anunciou: %2$s</string>
+    <string name="barbu_choose_hint">%1$s, anuncia o contrato desta distribuição. Cada contrato só se joga uma vez por jogador.</string>
+    <string name="barbu_remaining_title">Contratos que faltam anunciar</string>
+    <string name="barbu_trick_won">%1$s fica com a vaza.</string>
+    <string name="barbu_tricks_title">Vazas recolhidas nesta distribuição</string>
+    <string name="barbu_not_playable">Esta carta não pode ser jogada: assiste ao naipe jogado, se puderes.</string>
+    <string name="barbu_not_playable_domino">Esta carta não pode ser colocada: tem de prolongar um naipe já aberto (logo acima ou abaixo) ou abrir um naipe com o valor inicial.</string>
+    <string name="barbu_not_startable">Este valor não pode abrir o jogo: uma das suas cartas foi retirada do baralho (com 3, 5 ou 6 jogadores).</string>
+    <string name="barbu_hint_tricks">Assiste ao naipe jogado, se puderes; caso contrário, descarta o que quiseres.</string>
+    <string name="barbu_hint_domino_first">Abres o jogo: o valor da carta que colocas é aquele por onde cada naipe começa (não um valor de que se retirou uma carta do baralho com 3, 5 ou 6 jogadores).</string>
+    <string name="barbu_hint_domino">Coloca uma carta que prolongue um naipe aberto, logo acima ou abaixo (o ás está acima do rei), ou a carta do valor inicial para abrir outro naipe. Sem nenhuma carta jogável, perdes a vez.</string>
+    <string name="barbu_domino_title">Cartas colocadas</string>
+    <string name="barbu_domino_empty">Ainda não há nenhuma carta colocada.</string>
+    <string name="barbu_domino_base">Valor inicial: %1$s</string>
+    <string name="barbu_domino_suit_closed">%1$s: ainda não aberto</string>
+    <string name="barbu_domino_suit_single">%1$s: %2$s</string>
+    <string name="barbu_domino_suit_line">%1$s: de %2$s a %3$s</string>
+    <string name="barbu_domino_skipped">%1$s não tem nenhuma carta jogável: vez perdida.</string>
+    <string name="barbu_domino_order">Ordem de chegada</string>
+    <string name="barbu_domino_place">%1$d. %2$s</string>
+    <string name="barbu_hand_sizes_title">Cartas restantes</string>
+    <string name="barbu_round_over">Distribuição terminada: %1$s</string>
+    <plurals name="barbu_remaining_line">
+        <item quantity="one">%1$s: %2$d contrato em falta</item>
+        <item quantity="many">%1$s: %2$d de contratos em falta</item>
+        <item quantity="other">%1$s: %2$d contratos em falta</item>
+    </plurals>
 </resources>

@@ -748,7 +748,7 @@
     <string name="rules_barbu_2_title">Les contrats</string>
     <string name="rules_barbu_2_body">Pas de plis : −2 par pli ramassé. Pas de cœurs : −5 par cœur ramassé. Pas de dames : −10 par dame ramassée. Pas de roi de cœur : −20 pour celui qui le ramasse (le « Barbu »). Pas de dernier pli : −40 pour celui qui ramasse le dernier pli. Salade : toutes ces pénalités à la fois. Domino : on pose ses cartes comme des dominos, et le classement donne des points ou des pénalités selon l\'ordre dans lequel on se vide.</string>
     <string name="rules_barbu_3_title">Dans l\'appli</string>
-    <string name="rules_barbu_3_body">À la fin de chaque donne, saisis dans la colonne de chaque joueur ses points (le bouton +/− permet de saisir un score négatif). Les valeurs des contrats varient selon les tables : adapte-les à la tienne.</string>
+    <string name="rules_barbu_3_body">À la fin de chaque donne, saisis dans la colonne de chaque joueur ses points (le bouton +/− permet de saisir un score négatif). Les valeurs des contrats varient selon les tables : adapte-les à la tienne. En version jouable, l’appli distribue les cartes, fait annoncer un contrat à chaque donne (sept par joueur, une fois chacun), vérifie les cartes posées et inscrit les points au tableau, sur un seul téléphone ou chacun sur le sien. Au Domino, le premier à se vider gagne 40 points et le dernier en perd 40.</string>
     <string name="rules_ohhell_1_title">But du jeu</string>
     <string name="rules_ohhell_1_body">Réaliser exactement le nombre de plis annoncé, ni plus ni moins. Avec 52 cartes, le nombre de cartes distribuées monte de 1 jusqu\'au maximum possible, puis redescend. La partie n\'a pas de fin automatique : jouez toutes les manches prévues.</string>
     <string name="rules_ohhell_2_title">Le tour de jeu</string>
@@ -2878,4 +2878,42 @@
     <string name="emoji_duel_stop">Arrêter le duel</string>
     <string name="rules_emoji_5_title">Duel sur un téléphone</string>
     <string name="rules_emoji_5_body">À deux sur le même téléphone posé à plat (« Duel à deux sur ce téléphone ») : l’écran est coupé en deux, chacun joue sur sa moitié avec le même plateau. Le premier à 5 manches gagnées remporte la partie. Chaque mauvais dessin touché coûte 1 seconde ; la manche est nulle si personne ne trouve ou en cas d’égalité exacte.</string>
+
+    <!-- Barbu jouable -->
+    <string name="barbu_contract_notricks">Pas de plis (−2 par pli)</string>
+    <string name="barbu_contract_nohearts">Pas de cœurs (−5 par cœur)</string>
+    <string name="barbu_contract_noqueens">Pas de dames (−10 par dame)</string>
+    <string name="barbu_contract_noking">Pas de roi de cœur (−20)</string>
+    <string name="barbu_contract_nolast">Pas de dernier pli (−40)</string>
+    <string name="barbu_contract_salad">Salade (toutes les pénalités)</string>
+    <string name="barbu_contract_domino">Domino (selon l’ordre d’arrivée)</string>
+    <string name="barbu_deal">Donne %1$d sur %2$d</string>
+    <string name="barbu_declarer">%1$s annonce le contrat de cette donne.</string>
+    <string name="barbu_contract_now">%1$s a annoncé : %2$s</string>
+    <string name="barbu_choose_hint">%1$s, annonce le contrat de cette donne. Chaque contrat ne se joue qu’une fois par joueur.</string>
+    <string name="barbu_remaining_title">Contrats qu’il reste à annoncer</string>
+    <string name="barbu_trick_won">%1$s ramasse le pli.</string>
+    <string name="barbu_tricks_title">Plis ramassés cette donne</string>
+    <string name="barbu_not_playable">Cette carte ne peut pas être jouée : fournis la couleur demandée si tu le peux.</string>
+    <string name="barbu_not_playable_domino">Cette carte ne peut pas être posée : elle doit prolonger une couleur déjà ouverte (juste au-dessus ou en dessous) ou ouvrir une couleur avec la valeur de départ.</string>
+    <string name="barbu_not_startable">Cette valeur ne peut pas ouvrir le jeu : une de ses cartes est retirée du paquet (à 3, 5 ou 6 joueurs).</string>
+    <string name="barbu_hint_tricks">Fournis la couleur demandée si tu le peux ; sinon défausse ce que tu veux.</string>
+    <string name="barbu_hint_domino_first">Tu ouvres le jeu : la valeur de la carte que tu poses est celle par laquelle chaque couleur démarre (pas une valeur dont une carte est retirée du paquet à 3, 5 ou 6 joueurs).</string>
+    <string name="barbu_hint_domino">Pose une carte qui prolonge une couleur ouverte, juste au-dessus ou en dessous (l’as est au-dessus du roi), ou la carte de la valeur de départ pour ouvrir une autre couleur. Sans carte jouable, ton tour est passé.</string>
+    <string name="barbu_domino_title">Cartes posées</string>
+    <string name="barbu_domino_empty">Aucune carte n’est encore posée.</string>
+    <string name="barbu_domino_base">Valeur de départ : %1$s</string>
+    <string name="barbu_domino_suit_closed">%1$s : pas encore ouvert</string>
+    <string name="barbu_domino_suit_single">%1$s : %2$s</string>
+    <string name="barbu_domino_suit_line">%1$s : de %2$s à %3$s</string>
+    <string name="barbu_domino_skipped">Aucune carte jouable pour %1$s : tour passé.</string>
+    <string name="barbu_domino_order">Ordre d’arrivée</string>
+    <string name="barbu_domino_place">%1$d. %2$s</string>
+    <string name="barbu_hand_sizes_title">Cartes restantes</string>
+    <string name="barbu_round_over">Donne terminée : %1$s</string>
+    <plurals name="barbu_remaining_line">
+        <item quantity="one">%1$s : %2$d contrat restant</item>
+        <item quantity="many">%1$s : %2$d de contrats restants</item>
+        <item quantity="other">%1$s : %2$d contrats restants</item>
+    </plurals>
 </resources>

@@ -334,6 +334,16 @@ Même cadre que le Huit américain et Yaniv (`CardGameScreen`, `ScoresCard`, `Pa
 - **Chacun sur son téléphone** : comme Skyjo Action et Flip 7, sur la connexion du partage de la feuille de scores (`DominoOnline.kt`, messages dans `DominoProtocol.kt`, testés par `DominoOnlineTest`). L'organisateur tient la partie, chaque invité choisit sa place et envoie ses actions (`DominoRound.perform`) ; chacun ne reçoit que sa propre main, la taille des autres mains et de la pioche (les mains restantes ne sont montrées qu'à la fin de la manche).
 - **Deux téléphones dessinés** : le Domino, le Uno et Skyjo Action ne sont plus dans `SINGLE_PHONE_GAMES` (`GameCategory.kt`), ils s'affichent donc comme jeu à plusieurs téléphones dans la liste.
 
+## Barbu jouable
+
+Le Barbu (`builtin_barbu`) se joue dans l'appli, sur un seul téléphone que l'on se passe ou chacun sur le sien, comme Cœurs (`BarbuScreen`, route `barbu`, `BarbuPanel.kt`). Le moteur est dans `BarbuRound.kt` (`BarbuRound`, `BarbuScoring`, `BarbuTable`), testé par `BarbuRoundTest` et `BarbuOnlineTest`. Il garde sa feuille de scores en version « feuille de scores ».
+
+- **Partie** : 3 à 6 joueurs, 7 donnes par joueur (`BarbuScoring.totalDeals`). Le donneur (`declarer`) change à chaque donne ; il regarde sa main puis annonce un contrat qu'il n'a pas encore joué (`BarbuContract`) et ouvre le jeu. Les contrats déjà joués ne sont retenus qu'en mémoire : une partie reprise depuis le journal les remet à zéro, et elle est finie dès que les 7 donnes par joueur sont inscrites.
+- **Plis** : on fournit la couleur demandée si on le peut, sinon on défausse ce qu'on veut ; l'as est la plus forte carte ; le gagnant ramasse le pli (`collectTrick`) et ouvre le suivant. Pas de plis −2 par pli, pas de cœurs −5, pas de dames −10, pas de roi de cœur −20, pas de dernier pli −40, Salade = tout (`BarbuScoring.tricksPoints`).
+- **Domino** : la première carte posée fixe la valeur de départ, chaque couleur s'ouvre avec cette valeur puis se prolonge vers le haut et vers le bas (l'as au-dessus du roi, jamais sous le 2). Qui ne peut rien poser passe (`skipped`). Premier à se vider +40, dernier −40 (`dominoPoints`). À 3, 5 et 6 joueurs, des cartes basses sont retirées (`HeartsScoring.removedCards`) : on n'ouvre pas avec une valeur dont une couleur manque (`canStartDomino`), sinon la donne se bloquerait.
+- **Scores** : les points de la donne (négatifs permis) sont inscrits dans une ligne libre du tableau (`settle`, `writeRoundPoints`). Le total le plus élevé gagne.
+- **Plusieurs téléphones** : `BarbuOnline` / `BarbuMsg` sur la connexion de `SyncSession`, même principe que `HeartsOnline` : l'organisateur tient la partie, chaque invité choisit sa place et ne reçoit que sa main (`tableFor`) ; le donneur invité annonce son contrat (`Choose`), joue (`Play`) et ramasse ses plis (`Collect`).
+
 ## Couleurs des joueurs et mode daltonien
 
 Chaque joueur a une couleur, tirée au sort ou choisie en touchant son nom (écran de départ, tableaux, Tarot, compteurs). Une couleur déjà prise ne peut pas être reprise : la palette (`PLAYER_COLOR_PALETTE`) compte toujours plus de couleurs que le nombre maximal de joueurs (12). Le mode daltonien (réglage de l'écran d'accueil, mémorisé) inscrit un petit code (A, B, C…) sur chaque couleur.
