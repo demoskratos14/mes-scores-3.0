@@ -36,8 +36,8 @@ class TrioRoundTest {
 
     @Test
     fun lesNumerosLiesSontCeuxDesCartes() {
-        assertEquals(listOf(9, 8), TrioScoring.linksOf(1))
-        assertEquals(listOf(5, 6), TrioScoring.linksOf(2))
+        assertEquals(listOf(6, 8), TrioScoring.linksOf(1))
+        assertEquals(listOf(5, 9), TrioScoring.linksOf(2))
         assertEquals(listOf(4, 10), TrioScoring.linksOf(3))
         assertEquals(listOf(11, 3), TrioScoring.linksOf(4))
         assertEquals(listOf(2, 12), TrioScoring.linksOf(5))
@@ -46,6 +46,9 @@ class TrioRoundTest {
         for (a in 1..12) for (b in 1..12) assertEquals("$a-$b", TrioScoring.areLinked(a, b), TrioScoring.areLinked(b, a))
         assertTrue(TrioScoring.areLinked(1, 8))
         assertTrue(TrioScoring.areLinked(12, 5))
+        assertTrue(TrioScoring.areLinked(6, 1))
+        assertTrue(TrioScoring.areLinked(9, 2))
+        assertFalse(TrioScoring.areLinked(1, 9))
         assertFalse(TrioScoring.areLinked(1, 2))
     }
 
@@ -87,9 +90,12 @@ class TrioRoundTest {
         val r = table(listOf(listOf(3, 5, 9), listOf(2, 4, 8), listOf(1, 6, 7)))
         assertTrue(r.flipHand(1, high = false))
         assertEquals(listOf(TrioReveal(TrioZone.HAND, 1, 0, 2)), r.reveals)
-        // La plus petite carte cachée est maintenant la suivante : on ne retourne jamais deux fois la même carte.
+        // La plus petite carte cachée est maintenant la suivante : redemandée, elle donne la carte d'après.
         assertEquals(1, r.lowIndex(1))
         assertEquals(2, r.highIndex(1))
+        assertTrue(r.flipHand(1, high = false))
+        assertEquals(listOf(2, 4), r.reveals.map { it.value })
+        assertTrue(r.flipHand(1, high = true))
     }
 
     @Test
@@ -149,7 +155,7 @@ class TrioRoundTest {
     // ---------- Les trios ----------
 
     @Test
-    fun troisCartesIdentiquesFontUnTrioEtLeJoueurRejoue() {
+    fun troisCartesIdentiquesFontUnTrioEtLeTourPasseAuSuivant() {
         val r = table(
             listOf(listOf(3, 5, 9), listOf(3, 4, 8), listOf(1, 6, 7)),
             center = listOf(3, 10, 11),
@@ -165,20 +171,21 @@ class TrioRoundTest {
         assertEquals(listOf(10, 11), r.center)
         assertTrue(r.reveals.isEmpty())
         assertEquals(3, r.lastTrio)
-        // Il rejoue.
-        assertEquals(0, r.current)
+        // Le tour passe au joueur suivant, qui repart de zéro.
+        assertEquals(1, r.current)
         assertFalse(r.roundOver)
-        assertTrue(r.flipCenter(0))
-        assertEquals(0, r.lastTrio)
+        assertTrue(r.reveals.isEmpty())
     }
 
     @Test
     fun leTrioRetireLesBonnesCartesQuandPlusieursViennentDeLaMemeMain() {
-        val r = table(listOf(listOf(4, 4, 4, 9), listOf(2, 6), listOf(1, 8)), current = 1)
+        val r = table(listOf(listOf(4, 9), listOf(2, 4), listOf(4, 8)), current = 1)
         assertTrue(r.flipHand(0, high = false))
-        assertTrue(r.flipHand(0, high = false))
-        assertTrue(r.flipHand(0, high = false))
+        assertTrue(r.flipHand(1, high = true))
+        assertTrue(r.flipHand(2, high = false))
         assertEquals(listOf(9), r.hands[0])
+        assertEquals(listOf(2), r.hands[1])
+        assertEquals(listOf(8), r.hands[2])
         assertEquals(listOf(emptyList<Int>(), listOf(4), emptyList<Int>()), r.trios)
     }
 
@@ -235,12 +242,12 @@ class TrioRoundTest {
             current = 1
         )
         r.flipHand(0, high = false)
-        r.flipHand(0, high = false)
+        r.flipHand(0, high = true)
         r.flipHand(1, high = false)
-        // 2 et 8 ne sont pas liés : la manche continue.
+        // 2 et 8 ne sont pas liés : la manche continue, au joueur suivant.
         assertFalse(r.roundOver)
         assertEquals(listOf(2, 8), r.trios[1])
-        assertEquals(1, r.current)
+        assertEquals(2, r.current)
     }
 
     @Test

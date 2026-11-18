@@ -110,7 +110,7 @@ class TrioOnlineTest {
     }
 
     @Test
-    fun lInviteGagneUnTrioEtRejoue() {
+    fun lInviteGagneUnTrioEtLeTourPasse() {
         val (host, guest) = connected()
         val round = fixedTable(host, current = 1)
         guest.online.claim(1)
@@ -120,7 +120,7 @@ class TrioOnlineTest {
         guest.online.send(TrioOp.CENTER, 1) // 2
 
         assertEquals(listOf(2), round.trios[1])
-        assertEquals(1, round.current)
+        assertEquals(2, round.current)
         assertEquals(listOf(2), guest.online.mirror!!.trios[1])
         assertEquals(2, guest.online.mirror!!.lastTrio)
     }

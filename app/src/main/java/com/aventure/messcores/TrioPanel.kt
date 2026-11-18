@@ -1,6 +1,6 @@
 package com.aventure.messcores
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -31,15 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 /** Cartes par ligne dans le milieu de la table. */
 private const val CENTER_PER_ROW = 5
@@ -53,25 +50,26 @@ private const val MY_HAND_PER_ROW = 5
 /** Cartes par ligne dans les cartes retournées (3 au maximum). */
 private const val REVEALED_PER_ROW = 3
 
-/** Le dos d'une carte. */
-private val TrioBackColor = Color(0xFF424242)
-
-/** La couleur de fond de la carte [value], lue sur les cartes du jeu (pastilles des numéros liés comprises). */
-internal fun trioColor(value: Int): Color = when (value) {
-    1 -> Color(0xFF8E24AA)
-    2 -> Color(0xFFF57C00)
-    3 -> Color(0xFF1565C0)
-    4 -> Color(0xFFD32F2F)
-    5 -> Color(0xFFE91E8C)
-    6 -> Color(0xFFAD1457)
-    7 -> Color(0xFF9E8A5E)
-    8 -> Color(0xFF00875A)
-    9 -> Color(0xFF4CAF30)
-    10 -> Color(0xFFF9B800)
-    11 -> Color(0xFFB5D334)
-    12 -> Color(0xFF29B6C8)
-    else -> TrioBackColor
+/** Les images des cartes (res/drawable-nodpi/trio_*.webp, découpées dans les scans des cartes) : 1 à 12, puis le dos. */
+@androidx.annotation.DrawableRes
+internal fun trioImage(value: Int): Int = when (value) {
+    1 -> R.drawable.trio_1
+    2 -> R.drawable.trio_2
+    3 -> R.drawable.trio_3
+    4 -> R.drawable.trio_4
+    5 -> R.drawable.trio_5
+    6 -> R.drawable.trio_6
+    7 -> R.drawable.trio_7
+    8 -> R.drawable.trio_8
+    9 -> R.drawable.trio_9
+    10 -> R.drawable.trio_10
+    11 -> R.drawable.trio_11
+    12 -> R.drawable.trio_12
+    else -> R.drawable.trio_back
 }
+
+/** Largeur / hauteur de l'image d'une carte. */
+internal const val TRIO_RATIO = 324f / 489f
 
 /**
  * L'écran du Trio jouable : il n'y a pas de feuille de scores derrière, tout s'affiche ici (voir [TrioSection]).
@@ -241,6 +239,8 @@ internal fun TrioSection(
     }
 
     val name = players.getOrElse(round.current) { "" }
+    // Le joueur qui vient de jouer avant lui (celui qui a gagné le dernier trio).
+    val previous = players.getOrElse((round.current + round.playerCount - 1) % round.playerCount.coerceAtLeast(1)) { "" }
     // Quelle main est sous les yeux : celle de l'invité, ou celle du joueur qui joue une fois qu'il l'a demandée.
     val viewer = when {
         guest -> mySeat
@@ -252,7 +252,7 @@ internal fun TrioSection(
         // Ce n'est pas à ce téléphone de jouer : on dit à qui c'est, et un invité garde sa main sous les yeux.
         CardPanel {
             Text(stringResource(R.string.dice_bunco_turn, name), style = MaterialTheme.typography.titleMedium)
-            TrioStatus(round = round, name = name)
+            TrioStatus(round = round, name = name, previous = previous)
         }
         TrioRevealed(round = round)
         TrioTable(round = round, players = players, viewer = viewer, interactive = false, onFlipHand = { _, _ -> }, onFlipCenter = {})
@@ -268,7 +268,7 @@ internal fun TrioSection(
 
     CardPanel(spacing = 10) {
         Text(stringResource(R.string.dice_bunco_turn, name), style = MaterialTheme.typography.titleMedium)
-        TrioStatus(round = round, name = name)
+        TrioStatus(round = round, name = name, previous = previous)
         if (round.mismatch) {
             Button(onClick = { act(TrioOp.END, -1) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.trio_end_turn))
@@ -292,17 +292,17 @@ internal fun TrioSection(
 
 /** Ce qui vient de se passer pendant le tour : un tour perdu, un trio gagné, ou les cartes déjà retournées. */
 @Composable
-private fun TrioStatus(round: TrioRound, name: String) {
+private fun TrioStatus(round: TrioRound, name: String, previous: String) {
     when {
         round.mismatch -> Text(stringResource(R.string.trio_mismatch, name), style = MaterialTheme.typography.bodyMedium)
         round.lastTrio > 0 && round.reveals.isEmpty() ->
-            Text(stringResource(R.string.trio_found, name, round.lastTrio), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.trio_found, previous, round.lastTrio), style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 /**
- * Une carte du Trio : le numéro en grand sur la couleur du jeu, avec dans les coins les pastilles des numéros liés. [value] 0 : le dos
- * de la carte. [compact] : petite carte sans pastilles (les mains des joueurs). [highlighted] entoure la carte retournée.
+ * Une carte du Trio, avec son image. [value] 0 : le dos de la carte. [compact] : petite carte (les mains des joueurs).
+ * [highlighted] entoure la carte retournée.
  */
 @Composable
 internal fun TrioCard(
@@ -313,61 +313,16 @@ internal fun TrioCard(
     highlighted: Boolean = false
 ) {
     val shape = RoundedCornerShape(if (compact) 4.dp else 8.dp)
-    val background = trioColor(value)
-    // Le texte reste lisible sur les couleurs claires (jaune, vert citron) : encre sombre au lieu du blanc.
-    val ink = if (value > 0 && background.luminance() > 0.4f) CardBlack else Color.White
-    val outline = if (highlighted) MaterialTheme.colorScheme.primary else CardBlack
-    Box(
-        contentAlignment = Alignment.Center,
+    Image(
+        painter = painterResource(trioImage(value)),
+        contentDescription = null,
+        contentScale = ContentScale.FillBounds,
         modifier = modifier
-            .aspectRatio(0.66f)
+            .aspectRatio(TRIO_RATIO)
             .clip(shape)
-            .background(background, shape)
-            .border(width = if (highlighted) 3.dp else 1.dp, color = outline, shape = shape)
+            .then(if (highlighted) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, shape) else Modifier)
             .semantics { contentDescription = description }
-    ) {
-        if (value > 0) {
-            Text(
-                text = value.toString(),
-                fontSize = if (compact) 14.sp else 38.sp,
-                fontWeight = FontWeight.Bold,
-                color = ink,
-                // Le 6 et le 9 sont soulignés, comme sur les cartes, pour ne pas les confondre.
-                textDecoration = if (value == 6 || value == 9) TextDecoration.Underline else TextDecoration.None
-            )
-            if (!compact) {
-                TrioScoring.linksOf(value).forEachIndexed { index, link ->
-                    val badge = trioColor(link)
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .align(if (index == 0) Alignment.TopStart else Alignment.BottomStart)
-                            .padding(3.dp)
-                            .size(20.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(badge)
-                            .border(1.dp, Color.White, RoundedCornerShape(3.dp))
-                    ) {
-                        Text(
-                            text = link.toString(),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (badge.luminance() > 0.4f) CardBlack else Color.White,
-                            textDecoration = if (link == 6 || link == 9) TextDecoration.Underline else TextDecoration.None
-                        )
-                    }
-                }
-            }
-        } else {
-            Text(
-                text = stringResource(R.string.game_trio).uppercase(),
-                fontSize = if (compact) 6.sp else 13.sp,
-                fontWeight = FontWeight.Bold,
-                color = CardBlocked,
-                maxLines = 1
-            )
-        }
-    }
+    )
 }
 
 /** Un dos de carte à toucher (le milieu de la table). */

@@ -40,7 +40,7 @@ internal enum class TrioWin {
  * Règles du Trio : 36 cartes numérotées de 1 à 12, en trois exemplaires chacune.
  *
  * Les petits numéros dessinés dans les coins d'une carte donnent les trios qui lui sont « liés » (lus sur les cartes) : 1 avec
- * 8 et 9, 2 avec 5 et 6, 3 avec 4 et 10, 4 avec 11, 5 avec 12. Le 7 n'est lié à aucun numéro : son trio fait gagner à lui seul.
+ * 6 et 8, 2 avec 5 et 9, 3 avec 4 et 10, 4 avec 11, 5 avec 12. Le 7 n'est lié à aucun numéro : son trio fait gagner à lui seul.
  */
 internal object TrioScoring {
 
@@ -61,15 +61,15 @@ internal object TrioScoring {
 
     // Les numéros liés, dans l'ordre où leurs pastilles se lisent sur la carte.
     private val links: Map<Int, List<Int>> = mapOf(
-        1 to listOf(9, 8),
-        2 to listOf(5, 6),
+        1 to listOf(6, 8),
+        2 to listOf(5, 9),
         3 to listOf(4, 10),
         4 to listOf(11, 3),
         5 to listOf(2, 12),
-        6 to listOf(2),
+        6 to listOf(1),
         7 to emptyList(),
         8 to listOf(1),
-        9 to listOf(1),
+        9 to listOf(2),
         10 to listOf(3),
         11 to listOf(4),
         12 to listOf(5)
@@ -108,14 +108,16 @@ internal object TrioScoring {
 }
 
 /**
+ * (Voir [TrioRound.flipHand] pour les cartes que l'on peut demander.)
+ *
  * Une manche de Trio jouée tour par tour (3 à 6 joueurs), sur un seul téléphone que l'on se passe ou chacun sur le sien.
  *
  * - L'appli distribue les cartes (9 chacun à trois joueurs, 7 à quatre, 6 à cinq, 5 à six) ; les autres forment le milieu de la
  *   table, face cachée. Chaque main est rangée de la plus petite carte à la plus grande, et chacun connaît sa main.
- * - À son tour, le joueur retourne une carte : la plus petite ou la plus grande carte encore cachée de la main d'un joueur (la
- *   sienne comprise : [flipHand]), ou n'importe quelle carte du milieu ([flipCenter]). Il peut continuer tant que les cartes
- *   retournées sont identiques ; à la première carte différente, le tour s'arrête ([mismatch]) et tout est recaché ([endTurn]).
- * - Trois cartes identiques retournées dans le même tour font un trio : le joueur le garde devant lui et rejoue.
+ * - À son tour, le joueur demande une carte : la plus petite ou la plus grande carte encore cachée de la main d'un joueur (la
+ *   sienne comprise : [flipHand]), ou n'importe quelle carte du milieu ([flipCenter]). Il peut continuer tant que les cartes retournées sont identiques ; à la première carte différente, le tour s'arrête
+ *   ([mismatch]) et tout est recaché ([endTurn]). C'est à chacun de se souvenir de ce qui a été retourné.
+ * - Trois cartes identiques retournées dans le même tour font un trio : le joueur le garde devant lui et le tour passe au suivant.
  * - La manche est gagnée avec 3 trios, avec 2 trios liés ([TrioScoring.areLinked]) ou, tout de suite, avec le trio de 7. Si tous
  *   les trios sont pris sans vainqueur, celui qui en a le plus gagne (à égalité, personne).
  * - Le gagnant marque 1 point ([roundPoints]) ; [settle] l'inscrit dans une ligne libre du tableau des scores (le total de chacun,
@@ -152,7 +154,7 @@ internal class TrioRound(
     var mismatch by mutableStateOf(false)
         private set
 
-    /** Le numéro du dernier trio gagné pendant ce tour (0 : aucun) : son joueur rejoue. */
+    /** Le numéro du trio qui vient d'être gagné par le joueur précédent (0 : aucun). */
     var lastTrio by mutableIntStateOf(0)
         private set
 
@@ -244,8 +246,9 @@ internal class TrioRound(
     }
 
     /**
-     * Retourne la plus grande ([high]) ou la plus petite carte encore cachée de la main de [player]. Renvoie faux, sans rien
-     * changer, si ce n'est pas permis (manche finie, tour déjà perdu, main sans carte cachée).
+     * Retourne la plus grande ([high]) ou la plus petite carte encore cachée de la main de [player] : demandée plusieurs fois,
+     * la plus petite carte donne chaque fois la suivante. Renvoie faux, sans rien changer, si ce n'est pas permis (manche
+     * finie, tour déjà perdu, main sans carte cachée).
      */
     fun flipHand(player: Int, high: Boolean): Boolean {
         if (!canFlipHand(player, high)) return false
@@ -275,7 +278,7 @@ internal class TrioRound(
         return true
     }
 
-    /** Trois cartes identiques : le joueur gagne le trio (les cartes quittent le jeu) et rejoue, sauf s'il a gagné la manche. */
+    /** Trois cartes identiques : le joueur gagne le trio (les cartes quittent le jeu) et le tour passe au suivant, sauf s'il a gagné la manche. */
     private fun claim(cards: List<TrioReveal>) {
         val player = current
         val value = cards.first().value
@@ -297,6 +300,9 @@ internal class TrioRound(
             val most = counts.maxOrNull() ?: 0
             val leaders = counts.indices.filter { counts[it] == most }
             if (leaders.size == 1) finish(leaders.first(), TrioWin.MOST) else finish(-1, TrioWin.NONE)
+        } else {
+            current = (current + 1) % playerCount.coerceAtLeast(1)
+            shown = false
         }
     }
 

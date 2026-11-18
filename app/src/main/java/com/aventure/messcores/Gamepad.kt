@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 
 /**
  * Une commande envoyée par une manette : soit un bouton ([Key], y compris la croix si elle envoie des touches),
@@ -252,7 +253,7 @@ private fun connectedGamepads(): List<String> {
         onDispose { manager?.unregisterInputDeviceListener(listener) }
     }
     return remember(version) {
-        InputDevice.getDeviceIds().mapNotNull { InputDevice.getDevice(it) }
+        InputDevice.getDeviceIds().toList().mapNotNull { InputDevice.getDevice(it) }
             .filter {
                 (it.sources and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
                     (it.sources and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK
