@@ -38,6 +38,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -341,8 +342,8 @@ internal fun SkyjoActionSection(
     val canChoose = canAct && phase == SkyjoPhase.CHOOSE
     val canBonus = canAct && phase == SkyjoPhase.STAR_BONUS
     CardPanel {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
-            TablePile(label = stringResource(R.string.skyjoa_action_discard), modifier = Modifier.weight(1f)) { m ->
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+            TablePile(label = stringResource(R.string.skyjoa_action_discard), modifier = Modifier.weight(1f), cellRatio = SKYJO_RATIO) { m ->
                 val top = round.actionDiscard.lastOrNull()
                 if (top == null) {
                     Box(modifier = m.aspectRatio(SKYJO_RATIO))
@@ -356,7 +357,8 @@ internal fun SkyjoActionSection(
                     )
                 }
             }
-            TablePile(label = stringResource(R.string.skyjoa_action_stock, round.actionStock.size), modifier = Modifier.weight(SKYJO_DECK_RATIO / SKYJO_RATIO)) { m ->
+            // Même carte que les autres, posée sur le côté : sa largeur est la hauteur d'une carte, sa hauteur la largeur d'une carte.
+            TablePile(label = stringResource(R.string.skyjoa_action_stock, round.actionStock.size), modifier = Modifier.weight(1f / SKYJO_RATIO), cellRatio = 1f) { m ->
                 ImageCard(
                     image = R.drawable.skyjo_back_deck,
                     description = stringResource(R.string.skyjoa_action_stock, round.actionStock.size),
@@ -375,7 +377,8 @@ internal fun SkyjoActionSection(
             }
             TablePile(
                 label = stringResource(R.string.skyjoa_stock, round.stock.size),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                cellRatio = SKYJO_RATIO
             ) { m ->
                 ImageCard(
                     image = R.drawable.skyjo_back,
@@ -390,7 +393,7 @@ internal fun SkyjoActionSection(
                     }
                 )
             }
-            TablePile(label = stringResource(R.string.skyjoa_discard_title), modifier = Modifier.weight(1f)) { m ->
+            TablePile(label = stringResource(R.string.skyjoa_discard_title), modifier = Modifier.weight(1f), cellRatio = SKYJO_RATIO) { m ->
                 val top = round.discard.lastOrNull()
                 if (top == null) {
                     Box(modifier = m.aspectRatio(SKYJO_RATIO))
@@ -628,12 +631,24 @@ internal fun SkyjoActionSection(
     }
 }
 
-/** Une pile de la table : la carte puis son nom en dessous. */
+/**
+ * Une pile de la table : la carte puis son nom en dessous. La carte est centrée dans une zone de la hauteur d'une carte
+ * ([cellRatio] = largeur / hauteur de la zone) : les milieux des cartes sont alignés et les textes sont sur la même ligne.
+ */
 @Composable
-private fun TablePile(label: String, modifier: Modifier, card: @Composable (Modifier) -> Unit) {
+private fun TablePile(label: String, modifier: Modifier, cellRatio: Float, card: @Composable (Modifier) -> Unit) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        card(Modifier.fillMaxWidth())
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(modifier = Modifier.fillMaxWidth().aspectRatio(cellRatio), contentAlignment = Alignment.Center) {
+            card(Modifier.fillMaxWidth())
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            minLines = 2,
+            maxLines = 2
+        )
     }
 }
 

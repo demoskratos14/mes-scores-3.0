@@ -109,18 +109,20 @@ internal object SkyjoActionScoring {
         return deck
     }
 
-    /** 12 cartes (4 colonnes de 3) jusqu'à 4 joueurs, 9 cartes (3 colonnes) de 5 à 8. */
-    fun columns(players: Int): Int = if (players <= 4) 4 else 3
+    /** Toujours 12 cartes par joueur : 4 colonnes de 3 cartes. */
+    @Suppress("UNUSED_PARAMETER")
+    fun columns(players: Int): Int = 4
 
     fun gridSize(players: Int): Int = ROWS * columns(players)
 
-    fun revealedAtStart(players: Int): Int = if (players <= 4) 2 else 1
+    @Suppress("UNUSED_PARAMETER")
+    fun revealedAtStart(players: Int): Int = 2
 }
 
 /**
  * Le Skyjo Action tour par tour. Toutes les cartes de la grille sont connues de tous (cachées pour tout le monde) : seule la
  * carte « Regarder » montre un secret, à un seul joueur ([peek]). Une manche se déroule ainsi :
- * - chaque joueur a une grille de cartes cachées ([grids]) dont 2 (1 à 5 joueurs et plus) sont retournées ; une étoile retournée
+ * - chaque joueur a une grille de cartes cachées ([grids]) dont 2 sont retournées ; une étoile retournée
  *   donne le droit de prendre une carte action ;
  * - à son tour on pioche (et on garde la carte en l'échangeant, ou on la défausse pour retourner une carte), on prend la dernière
  *   défausse (à échanger), on prend une carte action visible ou de la pioche action, ou on joue une carte action déjà gardée ;
