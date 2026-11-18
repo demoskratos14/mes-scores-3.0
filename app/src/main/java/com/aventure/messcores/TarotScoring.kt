@@ -57,6 +57,8 @@ data class TarotResult(
  * @param handful 0 aucune, 1 simple (20), 2 double (30), 3 triple (40).
  * @param slamAnnounced chelem annoncé par le preneur.
  * @param defenseSlam la défense a fait tous les plis (pris en compte seulement si le contrat chute).
+ * @param extraHandful points (20, 30 ou 40 chacune) des poignées annoncées en plus de [handful] : quand plusieurs joueurs en
+ *   montrent une dans la même manche, toutes reviennent au camp vainqueur. 0 s'il y en a au plus une.
  */
 fun computeTarotRound(
     playerCount: Int,
@@ -68,7 +70,8 @@ fun computeTarotRound(
     petitAuBout: Int,
     handful: Int,
     slamAnnounced: Boolean,
-    defenseSlam: Boolean
+    defenseSlam: Boolean,
+    extraHandful: Int = 0
 ): TarotResult {
     val required = tarotRequiredPoints(bouts)
     val difference = points - required
@@ -90,7 +93,7 @@ fun computeTarotRound(
         2 -> -10 * factor
         else -> 0
     }
-    val handfulScore = listOf(0, 20, 30, 40)[handful] * sign
+    val handfulScore = (listOf(0, 20, 30, 40)[handful] + extraHandful) * sign
     val unit = contractScore + petitScore + handfulScore + slamScore
 
     val deltas = taker?.let {

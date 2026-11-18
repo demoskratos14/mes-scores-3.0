@@ -45,7 +45,7 @@ private val SPECIAL_GAMES = setOf(
 fun GameRules.isPlayableGame(): Boolean =
     id == MASTERMIND_ID || id == MORPION_ID || id == CONNECT4_ID || id == BATTLESHIP_ID || id == NIM_ID || id == PFC_ID || id == REFLEX_ID || id == EMOJI_ID || id == CIRCLES_ID || id == SIMON_ID || id == RHYTHM_ID || id == TETRIS_ID || id == BREAKOUT_ID || id == ASTEROIDS_ID || id == INVADERS_ID || id == SHMUP_ID || id == XONIX_ID || id == SNAKE_ID || id == BUBBLE_ID || id == MINESWEEPER_ID || id == PANCAKE_ID || id == DRIVE_ID ||
         id == GOMOKU_ID || id == DOTS_ID || id == DRAUGHTS_ID || id == OTHELLO_ID || id == HANGMAN_ID || id == CHESS_ID ||
-        id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || id == OH_HELL_ID || id == BARBU_ID || id == YANIV_ID || id == RAMI_ID || id == PRESIDENT_ID || id == FLIP7_ID || id == SKYJO_ACTION_ID || id == DOMINOS_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
+        id == HUIT_ID || id == UNO_ID || id == HEARTS_ID || id == TAROT_ID || id == OH_HELL_ID || id == BARBU_ID || id == YANIV_ID || id == RAMI_ID || id == PRESIDENT_ID || id == FLIP7_ID || id == SKYJO_ACTION_ID || id == DOMINOS_ID || (DiceSetups.forGame(id) != null && !hasDiceOnSheet())
 
 /**
  * Vrai si le jeu peut se jouer seul (accueil « Jeux solo ») : Tetris, Snake, Casse-briques… mais aussi les Ronds et Simon,

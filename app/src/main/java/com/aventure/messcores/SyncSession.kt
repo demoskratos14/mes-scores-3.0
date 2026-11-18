@@ -148,6 +148,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Les Cœurs chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var hearts: HeartsOnline? = null
 
+    /** Le Tarot chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var tarot: TarotOnline? = null
+
     /** Le Barbu chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var barbu: BarbuOnline? = null
 
@@ -452,6 +455,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         dicePlayer = DICE_UNSET
         president?.reset()
         hearts?.reset()
+        tarot?.reset()
         ohHell?.reset()
         barbu?.reset()
         uno?.reset()
@@ -561,6 +565,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         chess?.onPeerConnected(id)
         president?.onPeerConnected(id)
         hearts?.onPeerConnected(id)
+        tarot?.onPeerConnected(id)
         ohHell?.onPeerConnected(id)
         barbu?.onPeerConnected(id)
         uno?.onPeerConnected(id)
@@ -597,6 +602,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         chess?.onPeerDisconnected(id)
         president?.onPeerDisconnected(id)
         hearts?.onPeerDisconnected(id)
+        tarot?.onPeerDisconnected(id)
         ohHell?.onPeerDisconnected(id)
         barbu?.onPeerDisconnected(id)
         uno?.onPeerDisconnected(id)
@@ -690,6 +696,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             }
             is SyncMessage.Pres -> president?.onMessage(id, message.pres)
             is SyncMessage.Hearts -> hearts?.onMessage(id, message.hearts)
+            is SyncMessage.Tarot -> tarot?.onMessage(id, message.tarot)
             is SyncMessage.OhHell -> ohHell?.onMessage(id, message.ohHell)
             is SyncMessage.Barbu -> barbu?.onMessage(id, message.barbu)
             is SyncMessage.UnoMsg -> uno?.onMessage(id, message.uno)

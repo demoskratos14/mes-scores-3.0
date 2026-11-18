@@ -205,6 +205,17 @@ Jeu prédéfini `builtin_poker` (`ScoreMode.POKER`, écran `PokerScreen`). Tourn
 
 Trois jeux de cartes avec calcul automatique de la marque, chacun dans une fonction pure testée : `TarotScoring` (3 à 5 joueurs), `BridgeScoring` (deux camps : contrat, contre, vulnérabilité, plis) et `SkatScoring` (jeu, matadors, Hand / Ouvert, annonces). Les écrans de saisie (`NewTarotRoundScreen`, `NewBridgeRoundScreen`, `NewSkatRoundScreen`) partagent les éléments de `ContractWidgets.kt`.
 
+## Tarot jouable
+
+Le Tarot se joue aussi dans l'appli (accueil « Jeux jouables », 3 à 5 joueurs), tour par tour sur un téléphone qu'on se passe ou chacun sur le sien. La feuille de scores de la rubrique « Cartes » reste inchangée (`NewTarotRoundScreen`).
+
+- **Moteur** : `TarotRound` (+ `TarotRules`, `TarotCards`, `TarotBid`, `TarotTable`, `TarotOutcome`, dans `TarotRound.kt`). Une carte est un entier de 0 à 77 : 0 à 55 les cartes de couleur (`couleur * 14 + valeur - 1`, valet 11, cavalier 12, dame 13, roi 14, couleurs dans l'ordre de `FrenchCards`), 56 à 76 les atouts 1 à 21, 77 l'Excuse. Les points se comptent en demi-points (182 au total).
+- **Déroulé** : enchères (chacun parle une fois ; si tous passent, le donneur suivant redistribue), appel d'un roi à 5 joueurs (le partenaire n'est connu qu'à la pose du roi), chien montré à tous puis écart en petite et garde (`TarotRules.isValidDiscard` : ni roi, ni bout, un atout seulement faute d'autre carte ; les atouts écartés sont montrés), garde sans et garde contre sans écart, chelem annoncé (le preneur ouvre), poignées montrées avant la première carte, plis (`TarotRules.canPlay` : couleur, coupe, surcoupe ; l'Excuse se joue toujours).
+- **Comptage** : `TarotRound.computeOutcome` fait le décompte des deux camps (écart au preneur, chien non pris au preneur ou à la défense, Excuse rendue à son camp contre une carte basse, perdue au dernier pli) puis appelle `computeTarotRound` (petit au bout, poignées, chelem). `settle` inscrit la manche dans l'historique comme la saisie de la feuille (`TeamRound` avec `TarotRoundInput`, donc corrigeable). Le demi-point est arrondi en faveur du camp qui gagne. Si plusieurs poignées sont montrées, les points en plus de la plus forte passent par `extraHandful`.
+- **Cartes** : les 78 images sont dans `res/drawable-nodpi/tarot_*.webp` (`tarot_s01` à `tarot_s14` pique, `h` cœur, `d` carreau, `c` trèfle, `tarot_t01` à `tarot_t21` atouts, `tarot_excuse`, `tarot_back`), listées dans `TarotCardImages.kt`.
+- **Écran** : `TarotScreen` (route `tarot`, `TarotPanel.kt`). Une carte se touche pour la voir en grand, puis se touche encore (ou « Jouer ») pour être posée.
+- **Plusieurs téléphones** : comme Cœurs (`TarotOnline`, `TarotMsg`) : l'organisateur tient la partie, chaque invité choisit sa place et ne reçoit que sa main ; le chien n'est envoyé que pendant l'écart en petite et en garde. Tests : `TarotRoundTest`.
+
 ## 421 jouable tour par tour
 
 En version jouable, le 421 se joue sur la page des dés (le bouton « Dés » n'existe que dans les jeux jouables, jamais sur la feuille de scores seule, sauf King of Tokyo qui n'est pas un jeu jouable mais garde des dés libres sur sa feuille : `GameRules.hasDiceOnSheet`) et la partie se déroule dans l'ordre (`Round421`, moteur pur testé par `Round421Test`) :

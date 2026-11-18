@@ -335,7 +335,7 @@
     <string name="rules_tarot_5_title">Comptage des points</string>
     <string name="rules_tarot_5_body">Score de base = 25 + l\'écart entre les points faits et le contrat. Il est positif si le contrat est réussi, négatif s\'il est chuté. Il est multiplié par le coefficient de l\'enchère.\n• Petit au bout : ±10, multiplié par le coefficient (+ pour le preneur, − pour la défense).\n• Poignée : simple 20 · double 30 · triple 40, acquise par le camp qui gagne la manche (non multipliée).\n• Chelem (tous les plis) : +200 non annoncé · +400 annoncé réussi · −200 annoncé raté (non multiplié).\n• Chelem de la défense : +200 pour les défenseurs (règle maison, absente du règlement officiel).\nLe score obtenu est payé par chaque défenseur au preneur (et à son partenaire à 5 joueurs).</string>
     <string name="rules_tarot_6_title">Dans l\'appli</string>
-    <string name="rules_tarot_6_body">Pour chaque manche, choisissez le preneur (et l\'appelé à 5 joueurs), le contrat, le nombre de bouts et les points réalisés, puis cochez les primes éventuelles. À 91 points, le chelem réussi est ajouté automatiquement. L\'appli calcule le score de chaque joueur (la somme de la manche est toujours nulle) et l\'affiche avant validation. Le crayon de l\'historique permet de corriger une manche.</string>
+    <string name="rules_tarot_6_body">Pour chaque manche, choisissez le preneur (et l\'appelé à 5 joueurs), le contrat, le nombre de bouts et les points réalisés, puis cochez les primes éventuelles. À 91 points, le chelem réussi est ajouté automatiquement. L\'appli calcule le score de chaque joueur (la somme de la manche est toujours nulle) et l\'affiche avant validation. Le crayon de l\'historique permet de corriger une manche.\n\nJouer dans l’appli (rubrique « Jeux jouables ») : l’appli distribue les 78 cartes, fait parler chacun à son tour, montre le chien, vérifie chaque carte posée (couleur, coupe, surcoupe), gère l’appel du roi à 5 joueurs, les poignées, le petit au bout, le chelem et l’Excuse, compte les bouts et les points, puis inscrit la manche dans l’historique. On se passe le téléphone (la main n’apparaît qu’après « Voir ma main »), ou chacun joue sur son téléphone avec « Partager ».</string>
     <string name="rules_belote_1_title">But du jeu</string>
     <string name="rules_belote_1_body">Se joue à 4 en 2 équipes avec 32 cartes. Une équipe prend un atout et doit marquer plus de points que l\'adversaire. La partie se joue en plusieurs manches jusqu\'au score cible.</string>
     <string name="rules_belote_2_title">Valeur des cartes</string>
@@ -2967,4 +2967,49 @@
     <string name="ohhell_not_playable">Cette carte ne peut pas être jouée : tu dois fournir la couleur demandée si tu en as.</string>
     <string name="ohhell_trick_won">%1$s ramasse le pli.</string>
     <string name="ohhell_result_line">%1$s : annonce %2$d, plis %3$d → score %4$+d</string>
+
+    <!-- Tarot jouable -->
+    <string name="tarot_ranks">1,2,3,4,5,6,7,8,9,10,V,C,D,R</string>
+    <string name="tarot_trump_name" tools:ignore="PluralsCandidate">Atout %1$d</string>
+    <string name="tarot_excuse_name">Excuse</string>
+    <string name="tarot_bid_pass">Passe</string>
+    <string name="tarot_bidding_title">Enchères</string>
+    <string name="tarot_dealer">Donneur : %1$s</string>
+    <string name="tarot_passed_out">Tout le monde a passé : le donneur suivant redistribue.</string>
+    <string name="tarot_line">%1$s : %2$s</string>
+    <string name="tarot_bid_waiting">…</string>
+    <string name="tarot_bid_pick">Ton enchère : passe, ou une enchère plus haute que la dernière.</string>
+    <string name="tarot_contract_line">%2$s prend (%1$s)</string>
+    <string name="tarot_slam_line">Chelem annoncé</string>
+    <string name="tarot_called_line">Carte appelée : %1$s</string>
+    <string name="tarot_partner_unknown">Le partenaire n’est pas encore connu.</string>
+    <string name="tarot_partner_known">Partenaire : %1$s</string>
+    <string name="tarot_tricks_line">Plis joués : %1$d / %2$d</string>
+    <string name="tarot_handful_line">%1$s montre une poignée : %2$s</string>
+    <string name="tarot_discarded_trumps">Atouts écartés par %1$s :</string>
+    <string name="tarot_calling_wait">%1$s choisit la carte qu’il appelle…</string>
+    <string name="tarot_call_title">Appel du partenaire</string>
+    <string name="tarot_call_pick">Choisis la carte que tu appelles : son propriétaire sera ton partenaire, sans que personne ne le sache avant qu’il la pose. Si tu l’as toi-même, tu joues seul.</string>
+    <string name="tarot_call_confirm">Appeler cette carte</string>
+    <string name="tarot_dog_title">Le chien</string>
+    <string name="tarot_dog_sans">Garde sans le chien : le chien reste au preneur, sans être regardé.</string>
+    <string name="tarot_dog_contre">Garde contre le chien : le chien va aux défenseurs, sans être regardé.</string>
+    <string name="tarot_dog_shown" tools:ignore="PluralsCandidate">Le chien est montré à tous. %1$s le prend, puis écarte %2$d cartes.</string>
+    <string name="tarot_trick_title">Pli en cours</string>
+    <string name="tarot_trick_won">%1$s remporte le pli.</string>
+    <string name="tarot_discard_pick" tools:ignore="PluralsCandidate">Écarte %1$d cartes : ni roi, ni bout, et pas d’atout tant que tu as autre chose.</string>
+    <string name="tarot_discard_none">Pas de chien à prendre : aucun écart. Tu peux annoncer un chelem avant de commencer.</string>
+    <string name="tarot_discard_count">%1$d / %2$d cartes choisies</string>
+    <string name="tarot_discard_confirm">Écarter ces cartes</string>
+    <string name="tarot_start_play">Commencer le jeu</string>
+    <string name="tarot_discard_refused">Écart refusé : ni roi, ni bout, et pas d’atout tant que tu as d’autres cartes.</string>
+    <string name="tarot_slam_toggle">Annoncer un chelem</string>
+    <string name="tarot_play_selected">Jouer cette carte</string>
+    <string name="tarot_play_hint">Touche une carte pour la voir en grand, puis touche-la encore (ou « Jouer ») pour la poser. Fournis la couleur demandée ; sinon coupe avec un atout, en montant si tu peux ; l’Excuse se joue quand tu veux.</string>
+    <string name="tarot_not_playable">Cette carte ne peut pas être jouée : fournis la couleur demandée ; sans elle, joue un atout (plus fort que ceux du pli si tu peux) ; sans atout, joue ce que tu veux.</string>
+    <string name="tarot_handful_button">Montrer une poignée (%1$s)</string>
+    <string name="tarot_result_points">%1$s a fait %2$d points avec %3$s (contrat : %4$d).</string>
+    <string name="tarot_result_petit">Petit au bout : %1$s</string>
+    <string name="tarot_result_handful">Poignées : %1$s</string>
+    <string name="tarot_delta_line">%1$s : %2$s</string>
 </resources>

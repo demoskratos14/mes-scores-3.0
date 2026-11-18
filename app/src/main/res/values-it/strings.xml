@@ -330,7 +330,7 @@
     <string name="rules_tarot_5_title">Conteggio dei punti</string>
     <string name="rules_tarot_5_body">Punteggio base = 25 + la differenza tra i punti realizzati e il contratto. È positivo se il contratto riesce, negativo se fallisce. Viene moltiplicato per il coefficiente della dichiarazione.\n• Petit au bout: ±10, moltiplicato per il coefficiente (+ per chi prende, − per la difesa).\n• Poignée: semplice 20 · doppia 30 · tripla 40, assegnata alla parte che vince il round (non moltiplicata).\n• Slam (tutte le prese): +200 non annunciato · +400 annunciato riuscito · −200 annunciato fallito (non moltiplicato).\n• Slam della difesa: +200 per i difensori (regola della casa, assente dal regolamento ufficiale).\nIl punteggio ottenuto viene pagato da ogni difensore a chi prende (e al suo compagno a 5 giocatori).</string>
     <string name="rules_tarot_6_title">Nell\'app</string>
-    <string name="rules_tarot_6_body">Per ogni round, scegli chi prende (e il chiamato a 5 giocatori), il contratto, il numero di oudler e i punti realizzati, poi spunta gli eventuali bonus. A 91 punti, lo slam riuscito viene aggiunto automaticamente. L\'app calcola il punteggio di ogni giocatore (la somma del round è sempre zero) e lo mostra prima della conferma. La matita della cronologia permette di correggere un round.</string>
+    <string name="rules_tarot_6_body">Per ogni round, scegli chi prende (e il chiamato a 5 giocatori), il contratto, il numero di oudler e i punti realizzati, poi spunta gli eventuali bonus. A 91 punti, lo slam riuscito viene aggiunto automaticamente. L\'app calcola il punteggio di ogni giocatore (la somma del round è sempre zero) e lo mostra prima della conferma. La matita della cronologia permette di correggere un round.\n\nGiocare nell’app («Giochi giocabili»): l’app distribuisce le 78 carte, fa parlare ognuno a turno, mostra il cane, controlla ogni carta giocata (seme, taglio, sovrataglio), gestisce la chiamata del re a 5 giocatori, le poignées, il petit al bout, lo slam e il Matto, conta i bout e i punti, poi registra il round nello storico. Vi passate il telefono (la mano compare solo dopo «Vedi la mia mano»), oppure ognuno gioca sul proprio telefono con «Condividi».</string>
     <string name="rules_belote_1_title">Obiettivo del gioco</string>
     <string name="rules_belote_1_body">Si gioca in 4 in 2 squadre con 32 carte. Una squadra sceglie un atout e deve fare più punti degli avversari. La partita si svolge in più round fino al punteggio obiettivo.</string>
     <string name="rules_belote_2_title">Valore delle carte</string>
@@ -2960,4 +2960,49 @@
     <string name="ohhell_not_playable">Questa carta non può essere giocata: devi rispondere al seme richiesto se ce l’hai.</string>
     <string name="ohhell_trick_won">%1$s vince la presa.</string>
     <string name="ohhell_result_line">%1$s: annuncio %2$d, prese %3$d → punteggio %4$+d</string>
+
+    <!-- Tarot jouable -->
+    <string name="tarot_ranks">1,2,3,4,5,6,7,8,9,10,F,C,D,R</string>
+    <string name="tarot_trump_name" tools:ignore="PluralsCandidate">Trionfo %1$d</string>
+    <string name="tarot_excuse_name">Matto</string>
+    <string name="tarot_bid_pass">Passo</string>
+    <string name="tarot_bidding_title">Dichiarazioni</string>
+    <string name="tarot_dealer">Mazziere: %1$s</string>
+    <string name="tarot_passed_out">Hanno passato tutti: il mazziere successivo distribuisce di nuovo.</string>
+    <string name="tarot_line">%1$s: %2$s</string>
+    <string name="tarot_bid_waiting">…</string>
+    <string name="tarot_bid_pick">La tua dichiarazione: passa, oppure dichiara più alto dell’ultima.</string>
+    <string name="tarot_contract_line">%2$s prende (%1$s)</string>
+    <string name="tarot_slam_line">Slam annunciato</string>
+    <string name="tarot_called_line">Carta chiamata: %1$s</string>
+    <string name="tarot_partner_unknown">Il compagno non è ancora noto.</string>
+    <string name="tarot_partner_known">Compagno: %1$s</string>
+    <string name="tarot_tricks_line">Prese giocate: %1$d / %2$d</string>
+    <string name="tarot_handful_line">%1$s mostra una poignée: %2$s</string>
+    <string name="tarot_discarded_trumps">Trionfi scartati da %1$s:</string>
+    <string name="tarot_calling_wait">%1$s sceglie la carta da chiamare…</string>
+    <string name="tarot_call_title">Chiamata del compagno</string>
+    <string name="tarot_call_pick">Scegli la carta che chiami: chi la possiede sarà il tuo compagno, e nessuno lo saprà finché non la gioca. Se ce l’hai tu, giochi da solo.</string>
+    <string name="tarot_call_confirm">Chiama questa carta</string>
+    <string name="tarot_dog_title">Il cane</string>
+    <string name="tarot_dog_sans">Guardia senza il cane: il cane resta a chi prende, senza essere guardato.</string>
+    <string name="tarot_dog_contre">Guardia contro il cane: il cane va ai difensori, senza essere guardato.</string>
+    <string name="tarot_dog_shown" tools:ignore="PluralsCandidate">Il cane è mostrato a tutti. %1$s lo prende, poi scarta %2$d carte.</string>
+    <string name="tarot_trick_title">Presa in corso</string>
+    <string name="tarot_trick_won">%1$s vince la presa.</string>
+    <string name="tarot_discard_pick" tools:ignore="PluralsCandidate">Scarta %1$d carte: né re, né bout, e nessun trionfo finché hai altro.</string>
+    <string name="tarot_discard_none">Nessun cane da prendere: nessuno scarto. Puoi annunciare uno slam prima di cominciare.</string>
+    <string name="tarot_discard_count">%1$d / %2$d carte scelte</string>
+    <string name="tarot_discard_confirm">Scarta queste carte</string>
+    <string name="tarot_start_play">Comincia a giocare</string>
+    <string name="tarot_discard_refused">Scarto rifiutato: né re, né bout, e nessun trionfo finché hai altre carte.</string>
+    <string name="tarot_slam_toggle">Annuncia uno slam</string>
+    <string name="tarot_play_selected">Gioca questa carta</string>
+    <string name="tarot_play_hint">Tocca una carta per vederla in grande, poi toccala ancora (o «Gioca») per giocarla. Rispondi al seme; se non puoi, gioca un trionfo, più alto di quelli della presa se puoi; il Matto si gioca quando vuoi.</string>
+    <string name="tarot_not_playable">Questa carta non si può giocare: rispondi al seme; senza, gioca un trionfo (più alto di quelli della presa se puoi); senza trionfi, gioca ciò che vuoi.</string>
+    <string name="tarot_handful_button">Mostra una poignée (%1$s)</string>
+    <string name="tarot_result_points">%1$s ha fatto %2$d punti con %3$s (contratto: %4$d).</string>
+    <string name="tarot_result_petit">Petit al bout: %1$s</string>
+    <string name="tarot_result_handful">Poignées: %1$s</string>
+    <string name="tarot_delta_line">%1$s: %2$s</string>
 </resources>

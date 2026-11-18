@@ -329,7 +329,7 @@
     <string name="rules_tarot_5_title">Puntuación</string>
     <string name="rules_tarot_5_body">Puntuación base = 25 + la diferencia entre los puntos hechos y el contrato. Es positiva si se cumple el contrato y negativa si falla. Se multiplica por el multiplicador de la apuesta.\n• Petit au bout: ±10, multiplicado por el multiplicador (+ para el tomador, − para la defensa).\n• Poignée: simple 20 · doble 30 · triple 40, para el bando que gana la ronda (sin multiplicar).\n• Chelem (todas las bazas): +200 no anunciado · +400 anunciado y logrado · −200 anunciado y fallido (sin multiplicar).\n• Chelem de la defensa: +200 para los defensores (regla de la casa, no figura en las reglas oficiales).\nLa puntuación obtenida la paga cada defensor al tomador (y al compañero en las partidas de 5 jugadores).</string>
     <string name="rules_tarot_6_title">En la aplicación</string>
-    <string name="rules_tarot_6_body">En cada ronda, elige al tomador (y al compañero llamado en las partidas de 5 jugadores), el contrato, el número de oudlers y los puntos hechos, y marca las bonificaciones que haya. A los 91 puntos, un chelem logrado se añade automáticamente. La aplicación calcula la puntuación de cada jugador (la suma de la ronda es siempre cero) y la muestra antes de que confirmes. El lápiz del historial permite corregir una ronda.</string>
+    <string name="rules_tarot_6_body">En cada ronda, elige al tomador (y al compañero llamado en las partidas de 5 jugadores), el contrato, el número de oudlers y los puntos hechos, y marca las bonificaciones que haya. A los 91 puntos, un chelem logrado se añade automáticamente. La aplicación calcula la puntuación de cada jugador (la suma de la ronda es siempre cero) y la muestra antes de que confirmes. El lápiz del historial permite corregir una ronda.\n\nJugar en la app («Juegos jugables»): la app reparte las 78 cartas, hace hablar a cada uno por turno, muestra el perro, comprueba cada carta jugada (palo, fallo, sobrefallo), gestiona la llamada al rey con 5 jugadores, las poignées, el petit al final, el slam y la Excusa, cuenta los bouts y los puntos y anota la ronda en el historial. Os pasáis el teléfono (la mano solo aparece tras «Ver mi mano»), o cada uno juega en su teléfono con «Compartir».</string>
     <string name="rules_belote_1_title">Objetivo</string>
     <string name="rules_belote_1_body">Se juega entre 4, en 2 equipos, con 32 cartas. Un equipo elige un palo de triunfo y debe sumar más puntos que los rivales. La partida se juega en varias rondas hasta la puntuación objetivo.</string>
     <string name="rules_belote_2_title">Valor de las cartas</string>
@@ -2950,4 +2950,49 @@
     <string name="ohhell_not_playable">Esa carta no se puede jugar: tienes que seguir el palo pedido si lo tienes.</string>
     <string name="ohhell_trick_won">%1$s se lleva la baza.</string>
     <string name="ohhell_result_line">%1$s: apuesta %2$d, bazas %3$d → puntuación %4$+d</string>
+
+    <!-- Tarot jouable -->
+    <string name="tarot_ranks">1,2,3,4,5,6,7,8,9,10,S,C,D,R</string>
+    <string name="tarot_trump_name" tools:ignore="PluralsCandidate">Triunfo %1$d</string>
+    <string name="tarot_excuse_name">Excusa</string>
+    <string name="tarot_bid_pass">Paso</string>
+    <string name="tarot_bidding_title">Subasta</string>
+    <string name="tarot_dealer">Reparte: %1$s</string>
+    <string name="tarot_passed_out">Todos pasaron: reparte de nuevo el siguiente jugador.</string>
+    <string name="tarot_line">%1$s: %2$s</string>
+    <string name="tarot_bid_waiting">…</string>
+    <string name="tarot_bid_pick">Tu apuesta: pasa, o apuesta más alto que la anterior.</string>
+    <string name="tarot_contract_line">%2$s toma (%1$s)</string>
+    <string name="tarot_slam_line">Slam anunciado</string>
+    <string name="tarot_called_line">Carta llamada: %1$s</string>
+    <string name="tarot_partner_unknown">Aún no se conoce al compañero.</string>
+    <string name="tarot_partner_known">Compañero: %1$s</string>
+    <string name="tarot_tricks_line">Bazas jugadas: %1$d / %2$d</string>
+    <string name="tarot_handful_line">%1$s muestra una poignée: %2$s</string>
+    <string name="tarot_discarded_trumps">Triunfos descartados por %1$s:</string>
+    <string name="tarot_calling_wait">%1$s elige la carta que llama…</string>
+    <string name="tarot_call_title">Llamada al compañero</string>
+    <string name="tarot_call_pick">Elige la carta que llamas: su dueño será tu compañero, y nadie lo sabrá hasta que la juegue. Si la tienes tú, juegas solo.</string>
+    <string name="tarot_call_confirm">Llamar esta carta</string>
+    <string name="tarot_dog_title">El perro</string>
+    <string name="tarot_dog_sans">Guardia sin el perro: el perro se queda con el tomador, sin mirarlo.</string>
+    <string name="tarot_dog_contre">Guardia contra el perro: el perro va a los defensores, sin mirarlo.</string>
+    <string name="tarot_dog_shown" tools:ignore="PluralsCandidate">El perro se muestra a todos. %1$s lo toma y descarta %2$d cartas.</string>
+    <string name="tarot_trick_title">Baza en curso</string>
+    <string name="tarot_trick_won">%1$s gana la baza.</string>
+    <string name="tarot_discard_pick" tools:ignore="PluralsCandidate">Descarta %1$d cartas: ni reyes, ni bouts, y ningún triunfo mientras tengas otra cosa.</string>
+    <string name="tarot_discard_none">No hay perro que tomar: no se descarta. Puedes anunciar un slam antes de empezar.</string>
+    <string name="tarot_discard_count">%1$d / %2$d cartas elegidas</string>
+    <string name="tarot_discard_confirm">Descartar estas cartas</string>
+    <string name="tarot_start_play">Empezar a jugar</string>
+    <string name="tarot_discard_refused">Descarte rechazado: ni reyes, ni bouts, ni triunfos mientras tengas otras cartas.</string>
+    <string name="tarot_slam_toggle">Anunciar un slam</string>
+    <string name="tarot_play_selected">Jugar esta carta</string>
+    <string name="tarot_play_hint">Toca una carta para verla en grande y vuelve a tocarla (o «Jugar») para jugarla. Sirve el palo; si no puedes, juega un triunfo, más alto que los de la baza si puedes; la Excusa se juega cuando quieras.</string>
+    <string name="tarot_not_playable">No se puede jugar esta carta: sirve el palo; si no tienes, juega un triunfo (más alto que los de la baza si puedes); sin triunfos, juega lo que quieras.</string>
+    <string name="tarot_handful_button">Mostrar una poignée (%1$s)</string>
+    <string name="tarot_result_points">%1$s hizo %2$d puntos con %3$s (contrato: %4$d).</string>
+    <string name="tarot_result_petit">Petit al final: %1$s</string>
+    <string name="tarot_result_handful">Poignées: %1$s</string>
+    <string name="tarot_delta_line">%1$s: %2$s</string>
 </resources>

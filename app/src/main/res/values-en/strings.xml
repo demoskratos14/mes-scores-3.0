@@ -329,7 +329,7 @@
     <string name="rules_tarot_5_title">Scoring</string>
     <string name="rules_tarot_5_body">Base score = 25 + the difference between the points made and the contract. It is positive if the contract is made, negative if it fails. It is multiplied by the bid’s multiplier.\n• Petit au bout: ±10, multiplied by the multiplier (+ for the taker, − for the defence).\n• Handful (Poignée): single 20 · double 30 · triple 40, won by the side that wins the round (not multiplied).\n• Slam (all tricks): +200 unannounced · +400 announced and made · −200 announced and failed (not multiplied).\n• Defence slam: +200 for the defenders (house rule, not in the official rules).\nThe score obtained is paid by each defender to the taker (and to the partner in 5-player games).</string>
     <string name="rules_tarot_6_title">In the app</string>
-    <string name="rules_tarot_6_body">For each round, choose the taker (and the called partner in 5-player games), the contract, the number of oudlers and the points made, then tick any bonuses. At 91 points, a successful slam is added automatically. The app calculates each player’s score (the sum of the round is always zero) and shows it before you confirm. The pencil in the history lets you correct a round.</string>
+    <string name="rules_tarot_6_body">For each round, choose the taker (and the called partner in 5-player games), the contract, the number of oudlers and the points made, then tick any bonuses. At 91 points, a successful slam is added automatically. The app calculates each player’s score (the sum of the round is always zero) and shows it before you confirm. The pencil in the history lets you correct a round.\n\nPlaying in the app (“Playable games”): the app deals the 78 cards, lets everyone bid in turn, shows the dog, checks every card played (following suit, trumping, over-trumping), handles the king call at 5 players, handfuls, petit au bout, slams and the Excuse, counts oudlers and points, then records the round in the history. Pass the phone around (a hand only appears after “Show my hand”), or everyone plays on their own phone using “Share”.</string>
     <string name="rules_belote_1_title">Goal</string>
     <string name="rules_belote_1_body">Played by 4 in 2 teams with 32 cards. One team chooses a trump suit and must score more points than the opponents. The game is played over several rounds up to the target score.</string>
     <string name="rules_belote_2_title">Card values</string>
@@ -2918,4 +2918,49 @@
     <string name="ohhell_not_playable">That card cannot be played: you must follow the suit led if you have it.</string>
     <string name="ohhell_trick_won">%1$s wins the trick.</string>
     <string name="ohhell_result_line">%1$s: bid %2$d, tricks %3$d → score %4$+d</string>
+
+    <!-- Tarot jouable -->
+    <string name="tarot_ranks">1,2,3,4,5,6,7,8,9,10,J,Kn,Q,K</string>
+    <string name="tarot_trump_name" tools:ignore="PluralsCandidate">Trump %1$d</string>
+    <string name="tarot_excuse_name">Excuse</string>
+    <string name="tarot_bid_pass">Pass</string>
+    <string name="tarot_bidding_title">Bidding</string>
+    <string name="tarot_dealer">Dealer: %1$s</string>
+    <string name="tarot_passed_out">Everyone passed: the next dealer deals again.</string>
+    <string name="tarot_line">%1$s: %2$s</string>
+    <string name="tarot_bid_waiting">…</string>
+    <string name="tarot_bid_pick">Your bid: pass, or bid higher than the last bid.</string>
+    <string name="tarot_contract_line">%2$s takes (%1$s)</string>
+    <string name="tarot_slam_line">Slam announced</string>
+    <string name="tarot_called_line">Called card: %1$s</string>
+    <string name="tarot_partner_unknown">The partner is not known yet.</string>
+    <string name="tarot_partner_known">Partner: %1$s</string>
+    <string name="tarot_tricks_line">Tricks played: %1$d / %2$d</string>
+    <string name="tarot_handful_line">%1$s shows a handful: %2$s</string>
+    <string name="tarot_discarded_trumps">Trumps discarded by %1$s:</string>
+    <string name="tarot_calling_wait">%1$s is choosing the card to call…</string>
+    <string name="tarot_call_title">Calling a partner</string>
+    <string name="tarot_call_pick">Choose the card you call: its owner will be your partner, and nobody knows who until it is played. If you hold it yourself, you play alone.</string>
+    <string name="tarot_call_confirm">Call this card</string>
+    <string name="tarot_dog_title">The dog</string>
+    <string name="tarot_dog_sans">Guard without the dog: the dog stays with the taker, unseen.</string>
+    <string name="tarot_dog_contre">Guard against the dog: the dog goes to the defenders, unseen.</string>
+    <string name="tarot_dog_shown" tools:ignore="PluralsCandidate">The dog is shown to everyone. %1$s takes it, then discards %2$d cards.</string>
+    <string name="tarot_trick_title">Current trick</string>
+    <string name="tarot_trick_won">%1$s wins the trick.</string>
+    <string name="tarot_discard_pick" tools:ignore="PluralsCandidate">Discard %1$d cards: no kings, no oudlers, and no trumps while you have anything else.</string>
+    <string name="tarot_discard_none">No dog to take: no discard. You can announce a slam before starting.</string>
+    <string name="tarot_discard_count">%1$d / %2$d cards chosen</string>
+    <string name="tarot_discard_confirm">Discard these cards</string>
+    <string name="tarot_start_play">Start playing</string>
+    <string name="tarot_discard_refused">Discard refused: no kings, no oudlers, and no trumps while you have other cards.</string>
+    <string name="tarot_slam_toggle">Announce a slam</string>
+    <string name="tarot_play_selected">Play this card</string>
+    <string name="tarot_play_hint">Tap a card to see it larger, then tap it again (or “Play”) to play it. Follow suit; if you cannot, play a trump, higher than the trick’s trumps if you can; the Excuse can be played any time.</string>
+    <string name="tarot_not_playable">This card cannot be played: follow suit; without it, play a trump (higher than the trick’s trumps if you can); without trumps, play anything.</string>
+    <string name="tarot_handful_button">Show a handful (%1$s)</string>
+    <string name="tarot_result_points">%1$s scored %2$d points with %3$s (contract: %4$d).</string>
+    <string name="tarot_result_petit">Petit au bout: %1$s</string>
+    <string name="tarot_result_handful">Handfuls: %1$s</string>
+    <string name="tarot_delta_line">%1$s: %2$s</string>
 </resources>

@@ -174,6 +174,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Cœurs chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val hearts = HeartsOnline(session)
 
+    /** Tarot chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val tarot = TarotOnline(session)
+
     /** Barbu chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val barbu = BarbuOnline(session)
 

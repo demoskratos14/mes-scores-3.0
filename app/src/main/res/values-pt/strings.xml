@@ -329,7 +329,7 @@
     <string name="rules_tarot_5_title">Pontuação</string>
     <string name="rules_tarot_5_body">Pontuação base = 25 + a diferença entre os pontos feitos e o contrato. É positiva se o contrato for cumprido e negativa se falhar. É multiplicada pelo multiplicador do lance.\n• Petit au bout: ±10, multiplicado pelo multiplicador (+ para o declarante, − para a defesa).\n• Poignée: simples 20 · dupla 30 · tripla 40, para o lado que ganha a ronda (sem multiplicar).\n• Chelem (todas as vazas): +200 não anunciado · +400 anunciado e conseguido · −200 anunciado e falhado (sem multiplicar).\n• Chelem da defesa: +200 para os defensores (regra da casa, não consta das regras oficiais).\nA pontuação obtida é paga por cada defensor ao declarante (e ao parceiro nas partidas de 5 jogadores).</string>
     <string name="rules_tarot_6_title">Na aplicação</string>
-    <string name="rules_tarot_6_body">Em cada ronda, escolhe o declarante (e o parceiro chamado nas partidas de 5 jogadores), o contrato, o número de oudlers e os pontos feitos, e depois assinala os bónus que existirem. Aos 91 pontos, um chelem conseguido é acrescentado automaticamente. A aplicação calcula a pontuação de cada jogador (a soma da ronda é sempre zero) e mostra-a antes de confirmares. O lápis do histórico permite corrigir uma ronda.</string>
+    <string name="rules_tarot_6_body">Em cada ronda, escolhe o declarante (e o parceiro chamado nas partidas de 5 jogadores), o contrato, o número de oudlers e os pontos feitos, e depois assinala os bónus que existirem. Aos 91 pontos, um chelem conseguido é acrescentado automaticamente. A aplicação calcula a pontuação de cada jogador (a soma da ronda é sempre zero) e mostra-a antes de confirmares. O lápis do histórico permite corrigir uma ronda.\n\nJogar na app («Jogos jogáveis»): a app distribui as 78 cartas, faz cada um falar à vez, mostra o cão, verifica cada carta jogada (naipe, corte, sobrecorte), gere a chamada do rei com 5 jogadores, as poignées, o petit no fim, o slam e a Desculpa, conta os bouts e os pontos e regista a ronda no histórico. Passam o telemóvel de mão em mão (a mão só aparece depois de «Ver a minha mão»), ou cada um joga no seu telemóvel com «Partilhar».</string>
     <string name="rules_belote_1_title">Objetivo</string>
     <string name="rules_belote_1_body">Joga-se a 4, em 2 equipas, com 32 cartas. Uma equipa escolhe um naipe de trunfo e tem de fazer mais pontos do que os adversários. A partida joga-se em várias rondas até à pontuação-alvo.</string>
     <string name="rules_belote_2_title">Valor das cartas</string>
@@ -2950,4 +2950,49 @@
     <string name="ohhell_not_playable">Essa carta não pode ser jogada: tens de assistir ao naipe jogado se o tiveres.</string>
     <string name="ohhell_trick_won">%1$s ganha a vaza.</string>
     <string name="ohhell_result_line">%1$s: licitou %2$d, vazas %3$d → pontuação %4$+d</string>
+
+    <!-- Tarot jouable -->
+    <string name="tarot_ranks">1,2,3,4,5,6,7,8,9,10,V,C,D,R</string>
+    <string name="tarot_trump_name" tools:ignore="PluralsCandidate">Trunfo %1$d</string>
+    <string name="tarot_excuse_name">Desculpa</string>
+    <string name="tarot_bid_pass">Passo</string>
+    <string name="tarot_bidding_title">Licitação</string>
+    <string name="tarot_dealer">Dador: %1$s</string>
+    <string name="tarot_passed_out">Todos passaram: o próximo dador volta a distribuir.</string>
+    <string name="tarot_line">%1$s: %2$s</string>
+    <string name="tarot_bid_waiting">…</string>
+    <string name="tarot_bid_pick">A tua licitação: passa, ou licita mais alto do que a última.</string>
+    <string name="tarot_contract_line">%2$s declara (%1$s)</string>
+    <string name="tarot_slam_line">Slam anunciado</string>
+    <string name="tarot_called_line">Carta chamada: %1$s</string>
+    <string name="tarot_partner_unknown">O parceiro ainda não é conhecido.</string>
+    <string name="tarot_partner_known">Parceiro: %1$s</string>
+    <string name="tarot_tricks_line">Vazas jogadas: %1$d / %2$d</string>
+    <string name="tarot_handful_line">%1$s mostra uma poignée: %2$s</string>
+    <string name="tarot_discarded_trumps">Trunfos descartados por %1$s:</string>
+    <string name="tarot_calling_wait">%1$s está a escolher a carta que chama…</string>
+    <string name="tarot_call_title">Chamada do parceiro</string>
+    <string name="tarot_call_pick">Escolhe a carta que chamas: o seu dono será o teu parceiro, e ninguém sabe quem é até a jogar. Se a tiveres tu, jogas sozinho.</string>
+    <string name="tarot_call_confirm">Chamar esta carta</string>
+    <string name="tarot_dog_title">O cão</string>
+    <string name="tarot_dog_sans">Guarda sem o cão: o cão fica com o declarante, sem ser visto.</string>
+    <string name="tarot_dog_contre">Guarda contra o cão: o cão vai para os defensores, sem ser visto.</string>
+    <string name="tarot_dog_shown" tools:ignore="PluralsCandidate">O cão é mostrado a todos. %1$s fica com ele e descarta %2$d cartas.</string>
+    <string name="tarot_trick_title">Vaza em curso</string>
+    <string name="tarot_trick_won">%1$s ganha a vaza.</string>
+    <string name="tarot_discard_pick" tools:ignore="PluralsCandidate">Descarta %1$d cartas: sem reis, sem bouts e sem trunfos enquanto tiveres outra coisa.</string>
+    <string name="tarot_discard_none">Não há cão para tomar: sem descarte. Podes anunciar um slam antes de começar.</string>
+    <string name="tarot_discard_count">%1$d / %2$d cartas escolhidas</string>
+    <string name="tarot_discard_confirm">Descartar estas cartas</string>
+    <string name="tarot_start_play">Começar a jogar</string>
+    <string name="tarot_discard_refused">Descarte recusado: sem reis, sem bouts e sem trunfos enquanto tiveres outras cartas.</string>
+    <string name="tarot_slam_toggle">Anunciar um slam</string>
+    <string name="tarot_play_selected">Jogar esta carta</string>
+    <string name="tarot_play_hint">Toca numa carta para a ver em grande e toca outra vez (ou «Jogar») para a jogar. Assiste ao naipe; se não puderes, joga um trunfo, mais alto do que os da vaza se puderes; a Desculpa joga-se quando quiseres.</string>
+    <string name="tarot_not_playable">Esta carta não pode ser jogada: assiste ao naipe; sem ele, joga um trunfo (mais alto do que os da vaza se puderes); sem trunfos, joga o que quiseres.</string>
+    <string name="tarot_handful_button">Mostrar uma poignée (%1$s)</string>
+    <string name="tarot_result_points">%1$s fez %2$d pontos com %3$s (contrato: %4$d).</string>
+    <string name="tarot_result_petit">Petit no fim: %1$s</string>
+    <string name="tarot_result_handful">Poignées: %1$s</string>
+    <string name="tarot_delta_line">%1$s: %2$s</string>
 </resources>
