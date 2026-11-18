@@ -82,8 +82,11 @@ class RamiRoundTest {
         val small = listOf(c(heart, 2), c(heart, 3), c(heart, 4))
         assertEquals(RamiCheck.TOO_FEW_POINTS, RamiScoring.checkMeld(small, opened = false))
         assertEquals(RamiCheck.OK, RamiScoring.checkMeld(small, opened = true))
-        val big = listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(heart, 13))
+        // 10 + 10 + 10 + 10 + 11 (l'as après le roi) = 51 : tout juste assez pour ouvrir.
+        val big = listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(heart, 13), c(heart, 1))
         assertEquals(RamiCheck.OK, RamiScoring.checkMeld(big, opened = false))
+        val almost = listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(heart, 13))
+        assertEquals(RamiCheck.TOO_FEW_POINTS, RamiScoring.checkMeld(almost, opened = false))
         assertEquals(RamiCheck.INVALID, RamiScoring.checkMeld(listOf(c(heart, 10), c(spade, 2), c(club, 4)), opened = true))
     }
 
@@ -135,13 +138,13 @@ class RamiRoundTest {
     @Test
     fun onOuvreAvecAssezDePointsPuisOnDefausse() {
         val round = round(
-            hands = listOf(listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(spade, 2)), listOf(c(club, 4))),
-            stock = listOf(c(heart, 13), c(club, 9)),
+            hands = listOf(listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(heart, 13), c(spade, 2)), listOf(c(club, 4))),
+            stock = listOf(c(heart, 1), c(club, 9)),
             discards = listOf(c(diamond, 3))
         )
         round.reveal()
         assertTrue(round.drawFromStock())
-        assertTrue(round.meld(listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(heart, 13))))
+        assertTrue(round.meld(listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(heart, 13), c(heart, 1))))
         assertTrue(round.opened[0])
         assertEquals(1, round.melds.size)
         assertTrue(round.discard(c(spade, 2)))

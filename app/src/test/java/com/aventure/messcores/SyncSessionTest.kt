@@ -95,12 +95,12 @@ class SyncSessionTest {
         assertFalse(noGame.session.startHosting("Anna"))
         assertEquals(SyncRole.NONE, noGame.session.role)
 
-        for (mode in listOf(ScoreMode.POKER, ScoreMode.RACKET)) {
+        for (mode in listOf(ScoreMode.RACKET)) {
             val (host, _) = phones(GameRules(id = "x", name = "X", scoreMode = mode))
             assertFalse(host.session.canShareCurrentGame())
             assertFalse(host.session.startHosting("Anna"))
         }
-        for (mode in listOf(ScoreMode.TABLE, ScoreMode.COUNTER, ScoreMode.VARIABLE_TEAMS)) {
+        for (mode in listOf(ScoreMode.TABLE, ScoreMode.COUNTER, ScoreMode.VARIABLE_TEAMS, ScoreMode.POKER)) {
             val (host, _) = phones(GameRules(id = "x", name = "X", scoreMode = mode))
             assertTrue(host.session.canShareCurrentGame())
         }
