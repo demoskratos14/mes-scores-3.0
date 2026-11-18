@@ -138,7 +138,7 @@ class RamiRoundTest {
     @Test
     fun onOuvreAvecAssezDePointsPuisOnDefausse() {
         val round = round(
-            hands = listOf(listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(heart, 13), c(spade, 2)), listOf(c(club, 4))),
+            hands = listOf(listOf(c(heart, 10), c(heart, 11), c(heart, 12), c(heart, 13), c(spade, 2), c(club, 7)), listOf(c(club, 4))),
             stock = listOf(c(heart, 1), c(club, 9)),
             discards = listOf(c(diamond, 3))
         )
