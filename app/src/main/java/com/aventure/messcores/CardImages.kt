@@ -43,6 +43,14 @@ private val JOKER_IMAGES = intArrayOf(R.drawable.fr_card_joker_black, R.drawable
 internal fun yanivCardImage(card: Int): Int =
     if (YanivScoring.isJoker(card)) JOKER_IMAGES[(card - FrenchCards.DECK).coerceIn(0, JOKER_IMAGES.size - 1)] else frenchCardImage(card)
 
+/**
+ * L'image de la carte [card] du paquet de Rami (108 cartes) : une des 52 cartes (les deux jeux se ressemblent), ou un des 4 jokers
+ * (104 et 105 noirs, 106 et 107 rouges).
+ */
+@DrawableRes
+internal fun ramiCardImage(card: Int): Int =
+    if (RamiScoring.isJoker(card)) JOKER_IMAGES[((card - RamiScoring.NATURALS) / 2).coerceIn(0, JOKER_IMAGES.size - 1)] else frenchCardImage(RamiScoring.base(card))
+
 /** Largeur / hauteur des images des cartes. */
 internal const val FRENCH_CARD_RATIO = 192f / 279f
 

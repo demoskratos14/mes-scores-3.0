@@ -189,6 +189,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Yaniv chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val yaniv = YanivOnline(session)
 
+    /** Rami chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val rami = RamiOnline(session)
+
     /** Flip 7 chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val flip7 = Flip7Online(session)
 

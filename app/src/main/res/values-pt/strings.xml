@@ -343,11 +343,11 @@
     <string name="rules_rami_1_title">Objetivo</string>
     <string name="rules_rami_1_body">Ser o primeiro a ficar sem cartas e terminar a partida com o menor número de pontos possível.</string>
     <string name="rules_rami_2_title">Jogo</string>
-    <string name="rules_rami_2_body">• Na tua vez, tira uma carta (do baralho ou da pilha de descarte), podes baixar combinações e depois descartas uma carta.\n• Combinações: sequências de pelo menos 3 cartas do mesmo naipe, ou trios e quadras de cartas iguais de naipes diferentes.\n• O joker substitui qualquer carta.\n• A primeira combinação tem de atingir um mínimo de pontos, acordado antes de jogar (as variantes diferem).</string>
+    <string name="rules_rami_2_body">• Dois baralhos de 52 cartas mais 4 jokers: cada jogador recebe 13 cartas e vira-se uma carta para iniciar o descarte.\n• Na sua vez, compra-se (do baralho ou do topo do descarte), podem baixar-se combinações e depois descarta-se uma carta.\n• Combinações: sequências de pelo menos 3 cartas do mesmo naipe (o ás vale 1 antes do 2 ou 11 depois do rei; uma sequência não pode passar do rei para o ás), ou trios e quadras de cartas do mesmo valor e de naipes diferentes. O joker substitui qualquer carta, mas uma combinação precisa de pelo menos 2 cartas sem joker.\n• A primeira baixa tem de valer pelo menos 51 pontos (ás = 11, figuras = 10, outras cartas = o seu valor, joker = a carta que substitui; o ás de uma sequência A-2-3 vale 1). Depois podem juntar-se cartas às combinações da mesa e recuperar um joker pondo a carta que ele substitui.</string>
     <string name="rules_rami_3_title">Pontuação</string>
-    <string name="rules_rami_3_body">O jogador que “fecha” (já não tem cartas na mão) marca 0. Os outros contam as cartas que lhes restam na mão: cartas numeradas = o seu valor, figuras = 10, Ás e joker consoante a variante escolhida.</string>
+    <string name="rules_rami_3_body">O jogador que baixa a última carta marca 0. Os outros contam as cartas que lhes restam na mão: cartas numeradas = o seu valor, figuras = 10, ás = 11, joker = 25. Não se aplica nenhuma bonificação nem penalização adicional.</string>
     <string name="rules_rami_4_title">Na aplicação</string>
-    <string name="rules_rami_4_body">Introduz os pontos de cada jogador em cada ronda. Ganha o total mais baixo e a partida termina no fim da ronda em que um jogador atinge os 500 pontos.</string>
+    <string name="rules_rami_4_body">A app conduz o jogo: distribui (13 cartas cada), verifica cada baixa (sequências, trios e quadras, primeira baixa de 51 pontos), cada carta juntada à mesa e cada joker recuperado, e regista os pontos de cada ronda na tabela. Passa-se o telemóvel: a mão só aparece depois de «Ver a minha mão». O jogo termina no fim da ronda em que um jogador chega aos 500 pontos (1000 num jogo longo) e ganha quem tiver menos pontos.</string>
     <string name="rules_uno_1_title">Objetivo</string>
     <string name="rules_uno_1_body">Ser o primeiro a jogar todas as tuas cartas.</string>
     <string name="rules_uno_2_title">Jogo</string>
@@ -2684,6 +2684,23 @@
     <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
     <string name="yaniv_round_won">%1$s anuncia Yaniv com %2$d pontos e marca 0!</string>
     <string name="yaniv_round_assaf">%1$s anuncia Yaniv, mas %2$s tem os mesmos pontos ou menos: Assaf! %1$s leva 30 pontos de penalização.</string>
+    <string name="rami_table_title">Combinações na mesa</string>
+    <string name="rami_no_melds">Ainda não há nenhuma combinação na mesa.</string>
+    <string name="rami_meld_run">Sequência n.º %1$d</string>
+    <string name="rami_meld_set">Trio ou quadra n.º %1$d</string>
+    <string name="rami_draw_hint">Começa por comprar: toca no baralho ou na carta de cima do descarte.</string>
+    <string name="rami_open_hint">Ainda não baixaste: a tua primeira baixa tem de valer pelo menos %1$d pontos.</string>
+    <string name="rami_play_hint">Toca em cartas da tua mão para as baixar em combinações. Depois da primeira baixa, toca numa combinação da mesa para lhe juntar a carta escolhida (ou recuperar um joker). Termina a jogada descartando uma só carta.</string>
+    <string name="rami_meld">Baixar as cartas escolhidas</string>
+    <string name="rami_discard">Descartar a carta escolhida</string>
+    <string name="rami_select_first">Toca primeiro em algumas cartas da tua mão.</string>
+    <string name="rami_discard_one">Para descartar, toca numa só carta.</string>
+    <string name="rami_not_valid">Estas cartas não formam combinações válidas: uma sequência de pelo menos 3 cartas do mesmo naipe, ou um trio ou quadra de cartas do mesmo valor e de naipes diferentes (pelo menos 2 cartas sem joker).</string>
+    <string name="rami_too_few">A tua primeira baixa tem de valer pelo menos %1$d pontos.</string>
+    <string name="rami_not_opened">Baixa primeiro combinações que valham pelo menos %1$d pontos antes de completar as da mesa.</string>
+    <string name="rami_attach_failed">As cartas escolhidas não servem nesta combinação.</string>
+    <string name="rami_stock_empty">Já não há nada para comprar: apanha a carta de cima do descarte.</string>
+    <string name="rami_round_won">%1$s baixa a última carta e marca 0!</string>
 
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>

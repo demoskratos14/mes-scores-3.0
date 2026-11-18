@@ -343,11 +343,11 @@
     <string name="rules_rami_1_title">Goal</string>
     <string name="rules_rami_1_body">Be the first to get rid of all your cards, and finish the game with as few points as possible.</string>
     <string name="rules_rami_2_title">Play</string>
-    <string name="rules_rami_2_body">• On your turn, draw (from the stock or the discard pile), you may lay down melds, then discard a card.\n• Melds: runs of at least 3 cards of the same suit, or sets of three or four of a kind of different suits.\n• The joker replaces any card.\n• The first meld must reach a minimum number of points, agreed before playing (variants differ).</string>
+    <string name="rules_rami_2_body">• Two 52-card decks plus 4 jokers: each player gets 13 cards and one card is turned up to start the discard pile.\n• On your turn you draw (from the stock or the top of the discard pile), may lay down melds, then discard a card.\n• Melds: runs of at least 3 cards of the same suit (an ace is worth 1 before the 2 or 11 after the king; a run cannot wrap from king to ace), or sets of 3 or 4 cards of the same rank and different suits. A joker stands for any card, but a meld needs at least 2 cards without a joker.\n• Your first meld must be worth at least 51 points (ace = 11, face cards = 10, other cards = their value, a joker = the card it replaces; the ace of an A-2-3 run counts 1). After that you may add to the melds on the table, and take back a joker by putting in the card it stands for.</string>
     <string name="rules_rami_3_title">Scoring</string>
-    <string name="rules_rami_3_body">The player who “goes out” (no more cards in hand) scores 0. The others count the cards left in their hand: numbered cards = their value, face cards = 10, Ace and joker depending on the chosen variant.</string>
+    <string name="rules_rami_3_body">The player who lays down their last card scores 0. The others count the cards left in their hand: numbered cards = their value, face cards = 10, ace = 11, joker = 25. No extra bonus or penalty is applied.</string>
     <string name="rules_rami_4_title">In the app</string>
-    <string name="rules_rami_4_body">Enter each player’s points every round. The lowest total wins and the game ends at the end of the round in which a player reaches 500 points.</string>
+    <string name="rules_rami_4_body">The app runs the game: it deals (13 cards each), checks every meld (runs, sets, 51-point first meld), every card added to the table and every joker taken back, and writes the points of each round into the score table. Pass the phone around: the hand only appears after “Show my hand”. The game ends at the end of the round in which a player reaches 500 points (1000 for a long game) and the player with the fewest points wins.</string>
     <string name="rules_uno_1_title">Goal</string>
     <string name="rules_uno_1_body">Be the first to play all your cards.</string>
     <string name="rules_uno_2_title">Play</string>
@@ -2653,6 +2653,23 @@
     <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
     <string name="yaniv_round_won" tools:ignore="PluralsCandidate">%1$s calls Yaniv with %2$d points and scores 0!</string>
     <string name="yaniv_round_assaf">%1$s calls Yaniv, but %2$s has as many points or fewer: Assaf! %1$s gets a 30-point penalty.</string>
+    <string name="rami_table_title">Melds on the table</string>
+    <string name="rami_no_melds">No meld has been laid down yet.</string>
+    <string name="rami_meld_run" tools:ignore="PluralsCandidate">Run no. %1$d</string>
+    <string name="rami_meld_set" tools:ignore="PluralsCandidate">Set no. %1$d</string>
+    <string name="rami_draw_hint">Start by drawing: tap the stock, or the top card of the discard pile.</string>
+    <string name="rami_open_hint" tools:ignore="PluralsCandidate">You have not melded yet: your first meld must be worth at least %1$d points.</string>
+    <string name="rami_play_hint">Tap cards in your hand to lay them down as melds. After your first meld, tap a meld on the table to add the chosen card to it (or to take back a joker). End your turn by discarding a single card.</string>
+    <string name="rami_meld">Meld the chosen cards</string>
+    <string name="rami_discard">Discard the chosen card</string>
+    <string name="rami_select_first">Tap some cards in your hand first.</string>
+    <string name="rami_discard_one">To discard, tap a single card.</string>
+    <string name="rami_not_valid">These cards do not make valid melds: a run of at least 3 cards of the same suit, or a set of 3 or 4 cards of the same rank and different suits (at least 2 cards without a joker).</string>
+    <string name="rami_too_few" tools:ignore="PluralsCandidate">Your first meld must be worth at least %1$d points.</string>
+    <string name="rami_not_opened" tools:ignore="PluralsCandidate">First lay down melds worth at least %1$d points before adding to the ones on the table.</string>
+    <string name="rami_attach_failed">The chosen cards do not fit this meld.</string>
+    <string name="rami_stock_empty">Nothing left to draw: take the top card of the discard pile.</string>
+    <string name="rami_round_won">%1$s lays down the last card and scores 0!</string>
 
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>

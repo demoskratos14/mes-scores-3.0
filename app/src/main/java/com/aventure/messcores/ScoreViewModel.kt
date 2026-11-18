@@ -173,6 +173,17 @@ class ScoreViewModel : ViewModel() {
         return YanivRound(players.size, startPlayer = played % players.size.coerceAtLeast(1), startRound = played + 1).also { yanivRound = it }
     }
 
+    // La partie de Rami en cours : mains, pioche, défausse et combinaisons posées (une partie reprise repart d'une donne neuve).
+    private var ramiRound: RamiRound? = null
+
+    /** La partie de Rami ouverte : la même d'un écran à l'autre, créée au premier appel. */
+    internal fun ramiRound(): RamiRound {
+        val current = ramiRound
+        if (current != null && current.playerCount == players.size) return current
+        val played = roundsPlayed()
+        return RamiRound(players.size, startPlayer = played % players.size.coerceAtLeast(1), startRound = played + 1).also { ramiRound = it }
+    }
+
     // La partie de Président en cours : mains, pli en cours, ordre de sortie. Une partie reprise repart d'une donne neuve,
     // sans échange de cartes (on ne connaît plus le classement de la manche d'avant).
     private var presidentRound: PresidentRound? = null
@@ -333,6 +344,7 @@ class ScoreViewModel : ViewModel() {
         ohHellRound = null
         barbuRound = null
         yanivRound = null
+        ramiRound = null
         dominoRound = null
         presidentRound = null
         flip7Round = null
@@ -375,6 +387,7 @@ class ScoreViewModel : ViewModel() {
             ohHellRound = null
             barbuRound = null
             yanivRound = null
+            ramiRound = null
             dominoRound = null
             presidentRound = null
             flip7Round = null
@@ -402,7 +415,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la partie ouverte contient au moins un score saisi (donc qu'il y a quelque chose à perdre). */
     fun hasProgress(): Boolean {
         if (!gameActive || players.isEmpty()) return false
-        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || ohHellRound?.inProgress == true || barbuRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true || dominoRound?.inProgress == true || presidentRound?.inProgress == true
+        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || ohHellRound?.inProgress == true || barbuRound?.inProgress == true || yanivRound?.inProgress == true || ramiRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true || dominoRound?.inProgress == true || presidentRound?.inProgress == true
     }
 
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
@@ -419,6 +432,7 @@ class ScoreViewModel : ViewModel() {
         ohHellRound = null
         barbuRound = null
         yanivRound = null
+        ramiRound = null
         dominoRound = null
         presidentRound = null
         flip7Round = null

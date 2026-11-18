@@ -163,6 +163,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Le Yaniv chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var yaniv: YanivOnline? = null
 
+    /** Le Rami chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var rami: RamiOnline? = null
+
     /** Flip 7 chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var flip7: Flip7Online? = null
 
@@ -451,6 +454,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         uno?.reset()
         huit?.reset()
         yaniv?.reset()
+        rami?.reset()
         flip7?.reset()
         skyjo?.reset()
         domino?.reset()
@@ -556,6 +560,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         uno?.onPeerConnected(id)
         huit?.onPeerConnected(id)
         yaniv?.onPeerConnected(id)
+        rami?.onPeerConnected(id)
         flip7?.onPeerConnected(id)
         skyjo?.onPeerConnected(id)
         domino?.onPeerConnected(id)
@@ -590,6 +595,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         uno?.onPeerDisconnected(id)
         huit?.onPeerDisconnected(id)
         yaniv?.onPeerDisconnected(id)
+        rami?.onPeerDisconnected(id)
         flip7?.onPeerDisconnected(id)
         skyjo?.onPeerDisconnected(id)
         domino?.onPeerDisconnected(id)
@@ -681,6 +687,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.UnoMsg -> uno?.onMessage(id, message.uno)
             is SyncMessage.HuitMsg -> huit?.onMessage(id, message.huit)
             is SyncMessage.YanivMsg -> yaniv?.onMessage(id, message.yaniv)
+            is SyncMessage.RamiMsg -> rami?.onMessage(id, message.rami)
             is SyncMessage.Flip7Msg -> flip7?.onMessage(id, message.flip7)
             is SyncMessage.SkyjoMsg -> skyjo?.onMessage(id, message.skyjo)
             is SyncMessage.DominoMsg -> domino?.onMessage(id, message.domino)

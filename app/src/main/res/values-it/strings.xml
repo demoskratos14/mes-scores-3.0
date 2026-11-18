@@ -344,11 +344,11 @@
     <string name="rules_rami_1_title">Obiettivo del gioco</string>
     <string name="rules_rami_1_body">Essere il primo a liberarsi di tutte le carte, e finire la partita con meno punti possibile.</string>
     <string name="rules_rami_2_title">Svolgimento</string>
-    <string name="rules_rami_2_body">• Al proprio turno si pesca (dal mazzo o dagli scarti), si possono calare delle combinazioni, poi si scarta una carta.\n• Combinazioni: scale di almeno 3 carte dello stesso seme, oppure tris / quartetti di pari valore in semi diversi.\n• Il jolly sostituisce qualsiasi carta.\n• La prima calata deve raggiungere un minimo di punti, da concordare prima di giocare (le varianti differiscono).</string>
+    <string name="rules_rami_2_body">• Due mazzi da 52 carte più 4 jolly: ogni giocatore riceve 13 carte e una carta viene girata per iniziare gli scarti.\n• Al proprio turno si pesca (dal mazzo o dalla cima degli scarti), si possono calare combinazioni e poi si scarta una carta.\n• Combinazioni: scale di almeno 3 carte dello stesso seme (l’asso vale 1 prima del 2 o 11 dopo il re; una scala non può passare dal re all’asso), oppure tris e poker di carte dello stesso valore e di semi diversi. Il jolly sostituisce qualsiasi carta, ma una combinazione richiede almeno 2 carte senza jolly.\n• La prima calata deve valere almeno 51 punti (asso = 11, figure = 10, altre carte = il loro valore, jolly = la carta che sostituisce; l’asso di una scala A-2-3 vale 1). Poi si possono aggiungere carte alle combinazioni sul tavolo e riprendere un jolly mettendo la carta che sostituisce.</string>
     <string name="rules_rami_3_title">Conteggio dei punti</string>
-    <string name="rules_rami_3_body">Il giocatore che « chiude » (nessuna carta più in mano) segna 0. Gli altri contano le carte rimaste: carte numerate = il loro valore, figure = 10, Asso e jolly secondo la variante scelta.</string>
+    <string name="rules_rami_3_body">Il giocatore che cala l’ultima carta segna 0. Gli altri contano le carte rimaste in mano: carte numerate = il loro valore, figure = 10, asso = 11, jolly = 25. Non si applica nessun bonus o penalità aggiuntiva.</string>
     <string name="rules_rami_4_title">Nell\'app</string>
-    <string name="rules_rami_4_body">Inserisci i punti di ogni giocatore a ogni round. Vince il totale più basso e la partita si ferma alla fine del round in cui un giocatore raggiunge i 500 punti.</string>
+    <string name="rules_rami_4_body">L’app conduce la partita: distribuisce (13 carte a testa), controlla ogni calata (scale, tris e poker, prima calata da 51 punti), ogni carta aggiunta al tavolo e ogni jolly ripreso, e scrive i punti di ogni mano nella tabella. Ci si passa il telefono: la mano compare solo dopo «Vedi la mia mano». La partita finisce alla fine della mano in cui un giocatore raggiunge 500 punti (1000 in una partita lunga) e vince chi ha meno punti.</string>
     <string name="rules_uno_1_title">Obiettivo del gioco</string>
     <string name="rules_uno_1_body">Essere il primo a calare tutte le proprie carte.</string>
     <string name="rules_uno_2_title">Svolgimento</string>
@@ -2694,6 +2694,23 @@
     <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
     <string name="yaniv_round_won">%1$s annuncia Yaniv con %2$d punti e segna 0!</string>
     <string name="yaniv_round_assaf">%1$s annuncia Yaniv, ma %2$s ha altrettanti punti o meno: Assaf! %1$s prende 30 punti di penalità.</string>
+    <string name="rami_table_title">Combinazioni sul tavolo</string>
+    <string name="rami_no_melds">Non è ancora stata calata nessuna combinazione.</string>
+    <string name="rami_meld_run">Scala n. %1$d</string>
+    <string name="rami_meld_set">Tris o poker n. %1$d</string>
+    <string name="rami_draw_hint">Comincia pescando: tocca il mazzo o la carta in cima agli scarti.</string>
+    <string name="rami_open_hint">Non hai ancora calato: la tua prima calata deve valere almeno %1$d punti.</string>
+    <string name="rami_play_hint">Tocca le carte della tua mano per calarle in combinazioni. Dopo la prima calata, tocca una combinazione sul tavolo per aggiungerle la carta scelta (o riprendere un jolly). Finisci il turno scartando una sola carta.</string>
+    <string name="rami_meld">Cala le carte scelte</string>
+    <string name="rami_discard">Scarta la carta scelta</string>
+    <string name="rami_select_first">Tocca prima qualche carta della tua mano.</string>
+    <string name="rami_discard_one">Per scartare, tocca una sola carta.</string>
+    <string name="rami_not_valid">Queste carte non formano combinazioni valide: una scala di almeno 3 carte dello stesso seme, oppure un tris o un poker di carte dello stesso valore e di semi diversi (almeno 2 carte senza jolly).</string>
+    <string name="rami_too_few">La tua prima calata deve valere almeno %1$d punti.</string>
+    <string name="rami_not_opened">Cala prima combinazioni che valgano almeno %1$d punti prima di completare quelle sul tavolo.</string>
+    <string name="rami_attach_failed">Le carte scelte non vanno in questa combinazione.</string>
+    <string name="rami_stock_empty">Non c’è più nulla da pescare: prendi la carta in cima agli scarti.</string>
+    <string name="rami_round_won">%1$s cala l’ultima carta e segna 0!</string>
 
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>

@@ -349,11 +349,11 @@
     <string name="rules_rami_1_title">But du jeu</string>
     <string name="rules_rami_1_body">Être le premier à se débarrasser de toutes ses cartes, et finir la partie avec le moins de points possible.</string>
     <string name="rules_rami_2_title">Déroulement</string>
-    <string name="rules_rami_2_body">• À son tour, on pioche (pioche ou défausse), on peut poser des combinaisons, puis on défausse une carte.\n• Combinaisons : suites d\'au moins 3 cartes de la même couleur, ou brelans / carrés de même valeur dans des couleurs différentes.\n• Le joker remplace n\'importe quelle carte.\n• La première pose doit atteindre un minimum de points, à convenir avant de jouer (les variantes diffèrent).</string>
+    <string name="rules_rami_2_body">• Deux jeux de 52 cartes plus 4 jokers : chaque joueur reçoit 13 cartes et une carte est retournée pour commencer la défausse.\n• À son tour, on pioche (pioche ou dessus de la défausse), on peut poser des combinaisons, puis on défausse une carte.\n• Combinaisons : suites d’au moins 3 cartes de la même couleur (l’as vaut 1 avant le 2 ou 11 après le roi ; une suite ne passe pas du roi à l’as), ou brelans / carrés de même valeur dans des couleurs différentes. Le joker remplace n’importe quelle carte, mais une combinaison doit avoir au moins 2 cartes sans joker.\n• La première pose doit valoir au moins 51 points (as = 11, figures = 10, autres cartes = leur valeur, joker = la carte qu’il remplace ; l’as d’une suite A-2-3 vaut 1). Ensuite on peut compléter les combinaisons de la table, et reprendre un joker en posant la carte qu’il remplace.</string>
     <string name="rules_rami_3_title">Comptage des points</string>
-    <string name="rules_rami_3_body">Le joueur qui « ferme » (plus aucune carte en main) marque 0. Les autres comptent les cartes qui leur restent : cartes numérotées = leur valeur, figures = 10, As et joker selon la variante choisie.</string>
+    <string name="rules_rami_3_body">Le joueur qui pose sa dernière carte marque 0. Les autres comptent les cartes qui leur restent : cartes numérotées = leur valeur, figures = 10, as = 11, joker = 25. Aucune prime ni pénalité supplémentaire n’est appliquée.</string>
     <string name="rules_rami_4_title">Dans l\'appli</string>
-    <string name="rules_rami_4_body">Saisissez les points de chaque joueur à chaque manche. Le total le plus bas gagne et la partie s\'arrête à la fin de la manche où un joueur atteint 500 points.</string>
+    <string name="rules_rami_4_body">L’appli joue la partie : elle distribue (13 cartes chacun), vérifie chaque pose (suites, brelans et carrés, première pose de 51 points), chaque carte ajoutée à la table et chaque joker repris, et inscrit les points de chaque manche au tableau des scores. On se passe le téléphone : la main n’apparaît qu’après « Voir ma main ». La partie s’arrête à la fin de la manche où un joueur atteint 500 points (1000 en partie longue) et celui qui en a le moins gagne.</string>
     <string name="rules_uno_1_title">But du jeu</string>
     <string name="rules_uno_1_body">Être le premier à poser toutes ses cartes.</string>
     <string name="rules_uno_2_title">Déroulement</string>
@@ -2701,6 +2701,23 @@
     <string name="yaniv_hand_line">%1$s : %2$s (%3$d)</string>
     <string name="yaniv_round_won">%1$s annonce Yaniv avec %2$d points et marque 0 !</string>
     <string name="yaniv_round_assaf">%1$s annonce Yaniv, mais %2$s a autant de points ou moins : Assaf ! %1$s prend 30 points de pénalité.</string>
+    <string name="rami_table_title">Combinaisons posées</string>
+    <string name="rami_no_melds">Aucune combinaison n’est encore posée.</string>
+    <string name="rami_meld_run">Suite n° %1$d</string>
+    <string name="rami_meld_set">Brelan ou carré n° %1$d</string>
+    <string name="rami_draw_hint">Commence par piocher : touche la pioche, ou la carte du dessus de la défausse.</string>
+    <string name="rami_open_hint">Tu n’as pas encore posé : ta première pose doit valoir au moins %1$d points.</string>
+    <string name="rami_play_hint">Touche des cartes de ta main pour les poser en combinaisons. Après ta première pose, touche une combinaison de la table pour y ajouter la carte choisie (ou reprendre un joker). Finis ton tour en défaussant une seule carte.</string>
+    <string name="rami_meld">Poser les cartes choisies</string>
+    <string name="rami_discard">Défausser la carte choisie</string>
+    <string name="rami_select_first">Touche d’abord des cartes de ta main.</string>
+    <string name="rami_discard_one">Pour défausser, touche une seule carte.</string>
+    <string name="rami_not_valid">Ces cartes ne forment pas de combinaisons valables : une suite d’au moins 3 cartes de la même couleur, ou un brelan ou un carré de même valeur et de couleurs différentes (au moins 2 cartes sans joker).</string>
+    <string name="rami_too_few">Ta première pose doit valoir au moins %1$d points.</string>
+    <string name="rami_not_opened">Pose d’abord des combinaisons valant au moins %1$d points avant de compléter celles de la table.</string>
+    <string name="rami_attach_failed">Les cartes choisies ne vont pas dans cette combinaison.</string>
+    <string name="rami_stock_empty">Plus rien à piocher : reprends la carte du dessus de la défausse.</string>
+    <string name="rami_round_won">%1$s pose sa dernière carte et marque 0 !</string>
 
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>

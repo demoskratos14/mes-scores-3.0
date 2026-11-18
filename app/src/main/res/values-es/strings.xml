@@ -343,11 +343,11 @@
     <string name="rules_rami_1_title">Objetivo</string>
     <string name="rules_rami_1_body">Ser el primero en deshacerte de todas tus cartas y terminar la partida con la menor cantidad de puntos posible.</string>
     <string name="rules_rami_2_title">Juego</string>
-    <string name="rules_rami_2_body">• En tu turno, roba (del mazo o de la pila de descarte), puedes bajar combinaciones y después descartas una carta.\n• Combinaciones: escaleras de al menos 3 cartas del mismo palo, o tríos o cuartetos de cartas iguales de palos distintos.\n• El comodín sustituye a cualquier carta.\n• La primera combinación debe alcanzar un mínimo de puntos, acordado antes de jugar (las variantes difieren).</string>
+    <string name="rules_rami_2_body">• Dos barajas de 52 cartas más 4 comodines: cada jugador recibe 13 cartas y se vuelve una carta para empezar el descarte.\n• En su turno se roba (del mazo o de la carta de arriba del descarte), se pueden bajar combinaciones y después se descarta una carta.\n• Combinaciones: escaleras de al menos 3 cartas del mismo palo (el as vale 1 antes del 2 o 11 después del rey; una escalera no puede pasar del rey al as), o tríos y cuartetos de cartas del mismo valor y de palos distintos. El comodín sustituye a cualquier carta, pero una combinación necesita al menos 2 cartas sin comodín.\n• La primera bajada debe valer al menos 51 puntos (as = 11, figuras = 10, otras cartas = su valor, comodín = la carta que sustituye; el as de una escalera A-2-3 vale 1). Después se pueden añadir cartas a las combinaciones de la mesa y recuperar un comodín poniendo la carta que sustituye.</string>
     <string name="rules_rami_3_title">Puntuación</string>
-    <string name="rules_rami_3_body">El jugador que “cierra” (se queda sin cartas en la mano) suma 0. Los demás cuentan las cartas que les quedan en la mano: cartas numeradas = su valor, figuras = 10, As y comodín según la variante elegida.</string>
+    <string name="rules_rami_3_body">El jugador que baja su última carta anota 0. Los demás cuentan las cartas que les quedan en la mano: cartas numeradas = su valor, figuras = 10, as = 11, comodín = 25. No se aplica ninguna bonificación ni penalización adicional.</string>
     <string name="rules_rami_4_title">En la aplicación</string>
-    <string name="rules_rami_4_body">Introduce los puntos de cada jugador en cada ronda. Gana el total más bajo y la partida termina al final de la ronda en la que un jugador alcanza los 500 puntos.</string>
+    <string name="rules_rami_4_body">La app dirige la partida: reparte (13 cartas cada uno), comprueba cada bajada (escaleras, tríos y cuartetos, primera bajada de 51 puntos), cada carta añadida a la mesa y cada comodín recuperado, y apunta los puntos de cada ronda en la tabla. Se pasa el teléfono: la mano solo aparece después de «Ver mi mano». La partida termina al final de la ronda en la que un jugador alcanza 500 puntos (1000 en una partida larga) y gana quien tenga menos puntos.</string>
     <string name="rules_uno_1_title">Objetivo</string>
     <string name="rules_uno_1_body">Ser el primero en jugar todas tus cartas.</string>
     <string name="rules_uno_2_title">Juego</string>
@@ -2684,6 +2684,23 @@
     <string name="yaniv_hand_line">%1$s: %2$s (%3$d)</string>
     <string name="yaniv_round_won">¡%1$s anuncia Yaniv con %2$d puntos y anota 0!</string>
     <string name="yaniv_round_assaf">%1$s anuncia Yaniv, pero %2$s tiene los mismos puntos o menos: ¡Assaf! %1$s recibe 30 puntos de penalización.</string>
+    <string name="rami_table_title">Combinaciones en la mesa</string>
+    <string name="rami_no_melds">Todavía no hay ninguna combinación en la mesa.</string>
+    <string name="rami_meld_run">Escalera n.º %1$d</string>
+    <string name="rami_meld_set">Trío o cuarteto n.º %1$d</string>
+    <string name="rami_draw_hint">Empieza robando: toca el mazo o la carta de arriba del descarte.</string>
+    <string name="rami_open_hint">Todavía no has bajado: tu primera bajada debe valer al menos %1$d puntos.</string>
+    <string name="rami_play_hint">Toca cartas de tu mano para bajarlas en combinaciones. Tras tu primera bajada, toca una combinación de la mesa para añadirle la carta elegida (o recuperar un comodín). Termina tu turno descartando una sola carta.</string>
+    <string name="rami_meld">Bajar las cartas elegidas</string>
+    <string name="rami_discard">Descartar la carta elegida</string>
+    <string name="rami_select_first">Toca primero algunas cartas de tu mano.</string>
+    <string name="rami_discard_one">Para descartar, toca una sola carta.</string>
+    <string name="rami_not_valid">Estas cartas no forman combinaciones válidas: una escalera de al menos 3 cartas del mismo palo, o un trío o cuarteto de cartas del mismo valor y de palos distintos (al menos 2 cartas sin comodín).</string>
+    <string name="rami_too_few">Tu primera bajada debe valer al menos %1$d puntos.</string>
+    <string name="rami_not_opened">Baja primero combinaciones que valgan al menos %1$d puntos antes de completar las de la mesa.</string>
+    <string name="rami_attach_failed">Las cartas elegidas no encajan en esta combinación.</string>
+    <string name="rami_stock_empty">No queda nada que robar: coge la carta de arriba del descarte.</string>
+    <string name="rami_round_won">¡%1$s baja su última carta y anota 0!</string>
 
     <!-- Skyjo Action jouable -->
     <string name="game_skyjo_action">Skyjo Action</string>

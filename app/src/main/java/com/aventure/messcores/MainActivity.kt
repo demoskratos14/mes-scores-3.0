@@ -210,6 +210,8 @@ fun ScoreApp(
     val onOhHellRoute = currentRoute == "ohhell" && playable && viewModel.gameRules.id == OH_HELL_ID
     // Yaniv jouable : même principe.
     val onYanivRoute = currentRoute == "yaniv" && playable && viewModel.gameRules.id == YANIV_ID
+    // Rami jouable : même principe.
+    val onRamiRoute = currentRoute == "rami" && playable && viewModel.gameRules.id == RAMI_ID
     // Flip 7 jouable : même principe.
     val onFlip7Route = currentRoute == "flip7" && playable && viewModel.gameRules.id == FLIP7_ID
     // Skyjo Action jouable : même principe.
@@ -218,7 +220,7 @@ fun ScoreApp(
     // Président jouable : même principe.
     val onPresidentRoute = currentRoute == "president" && playable && viewModel.gameRules.id == PRESIDENT_ID
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
-        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onBarbuRoute || onOhHellRoute || onYanivRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onPresidentRoute
+        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onBarbuRoute || onOhHellRoute || onYanivRoute || onRamiRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onPresidentRoute
     var showQuitDialog by remember { mutableStateOf(false) }
 
     // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
@@ -285,6 +287,7 @@ fun ScoreApp(
         playable && rules.id == BARBU_ID -> "barbu"
         playable && rules.id == OH_HELL_ID -> "ohhell"
         playable && rules.id == YANIV_ID -> "yaniv"
+        playable && rules.id == RAMI_ID -> "rami"
         playable && rules.id == FLIP7_ID -> "flip7"
         playable && rules.id == SKYJO_ACTION_ID -> "skyjoaction"
         playable && rules.id == DOMINOS_ID -> "domino"
@@ -947,6 +950,22 @@ fun ScoreApp(
                     }
                 )
             }
+            composable("rami") {
+                RamiScreen(
+                    viewModel = viewModel,
+                    session = sync,
+                    online = syncViewModel.rami,
+                    onOpenShare = { navController.navigate("share") },
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
             composable("flip7") {
                 Flip7Screen(
                     viewModel = viewModel,
@@ -1098,7 +1117,7 @@ fun ScoreApp(
         // Superposé à toutes les pages ci-dessus, sauf le poker (minuteur de blinds) et les jeux jouables
         // qui n'ont pas besoin d'horloge (les échecs ont la leur, le réflexe et le rythme mesurent le temps eux-mêmes).
         val hideTimer = currentRoute == "poker" || currentRoute in PLAYABLE_ROUTES_WITHOUT_TIMER ||
-            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onBarbuRoute || onOhHellRoute || onYanivRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onPresidentRoute
+            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onBarbuRoute || onOhHellRoute || onYanivRoute || onRamiRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onPresidentRoute
         if (!hideTimer) TimerOverlay(viewModel = timerViewModel)
 
         if (showQuitDialog) {
