@@ -6,6 +6,7 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.annotation.StringRes
+import androidx.core.content.edit
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -182,17 +183,18 @@ internal object GamepadBindings {
 
     /** Associe [input] à [actionId] ; la même commande est retirée aux autres actions du jeu pour éviter les doublons. */
     fun set(context: Context, gameId: String, actions: List<PadAction>, actionId: String, input: PadInput) {
-        val editor = prefs(context).edit()
-        actions.forEach { other ->
-            if (other.id != actionId && custom(context, gameId, other.id) == input) editor.remove("$gameId.${other.id}")
+        prefs(context).edit {
+            actions.forEach { other ->
+                if (other.id != actionId && custom(context, gameId, other.id) == input) remove("$gameId.${other.id}")
+            }
+            putString("$gameId.$actionId", encode(input))
         }
-        editor.putString("$gameId.$actionId", encode(input)).apply()
     }
 
     fun reset(context: Context, gameId: String, actions: List<PadAction>) {
-        val editor = prefs(context).edit()
-        actions.forEach { editor.remove("$gameId.${it.id}") }
-        editor.apply()
+        prefs(context).edit {
+            actions.forEach { remove("$gameId.${it.id}") }
+        }
     }
 
     /**
