@@ -98,8 +98,19 @@ data class PokerGame(
     /** Temps de jeu écoulé, en millisecondes, au moment de l'enregistrement (voir [ScoreViewModel]). */
     val clockMs: Long,
     /** Nombre de recaves de chaque joueur (même index que [seats]) ; vide pour une ancienne partie. */
-    val rebuys: List<Int> = emptyList()
+    val rebuys: List<Int> = emptyList(),
+    /**
+     * Les deux cartes de chaque joueur (même index que [seats]) quand l'appli distribue les cartes ([PokerSettings.dealCards]) ;
+     * vide sinon. Un joueur hors de la main n'a pas de cartes. Dans une vue envoyée à un autre téléphone ([PokerEngine.viewFor]),
+     * seules les cartes que ce joueur a le droit de voir sont là.
+     */
+    val holeCards: List<List<Int>> = emptyList(),
+    /** Les cinq cartes communes de la main, tirées dès le début ; [PokerEngine.visibleBoard] donne celles qui sont retournées. */
+    val board: List<Int> = emptyList()
 ) {
+    /** Vrai si l'appli a distribué les cartes de cette main. */
+    val cardsDealt: Boolean get() = holeCards.isNotEmpty()
+
     /** Tous les jetons au milieu de la table : mises des tours précédents et du tour en cours. */
     val pot: Int get() = seats.sumOf { it.totalBet }
 
@@ -150,6 +161,8 @@ data class PokerGame(
         put("handsPlayed", handsPlayed)
         put("clockMs", clockMs)
         put("rebuys", JSONArray(rebuys))
+        put("hole", JSONArray().also { array -> holeCards.forEach { array.put(JSONArray(it)) } })
+        put("board", JSONArray(board))
     }
 
     companion object {
@@ -207,7 +220,14 @@ data class PokerGame(
                 eliminated = ints("eliminated"),
                 handsPlayed = obj.optInt("handsPlayed", 0),
                 clockMs = obj.optLong("clockMs", 0L),
-                rebuys = ints("rebuys").let { if (it.size == seats.size) it else List(seats.size) { 0 } }
+                rebuys = ints("rebuys").let { if (it.size == seats.size) it else List(seats.size) { 0 } },
+                holeCards = obj.optJSONArray("hole")?.let { rows ->
+                    (0 until rows.length()).map { i ->
+                        val row = rows.getJSONArray(i)
+                        (0 until row.length()).map { row.getInt(it) }
+                    }
+                }?.takeIf { it.size == seats.size } ?: emptyList(),
+                board = ints("board")
             )
         }
     }

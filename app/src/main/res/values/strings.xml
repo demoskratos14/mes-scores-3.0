@@ -1064,11 +1064,28 @@
     <string name="poker_log_raise">%1$s relance à %2$d</string>
     <string name="poker_log_allin">%1$s fait tapis (%2$d)</string>
     <string name="rules_poker_1_title">But du jeu</string>
-    <string name="rules_poker_1_body">Ce tournoi de poker se joue avec des jetons : chacun commence avec le même tapis. Un joueur qui n\'a plus de jetons est éliminé ; le dernier joueur en lice gagne. L\'appli ne distribue pas les cartes : elle suit les jetons, les mises et l\'ordre de parole.</string>
+    <string name="rules_poker_1_body">Ce tournoi de poker se joue avec des jetons : chacun commence avec le même tapis. Un joueur qui n\'a plus de jetons est éliminé ; le dernier joueur en lice gagne. L\'appli suit les jetons, les mises et l\'ordre de parole, et peut distribuer les cartes (option des réglages).</string>
     <string name="rules_poker_2_title">Blinds et antes</string>
     <string name="rules_poker_2_body">Le bouton avance d\'un joueur à chaque main : le joueur à sa gauche pose la petite blind, le suivant la grosse blind. À deux joueurs, le bouton pose la petite blind. Les blinds montent à intervalle régulier (le nouveau niveau s\'applique à la main suivante). Si les antes sont activées, tous les joueurs en paient une à chaque main.</string>
     <string name="rules_poker_3_title">Tours d\'enchères</string>
     <string name="rules_poker_3_body">Chacun son tour, un joueur peut passer, suivre (ou faire parole s\'il n\'y a rien à suivre), relancer ou faire tapis. Une relance doit être au moins égale à la précédente (au minimum la grosse blind). Après une relance, tous les autres joueurs doivent reparler. Un tapis plus petit que la relance minimum ne redonne pas le droit de relancer à ceux qui avaient déjà parlé. À l\'abattage, désigne le gagnant de chaque pot (principal et annexes) ; en cas d\'égalité, le pot est partagé.</string>
+    <string name="poker_setup_deal">Cartes distribuées par l\'appli</string>
+    <string name="poker_setup_deal_hint">Chacun voit ses cartes sur son téléphone et les mains sont comparées à l\'abattage. Désactive pour jouer avec de vraies cartes.</string>
+    <string name="poker_hand_names">Carte haute,Paire,Double paire,Brelan,Suite,Couleur,Full,Carré,Quinte flush,Quinte flush royale</string>
+    <string name="poker_your_cards">Tes cartes</string>
+    <string name="poker_your_hand">Ta main : %1$s</string>
+    <string name="poker_reveal_title">Mains dévoilées</string>
+    <string name="poker_showdown_auto_hint">Les cartes sont dévoilées : la meilleure main remporte chaque pot, et le pot est partagé en cas d\'égalité.</string>
+    <string name="poker_resolve">Distribuer les pots</string>
+    <string name="poker_waiting_for">En attente de %1$s (sur son téléphone)</string>
+    <string name="poker_pass_to">Passe le téléphone à %1$s</string>
+    <string name="poker_show_cards">Voir mes cartes</string>
+    <string name="poker_guest_waiting">En attente de la table de l\'organisateur…</string>
+    <string name="poker_claim_title">Choisis ta place à la table</string>
+    <string name="poker_claim_hint">Tu verras tes cartes sur ce téléphone et tu joueras à ton tour.</string>
+    <string name="poker_leave_seat">Quitter ma place</string>
+    <string name="rules_poker_4_title">Cartes distribuées</string>
+    <string name="rules_poker_4_body">Avec l\'option « Cartes distribuées par l\'appli », chaque joueur reçoit deux cartes à chaque main, puis cinq cartes communes sont retournées : trois au flop, une au turn, une à la river. Sur un seul téléphone, on se le passe : les cartes d\'un joueur n\'apparaissent qu\'après « Voir mes cartes » et disparaissent dès qu\'il a joué. Chacun sur son téléphone : partagez la partie (bouton Partager) ; chaque joueur choisit sa place et ne voit que ses cartes, et les places que personne n\'a prises se jouent sur le téléphone de l\'organisateur. À l\'abattage, la meilleure main de cinq cartes parmi les sept remporte chaque pot (quinte flush, carré, full, couleur, suite, brelan, double paire, paire, carte haute) ; en cas d\'égalité parfaite, le pot est partagé.</string>
 
     <!-- Poker : changement de table (export / import de joueurs) -->
     <string name="poker_tables_button">Changer de table (import / export)</string>

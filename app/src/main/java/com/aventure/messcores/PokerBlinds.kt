@@ -31,7 +31,9 @@ data class PokerSettings(
     /** Part de la cagnotte (en %) de la 1re place, de la 2e… ; vide = pas de gains. */
     val payoutPercents: List<Int> = emptyList(),
     /** Recaves possibles tant que le niveau de blinds ne dépasse pas celui-ci (0 = pas de recave). */
-    val rebuyUntilLevel: Int = 0
+    val rebuyUntilLevel: Int = 0,
+    /** Vrai : l'appli distribue les cartes (jeu sur téléphone) ; faux : on joue avec de vraies cartes et l'appli suit les jetons. */
+    val dealCards: Boolean = false
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
         put("startingStack", startingStack)
@@ -48,6 +50,7 @@ data class PokerSettings(
         put("buyIn", buyIn)
         put("payoutPercents", JSONArray(payoutPercents))
         put("rebuyUntilLevel", rebuyUntilLevel)
+        put("dealCards", dealCards)
     }
 
     companion object {
@@ -70,7 +73,8 @@ data class PokerSettings(
             buyIn = obj.optInt("buyIn", 0),
             payoutPercents = obj.optJSONArray("payoutPercents")?.let { a -> (0 until a.length()).map { a.getInt(it) } }
                 ?: emptyList(),
-            rebuyUntilLevel = obj.optInt("rebuyUntilLevel", 0)
+            rebuyUntilLevel = obj.optInt("rebuyUntilLevel", 0),
+            dealCards = obj.optBoolean("dealCards", false)
         )
     }
 }

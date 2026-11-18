@@ -152,6 +152,9 @@ class PokerSession(private val clock: () -> Long = System::currentTimeMillis) {
     /** Miser ou relancer pour une mise totale de [to] jetons dans le tour (voir [PokerEngine.raiseTo]). */
     fun raiseTo(to: Int) = apply { PokerEngine.raiseTo(it, to) }
 
+    /** Règle l'abattage d'après les cartes distribuées : la meilleure main remporte chaque pot (voir [PokerEngine.resolveAuto]). */
+    fun resolveAuto() = apply { PokerEngine.resolveAuto(it) }
+
     /** Désigne le(s) gagnant(s) de chaque pot à l'abattage (voir [PokerEngine.resolveShowdown]). */
     fun resolve(winners: List<List<Int>>) = apply { PokerEngine.resolveShowdown(it, winners) }
 

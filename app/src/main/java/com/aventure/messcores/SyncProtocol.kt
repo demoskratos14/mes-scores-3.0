@@ -133,6 +133,9 @@ internal sealed interface SyncMessage {
     /** Un message du Domino chacun sur son téléphone, sur la connexion de la feuille de scores (voir [DominoOnline]). */
     data class DominoMsg(val domino: DominoMessage) : SyncMessage
 
+    /** Un message du poker chacun sur son téléphone, sur la connexion de la feuille de scores (voir [PokerOnline]). */
+    data class PokerMsg(val poker: PokerMessage) : SyncMessage
+
     /** Le tour de dés en cours, envoyé par le téléphone du joueur qui joue (l'organisateur le relaie aux autres). */
     data class Dice(val table: DiceTable) : SyncMessage
 }
@@ -253,6 +256,7 @@ internal object SyncCodec {
             is SyncMessage.Flip7Msg -> json.put("t", "flip7").put("flip7", message.flip7.toJson())
             is SyncMessage.SkyjoMsg -> json.put("t", "skyjo").put("skyjo", message.skyjo.toJson())
             is SyncMessage.DominoMsg -> json.put("t", "domino").put("domino", message.domino.toJson())
+            is SyncMessage.PokerMsg -> json.put("t", "poker").put("poker", message.poker.toJson())
             is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
                 .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
                 .put("pig", message.table.pigTotal).put("bust", message.table.pigBust)
@@ -306,6 +310,7 @@ internal object SyncCodec {
                 "flip7" -> flip7MessageFromJson(json.getJSONObject("flip7"))?.let { SyncMessage.Flip7Msg(it) }
                 "skyjo" -> skyjoMessageFromJson(json.getJSONObject("skyjo"))?.let { SyncMessage.SkyjoMsg(it) }
                 "domino" -> dominoMessageFromJson(json.getJSONObject("domino"))?.let { SyncMessage.DominoMsg(it) }
+                "poker" -> pokerMessageFromJson(json.getJSONObject("poker"))?.let { SyncMessage.PokerMsg(it) }
                 "dice" -> {
                     val turn = json.getJSONArray("turn")
                     SyncMessage.Dice(

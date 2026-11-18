@@ -8,14 +8,16 @@ import kotlin.random.Random
  *
  * Tout est immuable et sans Android : chaque action renvoie un nouvel état [PokerGame], ce qui rend
  * l'annulation triviale (on garde les anciens états) et le moteur testable sans émulateur.
- * L'appli ne distribue pas de cartes : elle suit seulement les jetons et l'ordre de parole.
+ * Cartes : si [PokerSettings.dealCards] est vrai, chaque main distribue deux cartes à chaque joueur et tire les cinq cartes
+ * communes (voir [PokerHands]) ; l'abattage peut alors se régler tout seul ([resolveAuto]). Sinon l'appli ne distribue rien :
+ * elle suit seulement les jetons et l'ordre de parole, et on désigne les gagnants à la main.
  */
 object PokerEngine {
 
     // ---------- Création et début de main ----------
 
     /** Nouvelle partie : tous les joueurs ont le tapis de départ, la première main est lancée au niveau 1. */
-    fun newGame(settings: PokerSettings, playerCount: Int): PokerGame {
+    fun newGame(settings: PokerSettings, playerCount: Int, random: Random = Random.Default): PokerGame {
         val dealer = settings.firstDealer.coerceIn(0, playerCount - 1)
         val game = PokerGame(
             settings = settings,
@@ -37,7 +39,7 @@ object PokerEngine {
             clockMs = 0L,
             rebuys = List(playerCount) { 0 }
         )
-        return startHand(game, level = 1, keepDealer = true)
+        return startHand(game, level = 1, keepDealer = true, random = random)
     }
 
     /**
@@ -45,7 +47,7 @@ object PokerEngine {
      * (sauf pour la toute première main, [keepDealer]), puis antes et blinds sont postées.
      * Ne fait rien si le tournoi est terminé.
      */
-    fun startHand(game: PokerGame, level: Int, keepDealer: Boolean = false): PokerGame {
+    fun startHand(game: PokerGame, level: Int, keepDealer: Boolean = false, random: Random = Random.Default): PokerGame {
         val n = game.seats.size
         val alive = game.seats.indices.filter { !game.seats[it].out }
         if (alive.size < 2) return game
@@ -89,6 +91,16 @@ object PokerEngine {
         postBlind(sbSeat, sb)
         postBlind(bbSeat, bb)
 
+        // Cartes : deux à chaque joueur en lice, puis cinq communes (retournées au fil des tours).
+        var hole = emptyList<List<Int>>()
+        var board = emptyList<Int>()
+        if (settings.dealCards) {
+            val deck = PokerHands.shuffledDeck(random)
+            var next = 0
+            hole = List(n) { i -> if (game.seats[i].out) emptyList() else listOf(deck[next++], deck[next++]) }
+            board = deck.subList(next, next + 5)
+        }
+
         val started = game.copy(
             seats = seats,
             dealer = dealer,
@@ -102,7 +114,9 @@ object PokerEngine {
             minRaise = bb,
             toAct = -1,
             log = emptyList(),
-            winnings = List(n) { 0 }
+            winnings = List(n) { 0 },
+            holeCards = hole,
+            board = board
         )
         // Premier à parler : le joueur après la grosse blind (en tête à tête : le bouton, petite blind).
         return settle(started, lastActor = bbSeat)
@@ -224,6 +238,74 @@ object PokerEngine {
             log = game.log + entry
         )
         return settle(next, p)
+    }
+
+    // ---------- Cartes ----------
+
+    /** Nombre de cartes communes retournées à ce tour d'enchères : 0, 3, 4 ou 5. */
+    private fun boardCountAt(street: PokerStreet): Int = when (street) {
+        PokerStreet.PREFLOP -> 0
+        PokerStreet.FLOP -> 3
+        PokerStreet.TURN -> 4
+        PokerStreet.RIVER -> 5
+    }
+
+    /** Joueurs encore dans la main (ni couchés ni absents). */
+    private fun liveSeats(game: PokerGame): List<Int> =
+        game.seats.indices.filter { game.seats[it].inHand && !game.seats[it].folded }
+
+    /** Vrai si les cartes sont dévoilées : à l'abattage, ou une fois la main payée si plusieurs joueurs étaient encore là. */
+    fun isShowdownRevealed(game: PokerGame): Boolean = when (game.phase) {
+        PokerPhase.SHOWDOWN -> true
+        PokerPhase.HAND_OVER -> game.handNumber > 0 && liveSeats(game).size >= 2
+        PokerPhase.BETTING -> false
+    }
+
+    /**
+     * Les cartes communes retournées : celles du tour en cours, et les cinq dès l'abattage (les joueurs à tapis jouent
+     * le reste de la main sans enchères).
+     */
+    fun visibleBoard(game: PokerGame): List<Int> {
+        if (game.board.isEmpty()) return emptyList()
+        val count = if (isShowdownRevealed(game)) game.board.size else boardCountAt(game.street)
+        return game.board.take(count)
+    }
+
+    /** Les joueurs dont les cartes sont montrées à tout le monde : ceux qui vont à l'abattage. */
+    fun revealedSeats(game: PokerGame): List<Int> =
+        if (game.cardsDealt && isShowdownRevealed(game)) liveSeats(game) else emptyList()
+
+    /** Valeur de la main de [player] (voir [PokerHands.score]) avec les cinq cartes communes, ou null s'il n'a pas de cartes. */
+    fun handScore(game: PokerGame, player: Int): Int? {
+        val hole = game.holeCards.getOrNull(player).orEmpty()
+        if (hole.size < 2 || game.board.size < 5) return null
+        return PokerHands.score(hole + game.board)
+    }
+
+    /**
+     * Gagnants de chaque pot de [pots] (même ordre) d'après les cartes : le ou les joueurs ayant la meilleure main parmi
+     * ceux qui peuvent le gagner. Vide pour un pot dont on ne peut pas départager les joueurs (pas de cartes).
+     */
+    fun autoWinners(game: PokerGame): List<List<Int>> = pots(game).map { pot ->
+        val scored = pot.eligible.mapNotNull { player -> handScore(game, player)?.let { player to it } }
+        val best = scored.maxOfOrNull { it.second }
+        if (best == null) emptyList() else scored.filter { it.second == best }.map { it.first }
+    }
+
+    /** Règle l'abattage d'après les cartes (voir [autoWinners] et [resolveShowdown]). Sans effet sans cartes distribuées. */
+    fun resolveAuto(game: PokerGame): PokerGame =
+        if (game.cardsDealt) resolveShowdown(game, autoWinners(game)) else game
+
+    /**
+     * La partie telle que la voit le joueur de la place [seat] (-1 : personne en particulier, la table) : ses propres
+     * cartes, celles des joueurs que l'abattage dévoile, et seulement les cartes communes retournées. Les cartes des
+     * autres ne quittent jamais le téléphone de l'organisateur.
+     */
+    fun viewFor(game: PokerGame, seat: Int): PokerGame {
+        if (!game.cardsDealt) return game
+        val shown = revealedSeats(game).toSet()
+        val hole = game.holeCards.mapIndexed { i, cards -> if (i == seat || i in shown) cards else emptyList() }
+        return game.copy(holeCards = hole, board = visibleBoard(game))
     }
 
     private fun actor(game: PokerGame): Int? =
@@ -364,9 +446,9 @@ object PokerEngine {
     }
 
     /** Lance la main suivante au niveau [level] (le niveau ne baisse jamais). */
-    fun nextHand(game: PokerGame, level: Int): PokerGame {
+    fun nextHand(game: PokerGame, level: Int, random: Random = Random.Default): PokerGame {
         if (game.phase != PokerPhase.HAND_OVER || game.champion != null) return game
-        return startHand(game, maxOf(level, game.handLevel))
+        return startHand(game, maxOf(level, game.handLevel), random = random)
     }
 
     // ---------- Recaves ----------
@@ -465,7 +547,10 @@ object PokerEngine {
             toAct = -1,
             log = log,
             winnings = winnings,
-            eliminated = game.eliminated.map { mapped(it) }.filter { it >= 0 }
+            eliminated = game.eliminated.map { mapped(it) }.filter { it >= 0 },
+            // Les places ont changé : les cartes de la main finie ne correspondent plus à personne.
+            holeCards = emptyList(),
+            board = emptyList()
         )
         return PokerReseat(reseated, oldToNew, arrivals)
     }

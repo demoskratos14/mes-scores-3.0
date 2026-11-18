@@ -157,6 +157,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Le Uno chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var uno: UnoOnline? = null
 
+    /** Le poker chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var poker: PokerOnline? = null
+
     /** Le Huit américain chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var huit: HuitOnline? = null
 
@@ -452,6 +455,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         ohHell?.reset()
         barbu?.reset()
         uno?.reset()
+        poker?.reset()
         huit?.reset()
         yaniv?.reset()
         rami?.reset()
@@ -480,7 +484,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     private fun sendState(ids: Collection<String>) {
         val game = game ?: return
-        send(ids, SyncMessage.State(game.snapshot(), game.canUndo, game.canRedo, playable))
+        // Les cartes du poker ne voyagent jamais dans l'état commun : chaque invité reçoit sa propre vue ([PokerOnline]).
+        val snapshot = game.snapshot().let { saved -> saved.copy(poker = saved.poker?.let { PokerEngine.viewFor(it, -1) }) }
+        send(ids, SyncMessage.State(snapshot, game.canUndo, game.canRedo, playable))
     }
 
     override fun sendOp(op: SyncOp) {
@@ -558,6 +564,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         ohHell?.onPeerConnected(id)
         barbu?.onPeerConnected(id)
         uno?.onPeerConnected(id)
+        poker?.onPeerConnected(id)
         huit?.onPeerConnected(id)
         yaniv?.onPeerConnected(id)
         rami?.onPeerConnected(id)
@@ -593,6 +600,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         ohHell?.onPeerDisconnected(id)
         barbu?.onPeerDisconnected(id)
         uno?.onPeerDisconnected(id)
+        poker?.onPeerDisconnected(id)
         huit?.onPeerDisconnected(id)
         yaniv?.onPeerDisconnected(id)
         rami?.onPeerDisconnected(id)
@@ -685,6 +693,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.OhHell -> ohHell?.onMessage(id, message.ohHell)
             is SyncMessage.Barbu -> barbu?.onMessage(id, message.barbu)
             is SyncMessage.UnoMsg -> uno?.onMessage(id, message.uno)
+            is SyncMessage.PokerMsg -> poker?.onMessage(id, message.poker)
             is SyncMessage.HuitMsg -> huit?.onMessage(id, message.huit)
             is SyncMessage.YanivMsg -> yaniv?.onMessage(id, message.yaniv)
             is SyncMessage.RamiMsg -> rami?.onMessage(id, message.rami)
@@ -713,7 +722,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     }
 
     private companion object {
-        val SHAREABLE_MODES = setOf(ScoreMode.TABLE, ScoreMode.COUNTER, ScoreMode.VARIABLE_TEAMS)
+        val SHAREABLE_MODES = setOf(ScoreMode.TABLE, ScoreMode.COUNTER, ScoreMode.VARIABLE_TEAMS, ScoreMode.POKER)
     }
 }
 

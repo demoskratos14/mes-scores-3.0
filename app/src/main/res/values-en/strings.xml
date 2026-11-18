@@ -1030,11 +1030,28 @@
     <string name="poker_log_raise">%1$s raises to %2$d</string>
     <string name="poker_log_allin">%1$s goes all-in (%2$d)</string>
     <string name="rules_poker_1_title">Goal</string>
-    <string name="rules_poker_1_body">This poker tournament is played with chips: everyone starts with the same stack. A player with no chips left is out; the last player standing wins. The app does not deal cards: it keeps track of chips, bets and the order of play.</string>
+    <string name="rules_poker_1_body">This poker tournament is played with chips: everyone starts with the same stack. A player with no chips left is out; the last player standing wins. The app keeps track of chips, bets and the order of play, and can deal the cards (a setup option).</string>
     <string name="rules_poker_2_title">Blinds and antes</string>
     <string name="rules_poker_2_body">The button moves one player along every hand: the player to its left posts the small blind, the next one the big blind. With two players, the button posts the small blind. Blinds go up at regular intervals (the new level applies from the next hand). If antes are on, every player pays one on every hand.</string>
     <string name="rules_poker_3_title">Betting rounds</string>
     <string name="rules_poker_3_body">In turn, a player can fold, call (or check when there is nothing to call), raise or go all-in. A raise must be at least as big as the previous one (at least the big blind). After a raise, all the other players must act again. An all-in smaller than the minimum raise does not let players who already acted raise again. At showdown, pick the winner of each pot (main and side pots); in case of a tie, the pot is split.</string>
+    <string name="poker_setup_deal">Cards dealt by the app</string>
+    <string name="poker_setup_deal_hint">Everyone sees their own cards on their phone, and hands are compared at showdown. Turn off to play with real cards.</string>
+    <string name="poker_hand_names">High card,Pair,Two pair,Three of a kind,Straight,Flush,Full house,Four of a kind,Straight flush,Royal flush</string>
+    <string name="poker_your_cards">Your cards</string>
+    <string name="poker_your_hand">Your hand: %1$s</string>
+    <string name="poker_reveal_title">Hands revealed</string>
+    <string name="poker_showdown_auto_hint">The cards are revealed: the best hand wins each pot, and a tie splits it.</string>
+    <string name="poker_resolve">Pay out the pots</string>
+    <string name="poker_waiting_for">Waiting for %1$s (on their phone)</string>
+    <string name="poker_pass_to">Pass the phone to %1$s</string>
+    <string name="poker_show_cards">Show my cards</string>
+    <string name="poker_guest_waiting">Waiting for the host\'s table…</string>
+    <string name="poker_claim_title">Pick your seat at the table</string>
+    <string name="poker_claim_hint">You\'ll see your cards on this phone and play on your turn.</string>
+    <string name="poker_leave_seat">Leave my seat</string>
+    <string name="rules_poker_4_title">Dealt cards</string>
+    <string name="rules_poker_4_body">With the "Cards dealt by the app" option, each player gets two cards every hand, then five community cards are turned over: three on the flop, one on the turn, one on the river. On a single phone, pass it around: a player\'s cards only appear after "Show my cards" and disappear as soon as they have acted. One phone each: share the game (Share button); each player picks a seat and sees only their own cards, and seats nobody has taken are played on the host\'s phone. At showdown, the best five-card hand out of seven wins each pot (straight flush, four of a kind, full house, flush, straight, three of a kind, two pair, pair, high card); on an exact tie the pot is split.</string>
 
     <!-- Poker : changement de table (export / import de joueurs) -->
     <string name="poker_tables_button">Change table (import / export)</string>

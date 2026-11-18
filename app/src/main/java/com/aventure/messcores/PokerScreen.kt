@@ -51,6 +51,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -90,11 +91,28 @@ private val WIN_GREEN = Color(0xFF2E7D32)
  * minimum), tapis. Le pot et les pots annexes sont calculés ; à l'abattage on désigne le gagnant de chaque pot.
  */
 @Composable
-fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryRepository) {
+internal fun PokerScreen(
+    viewModel: ScoreViewModel,
+    historyRepository: GameHistoryRepository,
+    session: SyncSession,
+    online: PokerOnline,
+    onOpenShare: () -> Unit
+) {
+    // Invité : l'organisateur lui envoie la table vue de sa place (ses cartes, jamais celles des autres).
+    val guest = session.role == SyncRole.GUEST && session.isConnected && session.kind == SyncKind.SCORE
+    if (guest) {
+        PokerGuestScreen(viewModel = viewModel, online = online)
+        return
+    }
+
     // Partie fermée pendant la transition de retour : rien à afficher.
     val game = viewModel.pokerSession.game ?: return
 
     KeepScreenOn()
+    // Les téléphones invités reçoivent leur vue de la table à chaque changement de la partie.
+    LaunchedEffect(online) {
+        snapshotFlow { viewModel.pokerSession.game }.collect { online.publish() }
+    }
     val context = LocalContext.current
     val players = viewModel.players
 
@@ -135,6 +153,10 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
             modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            // Les cartes se jouent aussi chacun sur son téléphone : bouton de partage, comme pour les autres jeux de cartes.
+            if (game.settings.dealCards) {
+                ShareButton(active = session.isConnected, onClick = onOpenShare)
+            }
             PokerHeader(
                 title = viewModel.gameRules.name,
                 game = game,
@@ -152,13 +174,25 @@ fun PokerScreen(viewModel: ScoreViewModel, historyRepository: GameHistoryReposit
                 game = game,
                 players = players,
                 colors = viewModel.playerColors,
+                board = PokerEngine.visibleBoard(game),
                 onSeatClick = { optionsIndex = it }
             )
 
             when (game.phase) {
-                PokerPhase.BETTING -> PokerActionPanel(viewModel, game, players)
-                PokerPhase.SHOWDOWN -> PokerShowdownPanel(viewModel, game, players)
-                PokerPhase.HAND_OVER -> PokerHandOverPanel(viewModel, game, players, level)
+                PokerPhase.BETTING -> if (game.cardsDealt) {
+                    PokerDealtTurnPanel(viewModel, game, players, online)
+                } else {
+                    PokerActionPanel(game, players, viewModel.pokerSession.actions())
+                }
+                PokerPhase.SHOWDOWN -> if (game.cardsDealt) {
+                    PokerAutoShowdownPanel(game, players) { viewModel.pokerSession.resolveAuto() }
+                } else {
+                    PokerShowdownPanel(viewModel, game, players)
+                }
+                PokerPhase.HAND_OVER -> {
+                    if (game.cardsDealt) PokerRevealPanel(game, players)
+                    PokerHandOverPanel(viewModel, game, players, level)
+                }
             }
 
             if (game.log.isNotEmpty()) PokerLog(game, players)
@@ -351,10 +385,11 @@ private fun PokerInfoCard(game: PokerGame, players: List<String>) {
 // ---------- La table ----------
 
 @Composable
-private fun PokerTable(
+internal fun PokerTable(
     game: PokerGame,
     players: List<String>,
     colors: List<Color>,
+    board: List<Int> = emptyList(),
     onSeatClick: (Int) -> Unit
 ) {
     val n = game.seats.size
@@ -391,6 +426,11 @@ private fun PokerTable(
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
+                // Les cinq cartes communes : retournées au fil des tours, face cachée avant.
+                if (game.cardsDealt) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    PokerCardRow(cards = board, cardWidth = 30.dp, slots = 5)
+                }
             }
         }
 
@@ -507,8 +547,28 @@ private fun PokerSeatCard(
 
 // ---------- Enchères ----------
 
+/**
+ * Ce que peut faire le joueur dont c'est le tour : sur ce téléphone ([PokerSession.actions]) ou envoyé à l'organisateur depuis
+ * un téléphone invité ([PokerOnline]).
+ */
+internal class PokerActions(
+    val fold: () -> Unit,
+    val check: () -> Unit,
+    val call: () -> Unit,
+    val allIn: () -> Unit,
+    val raiseTo: (Int) -> Unit
+)
+
+/** Les actions du poker jouées directement sur la partie de ce téléphone. */
+internal fun PokerSession.actions(): PokerActions =
+    PokerActions({ fold() }, { check() }, { call() }, { allIn() }, { to -> raiseTo(to) })
+
+/** Les actions du poker envoyées à l'organisateur par un téléphone invité. */
+internal fun PokerOnline.actions(): PokerActions =
+    PokerActions({ fold() }, { check() }, { call() }, { allIn() }, { to -> raiseTo(to) })
+
 @Composable
-private fun PokerActionPanel(viewModel: ScoreViewModel, game: PokerGame, players: List<String>) {
+internal fun PokerActionPanel(game: PokerGame, players: List<String>, actions: PokerActions) {
     val options = PokerEngine.options(game) ?: return
     val seat = game.seats[options.player]
     val name = players.getOrElse(options.player) { "" }
@@ -527,13 +587,13 @@ private fun PokerActionPanel(viewModel: ScoreViewModel, game: PokerGame, players
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(
-                    onClick = { viewModel.pokerSession.fold() },
+                    onClick = { actions.fold() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(stringResource(R.string.poker_action_fold))
                 }
                 Button(
-                    onClick = { if (options.canCheck) viewModel.pokerSession.check() else viewModel.pokerSession.call() },
+                    onClick = { if (options.canCheck) actions.check() else actions.call() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
@@ -549,14 +609,14 @@ private fun PokerActionPanel(viewModel: ScoreViewModel, game: PokerGame, players
             }
 
             if (options.canRaise) {
-                RaiseSection(viewModel, game, options, seat)
+                RaiseSection(actions, game, options, seat)
             }
         }
     }
 }
 
 @Composable
-private fun RaiseSection(viewModel: ScoreViewModel, game: PokerGame, options: PokerOptions, seat: PokerSeat) {
+private fun RaiseSection(actions: PokerActions, game: PokerGame, options: PokerOptions, seat: PokerSeat) {
     // Le champ repart du minimum à chaque nouveau tour de parole.
     var amountText by remember(game.handNumber, game.street, game.currentBet, options.player) {
         mutableStateOf(options.minRaiseTo.toString())
@@ -604,7 +664,7 @@ private fun RaiseSection(viewModel: ScoreViewModel, game: PokerGame, options: Po
 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(
-            onClick = { if (amount != null) viewModel.pokerSession.raiseTo(amount) },
+            onClick = { if (amount != null) actions.raiseTo(amount) },
             enabled = valid,
             modifier = Modifier.weight(1f)
         ) {
@@ -621,7 +681,7 @@ private fun RaiseSection(viewModel: ScoreViewModel, game: PokerGame, options: Po
             )
         }
         OutlinedButton(
-            onClick = { viewModel.pokerSession.allIn() },
+            onClick = { actions.allIn() },
             modifier = Modifier.weight(1f)
         ) {
             Text(
@@ -794,7 +854,7 @@ private fun PokerHandOverPanel(viewModel: ScoreViewModel, game: PokerGame, playe
 // ---------- Dernières actions ----------
 
 @Composable
-private fun PokerLog(game: PokerGame, players: List<String>) {
+internal fun PokerLog(game: PokerGame, players: List<String>) {
     Card(
         colors = CardDefaults.cardColors(containerColor = cardSurface()),
         modifier = Modifier.fillMaxWidth()
@@ -835,7 +895,7 @@ private fun streetLabel(game: PokerGame): Int = when (game.phase) {
 }
 
 /** Nombre de jetons avec séparateur de milliers selon la langue de l'appli. */
-private fun formatChips(value: Int): String = NumberFormat.getIntegerInstance().format(value)
+internal fun formatChips(value: Int): String = NumberFormat.getIntegerInstance().format(value)
 
 /** Temps restant au format m:ss (ou h:mm:ss), arrondi à la seconde supérieure. */
 private fun formatBlindClock(ms: Long): String {

@@ -1049,11 +1049,28 @@
     <string name="poker_log_raise">%1$s sube a %2$d</string>
     <string name="poker_log_allin">%1$s va all-in (%2$d)</string>
     <string name="rules_poker_1_title">Objetivo</string>
-    <string name="rules_poker_1_body">Este torneo de póquer se juega con fichas: todos empiezan con las mismas. El jugador que se queda sin fichas queda eliminado y gana el último que sigue en juego. La aplicación no reparte cartas: lleva la cuenta de las fichas, las apuestas y el orden de palabra.</string>
+    <string name="rules_poker_1_body">Este torneo de póquer se juega con fichas: todos empiezan con las mismas. El jugador que se queda sin fichas queda eliminado y gana el último que sigue en juego. La aplicación lleva la cuenta de las fichas, las apuestas y el orden de palabra, y puede repartir las cartas (opción de los ajustes).</string>
     <string name="rules_poker_2_title">Ciegas y antes</string>
     <string name="rules_poker_2_body">El botón avanza un jugador en cada mano: el jugador a su izquierda pone la ciega pequeña y el siguiente la ciega grande. Con dos jugadores, el botón pone la ciega pequeña. Las ciegas suben a intervalos regulares (el nuevo nivel se aplica en la mano siguiente). Si los antes están activados, todos los jugadores pagan uno en cada mano.</string>
     <string name="rules_poker_3_title">Rondas de apuestas</string>
     <string name="rules_poker_3_body">Por turno, un jugador puede retirarse, igualar (o hacer check si no hay nada que igualar), subir o ir all-in. Una subida debe ser al menos igual a la anterior (como mínimo la ciega grande). Tras una subida, todos los demás jugadores deben volver a hablar. Un all-in menor que la subida mínima no da derecho a volver a subir a quienes ya habían hablado. En el showdown, elige al ganador de cada bote (principal y secundarios); en caso de empate, el bote se reparte.</string>
+    <string name="poker_setup_deal">Cartas repartidas por la aplicación</string>
+    <string name="poker_setup_deal_hint">Cada uno ve sus cartas en su teléfono y las manos se comparan en el cierre. Desactívalo para jugar con cartas de verdad.</string>
+    <string name="poker_hand_names">Carta alta,Pareja,Doble pareja,Trío,Escalera,Color,Full,Póker,Escalera de color,Escalera real</string>
+    <string name="poker_your_cards">Tus cartas</string>
+    <string name="poker_your_hand">Tu mano: %1$s</string>
+    <string name="poker_reveal_title">Manos reveladas</string>
+    <string name="poker_showdown_auto_hint">Se descubren las cartas: la mejor mano gana cada bote y, en caso de empate, se reparte.</string>
+    <string name="poker_resolve">Repartir los botes</string>
+    <string name="poker_waiting_for">Esperando a %1$s (en su teléfono)</string>
+    <string name="poker_pass_to">Pasa el teléfono a %1$s</string>
+    <string name="poker_show_cards">Ver mis cartas</string>
+    <string name="poker_guest_waiting">Esperando la mesa del organizador…</string>
+    <string name="poker_claim_title">Elige tu sitio en la mesa</string>
+    <string name="poker_claim_hint">Verás tus cartas en este teléfono y jugarás en tu turno.</string>
+    <string name="poker_leave_seat">Dejar mi sitio</string>
+    <string name="rules_poker_4_title">Cartas repartidas</string>
+    <string name="rules_poker_4_body">Con la opción «Cartas repartidas por la aplicación», cada jugador recibe dos cartas en cada mano y después se descubren cinco cartas comunes: tres en el flop, una en el turn y una en el river. En un solo teléfono, os lo pasáis: las cartas de un jugador solo aparecen tras «Ver mis cartas» y desaparecen en cuanto ha jugado. Cada uno en su teléfono: compartid la partida (botón Compartir); cada jugador elige su sitio y solo ve sus cartas, y los sitios que nadie ha tomado se juegan en el teléfono del organizador. En el cierre, la mejor mano de cinco cartas entre las siete gana cada bote (escalera de color, póker, full, color, escalera, trío, doble pareja, pareja, carta alta); en caso de empate exacto, el bote se reparte.</string>
 
     <!-- Poker : changement de table (export / import de joueurs) -->
     <string name="poker_tables_button">Cambiar de mesa (importar / exportar)</string>

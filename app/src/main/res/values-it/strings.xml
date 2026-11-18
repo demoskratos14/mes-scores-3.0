@@ -1059,11 +1059,28 @@
     <string name="poker_log_raise">%1$s rilancia a %2$d</string>
     <string name="poker_log_allin">%1$s va all-in (%2$d)</string>
     <string name="rules_poker_1_title">Obiettivo del gioco</string>
-    <string name="rules_poker_1_body">Questo torneo di poker si gioca con le fiche: tutti partono con lo stesso mucchio. Chi resta senza fiche è eliminato e vince l\'ultimo giocatore in gara. L\'app non distribuisce le carte: tiene il conto di fiche, puntate e ordine di parola.</string>
+    <string name="rules_poker_1_body">Questo torneo di poker si gioca con le fiche: tutti partono con lo stesso mucchio. Chi resta senza fiche è eliminato e vince l\'ultimo giocatore in gara. L\'app tiene il conto di fiche, puntate e ordine di parola, e può distribuire le carte (opzione delle impostazioni).</string>
     <string name="rules_poker_2_title">Bui e ante</string>
     <string name="rules_poker_2_body">Il bottone avanza di un giocatore a ogni mano: il giocatore alla sua sinistra mette il piccolo buio, il successivo il grande buio. In due, il bottone mette il piccolo buio. I bui salgono a intervalli regolari (il nuovo livello vale dalla mano successiva). Se gli ante sono attivi, tutti i giocatori ne pagano uno a ogni mano.</string>
     <string name="rules_poker_3_title">Giri di puntate</string>
     <string name="rules_poker_3_body">A turno, un giocatore può passare, chiamare (o fare check se non c\'è nulla da chiamare), rilanciare o andare all-in. Un rilancio deve essere almeno pari al precedente (come minimo il grande buio). Dopo un rilancio, tutti gli altri giocatori devono parlare di nuovo. Un all-in inferiore al rilancio minimo non dà il diritto di rilanciare a chi aveva già parlato. Allo showdown, indica il vincitore di ogni piatto (principale e laterali); in caso di parità, il piatto viene diviso.</string>
+    <string name="poker_setup_deal">Carte distribuite dall\'app</string>
+    <string name="poker_setup_deal_hint">Ognuno vede le proprie carte sul proprio telefono e le mani vengono confrontate allo showdown. Disattiva per giocare con carte vere.</string>
+    <string name="poker_hand_names">Carta alta,Coppia,Doppia coppia,Tris,Scala,Colore,Full,Poker,Scala colore,Scala reale</string>
+    <string name="poker_your_cards">Le tue carte</string>
+    <string name="poker_your_hand">La tua mano: %1$s</string>
+    <string name="poker_reveal_title">Mani scoperte</string>
+    <string name="poker_showdown_auto_hint">Le carte sono scoperte: la mano migliore vince ogni piatto e, in caso di parità, il piatto si divide.</string>
+    <string name="poker_resolve">Assegna i piatti</string>
+    <string name="poker_waiting_for">In attesa di %1$s (sul suo telefono)</string>
+    <string name="poker_pass_to">Passa il telefono a %1$s</string>
+    <string name="poker_show_cards">Vedi le mie carte</string>
+    <string name="poker_guest_waiting">In attesa del tavolo dell\'organizzatore…</string>
+    <string name="poker_claim_title">Scegli il tuo posto al tavolo</string>
+    <string name="poker_claim_hint">Vedrai le tue carte su questo telefono e giocherai al tuo turno.</string>
+    <string name="poker_leave_seat">Lascia il mio posto</string>
+    <string name="rules_poker_4_title">Carte distribuite</string>
+    <string name="rules_poker_4_body">Con l\'opzione «Carte distribuite dall\'app», ogni giocatore riceve due carte a ogni mano, poi vengono scoperte cinque carte comuni: tre al flop, una al turn, una al river. Su un solo telefono ci si passa il telefono: le carte di un giocatore compaiono solo dopo «Vedi le mie carte» e spariscono appena ha giocato. Ognuno sul proprio telefono: condividete la partita (pulsante Condividi); ognuno sceglie il proprio posto e vede solo le sue carte, e i posti che nessuno ha preso si giocano sul telefono dell\'organizzatore. Allo showdown, la migliore mano di cinque carte tra le sette vince ogni piatto (scala colore, poker, full, colore, scala, tris, doppia coppia, coppia, carta alta); in caso di parità esatta, il piatto si divide.</string>
 
     <!-- Poker : changement de table (export / import de joueurs) -->
     <string name="poker_tables_button">Cambia tavolo (importa / esporta)</string>

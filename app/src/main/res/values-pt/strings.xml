@@ -1049,11 +1049,28 @@
     <string name="poker_log_raise">%1$s aumenta para %2$d</string>
     <string name="poker_log_allin">%1$s vai all-in (%2$d)</string>
     <string name="rules_poker_1_title">Objetivo</string>
-    <string name="rules_poker_1_body">Este torneio de pôquer joga-se com fichas: todos começam com as mesmas. Quem fica sem fichas é eliminado e ganha o último jogador em jogo. A aplicação não distribui cartas: acompanha as fichas, as apostas e a ordem de jogo.</string>
+    <string name="rules_poker_1_body">Este torneio de pôquer joga-se com fichas: todos começam com as mesmas. Quem fica sem fichas é eliminado e ganha o último jogador em jogo. A aplicação acompanha as fichas, as apostas e a ordem de jogo, e pode distribuir as cartas (opção das definições).</string>
     <string name="rules_poker_2_title">Blinds e antes</string>
     <string name="rules_poker_2_body">O botão avança um jogador em cada mão: o jogador à sua esquerda coloca a small blind e o seguinte a big blind. Com dois jogadores, o botão coloca a small blind. As blinds sobem a intervalos regulares (o novo nível aplica-se na mão seguinte). Se os antes estiverem ativados, todos os jogadores pagam um em cada mão.</string>
     <string name="rules_poker_3_title">Rondas de apostas</string>
     <string name="rules_poker_3_body">Por turnos, um jogador pode desistir, pagar (ou fazer check se não houver nada a pagar), aumentar ou ir all-in. Um aumento deve ser pelo menos igual ao anterior (no mínimo a big blind). Depois de um aumento, todos os outros jogadores devem voltar a falar. Um all-in inferior ao aumento mínimo não dá o direito de voltar a aumentar a quem já tinha falado. No showdown, indique o vencedor de cada pote (principal e laterais); em caso de empate, o pote é dividido.</string>
+    <string name="poker_setup_deal">Cartas distribuídas pela aplicação</string>
+    <string name="poker_setup_deal_hint">Cada um vê as suas cartas no seu telemóvel e as mãos são comparadas no showdown. Desativa para jogar com cartas a sério.</string>
+    <string name="poker_hand_names">Carta alta,Par,Dois pares,Trio,Sequência,Flush,Full house,Quadra,Straight flush,Royal flush</string>
+    <string name="poker_your_cards">As tuas cartas</string>
+    <string name="poker_your_hand">A tua mão: %1$s</string>
+    <string name="poker_reveal_title">Mãos reveladas</string>
+    <string name="poker_showdown_auto_hint">As cartas são reveladas: a melhor mão ganha cada pote e, em caso de empate, o pote é dividido.</string>
+    <string name="poker_resolve">Distribuir os potes</string>
+    <string name="poker_waiting_for">À espera de %1$s (no seu telemóvel)</string>
+    <string name="poker_pass_to">Passa o telemóvel a %1$s</string>
+    <string name="poker_show_cards">Ver as minhas cartas</string>
+    <string name="poker_guest_waiting">À espera da mesa do organizador…</string>
+    <string name="poker_claim_title">Escolhe o teu lugar à mesa</string>
+    <string name="poker_claim_hint">Vais ver as tuas cartas neste telemóvel e jogar à tua vez.</string>
+    <string name="poker_leave_seat">Deixar o meu lugar</string>
+    <string name="rules_poker_4_title">Cartas distribuídas</string>
+    <string name="rules_poker_4_body">Com a opção «Cartas distribuídas pela aplicação», cada jogador recebe duas cartas em cada mão e depois são reveladas cinco cartas comunitárias: três no flop, uma no turn e uma no river. Num só telemóvel, passa-se de mão em mão: as cartas de um jogador só aparecem depois de «Ver as minhas cartas» e desaparecem assim que jogou. Cada um no seu telemóvel: partilhem o jogo (botão Partilhar); cada jogador escolhe o seu lugar e só vê as suas cartas, e os lugares que ninguém ocupou jogam-se no telemóvel do organizador. No showdown, a melhor mão de cinco cartas entre as sete ganha cada pote (straight flush, quadra, full house, flush, sequência, trio, dois pares, par, carta alta); em caso de empate exato, o pote é dividido.</string>
 
     <!-- Poker : changement de table (export / import de joueurs) -->
     <string name="poker_tables_button">Mudar de mesa (importar / exportar)</string>

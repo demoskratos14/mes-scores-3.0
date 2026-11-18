@@ -61,7 +61,8 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
     "builtin_poker" to listOf(
         RulesSection(R.string.rules_poker_1_title, R.string.rules_poker_1_body),
         RulesSection(R.string.rules_poker_2_title, R.string.rules_poker_2_body),
-        RulesSection(R.string.rules_poker_3_title, R.string.rules_poker_3_body)
+        RulesSection(R.string.rules_poker_3_title, R.string.rules_poker_3_body),
+        RulesSection(R.string.rules_poker_4_title, R.string.rules_poker_4_body)
     ),
     "builtin_rami" to listOf(
         RulesSection(R.string.rules_rami_1_title, R.string.rules_rami_1_body),

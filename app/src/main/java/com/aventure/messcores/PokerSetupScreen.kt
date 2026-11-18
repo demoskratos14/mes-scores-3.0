@@ -66,6 +66,8 @@ fun PokerSetupScreen(
     var breakEveryText by rememberSaveable { mutableStateOf("0") }
     var breakMinutesText by rememberSaveable { mutableStateOf("10") }
     var alertOn by rememberSaveable { mutableStateOf(true) }
+    // Cartes distribuées par l'appli (chacun voit les siennes sur son téléphone) : proposé par défaut.
+    var dealOn by rememberSaveable { mutableStateOf(true) }
     var buyInText by rememberSaveable { mutableStateOf("0") }
     var rebuyText by rememberSaveable { mutableStateOf("0") }
     var payoutIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -108,7 +110,8 @@ fun PokerSetupScreen(
             levelAlert = alertOn,
             buyIn = buyIn,
             payoutPercents = if (buyIn > 0) payout else emptyList(),
-            rebuyUntilLevel = rebuyUntil
+            rebuyUntilLevel = rebuyUntil,
+            dealCards = dealOn
         )
     } else {
         null
@@ -127,6 +130,24 @@ fun PokerSetupScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(stringResource(R.string.poker_setup_title), style = MaterialTheme.typography.headlineMedium)
+
+                // Cartes distribuées par l'appli : la ligne entière est l'interrupteur.
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .toggleable(value = dealOn, role = Role.Switch, onValueChange = { dealOn = it }),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.poker_setup_deal))
+                        Text(
+                            text = stringResource(R.string.poker_setup_deal_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(checked = dealOn, onCheckedChange = null)
+                }
 
                 // Tapis de départ
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {

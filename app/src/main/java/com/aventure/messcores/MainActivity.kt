@@ -801,7 +801,13 @@ fun ScoreApp(
                 )
             }
             composable("poker") {
-                PokerScreen(viewModel = viewModel, historyRepository = gameHistoryRepository)
+                PokerScreen(
+                    viewModel = viewModel,
+                    historyRepository = gameHistoryRepository,
+                    session = sync,
+                    online = syncViewModel.poker,
+                    onOpenShare = { navController.navigate("share") }
+                )
             }
             composable("score") {
                 ScoreScreen(
