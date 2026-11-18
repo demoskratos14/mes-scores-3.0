@@ -219,10 +219,12 @@ fun ScoreApp(
     // Skyjo Action jouable : même principe.
     val onSkyjoActionRoute = currentRoute == "skyjoaction" && playable && viewModel.gameRules.id == SKYJO_ACTION_ID
     val onDominoRoute = currentRoute == "domino" && playable && viewModel.gameRules.id == DOMINOS_ID
+    // Trio jouable : même principe.
+    val onTrioRoute = currentRoute == "trio" && playable && viewModel.gameRules.id == TRIO_ID
     // Président jouable : même principe.
     val onPresidentRoute = currentRoute == "president" && playable && viewModel.gameRules.id == PRESIDENT_ID
     val onScoreRoute = currentRoute == "score" || currentRoute == "counter" || currentRoute == "teamRounds" ||
-        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onTarotRoute || onBarbuRoute || onOhHellRoute || onYanivRoute || onRamiRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onPresidentRoute
+        currentRoute == "poker" || currentRoute == "racket" || onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onTarotRoute || onBarbuRoute || onOhHellRoute || onYanivRoute || onRamiRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onTrioRoute || onPresidentRoute
     var showQuitDialog by remember { mutableStateOf(false) }
 
     // Partie en cours la plus récente du journal, proposée sur l'accueil ; relue à chaque retour sur l'accueil.
@@ -294,6 +296,7 @@ fun ScoreApp(
         playable && rules.id == FLIP7_ID -> "flip7"
         playable && rules.id == SKYJO_ACTION_ID -> "skyjoaction"
         playable && rules.id == DOMINOS_ID -> "domino"
+        playable && rules.id == TRIO_ID -> "trio"
         playable && rules.id == PRESIDENT_ID -> "president"
         playable && rules.isDiceOnly() -> "dice"
         else -> scoreRouteFor(rules)
@@ -1039,6 +1042,22 @@ fun ScoreApp(
                     }
                 )
             }
+            composable("trio") {
+                TrioScreen(
+                    viewModel = viewModel,
+                    session = sync,
+                    online = syncViewModel.trio,
+                    onOpenShare = { navController.navigate("share") },
+                    // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
+                    onBack = {
+                        if (viewModel.hasProgress()) {
+                            showQuitDialog = true
+                        } else {
+                            quitGame(save = false)
+                        }
+                    }
+                )
+            }
             composable("president") {
                 PresidentScreen(
                     viewModel = viewModel,
@@ -1142,7 +1161,7 @@ fun ScoreApp(
         // Superposé à toutes les pages ci-dessus, sauf le poker (minuteur de blinds) et les jeux jouables
         // qui n'ont pas besoin d'horloge (les échecs ont la leur, le réflexe et le rythme mesurent le temps eux-mêmes).
         val hideTimer = currentRoute == "poker" || currentRoute in PLAYABLE_ROUTES_WITHOUT_TIMER ||
-            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onTarotRoute || onBarbuRoute || onOhHellRoute || onYanivRoute || onRamiRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onPresidentRoute
+            onDiceOnlyRoute || onHuitRoute || onUnoRoute || onHeartsRoute || onTarotRoute || onBarbuRoute || onOhHellRoute || onYanivRoute || onRamiRoute || onFlip7Route || onSkyjoActionRoute || onDominoRoute || onTrioRoute || onPresidentRoute
         if (!hideTimer) TimerOverlay(viewModel = timerViewModel)
 
         if (showQuitDialog) {

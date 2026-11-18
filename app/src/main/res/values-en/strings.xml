@@ -2963,4 +2963,39 @@
     <string name="tarot_result_petit">Petit au bout: %1$s</string>
     <string name="tarot_result_handful">Handfuls: %1$s</string>
     <string name="tarot_delta_line">%1$s: %2$s</string>
+
+    <!-- Trio -->
+    <string name="game_trio">Trio</string>
+    <string name="rules_trio_1_title">Goal</string>
+    <string name="rules_trio_1_body">Collect trios: three identical cards. You win the round with 3 trios, with 2 linked trios (the small numbers in the corners of a card show the linked numbers: 1 with 8 or 9, 2 with 5 or 6, 3 with 4 or 10, 4 with 11, 5 with 12), or instantly with the trio of 7s.</string>
+    <string name="rules_trio_2_title">Taking a turn</string>
+    <string name="rules_trio_2_body">The deck has 36 cards (1 to 12, three of each). Each player gets 9 cards with three players, 7 with four, 6 with five and 5 with six; the rest form the centre of the table, face down. Everyone sorts their hand from the lowest card to the highest. On your turn, you flip a card: the lowest or the highest hidden card of any player’s hand (your own included), or any card from the centre. If it matches the previous ones, you carry on; otherwise your turn ends and all the cards are hidden again.</string>
+    <string name="rules_trio_3_title">Trios</string>
+    <string name="rules_trio_3_body">When you flip three identical cards in the same turn, you win the trio: its cards leave the game and you play again. If every trio is taken without a winner, whoever has the most trios wins the round.</string>
+    <string name="rules_trio_4_title">In the app</string>
+    <string name="rules_trio_4_body">The app deals, sorts the hands, checks every flipped card and spots trios, linked trios and the trio of 7s. The phone is passed around: a player’s hand only appears after “Show my hand”, and flipped cards are visible to everyone until the end of the turn. The winner of a round scores 1 point, entered in the table; the game stops at 3 rounds won. On the score sheet alone, enter 1 point for the winner of each round. Each on their own phone: share the game (Share button); each player picks a seat and only sees their own hand, and seats nobody has taken are played on the host’s phone, which is passed around.</string>
+    <string name="trio_card_desc" tools:ignore="PluralsCandidate">Card %1$d</string>
+    <string name="trio_hidden_desc">Hidden card</string>
+    <string name="trio_center_card_desc">Centre card: flip it</string>
+    <string name="trio_center_title" tools:ignore="PluralsCandidate">Centre of the table: %1$d cards</string>
+    <string name="trio_revealed_title">Flipped cards</string>
+    <string name="trio_player_line">%1$s (trios: %2$s)</string>
+    <string name="trio_none">none</string>
+    <string name="trio_no_cards">No cards left in hand.</string>
+    <string name="trio_flip_low">Lowest</string>
+    <string name="trio_flip_high">Highest</string>
+    <string name="trio_flip_low_desc">%1$s: flip the lowest hidden card</string>
+    <string name="trio_flip_high_desc">%1$s: flip the highest hidden card</string>
+    <string name="trio_hand_title">%1$s’s hand (lowest to highest)</string>
+    <string name="trio_hint">Flip a card: the lowest or the highest of any player’s hand (yours included), or a card from the centre. Flip identical cards to make a trio.</string>
+    <string name="trio_mismatch">The cards are not identical: %1$s’s turn ends.</string>
+    <string name="trio_end_turn">End turn</string>
+    <string name="trio_found" tools:ignore="PluralsCandidate">%1$s won the trio of %2$d and plays again.</string>
+    <string name="trio_not_allowed">You can’t flip this card.</string>
+    <string name="trio_win_sevens">%1$s found the trio of 7s: instant win!</string>
+    <string name="trio_win_linked" tools:ignore="PluralsCandidate">%1$s won two linked trios (%2$d and %3$d)!</string>
+    <string name="trio_win_three">%1$s collected 3 trios!</string>
+    <string name="trio_win_most">Every trio is taken: %1$s has the most.</string>
+    <string name="trio_win_none">Every trio is taken and two players are tied: nobody scores.</string>
+    <string name="trio_trios_title">Trios won</string>
 </resources>

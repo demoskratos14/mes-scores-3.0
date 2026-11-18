@@ -3005,4 +3005,39 @@
     <string name="tarot_result_petit">Petit al bout: %1$s</string>
     <string name="tarot_result_handful">Poignées: %1$s</string>
     <string name="tarot_delta_line">%1$s: %2$s</string>
+
+    <!-- Trio -->
+    <string name="game_trio">Trio</string>
+    <string name="rules_trio_1_title">Obiettivo del gioco</string>
+    <string name="rules_trio_1_body">Raccogliere dei tris: tre carte uguali. Si vince la mano con 3 tris, con 2 tris collegati (i piccoli numeri negli angoli di una carta indicano i numeri collegati: 1 con 8 o 9, 2 con 5 o 6, 3 con 4 o 10, 4 con 11, 5 con 12) oppure subito con il tris di 7.</string>
+    <string name="rules_trio_2_title">Svolgimento del turno</string>
+    <string name="rules_trio_2_body">Il mazzo ha 36 carte (da 1 a 12, tre per numero). Se ne distribuiscono 9 a testa con tre giocatori, 7 con quattro, 6 con cinque e 5 con sei; le altre formano il centro del tavolo, coperte. Ognuno ordina la propria mano dalla carta più piccola alla più grande. Al proprio turno si scopre una carta: la più piccola o la più grande tra le carte coperte della mano di un giocatore (compresa la propria), oppure una qualsiasi carta del centro. Se è uguale alle precedenti si continua; altrimenti il turno finisce e tutte le carte vengono coperte di nuovo.</string>
+    <string name="rules_trio_3_title">I tris</string>
+    <string name="rules_trio_3_body">Quando si scoprono tre carte uguali nello stesso turno, si vince il tris: le sue carte escono dal gioco e si gioca ancora. Se tutti i tris vengono presi senza un vincitore, vince la mano chi ne ha di più.</string>
+    <string name="rules_trio_4_title">Nell’app</string>
+    <string name="rules_trio_4_body">L’app distribuisce, ordina le mani, controlla ogni carta scoperta e riconosce i tris, i tris collegati e il tris di 7. Il telefono passa di giocatore in giocatore: la mano compare solo dopo «Vedi la mia mano», e le carte scoperte sono visibili a tutti fino alla fine del turno. Il vincitore della mano segna 1 punto, scritto nella tabella; la partita finisce a 3 mani vinte. Con il solo foglio punteggi, scrivi 1 punto per il vincitore di ogni mano. Ognuno sul proprio telefono: condividi la partita (pulsante Condividi); ogni giocatore sceglie il proprio posto e vede solo la propria mano, e i posti che nessuno ha preso si giocano sul telefono dell’organizzatore, che viene passato.</string>
+    <string name="trio_card_desc" tools:ignore="PluralsCandidate">Carta %1$d</string>
+    <string name="trio_hidden_desc">Carta coperta</string>
+    <string name="trio_center_card_desc">Carta del centro: scoprila</string>
+    <string name="trio_center_title" tools:ignore="PluralsCandidate">Centro del tavolo: %1$d carte</string>
+    <string name="trio_revealed_title">Carte scoperte</string>
+    <string name="trio_player_line">%1$s (tris: %2$s)</string>
+    <string name="trio_none">nessuno</string>
+    <string name="trio_no_cards">Non ci sono più carte in mano.</string>
+    <string name="trio_flip_low">La più piccola</string>
+    <string name="trio_flip_high">La più grande</string>
+    <string name="trio_flip_low_desc">%1$s: scopri la carta coperta più piccola</string>
+    <string name="trio_flip_high_desc">%1$s: scopri la carta coperta più grande</string>
+    <string name="trio_hand_title">Mano di %1$s (dalla più piccola alla più grande)</string>
+    <string name="trio_hint">Scopri una carta: la più piccola o la più grande della mano di un giocatore (compresa la tua), oppure una carta del centro. Scopri carte uguali per fare un tris.</string>
+    <string name="trio_mismatch">Le carte non sono uguali: il turno di %1$s finisce.</string>
+    <string name="trio_end_turn">Fine del turno</string>
+    <string name="trio_found" tools:ignore="PluralsCandidate">%1$s ha vinto il tris di %2$d e gioca ancora.</string>
+    <string name="trio_not_allowed">Non puoi scoprire questa carta.</string>
+    <string name="trio_win_sevens">%1$s ha trovato il tris di 7: vittoria immediata!</string>
+    <string name="trio_win_linked" tools:ignore="PluralsCandidate">%1$s ha vinto due tris collegati (%2$d e %3$d)!</string>
+    <string name="trio_win_three">%1$s ha raccolto 3 tris!</string>
+    <string name="trio_win_most">Tutti i tris sono stati presi: %1$s ne ha di più.</string>
+    <string name="trio_win_none">Tutti i tris sono stati presi e due giocatori sono pari: nessuno segna.</string>
+    <string name="trio_trios_title">Tris vinti</string>
 </resources>

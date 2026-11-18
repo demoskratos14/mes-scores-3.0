@@ -97,6 +97,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 100, stopImmediately = false)
     ),
     GameRules(
+        id = TRIO_ID,
+        name = context.getString(R.string.game_trio),
+        minPlayers = 3,
+        maxPlayers = 6,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.TABLE,
+        endCondition = EndCondition(type = EndConditionType.SCORE_THRESHOLD, scoreThreshold = 3, stopImmediately = false)
+    ),
+    GameRules(
         id = "builtin_wizard",
         name = context.getString(R.string.game_wizard),
         minPlayers = 3,

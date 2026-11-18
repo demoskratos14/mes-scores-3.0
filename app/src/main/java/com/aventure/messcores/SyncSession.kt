@@ -181,6 +181,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     /** Le Domino chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var domino: DominoOnline? = null
 
+    /** Le Trio chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
+    var trio: TrioOnline? = null
+
     /** La partie de l'appli à laquelle la session est reliée (pour les jeux qui en lisent la partie en cours). */
     internal val attachedGame: ScoreViewModel? get() = game
 
@@ -466,6 +469,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         flip7?.reset()
         skyjo?.reset()
         domino?.reset()
+        trio?.reset()
     }
 
     /** Choisit le joueur dont ce téléphone lance les dés ([DICE_ALL] : tous les joueurs). */
@@ -576,6 +580,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         flip7?.onPeerConnected(id)
         skyjo?.onPeerConnected(id)
         domino?.onPeerConnected(id)
+        trio?.onPeerConnected(id)
         duoGames.forEach { it.onPeerConnected(id) }
     }
 
@@ -613,6 +618,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         flip7?.onPeerDisconnected(id)
         skyjo?.onPeerDisconnected(id)
         domino?.onPeerDisconnected(id)
+        trio?.onPeerDisconnected(id)
         duoGames.forEach { it.onPeerDisconnected(id) }
         if (role == SyncRole.GUEST && connected.isEmpty()) {
             // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
@@ -707,6 +713,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.Flip7Msg -> flip7?.onMessage(id, message.flip7)
             is SyncMessage.SkyjoMsg -> skyjo?.onMessage(id, message.skyjo)
             is SyncMessage.DominoMsg -> domino?.onMessage(id, message.domino)
+            is SyncMessage.TrioMsg -> trio?.onMessage(id, message.trio)
             is SyncMessage.Dice -> {
                 if (kind != SyncKind.SCORE || connected.isEmpty()) return
                 diceTable = message.table

@@ -41,7 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
-/** Proportions des cartes du Skyjo Action (images découpées dans les photos du jeu). */
+/** Proportions des cartes du Skyjo Action (images découpées dans les scans du jeu). */
 private const val SKYJO_RATIO = 216f / 335f
 
 /** La pioche des cartes action est posée sur le côté, en pile (skyjo_back_deck.webp : dos tourné d'un quart de tour, épaisseur comprise). */

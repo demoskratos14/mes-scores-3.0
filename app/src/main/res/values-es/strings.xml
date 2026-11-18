@@ -2995,4 +2995,39 @@
     <string name="tarot_result_petit">Petit al final: %1$s</string>
     <string name="tarot_result_handful">Poignées: %1$s</string>
     <string name="tarot_delta_line">%1$s: %2$s</string>
+
+    <!-- Trio -->
+    <string name="game_trio">Trio</string>
+    <string name="rules_trio_1_title">Objetivo</string>
+    <string name="rules_trio_1_body">Reunir tríos: tres cartas idénticas. Se gana la ronda con 3 tríos, con 2 tríos enlazados (los números pequeños en las esquinas de una carta indican los números enlazados: 1 con 8 o 9, 2 con 5 o 6, 3 con 4 o 10, 4 con 11, 5 con 12) o al instante con el trío de 7.</string>
+    <string name="rules_trio_2_title">Cómo se juega un turno</string>
+    <string name="rules_trio_2_body">El juego tiene 36 cartas (del 1 al 12, tres de cada). Se reparten 9 a cada jugador con tres jugadores, 7 con cuatro, 6 con cinco y 5 con seis; el resto forma el centro de la mesa, boca abajo. Cada uno ordena su mano de la carta más pequeña a la más grande. En su turno, se da la vuelta a una carta: la más pequeña o la más grande de las cartas ocultas de la mano de un jugador (la propia incluida), o cualquier carta del centro. Si es idéntica a las anteriores, se continúa; si no, el turno termina y todas las cartas se vuelven a ocultar.</string>
+    <string name="rules_trio_3_title">Los tríos</string>
+    <string name="rules_trio_3_body">Cuando se descubren tres cartas idénticas en el mismo turno, se gana el trío: sus cartas salen del juego y se vuelve a jugar. Si se agotan todos los tríos sin ganador, gana la ronda quien tenga más.</string>
+    <string name="rules_trio_4_title">En la aplicación</string>
+    <string name="rules_trio_4_body">La aplicación reparte, ordena las manos, comprueba cada carta descubierta y detecta los tríos, los tríos enlazados y el trío de 7. El teléfono se pasa de jugador en jugador: la mano solo aparece tras «Ver mi mano», y las cartas descubiertas las ve todo el mundo hasta el final del turno. El ganador de la ronda suma 1 punto, anotado en la tabla; la partida termina a las 3 rondas ganadas. Solo con la hoja de puntuación, anota 1 punto para el ganador de cada ronda. Cada uno en su teléfono: comparte la partida (botón Compartir); cada jugador elige su sitio y solo ve su mano, y los sitios que nadie ha cogido se juegan en el teléfono del organizador, que se va pasando.</string>
+    <string name="trio_card_desc" tools:ignore="PluralsCandidate">Carta %1$d</string>
+    <string name="trio_hidden_desc">Carta oculta</string>
+    <string name="trio_center_card_desc">Carta del centro: darle la vuelta</string>
+    <string name="trio_center_title" tools:ignore="PluralsCandidate">Centro de la mesa: %1$d cartas</string>
+    <string name="trio_revealed_title">Cartas descubiertas</string>
+    <string name="trio_player_line">%1$s (tríos: %2$s)</string>
+    <string name="trio_none">ninguno</string>
+    <string name="trio_no_cards">Ya no quedan cartas en la mano.</string>
+    <string name="trio_flip_low">Más pequeña</string>
+    <string name="trio_flip_high">Más grande</string>
+    <string name="trio_flip_low_desc">%1$s: descubrir la carta oculta más pequeña</string>
+    <string name="trio_flip_high_desc">%1$s: descubrir la carta oculta más grande</string>
+    <string name="trio_hand_title">Mano de %1$s (de la más pequeña a la más grande)</string>
+    <string name="trio_hint">Descubre una carta: la más pequeña o la más grande de la mano de un jugador (la tuya incluida), o una carta del centro. Descubre cartas idénticas para hacer un trío.</string>
+    <string name="trio_mismatch">Las cartas no son idénticas: termina el turno de %1$s.</string>
+    <string name="trio_end_turn">Fin del turno</string>
+    <string name="trio_found" tools:ignore="PluralsCandidate">%1$s ha ganado el trío de %2$d y vuelve a jugar.</string>
+    <string name="trio_not_allowed">No puedes descubrir esta carta.</string>
+    <string name="trio_win_sevens">¡%1$s ha encontrado el trío de 7: victoria inmediata!</string>
+    <string name="trio_win_linked" tools:ignore="PluralsCandidate">¡%1$s ha ganado dos tríos enlazados (%2$d y %3$d)!</string>
+    <string name="trio_win_three">¡%1$s ha reunido 3 tríos!</string>
+    <string name="trio_win_most">Se han agotado todos los tríos: %1$s tiene más.</string>
+    <string name="trio_win_none">Se han agotado todos los tríos y hay empate: nadie puntúa.</string>
+    <string name="trio_trios_title">Tríos ganados</string>
 </resources>

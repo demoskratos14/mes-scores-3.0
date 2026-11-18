@@ -3012,4 +3012,39 @@
     <string name="tarot_result_petit">Petit au bout : %1$s</string>
     <string name="tarot_result_handful">Poignées : %1$s</string>
     <string name="tarot_delta_line">%1$s : %2$s</string>
+
+    <!-- Trio -->
+    <string name="game_trio">Trio</string>
+    <string name="rules_trio_1_title">But du jeu</string>
+    <string name="rules_trio_1_body">Réunir des trios : trois cartes identiques. On gagne la manche avec 3 trios, avec 2 trios liés (les petits numéros dans les coins d’une carte indiquent les numéros liés : 1 avec 8 ou 9, 2 avec 5 ou 6, 3 avec 4 ou 10, 4 avec 11, 5 avec 12), ou tout de suite avec le trio de 7.</string>
+    <string name="rules_trio_2_title">Le tour de jeu</string>
+    <string name="rules_trio_2_body">Le jeu compte 36 cartes (de 1 à 12, en trois exemplaires). On en distribue 9 à chacun à trois joueurs, 7 à quatre, 6 à cinq et 5 à six ; les autres forment le milieu de la table, face cachée. Chacun range sa main de la plus petite carte à la plus grande. À son tour, on retourne une carte : la plus petite ou la plus grande carte cachée de la main d’un joueur (la sienne comprise), ou n’importe quelle carte du milieu. Si elle est identique aux précédentes, on continue ; sinon le tour s’arrête et toutes les cartes sont recachées.</string>
+    <string name="rules_trio_3_title">Les trios</string>
+    <string name="rules_trio_3_body">Quand on retourne trois cartes identiques dans le même tour, on gagne le trio : ses cartes sortent du jeu et on rejoue. Si tous les trios sont pris sans vainqueur, celui qui en a le plus gagne la manche.</string>
+    <string name="rules_trio_4_title">Dans l’appli</string>
+    <string name="rules_trio_4_body">L’appli distribue, range les mains, vérifie chaque carte retournée et repère les trios, les trios liés et le trio de 7. On se passe le téléphone : la main d’un joueur n’apparaît qu’après « Voir ma main », et les cartes retournées sont visibles de tous jusqu’à la fin du tour. Le gagnant de la manche marque 1 point, inscrit au tableau ; la partie s’arrête à 3 manches gagnées. Sur la feuille de scores seule, saisis 1 point pour le gagnant de chaque manche. Chacun sur son téléphone : partage la partie (bouton Partager) ; chaque joueur choisit sa place et ne voit que sa main, et les places que personne n’a prises se jouent sur le téléphone de l’organisateur, qu’on se passe.</string>
+    <string name="trio_card_desc" tools:ignore="PluralsCandidate">Carte %1$d</string>
+    <string name="trio_hidden_desc">Carte cachée</string>
+    <string name="trio_center_card_desc">Carte du milieu : la retourner</string>
+    <string name="trio_center_title" tools:ignore="PluralsCandidate">Milieu de la table : %1$d cartes</string>
+    <string name="trio_revealed_title">Cartes retournées</string>
+    <string name="trio_player_line">%1$s (trios : %2$s)</string>
+    <string name="trio_none">aucun</string>
+    <string name="trio_no_cards">Plus de cartes en main.</string>
+    <string name="trio_flip_low">Plus petite</string>
+    <string name="trio_flip_high">Plus grande</string>
+    <string name="trio_flip_low_desc">%1$s : retourner la plus petite carte cachée</string>
+    <string name="trio_flip_high_desc">%1$s : retourner la plus grande carte cachée</string>
+    <string name="trio_hand_title">Main de %1$s (de la plus petite à la plus grande)</string>
+    <string name="trio_hint">Retourne une carte : la plus petite ou la plus grande de la main d’un joueur (la tienne comprise), ou une carte du milieu. Retourne des cartes identiques pour faire un trio.</string>
+    <string name="trio_mismatch">Les cartes ne sont pas identiques : le tour de %1$s s’arrête.</string>
+    <string name="trio_end_turn">Fin du tour</string>
+    <string name="trio_found" tools:ignore="PluralsCandidate">%1$s a gagné le trio de %2$d et rejoue.</string>
+    <string name="trio_not_allowed">Tu ne peux pas retourner cette carte.</string>
+    <string name="trio_win_sevens">%1$s a trouvé le trio de 7 : victoire immédiate !</string>
+    <string name="trio_win_linked" tools:ignore="PluralsCandidate">%1$s a gagné deux trios liés (%2$d et %3$d) !</string>
+    <string name="trio_win_three">%1$s a réuni 3 trios !</string>
+    <string name="trio_win_most">Tous les trios sont pris : %1$s en a le plus.</string>
+    <string name="trio_win_none">Tous les trios sont pris et deux joueurs sont à égalité : personne ne marque.</string>
+    <string name="trio_trios_title">Trios gagnés</string>
 </resources>

@@ -207,6 +207,9 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     /** Domino chacun sur son téléphone, sur la même connexion que le partage des scores. */
     internal val domino = DominoOnline(session)
 
+    /** Trio chacun sur son téléphone, sur la même connexion que le partage des scores. */
+    internal val trio = TrioOnline(session)
+
     override fun onCleared() {
         session.disconnect()
     }

@@ -42,7 +42,7 @@ class GameCategoryTest {
         assertEquals(
             setOf(
                 "builtin_skyjo", "builtin_skyjo_action", "builtin_uno", "builtin_milleb", "builtin_sixqp", "builtin_papayoo", "builtin_cabo",
-                "builtin_rummikub", "builtin_dominos", "builtin_wizard", "builtin_phase10", "builtin_splendor",
+                "builtin_rummikub", "builtin_dominos", "builtin_trio", "builtin_wizard", "builtin_phase10", "builtin_splendor",
                 "builtin_dixit", "builtin_ttr", "builtin_azul", "builtin_carcassonne", "builtin_catane",
                 "builtin_sevenwonders", "builtin_wingspan", "builtin_hanabi", "builtin_scrabble", "builtin_trivial",
                 "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc", "builtin_reflex", "builtin_emoji", "builtin_circles", "builtin_simon", "builtin_rhythm", "builtin_tetris", "builtin_breakout", "builtin_asteroids", "builtin_invaders", "builtin_shmup", "builtin_xonix", "builtin_snake", "builtin_bubble", "builtin_minesweeper", "builtin_pancake", "builtin_drive",

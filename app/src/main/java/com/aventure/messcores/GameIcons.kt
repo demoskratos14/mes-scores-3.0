@@ -48,7 +48,7 @@ private const val GRID_COLUMNS = 3
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
     MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID,
-    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID
+    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID
 )
 
 /**
@@ -154,6 +154,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             FLIP7_ID -> drawFlip7()
             SKYJO_ACTION_ID -> drawSkyjoAction()
             DOMINOS_ID -> drawDominos()
+            TRIO_ID -> drawTrio()
             else -> drawGeneric()
         }
     }
@@ -903,6 +904,38 @@ private fun DrawScope.drawFlip7() {
     card(Color(0xFFEF6C00), -26f, -s * 0.12f, seven = false)
     card(Color(0xFF29B6F6), 0f, 0f, seven = false)
     card(Color(0xFF26A69A), 26f, s * 0.12f, seven = true)
+}
+
+private fun DrawScope.drawTrio() {
+    paper(Color(0xFF263238))
+    val s = size.minDimension
+    val w = s * 0.34f
+    val h = s * 0.52f
+    // Trois cartes identiques en éventail : un trio de 4, avec le numéro tracé en trait épais (comme sur les cartes du jeu).
+    fun card(angle: Float, dx: Float, dy: Float) {
+        val left = s / 2f + dx - w / 2f
+        val top = s / 2f + dy - h / 2f
+        rotate(angle, pivot = Offset(s / 2f + dx, s * 0.82f)) {
+            drawRoundRect(Color(0xFF111111), topLeft = Offset(left, top), size = Size(w, h), cornerRadius = CornerRadius(s * 0.05f))
+            val inset = s * 0.02f
+            drawRoundRect(
+                Color(0xFFD32F2F),
+                topLeft = Offset(left + inset, top + inset),
+                size = Size(w - 2 * inset, h - 2 * inset),
+                cornerRadius = CornerRadius(s * 0.04f)
+            )
+            val four = Path().apply {
+                moveTo(left + w * 0.62f, top + h * 0.78f)
+                lineTo(left + w * 0.62f, top + h * 0.22f)
+                lineTo(left + w * 0.22f, top + h * 0.6f)
+                lineTo(left + w * 0.8f, top + h * 0.6f)
+            }
+            drawPath(four, Color.White, style = Stroke(width = s * 0.05f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        }
+    }
+    card(-24f, -s * 0.16f, 0f)
+    card(0f, 0f, -s * 0.03f)
+    card(24f, s * 0.16f, 0f)
 }
 
 private fun DrawScope.drawDominos() {
