@@ -71,12 +71,25 @@ internal object GamepadHub {
     private const val PRESS = 0.6f
     private const val RELEASE = 0.35f
 
+    /** Seuils des sticks : bas, car un Joy-Con seul n'atteint pas toujours le bout de course. */
+    private const val STICK_PRESS = 0.4f
+    private const val STICK_RELEASE = 0.22f
+    /** Un stick change de direction dès que l'autre axe dépasse l'axe actuel de cette marge (évite le va-et-vient en diagonale). */
+    private const val STICK_SWITCH_MARGIN = 0.08f
+
     private val listeners = mutableListOf<(PadInput) -> Boolean>()
     private val consumedKeys = mutableSetOf<Int>()
     private val activeAxes = mutableSetOf<Int>()
+    /** La direction actuellement tenue par chaque stick (clé : l'axe horizontal du stick), ou absente au repos. */
+    private val stickDirections = mutableMapOf<Int, PadInput.Axis>()
+
+    /** Les sticks : (axe horizontal, axe vertical). Chacun donne une seule direction à la fois, la dominante. */
+    private val STICKS = listOf(
+        MotionEvent.AXIS_X to MotionEvent.AXIS_Y,
+        MotionEvent.AXIS_Z to MotionEvent.AXIS_RZ
+    )
 
     private val AXES = intArrayOf(
-        MotionEvent.AXIS_X, MotionEvent.AXIS_Y, MotionEvent.AXIS_Z, MotionEvent.AXIS_RZ,
         MotionEvent.AXIS_HAT_X, MotionEvent.AXIS_HAT_Y,
         MotionEvent.AXIS_LTRIGGER, MotionEvent.AXIS_RTRIGGER, MotionEvent.AXIS_BRAKE, MotionEvent.AXIS_GAS
     )
@@ -95,6 +108,7 @@ internal object GamepadHub {
         if (listeners.isEmpty()) {
             consumedKeys.clear()
             activeAxes.clear()
+            stickDirections.clear()
         }
     }
 
@@ -104,8 +118,10 @@ internal object GamepadHub {
     fun onKey(event: KeyEvent): Boolean {
         if (listeners.isEmpty()) return false
         val code = event.keyCode
+        // Un Joy-Con seul n'annonce pas toujours « manette » : on accepte donc aussi les boutons de manette (A, B, L1…)
+        // et les touches de croix quelle que soit la source, et la croix d'un clavier ou d'un autre périphérique.
         val fromPad = isSource(event, InputDevice.SOURCE_GAMEPAD) || isSource(event, InputDevice.SOURCE_JOYSTICK) ||
-            (code in DPAD_KEYS && isSource(event, InputDevice.SOURCE_DPAD))
+            isSource(event, InputDevice.SOURCE_DPAD) || KeyEvent.isGamepadButton(code) || code in DPAD_KEYS
         if (!fromPad || !(KeyEvent.isGamepadButton(code) || code in DPAD_KEYS)) return false
         return when (event.action) {
             KeyEvent.ACTION_DOWN -> {
@@ -124,6 +140,9 @@ internal object GamepadHub {
         if (listeners.isEmpty()) return false
         if (!isSource(event, InputDevice.SOURCE_JOYSTICK) || event.actionMasked != MotionEvent.ACTION_MOVE) return false
         var used = false
+        for ((axisX, axisY) in STICKS) {
+            if (handleStick(event, axisX, axisY)) used = true
+        }
         for (axis in AXES) {
             val value = event.getAxisValue(axis)
             val signs = if (axis in TRIGGERS) intArrayOf(1) else intArrayOf(-1, 1)
@@ -141,6 +160,33 @@ internal object GamepadHub {
             }
         }
         return used
+    }
+
+    /**
+     * Un stick donne une seule direction, celle de l'axe le plus incliné, dès [STICK_PRESS] : passer de droite à haut
+     * est détecté tout de suite, sans attendre que l'axe précédent soit revenu sous le seuil de relâchement.
+     */
+    private fun handleStick(event: MotionEvent, axisX: Int, axisY: Int): Boolean {
+        val x = event.getAxisValue(axisX)
+        val y = event.getAxisValue(axisY)
+        val strength = maxOf(kotlin.math.abs(x), kotlin.math.abs(y))
+        val held = stickDirections[axisX]
+        if (strength < (if (held != null) STICK_RELEASE else STICK_PRESS)) {
+            stickDirections.remove(axisX)
+            return false
+        }
+        val horizontal = kotlin.math.abs(x) >= kotlin.math.abs(y)
+        var candidate = if (horizontal) PadInput.Axis(axisX, if (x < 0) -1 else 1) else PadInput.Axis(axisY, if (y < 0) -1 else 1)
+        if (held != null && candidate != held) {
+            // On garde la direction tenue tant que l'autre axe ne la dépasse pas nettement.
+            val heldValue = kotlin.math.abs(if (held.axis == axisX) x else y)
+            val otherValue = kotlin.math.abs(if (held.axis == axisX) y else x)
+            if (candidate.axis != held.axis && otherValue < heldValue + STICK_SWITCH_MARGIN) candidate = held
+        }
+        if (candidate == held) return false
+        if (strength < STICK_PRESS) return false
+        stickDirections[axisX] = candidate
+        return listeners.last()(candidate)
     }
 }
 
