@@ -652,13 +652,13 @@
     <string name="rules_barbu_3_title">Na aplicação</string>
     <string name="rules_barbu_3_body">No fim de cada mão, introduz na coluna de cada jogador os seus pontos (o botão +/− permite introduzir uma pontuação negativa). Os valores dos contratos variam consoante a mesa: adapta-os à tua. Na versão jogável, a app distribui as cartas, faz anunciar um contrato em cada distribuição (sete por jogador, uma vez cada), verifica as cartas jogadas e regista os pontos na tabela, num único telemóvel ou cada um no seu. No Dominó, o primeiro a ficar sem cartas ganha 40 pontos e o último perde 40.</string>
     <string name="rules_ohhell_1_title">Objetivo</string>
-    <string name="rules_ohhell_1_body">Ganhar exatamente o número de vazas que licitaste, nem mais nem menos. Com 52 cartas, o número de cartas distribuídas sobe de 1 até ao máximo possível e depois volta a descer. O jogo não tem fim automático: joguem todas as rondas previstas.</string>
+    <string name="rules_ohhell_1_body">Ganhar exatamente o número de vazas que licitaste, nem mais nem menos. Com 52 cartas, o número de cartas distribuídas sobe de 1 até ao máximo possível e depois volta a descer. Na folha de pontuação o jogo não tem fim automático: joguem todas as rondas previstas (a versão jogável termina após a última).</string>
     <string name="rules_ohhell_2_title">A tua vez</string>
     <string name="rules_ohhell_2_body">Cada jogador recebe n cartas e vira-se uma carta para escolher o naipe de trunfo. Cada jogador, por sua vez, anuncia o número de vazas que espera ganhar (o dador muitas vezes não pode licitar um número que faça o total das licitações igual ao número de vazas). Jogam-se depois as vazas, e é obrigatório assistir ao naipe.</string>
     <string name="rules_ohhell_3_title">Pontuação</string>
     <string name="rules_ohhell_3_body">Licitação cumprida: 10 pontos mais o número de vazas licitadas. Licitação falhada: perdes um ponto por cada vaza de diferença em relação à tua licitação. Estes valores variam consoante a mesa.</string>
     <string name="rules_ohhell_4_title">Na aplicação</string>
-    <string name="rules_ohhell_4_body">Em cada ronda, toca na célula de um jogador e introduz as suas vazas licitadas e as suas vazas ganhas: a aplicação calcula a pontuação da ronda e soma-a ao seu total.</string>
+    <string name="rules_ohhell_4_body">Na aplicação, a versão jogável distribui as cartas, vira o trunfo, faz licitar cada jogador (o dador em último, com a sua licitação proibida), verifica cada carta jogada, indica quem ganha cada vaza e regista os pontos de cada ronda; o jogo termina após a última ronda e ganha o maior total. Na folha de pontuação, toca na célula de um jogador e introduz as suas vazas licitadas e ganhas: a aplicação calcula a pontuação da ronda e soma-a ao seu total.</string>
     <string name="rules_rummikub_1_title">Objetivo</string>
     <string name="rules_rummikub_1_body">Ficar sem peças colocando-as na mesa em sequências e grupos. No fim de cada ronda, o vencedor marca a soma das peças que restam aos outros jogadores, e cada perdedor perde o valor das suas peças. Não há fim automático: decidam o número de rondas.</string>
     <string name="rules_rummikub_2_title">A tua vez</string>
@@ -2899,4 +2899,21 @@
         <item quantity="many">%1$s: %2$d de contratos em falta</item>
         <item quantity="other">%1$s: %2$d contratos em falta</item>
     </plurals>
+    <string name="ohhell_round_info">Ronda %1$d de %2$d · cartas por jogador: %3$d</string>
+    <string name="ohhell_trump">Trunfo: %1$s</string>
+    <string name="ohhell_dealer">Dador: %1$s</string>
+    <string name="ohhell_bids_title">Licitações</string>
+    <string name="ohhell_tally_title">Licitações e vazas ganhas</string>
+    <string name="ohhell_bid_made">%1$s licita %2$d</string>
+    <string name="ohhell_bid_pending">%1$s: ainda não licitou</string>
+    <string name="ohhell_bids_total">Total das licitações: %1$d para %2$d vazas</string>
+    <string name="ohhell_bid_line">%1$s: licitou %2$d, vazas ganhas %3$d</string>
+    <string name="ohhell_bid_hint">Quantas vazas vais fazer? O dador licita em último e não pode licitar o número que faria o total das licitações igual ao número de vazas.</string>
+    <string name="ohhell_bid_choose">Escolhe a tua licitação</string>
+    <string name="ohhell_bid_confirm">Licitar %1$d</string>
+    <string name="ohhell_bid_forbidden">Não podes licitar %1$d: sendo o último, o total das licitações não pode ser igual ao número de vazas (%2$d).</string>
+    <string name="ohhell_hint">Assiste ao naipe jogado se puderes; caso contrário, joga o que quiseres (um trunfo ganha aos outros naipes). O trunfo mais alto, ou na falta dele a carta mais alta do naipe jogado, ganha a vaza.</string>
+    <string name="ohhell_not_playable">Essa carta não pode ser jogada: tens de assistir ao naipe jogado se o tiveres.</string>
+    <string name="ohhell_trick_won">%1$s ganha a vaza.</string>
+    <string name="ohhell_result_line">%1$s: licitou %2$d, vazas %3$d → %4$+d pontos</string>
 </resources>

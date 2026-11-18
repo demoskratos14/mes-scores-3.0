@@ -745,13 +745,13 @@
     <string name="rules_barbu_3_title">Nell\'app</string>
     <string name="rules_barbu_3_body">Alla fine di ogni mano, inserisci nella colonna di ciascun giocatore i suoi punti (il pulsante +/− permette di inserire un punteggio negativo). I valori dei contratti variano da tavolo a tavolo: adattali al tuo. Nella versione giocabile, l’app distribuisce le carte, fa annunciare un contratto a ogni mano (sette per giocatore, una volta ciascuno), controlla le carte giocate e scrive i punti nella tabella, su un solo telefono o ognuno sul proprio. Al Domino, il primo a liberarsi delle carte vince 40 punti e l’ultimo ne perde 40.</string>
     <string name="rules_ohhell_1_title">Obiettivo del gioco</string>
-    <string name="rules_ohhell_1_body">Realizzare esattamente il numero di prese annunciato, né più né meno. Con 52 carte, il numero di carte distribuite sale da 1 fino al massimo possibile, poi ridiscende. La partita non ha una fine automatica: giocate tutti i round previsti.</string>
+    <string name="rules_ohhell_1_body">Realizzare esattamente il numero di prese annunciato, né più né meno. Con 52 carte, il numero di carte distribuite sale da 1 fino al massimo possibile, poi ridiscende. Sul foglio punteggi la partita non ha una fine automatica: giocate tutti i round previsti (la versione giocabile finisce dopo l’ultimo).</string>
     <string name="rules_ohhell_2_title">Svolgimento del turno</string>
     <string name="rules_ohhell_2_body">Ogni giocatore riceve n carte e si scopre una carta per designare la briscola. A turno, ognuno annuncia il numero di prese che pensa di realizzare (il mazziere spesso non può annunciare un numero che farebbe coincidere il totale degli annunci con il numero di prese). Poi si giocano le prese, con l\'obbligo di rispondere al seme richiesto.</string>
     <string name="rules_ohhell_3_title">I punti</string>
     <string name="rules_ohhell_3_body">Annuncio riuscito: 10 punti più il numero di prese annunciate. Annuncio fallito: si perde un punto per ogni presa di differenza rispetto all\'annuncio. Questi valori variano da tavolo a tavolo.</string>
     <string name="rules_ohhell_4_title">Nell\'app</string>
-    <string name="rules_ohhell_4_body">A ogni round, tocca la casella di un giocatore e inserisci le sue prese annunciate e le sue prese realizzate: l\'app calcola il punteggio del round e lo aggiunge al suo totale.</string>
+    <string name="rules_ohhell_4_body">Nell’app, la versione giocabile distribuisce le carte, scopre la briscola, fa annunciare ogni giocatore (il mazziere per ultimo, con il suo annuncio vietato), controlla ogni carta giocata, indica chi vince ogni presa e registra i punti di ogni round; la partita finisce dopo l’ultimo round e vince il totale più alto. Sul foglio punteggi, tocca la casella di un giocatore e inserisci le sue prese annunciate e realizzate: l’app calcola il punteggio del round e lo aggiunge al suo totale.</string>
     <string name="rules_rummikub_1_title">Obiettivo del gioco</string>
     <string name="rules_rummikub_1_body">Liberarsi di tutte le proprie tessere calandole sul tavolo in scale e in gruppi. Alla fine di ogni round, il vincitore segna la somma delle tessere rimaste agli altri giocatori, e ogni perdente perde il valore delle proprie tessere. Non c\'è una fine automatica: decidete il numero di round.</string>
     <string name="rules_rummikub_2_title">Svolgimento del turno</string>
@@ -2909,4 +2909,21 @@
         <item quantity="many">%1$s: %2$d di contratti rimasti</item>
         <item quantity="other">%1$s: %2$d contratti rimasti</item>
     </plurals>
+    <string name="ohhell_round_info">Round %1$d di %2$d · carte per giocatore: %3$d</string>
+    <string name="ohhell_trump">Briscola: %1$s</string>
+    <string name="ohhell_dealer">Mazziere: %1$s</string>
+    <string name="ohhell_bids_title">Annunci</string>
+    <string name="ohhell_tally_title">Annunci e prese realizzate</string>
+    <string name="ohhell_bid_made">%1$s annuncia %2$d</string>
+    <string name="ohhell_bid_pending">%1$s: non ha ancora annunciato</string>
+    <string name="ohhell_bids_total">Totale degli annunci: %1$d per %2$d prese</string>
+    <string name="ohhell_bid_line">%1$s: annuncio %2$d, prese realizzate %3$d</string>
+    <string name="ohhell_bid_hint">Quante prese farai? Il mazziere annuncia per ultimo e non può annunciare il numero che farebbe coincidere il totale degli annunci con il numero di prese.</string>
+    <string name="ohhell_bid_choose">Scegli il tuo annuncio</string>
+    <string name="ohhell_bid_confirm">Annuncia %1$d</string>
+    <string name="ohhell_bid_forbidden">Non puoi annunciare %1$d: essendo l’ultimo, il totale degli annunci non deve coincidere con il numero di prese (%2$d).</string>
+    <string name="ohhell_hint">Rispondi al seme richiesto se puoi; altrimenti gioca ciò che vuoi (una briscola batte gli altri semi). La briscola più alta, o in mancanza la carta più alta del seme richiesto, vince la presa.</string>
+    <string name="ohhell_not_playable">Questa carta non può essere giocata: devi rispondere al seme richiesto se ce l’hai.</string>
+    <string name="ohhell_trick_won">%1$s vince la presa.</string>
+    <string name="ohhell_result_line">%1$s: annuncio %2$d, prese %3$d → %4$+d punti</string>
 </resources>

@@ -652,13 +652,13 @@
     <string name="rules_barbu_3_title">En la aplicación</string>
     <string name="rules_barbu_3_body">Al final de cada mano, introduce en la columna de cada jugador sus puntos (el botón +/− permite introducir una puntuación negativa). Los valores de los contratos varían según la mesa: adáptalos a la tuya. En la versión jugable, la app reparte las cartas, hace anunciar un contrato en cada reparto (siete por jugador, una vez cada uno), comprueba las cartas jugadas y anota los puntos en la tabla, en un solo teléfono o cada uno en el suyo. En el Dominó, el primero en vaciar su mano gana 40 puntos y el último pierde 40.</string>
     <string name="rules_ohhell_1_title">Objetivo</string>
-    <string name="rules_ohhell_1_body">Ganar exactamente el número de bazas que has apostado, ni más ni menos. Con 52 cartas, el número de cartas repartidas sube de 1 hasta el máximo posible y luego vuelve a bajar. La partida no tiene un final automático: jugad todas las rondas previstas.</string>
+    <string name="rules_ohhell_1_body">Ganar exactamente el número de bazas que has apostado, ni más ni menos. Con 52 cartas, el número de cartas repartidas sube de 1 hasta el máximo posible y luego vuelve a bajar. En la hoja de puntuación la partida no tiene un final automático: jugad todas las rondas previstas (la versión jugable termina tras la última).</string>
     <string name="rules_ohhell_2_title">Cómo se juega un turno</string>
     <string name="rules_ohhell_2_body">Cada jugador recibe n cartas y se descubre una carta para elegir el palo de triunfo. Por turnos, cada jugador anuncia el número de bazas que espera ganar (el repartidor a menudo no puede apostar un número que haga que el total de las apuestas sea igual al número de bazas). Después se juegan las bazas, y hay que seguir el palo.</string>
     <string name="rules_ohhell_3_title">Puntuación</string>
     <string name="rules_ohhell_3_body">Apuesta cumplida: 10 puntos más el número de bazas apostadas. Apuesta fallida: pierdes un punto por cada baza de diferencia con tu apuesta. Estos valores varían según la mesa.</string>
     <string name="rules_ohhell_4_title">En la aplicación</string>
-    <string name="rules_ohhell_4_body">En cada ronda, toca la casilla de un jugador e introduce sus bazas apostadas y sus bazas ganadas: la aplicación calcula la puntuación de la ronda y la suma a su total.</string>
+    <string name="rules_ohhell_4_body">En la aplicación, la versión jugable reparte las cartas, descubre el triunfo, hace apostar a cada jugador (el repartidor el último, con su apuesta prohibida), comprueba cada carta jugada, indica quién se lleva cada baza y anota los puntos de cada ronda; la partida termina tras la última ronda y gana el mayor total. En la hoja de puntuación, toca la casilla de un jugador e introduce sus bazas apostadas y ganadas: la aplicación calcula la puntuación de la ronda y la suma a su total.</string>
     <string name="rules_rummikub_1_title">Objetivo</string>
     <string name="rules_rummikub_1_body">Deshacerte de todas tus fichas colocándolas en la mesa en escaleras y grupos. Al final de cada ronda, el ganador anota la suma de las fichas que les quedan a los demás jugadores, y cada perdedor pierde el valor de sus fichas. No hay un final automático: decidid el número de rondas.</string>
     <string name="rules_rummikub_2_title">Cómo se juega un turno</string>
@@ -2899,4 +2899,21 @@
         <item quantity="many">%1$s: %2$d de contratos restantes</item>
         <item quantity="other">%1$s: %2$d contratos restantes</item>
     </plurals>
+    <string name="ohhell_round_info">Ronda %1$d de %2$d · cartas por jugador: %3$d</string>
+    <string name="ohhell_trump">Triunfo: %1$s</string>
+    <string name="ohhell_dealer">Repartidor: %1$s</string>
+    <string name="ohhell_bids_title">Apuestas</string>
+    <string name="ohhell_tally_title">Apuestas y bazas ganadas</string>
+    <string name="ohhell_bid_made">%1$s apuesta %2$d</string>
+    <string name="ohhell_bid_pending">%1$s: aún sin apostar</string>
+    <string name="ohhell_bids_total">Total de las apuestas: %1$d para %2$d bazas</string>
+    <string name="ohhell_bid_line">%1$s: apuesta %2$d, bazas ganadas %3$d</string>
+    <string name="ohhell_bid_hint">¿Cuántas bazas vas a hacer? El repartidor apuesta el último y no puede apostar el número que haría que el total de las apuestas sea igual al número de bazas.</string>
+    <string name="ohhell_bid_choose">Elige tu apuesta</string>
+    <string name="ohhell_bid_confirm">Apostar %1$d</string>
+    <string name="ohhell_bid_forbidden">No puedes apostar %1$d: al ser el último, el total de las apuestas no puede ser igual al número de bazas (%2$d).</string>
+    <string name="ohhell_hint">Sigue el palo pedido si puedes; si no, juega lo que quieras (un triunfo gana a los demás palos). El triunfo más alto, o si no la carta más alta del palo pedido, gana la baza.</string>
+    <string name="ohhell_not_playable">Esa carta no se puede jugar: tienes que seguir el palo pedido si lo tienes.</string>
+    <string name="ohhell_trick_won">%1$s se lleva la baza.</string>
+    <string name="ohhell_result_line">%1$s: apuesta %2$d, bazas %3$d → %4$+d puntos</string>
 </resources>

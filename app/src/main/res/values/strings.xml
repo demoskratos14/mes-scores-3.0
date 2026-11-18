@@ -750,13 +750,13 @@
     <string name="rules_barbu_3_title">Dans l\'appli</string>
     <string name="rules_barbu_3_body">À la fin de chaque donne, saisis dans la colonne de chaque joueur ses points (le bouton +/− permet de saisir un score négatif). Les valeurs des contrats varient selon les tables : adapte-les à la tienne. En version jouable, l’appli distribue les cartes, fait annoncer un contrat à chaque donne (sept par joueur, une fois chacun), vérifie les cartes posées et inscrit les points au tableau, sur un seul téléphone ou chacun sur le sien. Au Domino, le premier à se vider gagne 40 points et le dernier en perd 40.</string>
     <string name="rules_ohhell_1_title">But du jeu</string>
-    <string name="rules_ohhell_1_body">Réaliser exactement le nombre de plis annoncé, ni plus ni moins. Avec 52 cartes, le nombre de cartes distribuées monte de 1 jusqu\'au maximum possible, puis redescend. La partie n\'a pas de fin automatique : jouez toutes les manches prévues.</string>
+    <string name="rules_ohhell_1_body">Réaliser exactement le nombre de plis annoncé, ni plus ni moins. Avec 52 cartes, le nombre de cartes distribuées monte de 1 jusqu\'au maximum possible, puis redescend. Sur la feuille de scores, la partie n\'a pas de fin automatique : jouez toutes les manches prévues (la version jouable s\'arrête après la dernière).</string>
     <string name="rules_ohhell_2_title">Le tour de jeu</string>
     <string name="rules_ohhell_2_body">Chaque joueur reçoit n cartes et on retourne une carte pour désigner l\'atout. À tour de rôle, chacun annonce le nombre de plis qu\'il pense réaliser (le donneur ne peut souvent pas annoncer un nombre qui ferait que le total des annonces égale le nombre de plis). On joue ensuite les plis, avec obligation de fournir la couleur demandée.</string>
     <string name="rules_ohhell_3_title">Les points</string>
     <string name="rules_ohhell_3_body">Annonce réussie : 10 points plus le nombre de plis annoncés. Annonce ratée : on perd un point par pli d\'écart avec l\'annonce. Ces valeurs varient selon les tables.</string>
     <string name="rules_ohhell_4_title">Dans l\'appli</string>
-    <string name="rules_ohhell_4_body">À chaque manche, touche la case d\'un joueur et saisis ses plis annoncés et ses plis réalisés : l\'appli calcule le score de la manche et l\'ajoute à son total.</string>
+    <string name="rules_ohhell_4_body">Dans l’appli, la version jouable distribue les cartes, retourne l’atout, fait annoncer chaque joueur (le donneur en dernier, avec son annonce interdite), vérifie chaque carte posée, désigne qui ramasse chaque pli et inscrit les points de chaque manche ; la partie s’arrête après la dernière manche, et le plus grand total gagne. Sur la feuille de scores, touche la case d’un joueur et saisis ses plis annoncés et ses plis réalisés : l’appli calcule le score de la manche et l’ajoute à son total.</string>
     <string name="rules_rummikub_1_title">But du jeu</string>
     <string name="rules_rummikub_1_body">Se débarrasser de toutes ses tuiles en les posant sur la table en suites et en groupes. À la fin de chaque manche, le gagnant marque la somme des tuiles restant aux autres joueurs, et chaque perdant perd la valeur de ses tuiles. Il n\'y a pas de fin automatique : décidez du nombre de manches.</string>
     <string name="rules_rummikub_2_title">Le tour de jeu</string>
@@ -2916,4 +2916,21 @@
         <item quantity="many">%1$s : %2$d de contrats restants</item>
         <item quantity="other">%1$s : %2$d contrats restants</item>
     </plurals>
+    <string name="ohhell_round_info">Manche %1$d sur %2$d · cartes par joueur : %3$d</string>
+    <string name="ohhell_trump">Atout : %1$s</string>
+    <string name="ohhell_dealer">Donneur : %1$s</string>
+    <string name="ohhell_bids_title">Annonces</string>
+    <string name="ohhell_tally_title">Annonces et plis réalisés</string>
+    <string name="ohhell_bid_made">%1$s annonce %2$d</string>
+    <string name="ohhell_bid_pending">%1$s : pas encore annoncé</string>
+    <string name="ohhell_bids_total">Total des annonces : %1$d pour %2$d plis</string>
+    <string name="ohhell_bid_line">%1$s : annonce %2$d, plis réalisés %3$d</string>
+    <string name="ohhell_bid_hint">Combien de plis vas-tu faire ? Le donneur annonce en dernier et ne peut pas annoncer le nombre qui ferait que le total des annonces égale le nombre de plis.</string>
+    <string name="ohhell_bid_choose">Choisis ton annonce</string>
+    <string name="ohhell_bid_confirm">Annoncer %1$d</string>
+    <string name="ohhell_bid_forbidden">Tu ne peux pas annoncer %1$d : en dernier, le total des annonces ne doit pas être égal au nombre de plis (%2$d).</string>
+    <string name="ohhell_hint">Fournis la couleur demandée si tu le peux ; sinon pose ce que tu veux (un atout bat les autres couleurs). Le plus gros atout, ou à défaut la plus forte carte de la couleur demandée, ramasse le pli.</string>
+    <string name="ohhell_not_playable">Cette carte ne peut pas être jouée : tu dois fournir la couleur demandée si tu en as.</string>
+    <string name="ohhell_trick_won">%1$s ramasse le pli.</string>
+    <string name="ohhell_result_line">%1$s : annonce %2$d, plis %3$d → %4$+d points</string>
 </resources>

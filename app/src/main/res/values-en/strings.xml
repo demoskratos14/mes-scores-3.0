@@ -652,13 +652,13 @@
     <string name="rules_barbu_3_title">In the app</string>
     <string name="rules_barbu_3_body">At the end of each deal, enter in each player’s column their points (the +/− button lets you enter a negative score). The contract values vary between tables: adapt them to yours. In the playable version, the app deals the cards, has a contract announced at each deal (seven per player, once each), checks the cards played and writes the points to the table, on a single phone or each on their own. In Domino, the first player to empty their hand wins 40 points and the last loses 40.</string>
     <string name="rules_ohhell_1_title">Goal</string>
-    <string name="rules_ohhell_1_body">Win exactly the number of tricks you bid, no more and no less. With 52 cards, the number of cards dealt goes up from 1 to the maximum possible, then back down. The game has no automatic end: play all the planned rounds.</string>
+    <string name="rules_ohhell_1_body">Win exactly the number of tricks you bid, no more and no less. With 52 cards, the number of cards dealt goes up from 1 to the maximum possible, then back down. On the score sheet the game has no automatic end: play all the planned rounds (the playable version stops after the last one).</string>
     <string name="rules_ohhell_2_title">Taking a turn</string>
     <string name="rules_ohhell_2_body">Each player gets n cards and a card is turned up to choose the trump suit. In turn, each player announces the number of tricks they expect to win (the dealer often cannot bid a number that would make the total of the bids equal the number of tricks). The tricks are then played, and you must follow suit.</string>
     <string name="rules_ohhell_3_title">Scoring</string>
     <string name="rules_ohhell_3_body">Bid made: 10 points plus the number of tricks bid. Bid missed: you lose one point per trick of difference from your bid. These values vary between tables.</string>
     <string name="rules_ohhell_4_title">In the app</string>
-    <string name="rules_ohhell_4_body">Each round, tap a player’s cell and enter their tricks bid and tricks won: the app calculates the round’s score and adds it to their total.</string>
+    <string name="rules_ohhell_4_body">In the app, the playable version deals the cards, turns up the trump, has each player bid (the dealer last, with their forbidden bid), checks every card played, shows who wins each trick and records each round’s points; the game ends after the last round and the highest total wins. On the score sheet, tap a player’s cell and enter their tricks bid and tricks won: the app calculates the round’s score and adds it to their total.</string>
     <string name="rules_rummikub_1_title">Goal</string>
     <string name="rules_rummikub_1_body">Get rid of all your tiles by laying them on the table in runs and groups. At the end of each round, the winner scores the sum of the tiles left to the other players, and each loser loses the value of their tiles. There is no automatic end: decide on the number of rounds.</string>
     <string name="rules_rummikub_2_title">Taking a turn</string>
@@ -2867,4 +2867,21 @@
         <item quantity="one">%1$s: %2$d contract left</item>
         <item quantity="other">%1$s: %2$d contracts left</item>
     </plurals>
+    <string name="ohhell_round_info">Round %1$d of %2$d · cards per player: %3$d</string>
+    <string name="ohhell_trump">Trump: %1$s</string>
+    <string name="ohhell_dealer">Dealer: %1$s</string>
+    <string name="ohhell_bids_title">Bids</string>
+    <string name="ohhell_tally_title">Bids and tricks won</string>
+    <string name="ohhell_bid_made">%1$s bids %2$d</string>
+    <string name="ohhell_bid_pending">%1$s: no bid yet</string>
+    <string name="ohhell_bids_total">Total of the bids: %1$d for %2$d tricks</string>
+    <string name="ohhell_bid_line">%1$s: bid %2$d, tricks won %3$d</string>
+    <string name="ohhell_bid_hint">How many tricks will you take? The dealer bids last and cannot bid the number that would make the total of the bids equal the number of tricks.</string>
+    <string name="ohhell_bid_choose">Choose your bid</string>
+    <string name="ohhell_bid_confirm">Bid %1$d</string>
+    <string name="ohhell_bid_forbidden">You cannot bid %1$d: as the last bidder, the total of the bids must not equal the number of tricks (%2$d).</string>
+    <string name="ohhell_hint">Follow the suit led if you can; otherwise play anything you like (a trump beats the other suits). The highest trump, or failing that the highest card of the suit led, wins the trick.</string>
+    <string name="ohhell_not_playable">That card cannot be played: you must follow the suit led if you have it.</string>
+    <string name="ohhell_trick_won">%1$s wins the trick.</string>
+    <string name="ohhell_result_line">%1$s: bid %2$d, tricks %3$d → %4$+d points</string>
 </resources>

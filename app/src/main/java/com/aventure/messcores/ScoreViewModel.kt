@@ -152,6 +152,16 @@ class ScoreViewModel : ViewModel() {
         return BarbuRound(players.size, startRound = roundsPlayed() + 1).also { barbuRound = it }
     }
 
+    // La partie d'Oh Hell en cours : mains, atout, annonces, pli en cours, plis ramassés.
+    private var ohHellRound: OhHellRound? = null
+
+    /** La partie d'Oh Hell ouverte : la même d'un écran à l'autre, créée au premier appel. Une partie reprise continue à la manche suivante. */
+    internal fun ohHellRound(): OhHellRound {
+        val current = ohHellRound
+        if (current != null && current.playerCount == players.size) return current
+        return OhHellRound(players.size, startRound = roundsPlayed() + 1).also { ohHellRound = it }
+    }
+
     // La partie de Yaniv en cours : même principe que le Huit américain (mains, pioche, défausses, tour).
     private var yanivRound: YanivRound? = null
 
@@ -320,6 +330,7 @@ class ScoreViewModel : ViewModel() {
         huitRound = null
         unoRound = null
         heartsRound = null
+        ohHellRound = null
         barbuRound = null
         yanivRound = null
         dominoRound = null
@@ -361,6 +372,7 @@ class ScoreViewModel : ViewModel() {
             huitRound = null
             unoRound = null
             heartsRound = null
+            ohHellRound = null
             barbuRound = null
             yanivRound = null
             dominoRound = null
@@ -390,7 +402,7 @@ class ScoreViewModel : ViewModel() {
     /** Vrai si la partie ouverte contient au moins un score saisi (donc qu'il y a quelque chose à perdre). */
     fun hasProgress(): Boolean {
         if (!gameActive || players.isEmpty()) return false
-        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || barbuRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true || dominoRound?.inProgress == true || presidentRound?.inProgress == true
+        return mode.hasProgress() || qwixxRound?.hasMarks == true || huitRound?.inProgress == true || unoRound?.inProgress == true || heartsRound?.inProgress == true || ohHellRound?.inProgress == true || barbuRound?.inProgress == true || yanivRound?.inProgress == true || flip7Round?.inProgress == true || skyjoActionRound?.inProgress == true || dominoRound?.inProgress == true || presidentRound?.inProgress == true
     }
 
     /** Marque la partie comme abandonnée : elle ne sera plus enregistrée automatiquement. */
@@ -404,6 +416,7 @@ class ScoreViewModel : ViewModel() {
         huitRound = null
         unoRound = null
         heartsRound = null
+        ohHellRound = null
         barbuRound = null
         yanivRound = null
         dominoRound = null
@@ -749,6 +762,8 @@ class ScoreViewModel : ViewModel() {
 
     /** Vrai si la condition de fin de partie définie par les règles du jeu est atteinte. */
     fun isGameOver(): Boolean {
+        // Oh Hell jouable : terminé quand la dernière manche du cycle (1 carte, puis le maximum, puis 1 carte) est inscrite.
+        if (gameRules.id == OH_HELL_ID && ohHellRound?.finished == true) return true
         // Poker (un seul joueur avec des jetons) et tennis / padel (un camp a gagné ses sets) ont leur propre règle.
         mode.gameOver()?.let { return it }
         // Fléchettes : terminée dès qu'un joueur arrive à 0 pile.
