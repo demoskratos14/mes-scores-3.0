@@ -3040,6 +3040,7 @@
     <string name="gamepad_cancel">Cancelar</string>
     <string name="gamepad_reset">Repor tudo</string>
     <string name="gamepad_close">Fechar</string>
+    <string name="gamepad_last">Último sinal recebido: %1$s</string>
     <string name="gamepad_left">esquerdo</string>
     <string name="gamepad_right">direito</string>
     <string name="gamepad_dpad">Cruzeta %1$s</string>

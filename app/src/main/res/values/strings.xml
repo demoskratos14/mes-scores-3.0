@@ -3057,6 +3057,7 @@
     <string name="gamepad_cancel">Annuler</string>
     <string name="gamepad_reset">Tout réinitialiser</string>
     <string name="gamepad_close">Fermer</string>
+    <string name="gamepad_last">Dernier signal reçu : %1$s</string>
     <string name="gamepad_left">gauche</string>
     <string name="gamepad_right">droit</string>
     <string name="gamepad_dpad">Croix %1$s</string>

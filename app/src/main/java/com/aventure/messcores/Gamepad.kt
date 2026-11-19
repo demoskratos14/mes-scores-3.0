@@ -43,7 +43,7 @@ internal sealed interface PadInput {
 /** Une action d'un jeu que la manette peut déclencher, avec ses commandes par défaut. */
 internal class PadAction(val id: String, @StringRes val label: Int, val defaults: List<PadInput>)
 
-/** Les commandes par défaut d'une direction : la croix (touches ou axe) et le stick gauche. */
+/** Les commandes par défaut d'une direction : la croix (touches ou axe) et les sticks (gauche comme droit). */
 internal fun padDirection(id: String, @StringRes label: Int, horizontal: Boolean, sign: Int): PadAction {
     val dpadKey = when {
         horizontal && sign < 0 -> KeyEvent.KEYCODE_DPAD_LEFT
@@ -56,7 +56,10 @@ internal fun padDirection(id: String, @StringRes label: Int, horizontal: Boolean
         listOf(
             PadInput.Key(dpadKey),
             PadInput.Axis(if (horizontal) MotionEvent.AXIS_HAT_X else MotionEvent.AXIS_HAT_Y, sign),
-            PadInput.Axis(if (horizontal) MotionEvent.AXIS_X else MotionEvent.AXIS_Y, sign)
+            PadInput.Axis(if (horizontal) MotionEvent.AXIS_X else MotionEvent.AXIS_Y, sign),
+            // Stick « droit » : un Joy-Con droit seul l'envoie sur Z/RZ ou RX/RY selon le pilote Android.
+            PadInput.Axis(if (horizontal) MotionEvent.AXIS_Z else MotionEvent.AXIS_RZ, sign),
+            PadInput.Axis(if (horizontal) MotionEvent.AXIS_RX else MotionEvent.AXIS_RY, sign)
         )
     )
 }
@@ -86,18 +89,33 @@ internal object GamepadHub {
     /** Les sticks : (axe horizontal, axe vertical). Chacun donne une seule direction à la fois, la dominante. */
     private val STICKS = listOf(
         MotionEvent.AXIS_X to MotionEvent.AXIS_Y,
-        MotionEvent.AXIS_Z to MotionEvent.AXIS_RZ
+        MotionEvent.AXIS_Z to MotionEvent.AXIS_RZ,
+        MotionEvent.AXIS_RX to MotionEvent.AXIS_RY
     )
 
     private val AXES = intArrayOf(
         MotionEvent.AXIS_HAT_X, MotionEvent.AXIS_HAT_Y,
         MotionEvent.AXIS_LTRIGGER, MotionEvent.AXIS_RTRIGGER, MotionEvent.AXIS_BRAKE, MotionEvent.AXIS_GAS
     )
+    private val DIAG_AXES = intArrayOf(
+        MotionEvent.AXIS_X, MotionEvent.AXIS_Y, MotionEvent.AXIS_Z, MotionEvent.AXIS_RZ, MotionEvent.AXIS_RX, MotionEvent.AXIS_RY,
+        MotionEvent.AXIS_HAT_X, MotionEvent.AXIS_HAT_Y, MotionEvent.AXIS_LTRIGGER, MotionEvent.AXIS_RTRIGGER
+    )
     private val TRIGGERS = setOf(MotionEvent.AXIS_LTRIGGER, MotionEvent.AXIS_RTRIGGER, MotionEvent.AXIS_BRAKE, MotionEvent.AXIS_GAS)
     private val DPAD_KEYS = setOf(
         KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT,
         KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_CENTER
     )
+
+    /** Touches système : jamais détournées, même si elles viennent d'une manette (le Home d'un Joy-Con vaut Retour). */
+    private val SYSTEM_KEYS = setOf(
+        KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_HOME, KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_APP_SWITCH,
+        KeyEvent.KEYCODE_POWER, KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_MUTE
+    )
+
+    /** Dernier signal reçu (touche ou axe), affiché dans les réglages pour savoir ce que la manette envoie vraiment. */
+    var lastSignal by mutableStateOf("")
+        private set
 
     fun register(listener: (PadInput) -> Boolean) {
         listeners.add(listener)
@@ -118,11 +136,15 @@ internal object GamepadHub {
     fun onKey(event: KeyEvent): Boolean {
         if (listeners.isEmpty()) return false
         val code = event.keyCode
-        // Un Joy-Con seul n'annonce pas toujours « manette » : on accepte donc aussi les boutons de manette (A, B, L1…)
-        // et les touches de croix quelle que soit la source, et la croix d'un clavier ou d'un autre périphérique.
+        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+            lastSignal = "${KeyEvent.keyCodeToString(code)} ($code), source 0x${Integer.toHexString(event.source)}"
+        }
+        // Un Joy-Con seul n'annonce pas toujours « manette » ni les mêmes touches : on accepte tout bouton venant d'une
+        // source manette/joystick/croix (quel que soit son code), et les boutons ou touches de croix connus de toute source.
+        if (code in SYSTEM_KEYS) return false
         val fromPad = isSource(event, InputDevice.SOURCE_GAMEPAD) || isSource(event, InputDevice.SOURCE_JOYSTICK) ||
-            isSource(event, InputDevice.SOURCE_DPAD) || KeyEvent.isGamepadButton(code) || code in DPAD_KEYS
-        if (!fromPad || !(KeyEvent.isGamepadButton(code) || code in DPAD_KEYS)) return false
+            isSource(event, InputDevice.SOURCE_DPAD)
+        if (!(fromPad || KeyEvent.isGamepadButton(code) || code in DPAD_KEYS)) return false
         return when (event.action) {
             KeyEvent.ACTION_DOWN -> {
                 if (event.repeatCount > 0) return code in consumedKeys
@@ -138,7 +160,14 @@ internal object GamepadHub {
     /** Un mouvement de stick, de croix (envoyée comme axe) ou de gâchette. Renvoie vrai si l'événement a été utilisé. */
     fun onMotion(event: MotionEvent): Boolean {
         if (listeners.isEmpty()) return false
-        if (!isSource(event, InputDevice.SOURCE_JOYSTICK) || event.actionMasked != MotionEvent.ACTION_MOVE) return false
+        if (!(isSource(event, InputDevice.SOURCE_JOYSTICK) || isSource(event, InputDevice.SOURCE_GAMEPAD)) ||
+            event.actionMasked != MotionEvent.ACTION_MOVE
+        ) return false
+        val moved = DIAG_AXES.filter { kotlin.math.abs(event.getAxisValue(it)) > 0.3f }
+        if (moved.isNotEmpty()) {
+            lastSignal = moved.joinToString(", ") { "${MotionEvent.axisToString(it)} ${"%.1f".format(event.getAxisValue(it))}" } +
+                ", source 0x${Integer.toHexString(event.source)}"
+        }
         var used = false
         for ((axisX, axisY) in STICKS) {
             if (handleStick(event, axisX, axisY)) used = true
@@ -277,6 +306,8 @@ private fun inputLabel(input: PadInput): String = when (input) {
         MotionEvent.AXIS_Y -> stringResource(R.string.gamepad_stick, stringResource(R.string.gamepad_left), arrow(false, input.sign))
         MotionEvent.AXIS_Z -> stringResource(R.string.gamepad_stick, stringResource(R.string.gamepad_right), arrow(true, input.sign))
         MotionEvent.AXIS_RZ -> stringResource(R.string.gamepad_stick, stringResource(R.string.gamepad_right), arrow(false, input.sign))
+        MotionEvent.AXIS_RX -> stringResource(R.string.gamepad_stick, stringResource(R.string.gamepad_right), arrow(true, input.sign))
+        MotionEvent.AXIS_RY -> stringResource(R.string.gamepad_stick, stringResource(R.string.gamepad_right), arrow(false, input.sign))
         MotionEvent.AXIS_HAT_X -> stringResource(R.string.gamepad_dpad, arrow(true, input.sign))
         MotionEvent.AXIS_HAT_Y -> stringResource(R.string.gamepad_dpad, arrow(false, input.sign))
         MotionEvent.AXIS_LTRIGGER, MotionEvent.AXIS_BRAKE -> "ZL"
@@ -340,6 +371,12 @@ internal fun GamepadSettings(gameId: String, actions: List<PadAction>, onClose: 
     Text(
         text = if (pads.isEmpty()) stringResource(R.string.gamepad_none) else stringResource(R.string.gamepad_connected, pads.joinToString(", ")),
         style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center
+    )
+    Text(
+        text = stringResource(R.string.gamepad_last, GamepadHub.lastSignal.ifEmpty { "—" }),
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
     )
