@@ -3041,6 +3041,7 @@
     <string name="gamepad_reset">Restablecer todo</string>
     <string name="gamepad_close">Cerrar</string>
     <string name="gamepad_last">Última señal recibida: %1$s</string>
+    <string name="gamepad_button">Botón n.º %1$d</string>
     <string name="gamepad_left">izquierdo</string>
     <string name="gamepad_right">derecho</string>
     <string name="gamepad_dpad">Cruceta %1$s</string>

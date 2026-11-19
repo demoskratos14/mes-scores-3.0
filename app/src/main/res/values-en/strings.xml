@@ -3009,6 +3009,7 @@
     <string name="gamepad_reset">Reset all</string>
     <string name="gamepad_close">Close</string>
     <string name="gamepad_last">Last signal received: %1$s</string>
+    <string name="gamepad_button">Button #%1$d</string>
     <string name="gamepad_left">left</string>
     <string name="gamepad_right">right</string>
     <string name="gamepad_dpad">D-pad %1$s</string>

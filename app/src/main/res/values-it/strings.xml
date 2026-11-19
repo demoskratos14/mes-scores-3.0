@@ -3051,6 +3051,7 @@
     <string name="gamepad_reset">Ripristina tutto</string>
     <string name="gamepad_close">Chiudi</string>
     <string name="gamepad_last">Ultimo segnale ricevuto: %1$s</string>
+    <string name="gamepad_button">Pulsante n. %1$d</string>
     <string name="gamepad_left">sinistro</string>
     <string name="gamepad_right">destro</string>
     <string name="gamepad_dpad">Croce %1$s</string>

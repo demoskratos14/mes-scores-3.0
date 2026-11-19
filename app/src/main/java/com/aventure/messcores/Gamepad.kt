@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
  */
 internal sealed interface PadInput {
     data class Key(val code: Int) : PadInput
+    /** Un bouton qu'Android ne sait pas nommer (KEYCODE_UNKNOWN) : seul son code matériel le distingue (ex. la croix d'un Joy-Con gauche). */
+    data class Scan(val scanCode: Int) : PadInput
     /** [sign] vaut -1 (gauche ou haut) ou 1 (droite ou bas) ; les gâchettes n'ont que le sens 1. */
     data class Axis(val axis: Int, val sign: Int) : PadInput
 }
@@ -51,10 +53,18 @@ internal fun padDirection(id: String, @StringRes label: Int, horizontal: Boolean
         sign < 0 -> KeyEvent.KEYCODE_DPAD_UP
         else -> KeyEvent.KEYCODE_DPAD_DOWN
     }
+    // Codes matériels (BTN_DPAD_*) de la croix d'un Joy-Con gauche, que Android envoie sans nom de touche.
+    val dpadScan = when {
+        horizontal && sign < 0 -> 546
+        horizontal -> 547
+        sign < 0 -> 544
+        else -> 545
+    }
     return PadAction(
         id, label,
         listOf(
             PadInput.Key(dpadKey),
+            PadInput.Scan(dpadScan),
             PadInput.Axis(if (horizontal) MotionEvent.AXIS_HAT_X else MotionEvent.AXIS_HAT_Y, sign),
             PadInput.Axis(if (horizontal) MotionEvent.AXIS_X else MotionEvent.AXIS_Y, sign),
             // Stick « droit » : un Joy-Con droit seul l'envoie sur Z/RZ ou RX/RY selon le pilote Android.
@@ -71,6 +81,7 @@ internal fun padDirection(id: String, @StringRes label: Int, horizontal: Boolean
  * en dessous de [RELEASE] : la zone morte évite les appuis fantômes quand le stick revient au repos.
  */
 internal object GamepadHub {
+    private const val UNNAMED_BASE = 1_000_000
     private const val PRESS = 0.6f
     private const val RELEASE = 0.35f
 
@@ -137,7 +148,7 @@ internal object GamepadHub {
         if (listeners.isEmpty()) return false
         val code = event.keyCode
         if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
-            lastSignal = "${KeyEvent.keyCodeToString(code)} ($code), source 0x${Integer.toHexString(event.source)}"
+            lastSignal = "${KeyEvent.keyCodeToString(code)} ($code), scan ${event.scanCode}, source 0x${Integer.toHexString(event.source)}"
         }
         // Un Joy-Con seul n'annonce pas toujours « manette » ni les mêmes touches : on accepte tout bouton venant d'une
         // source manette/joystick/croix (quel que soit son code), et les boutons ou touches de croix connus de toute source.
@@ -145,14 +156,19 @@ internal object GamepadHub {
         val fromPad = isSource(event, InputDevice.SOURCE_GAMEPAD) || isSource(event, InputDevice.SOURCE_JOYSTICK) ||
             isSource(event, InputDevice.SOURCE_DPAD)
         if (!(fromPad || KeyEvent.isGamepadButton(code) || code in DPAD_KEYS)) return false
+        // Touche sans nom : on la reconnaît à son code matériel.
+        val unnamed = code == KeyEvent.KEYCODE_UNKNOWN
+        if (unnamed && event.scanCode == 0) return false
+        val input: PadInput = if (unnamed) PadInput.Scan(event.scanCode) else PadInput.Key(code)
+        val id = if (unnamed) UNNAMED_BASE + event.scanCode else code
         return when (event.action) {
             KeyEvent.ACTION_DOWN -> {
-                if (event.repeatCount > 0) return code in consumedKeys
-                val used = listeners.last()(PadInput.Key(code))
-                if (used) consumedKeys.add(code)
+                if (event.repeatCount > 0) return id in consumedKeys
+                val used = listeners.last()(input)
+                if (used) consumedKeys.add(id)
                 used
             }
-            KeyEvent.ACTION_UP -> consumedKeys.remove(code)
+            KeyEvent.ACTION_UP -> consumedKeys.remove(id)
             else -> false
         }
     }
@@ -241,11 +257,13 @@ internal object GamepadBindings {
 
     private fun encode(input: PadInput): String = when (input) {
         is PadInput.Key -> "k${input.code}"
+        is PadInput.Scan -> "s${input.scanCode}"
         is PadInput.Axis -> "a${input.axis}:${input.sign}"
     }
 
     private fun decode(text: String): PadInput? = runCatching {
         if (text.startsWith("k")) PadInput.Key(text.substring(1).toInt())
+        else if (text.startsWith("s")) PadInput.Scan(text.substring(1).toInt())
         else {
             val (axis, sign) = text.substring(1).split(":")
             PadInput.Axis(axis.toInt(), sign.toInt())
@@ -300,6 +318,13 @@ private fun inputLabel(input: PadInput): String = when (input) {
         KeyEvent.KEYCODE_BUTTON_THUMBL -> stringResource(R.string.gamepad_stick_click, stringResource(R.string.gamepad_left))
         KeyEvent.KEYCODE_BUTTON_THUMBR -> stringResource(R.string.gamepad_stick_click, stringResource(R.string.gamepad_right))
         else -> KeyEvent.keyCodeToString(input.code).removePrefix("KEYCODE_").removePrefix("BUTTON_")
+    }
+    is PadInput.Scan -> when (input.scanCode) {
+        544 -> stringResource(R.string.gamepad_dpad, "↑")
+        545 -> stringResource(R.string.gamepad_dpad, "↓")
+        546 -> stringResource(R.string.gamepad_dpad, "←")
+        547 -> stringResource(R.string.gamepad_dpad, "→")
+        else -> stringResource(R.string.gamepad_button, input.scanCode)
     }
     is PadInput.Axis -> when (input.axis) {
         MotionEvent.AXIS_X -> stringResource(R.string.gamepad_stick, stringResource(R.string.gamepad_left), arrow(true, input.sign))
