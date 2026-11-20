@@ -1587,25 +1587,6 @@
     <string name="home_playable_hint">Play right in the app (dice, cards, Mastermind…), on one phone or with several</string>
     <string name="home_solo">Solo games</string>
     <string name="home_solo_hint">Play alone on your phone (Tetris, Snake, Breakout…)</string>
-    <string name="home_room">Multiplayer room</string>
-    <string name="home_room_hint">Connect all the phones once, then play game after game together</string>
-    <string name="room_title">Multiplayer room</string>
-    <string name="room_intro">Connect once for the whole evening: the host picks the game, and when they leave it everyone returns to the room to pick another. Your name is remembered from one time to the next.</string>
-    <string name="room_create_button">Create a room</string>
-    <string name="room_join_button">Join a room</string>
-    <string name="room_host_wait">The room is open. On the other phones, tap “Join a room”. Once everyone is here, pick a game: the others are taken to it automatically.</string>
-    <string name="room_choose_game">Pick a game</string>
-    <string name="room_guest_wait">You are in the room. As soon as the host picks a game, you are taken to it automatically.</string>
-    <string name="room_pending_guest">Code %1$s. Check that it is the same on the host’s phone, then wait for them to accept.</string>
-    <string name="room_searching">Looking for nearby rooms…</string>
-    <string name="room_join_endpoint">Join %1$s’s room</string>
-    <string name="room_close">Close the room</string>
-    <string name="room_leave">Leave the room</string>
-    <string name="room_close_title">Close the room?</string>
-    <string name="room_close_message">The other phones will be disconnected and you will have to create a new room to play together again.</string>
-    <string name="room_leave_title">Leave the room?</string>
-    <string name="room_leave_message">You will be disconnected from the host and the other players. You can join the room again.</string>
-    <string name="room_problem_host_lost">The connection with the host is lost: you have left the room.</string>
     <string name="playable_one_phone">One phone only</string>
     <string name="playable_multi_phone">Can connect several phones</string>
     <string name="game_morpion">Tic-tac-toe</string>
@@ -3019,6 +3000,7 @@
     <string name="trio_trios_title">Trios won</string>
     <!-- Manette -->
     <string name="snake_pad_pause">Pause / Start</string>
+    <string name="xonix_pad_halt">Stop (on land)</string>
     <string name="gamepad_title">Controller</string>
     <string name="gamepad_none">No controller detected. Connect it over Bluetooth in the phone settings.</string>
     <string name="gamepad_connected">Controller detected: %1$s</string>
@@ -3027,6 +3009,8 @@
     <string name="gamepad_cancel">Cancel</string>
     <string name="gamepad_reset">Reset all</string>
     <string name="gamepad_close">Close</string>
+    <string name="gamepad_last">Last signal received: %1$s</string>
+    <string name="gamepad_button">Button #%1$d</string>
     <string name="gamepad_left">left</string>
     <string name="gamepad_right">right</string>
     <string name="gamepad_dpad">D-pad %1$s</string>
