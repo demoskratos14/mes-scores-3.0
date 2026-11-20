@@ -13,7 +13,12 @@ base {
 
 android {
     namespace = "com.aventure.messcores"
-    compileSdk = 37
+    // Compose 1.13 exige de compiler contre l'API 37.1 (version mineure) ; targetSdk reste 37.
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId = "com.aventure.messcores"
