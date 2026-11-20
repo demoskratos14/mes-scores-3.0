@@ -17,8 +17,24 @@ internal enum class SnakeDir(val dx: Int, val dy: Int) {
 /** Réglages et calculs du Snake. */
 internal object Snake {
 
+    /** Le plateau en portrait (sur le téléphone, tenu droit). */
     const val COLS = 12
     const val ROWS = 18
+
+    /**
+     * Le plateau du mode TV (voir [TvMode]) : toujours [TV_ROWS] lignes, et autant de colonnes qu'il en faut pour que les
+     * cases carrées remplissent l'écran en paysage, entre [TV_MIN_COLS] et [TV_MAX_COLS].
+     */
+    const val TV_ROWS = 14
+    const val TV_MIN_COLS = 20
+    const val TV_MAX_COLS = 36
+
+    /** Taille minimale et maximale d'un côté, pour refuser une sauvegarde absurde. */
+    const val MIN_SIDE = 6
+    const val MAX_SIDE = 60
+
+    /** Le nombre de colonnes du plateau TV pour une zone de jeu dont la largeur vaut [aspect] fois la hauteur. */
+    fun tvCols(aspect: Float): Int = Math.round(TV_ROWS * aspect).coerceIn(TV_MIN_COLS, TV_MAX_COLS)
 
     /** Longueur du serpent au départ (il part de la gauche, vers la droite). */
     const val START_LENGTH = 3
@@ -61,28 +77,35 @@ internal object Snake {
         return max(floor, (START_STEP_MS * STEP_FACTOR.pow(speedLevel.coerceAtLeast(1) - 1)).toLong())
     }
 
-    /** Les cases (colonne, ligne) voisines de [col], [row] dans la direction [dir] : les bords se referment sur eux-mêmes. */
-    fun wrap(col: Int, row: Int, dir: SnakeDir): Pair<Int, Int> =
-        Math.floorMod(col + dir.dx, COLS) to Math.floorMod(row + dir.dy, ROWS)
+    /**
+     * La case (colonne, ligne) voisine de [col], [row] dans la direction [dir] sur un plateau de [cols] × [rows] cases :
+     * les bords se referment sur eux-mêmes.
+     */
+    fun wrap(col: Int, row: Int, dir: SnakeDir, cols: Int = COLS, rows: Int = ROWS): Pair<Int, Int> =
+        Math.floorMod(col + dir.dx, cols) to Math.floorMod(row + dir.dy, rows)
 }
 
 /**
- * Une partie de Snake : un serpent sur un plateau de [Snake.COLS] × [Snake.ROWS] cases dont les bords se referment
+ * Une partie de Snake : un serpent sur un plateau de [cols] × [rows] cases (12 × 18 par défaut, plus large en mode TV) dont les bords se referment
  * (sortir à droite fait revenir à gauche, sortir en haut fait revenir en bas, et inversement). Une souris est posée sur
  * une case libre ; la manger fait grandir le serpent d'une case et fait apparaître une autre souris. La partie s'arrête
  * quand la tête touche le corps. Si le serpent remplit tout le plateau sans se mordre, c'est gagné : il rapporte un bonus, un
  * nouveau plateau commence avec un serpent tout petit (le score et les souris mangées sont gardés) et le serpent va plus vite
  * qu'avant ([boardsCleared] compte les plateaux remplis).
  *
- * Les cases sont numérotées `ligne * COLS + colonne`. Le corps va de la tête ([head]) à la queue.
+ * Les cases sont numérotées `ligne * cols + colonne`. Le corps va de la tête ([head]) à la queue.
  */
-internal class SnakeGame(private val random: Random = Random.Default) {
+internal class SnakeGame(
+    private val random: Random = Random.Default,
+    val cols: Int = Snake.COLS,
+    val rows: Int = Snake.ROWS
+) {
 
     /** Le corps, de la tête (début) à la queue (fin), en numéros de case. */
     private val body = ArrayDeque<Int>()
 
     /** Les cases occupées par le serpent, pour savoir en un coup d'œil si une case est libre. */
-    private val occupied = BooleanArray(Snake.COLS * Snake.ROWS)
+    private val occupied = BooleanArray(cols * rows)
 
     /** Les virages demandés, pas encore pris en compte (le premier sera pris à la prochaine case). */
     private val turns = ArrayDeque<SnakeDir>()
@@ -116,6 +139,7 @@ internal class SnakeGame(private val random: Random = Random.Default) {
     private var stepElapsed = 0L
 
     init {
+        require(cols in Snake.MIN_SIDE..Snake.MAX_SIDE && rows in Snake.MIN_SIDE..Snake.MAX_SIDE) { "plateau de $cols × $rows" }
         reset()
     }
 
@@ -140,7 +164,7 @@ internal class SnakeGame(private val random: Random = Random.Default) {
     fun bodyCells(): List<Int> = body.toList()
 
     /** Vrai si le serpent occupe la case [col], [row]. */
-    fun isSnake(col: Int, row: Int): Boolean = occupied[row * Snake.COLS + col]
+    fun isSnake(col: Int, row: Int): Boolean = occupied[row * cols + col]
 
     /** Repart de zéro : un nouveau plateau, sans score ni plateau rempli. */
     fun reset() {
@@ -156,9 +180,9 @@ internal class SnakeGame(private val random: Random = Random.Default) {
         body.clear()
         occupied.fill(false)
         turns.clear()
-        val row = Snake.ROWS / 2
+        val row = rows / 2
         for (i in 0 until Snake.START_LENGTH) {
-            val cell = row * Snake.COLS + (Snake.START_LENGTH - 1 - i)
+            val cell = row * cols + (Snake.START_LENGTH - 1 - i)
             body.addLast(cell)
             occupied[cell] = true
         }
@@ -197,8 +221,8 @@ internal class SnakeGame(private val random: Random = Random.Default) {
         if (isOver) return
         turns.removeFirstOrNull()?.let { direction = it }
         val headCell = body.first()
-        val (col, row) = Snake.wrap(headCell % Snake.COLS, headCell / Snake.COLS, direction)
-        val next = row * Snake.COLS + col
+        val (col, row) = Snake.wrap(headCell % cols, headCell / cols, direction, cols, rows)
+        val next = row * cols + col
         val eats = next == mouse
         // La queue libère sa case au même moment : la tête peut la prendre, sauf si le serpent grandit (la queue reste alors).
         val tail = body.last()
@@ -240,11 +264,13 @@ internal class SnakeGame(private val random: Random = Random.Default) {
 
     /**
      * L'état de la partie en une liste d'entiers, pour la garder quand l'écran tourne (voir [restore]) :
-     * version, direction, souris, score, souris mangées, fin, plateaux remplis, souris du plateau en cours, temps écoulé,
+     * version, colonnes, lignes, direction, souris, score, souris mangées, fin, plateaux remplis, souris du plateau en cours, temps écoulé,
      * nombre de virages en attente, longueur, puis les virages et les cases du corps.
      */
     fun save(): List<Int> = buildList {
         add(SAVE_VERSION)
+        add(cols)
+        add(rows)
         add(direction.ordinal)
         add(mouse)
         add(score)
@@ -263,30 +289,40 @@ internal class SnakeGame(private val random: Random = Random.Default) {
         /** Pas de souris (le serpent remplit tout le plateau). */
         const val NONE = -1
 
-        private const val SAVE_VERSION = 2
+        /** Version 3 : la taille du plateau est gardée. La version 2 (plateau de 12 × 18, sans cette taille) est encore lue. */
+        private const val SAVE_VERSION = 3
+        private const val OLD_SAVE_VERSION = 2
         private const val SAVE_HEADER = 11
 
         /** Rebâtit une partie depuis [data] (voir [save]), ou renvoie `null` si ces données ne sont pas celles d'une partie. */
         fun restore(data: List<Int>, random: Random = Random.Default): SnakeGame? {
-            if (data.size < SAVE_HEADER || data[0] != SAVE_VERSION) return null
-            val cells = Snake.COLS * Snake.ROWS
-            val turnCount = data[9]
-            val length = data[10]
+            if (data.isEmpty()) return null
+            // On ramène les deux versions à la même forme : colonnes, lignes, puis la liste de la version 2.
+            val (cols, rows, d) = when (data[0]) {
+                OLD_SAVE_VERSION -> Triple(Snake.COLS, Snake.ROWS, data)
+                SAVE_VERSION -> if (data.size < 3) return null else Triple(data[1], data[2], listOf(OLD_SAVE_VERSION) + data.drop(3))
+                else -> return null
+            }
+            if (cols !in Snake.MIN_SIDE..Snake.MAX_SIDE || rows !in Snake.MIN_SIDE..Snake.MAX_SIDE) return null
+            if (d.size < SAVE_HEADER) return null
+            val cells = cols * rows
+            val turnCount = d[9]
+            val length = d[10]
             if (turnCount !in 0..Snake.MAX_QUEUED_TURNS || length !in 1..cells) return null
-            if (data.size != SAVE_HEADER + turnCount + length) return null
-            val queued = data.subList(SAVE_HEADER, SAVE_HEADER + turnCount)
-            val bodyCells = data.subList(SAVE_HEADER + turnCount, data.size)
-            val valid = data[1] in 0..3 && data[2] in NONE until cells && data[3] >= 0 && data[4] >= 0 &&
-                data[5] in 0..1 && data[6] >= 0 && data[7] >= 0 && data[8] >= 0 &&
+            if (d.size != SAVE_HEADER + turnCount + length) return null
+            val queued = d.subList(SAVE_HEADER, SAVE_HEADER + turnCount)
+            val bodyCells = d.subList(SAVE_HEADER + turnCount, d.size)
+            val valid = d[1] in 0..3 && d[2] in NONE until cells && d[3] >= 0 && d[4] >= 0 &&
+                d[5] in 0..1 && d[6] >= 0 && d[7] >= 0 && d[8] >= 0 &&
                 queued.all { it in 0..3 } && bodyCells.all { it in 0 until cells } &&
-                bodyCells.toSet().size == bodyCells.size && data[2] !in bodyCells
+                bodyCells.toSet().size == bodyCells.size && d[2] !in bodyCells
             if (!valid) return null
             // Deux cases qui se suivent dans le corps sont voisines (en tenant compte des bords refermés).
             val connected = bodyCells.zipWithNext().all { (a, b) ->
-                SnakeDir.entries.any { Snake.wrap(a % Snake.COLS, a / Snake.COLS, it).let { (c, r) -> r * Snake.COLS + c } == b }
+                SnakeDir.entries.any { Snake.wrap(a % cols, a / cols, it, cols, rows).let { (c, r) -> r * cols + c } == b }
             }
             if (!connected) return null
-            val game = SnakeGame(random)
+            val game = SnakeGame(random, cols, rows)
             game.body.clear()
             game.occupied.fill(false)
             bodyCells.forEach {
@@ -295,14 +331,14 @@ internal class SnakeGame(private val random: Random = Random.Default) {
             }
             game.turns.clear()
             queued.forEach { game.turns.addLast(SnakeDir.entries[it]) }
-            game.direction = SnakeDir.entries[data[1]]
-            game.mouse = data[2]
-            game.score = data[3]
-            game.eaten = data[4]
-            game.isOver = data[5] == 1
-            game.boardsCleared = data[6]
-            game.boardEaten = data[7]
-            game.stepElapsed = data[8].toLong()
+            game.direction = SnakeDir.entries[d[1]]
+            game.mouse = d[2]
+            game.score = d[3]
+            game.eaten = d[4]
+            game.isOver = d[5] == 1
+            game.boardsCleared = d[6]
+            game.boardEaten = d[7]
+            game.stepElapsed = d[8].toLong()
             if (game.mouse == NONE && !game.isOver) game.placeMouse()
             return game
         }

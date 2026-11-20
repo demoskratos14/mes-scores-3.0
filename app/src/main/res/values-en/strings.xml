@@ -3003,6 +3003,11 @@
     <string name="trio_trios_title">Trios won</string>
     <!-- Manette -->
     <string name="snake_pad_pause">Pause / Start</string>
+    <string name="tv_mode_title">TV mode</string>
+    <string name="tv_mode_hint">Full-screen landscape, no on-screen arrows: for playing with a controller on the TV (Chromecast).</string>
+    <string name="snake_tv_start_hint">Press Start to play.</string>
+    <string name="snake_tv_pause_hint">Start: pause</string>
+    <string name="snake_tv_resume_hint">Press Start to resume.</string>
     <string name="xonix_pad_halt">Stop (on land)</string>
     <string name="gamepad_title">Controller</string>
     <string name="gamepad_none">No controller detected. Connect it over Bluetooth in the phone settings.</string>

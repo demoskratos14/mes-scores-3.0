@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,6 +60,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -102,6 +104,9 @@ private const val CELEBRATION_MS = 3000L
 /** Distance glissée (en dp) à partir de laquelle un geste du doigt compte pour un virage. */
 private const val SWIPE_DP = 18
 
+/** Hauteur (en dp) de la bande de score en haut de l'écran en mode TV : le plateau prend tout le reste. */
+private const val SNAKE_TV_HUD_DP = 36
+
 private val SnakeBoardColor = Color(0xFF1B2A1F)
 private val SnakeBoardAltColor = Color(0xFF203125)
 // Le serpent cuivré : des taches plus sombres en alternance sur un fond orangé, cerné de brun très foncé.
@@ -126,12 +131,26 @@ private val SnakeGameSaver = listSaver<SnakeGame, Int>(
  * score est gardé d'une séance à l'autre. S'il remplit tout le plateau, une pluie de paillettes tombe, un bonus est ajouté et le
  * jeu repart sur un nouveau plateau, plus vite. Elle se met en pause quand l'appli passe en arrière-plan.
  * Tout est gardé quand l'écran tourne. [players] : le joueur dont le nom s'affiche au départ.
+ *
+ * Le mode TV (voir [TvMode]) sert quand on caste l'écran sur une télé et qu'on joue à la manette : l'écran passe en
+ * paysage sans barres du système, le plateau est plus large (voir [Snake.tvCols]) et remplit tout l'écran, et il n'y a
+ * plus ni flèches tactiles ni grand en-tête, juste une bande de score.
  */
 @Composable
 internal fun SnakeScreen(players: List<String>) {
     val name = players.firstOrNull().orEmpty().ifEmpty { "1" }
     val context = LocalContext.current
-    val game = rememberSaveable(saver = SnakeGameSaver) { SnakeGame() }
+    // Le mode TV est un réglage gardé d'une séance à l'autre ; il change de plateau, donc de partie.
+    var tvMode by remember { mutableStateOf(TvMode.load(context, SNAKE_ID)) }
+    // Le plateau du mode TV épouse l'écran en paysage (qu'il soit tenu droit ou couché au moment du choix) : on compte donc
+    // sur le grand côté et le petit côté, moins la bande de score.
+    val configuration = LocalConfiguration.current
+    val longSide = maxOf(configuration.screenWidthDp, configuration.screenHeightDp).toFloat()
+    val shortSide = minOf(configuration.screenWidthDp, configuration.screenHeightDp).toFloat()
+    val tvCols = Snake.tvCols(longSide / (shortSide - SNAKE_TV_HUD_DP).coerceAtLeast(1f))
+    val game = rememberSaveable(tvMode, saver = SnakeGameSaver) {
+        if (tvMode) SnakeGame(cols = tvCols, rows = Snake.TV_ROWS) else SnakeGame()
+    }
     var phase by rememberSaveable { mutableIntStateOf(SNAKE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
     // Vrai pendant que le réglage de la manette est affiché à la place de l'écran d'accueil ou de fin.
@@ -151,6 +170,17 @@ internal fun SnakeScreen(players: List<String>) {
     }
     // Le bouton retour met la partie en pause plutôt que de la quitter par mégarde.
     BackHandler(enabled = phase == SNAKE_PHASE_PLAYING && !paused) { paused = true }
+
+    // Allumer ou éteindre le mode TV repart sur une partie neuve, à l'écran d'accueil.
+    fun changeTvMode(enabled: Boolean) {
+        TvMode.save(context, SNAKE_ID, enabled)
+        record.clearNew()
+        paused = false
+        phase = SNAKE_PHASE_READY
+        tvMode = enabled
+    }
+
+    if (tvMode) TvModeEffect()
 
     fun startGame() {
         record.clearNew()
@@ -186,10 +216,11 @@ internal fun SnakeScreen(players: List<String>) {
 
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            showPad -> SnakeCard { GamepadSettings(SNAKE_ID, SNAKE_PAD_ACTIONS) { showPad = false } }
+            showPad -> SnakeCard(tvMode) { GamepadSettings(SNAKE_ID, SNAKE_PAD_ACTIONS) { showPad = false } }
             else -> when (phase) {
             SNAKE_PHASE_PLAYING -> SnakePlayfield(
                 game = game,
+                tv = tvMode,
                 paused = paused,
                 onPausedChange = { paused = it },
                 onCleared = { cleared = it },
@@ -198,7 +229,7 @@ internal fun SnakeScreen(players: List<String>) {
                     phase = SNAKE_PHASE_OVER
                 }
             )
-            SNAKE_PHASE_OVER -> SnakeCard {
+            SNAKE_PHASE_OVER -> SnakeCard(tvMode) {
                 Text(
                     text = stringResource(R.string.snake_over_title),
                     style = MaterialTheme.typography.titleLarge,
@@ -222,29 +253,35 @@ internal fun SnakeScreen(players: List<String>) {
                     textAlign = TextAlign.Center
                 )
                 SoloRecordLine(record)
+                if (tvMode) SnakeTvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.snake_play_again))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
             }
-            else -> SnakeCard {
+            else -> SnakeCard(tvMode) {
                 Text(
                     text = stringResource(R.string.snake_ready_title, name),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Text(
-                    text = stringResource(R.string.snake_ready_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                if (!tvMode) {
+                    Text(
+                        text = stringResource(R.string.snake_ready_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 SoloRecordLine(record)
+                if (tvMode) SnakeTvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.snake_go))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
@@ -256,18 +293,22 @@ internal fun SnakeScreen(players: List<String>) {
     }
 }
 
-/** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. */
+/** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. En mode [tv], la carte reste étroite, au centre de l'écran large. */
 @Composable
-private fun SnakeCard(content: @Composable ColumnScope.() -> Unit) {
+private fun SnakeCard(tv: Boolean, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = cardSurface()),
+            modifier = if (tv) Modifier.widthIn(max = 560.dp).fillMaxWidth() else Modifier.fillMaxWidth()
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -292,13 +333,60 @@ private fun SnakeCard(content: @Composable ColumnScope.() -> Unit) {
     }
 }
 
+/** Le rappel, en mode TV, que Start lance la partie (la manette n'a pas besoin de toucher l'écran). */
+@Composable
+private fun SnakeTvStartHint() {
+    Text(
+        text = stringResource(R.string.snake_tv_start_hint),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = highlightContent(),
+        textAlign = TextAlign.Center
+    )
+}
+
+/** La bande de score du mode TV : score, souris mangées et longueur sur une seule ligne fine, et le rappel de la touche Start. */
+@Composable
+private fun SnakeTvHud(score: Int, eaten: Int, length: Int) {
+    val dim = Color.White.copy(alpha = 0.8f)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(SNAKE_TV_HUD_DP.dp)
+            .background(Color.Black.copy(alpha = 0.55f))
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.snake_score, score),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = stringResource(R.string.snake_stats, eaten, length),
+            style = MaterialTheme.typography.bodyMedium,
+            color = dim,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = stringResource(R.string.snake_tv_pause_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = dim
+        )
+    }
+}
+
 /**
  * La partie en cours : l'en-tête (score, souris mangées, longueur, pause), le plateau, puis les flèches. La partie avance
  * à chaque image tant qu'elle n'est pas en [paused] ; quand le serpent se mord, [onOver] est appelé une fois.
+ * En mode [tv], il ne reste qu'une bande de score fine et le plateau plein écran : pas de flèches, la manette suffit.
  */
 @Composable
 private fun SnakePlayfield(
     game: SnakeGame,
+    tv: Boolean,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
     onCleared: (Int) -> Unit,
@@ -360,10 +448,14 @@ private fun SnakePlayfield(
 
     // La marge de la barre de navigation (boutons ou geste) garde les commandes du bas hors de ses touches.
     Column(
-        modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = if (tv) {
+            Modifier.fillMaxSize().background(SnakeBoardColor)
+        } else {
+            Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp)
+        },
+        verticalArrangement = Arrangement.spacedBy(if (tv) 0.dp else 8.dp)
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        if (tv) SnakeTvHud(score, eaten, length) else Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -388,13 +480,13 @@ private fun SnakePlayfield(
         }
 
         BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            // Une case carrée, la plus grande qui laisse tenir le plateau (12 × 18).
-            val cell = maxOf(minOf(maxWidth / Snake.COLS, maxHeight / Snake.ROWS), 0.dp)
+            // Une case carrée, la plus grande qui laisse tenir le plateau (12 × 18 en portrait, plus large en mode TV).
+            val cell = maxOf(minOf(maxWidth / game.cols, maxHeight / game.rows), 0.dp)
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .size(cell * Snake.COLS, cell * Snake.ROWS)
-                    .clip(RoundedCornerShape(8.dp))
+                    .size(cell * game.cols, cell * game.rows)
+                    .clip(RoundedCornerShape(if (tv) 0.dp else 8.dp))
                     // Glisser le doigt sur le plateau fait tourner le serpent ; on peut enchaîner sans lever le doigt.
                     .pointerInput(swipePx) {
                         var dx = 0f
@@ -452,6 +544,15 @@ private fun SnakePlayfield(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(8.dp)
                         )
+                        if (tv) {
+                            Text(
+                                text = stringResource(R.string.snake_tv_resume_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
                         Button(onClick = { onPausedChange(false) }) {
                             Text(stringResource(R.string.snake_resume))
                         }
@@ -460,8 +561,8 @@ private fun SnakePlayfield(
             }
         }
 
-        // Les quatre flèches en croix : haut au-dessus, puis gauche, bas et droite.
-        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        // Les quatre flèches en croix : haut au-dessus, puis gauche, bas et droite. Absentes en mode TV (on joue à la manette).
+        if (!tv) Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Spacer(modifier = Modifier.weight(1f))
                 SnakeKey(stringResource(R.string.snake_up), SnakeDir.UP, Modifier.weight(1f)) { turn(SnakeDir.UP) }
@@ -526,18 +627,18 @@ private fun DrawScope.drawSnakeArrow(dir: SnakeDir, color: Color) {
     rotate(degrees = dir.ordinal * 90f, pivot = center) { drawPath(chevron, color, style = stroke) }
 }
 
-/** Le centre de la case de numéro [index] dans un plateau dont une case mesure [cell] pixels. */
-private fun cellCenter(index: Int, cell: Float): Offset =
-    Offset((index % Snake.COLS + 0.5f) * cell, (index / Snake.COLS + 0.5f) * cell)
+/** Le centre de la case de numéro [index] dans un plateau de [cols] colonnes dont une case mesure [cell] pixels. */
+private fun cellCenter(index: Int, cell: Float, cols: Int): Offset =
+    Offset((index % cols + 0.5f) * cell, (index / cols + 0.5f) * cell)
 
 /**
  * Le plateau : un damier discret, un liseré pointillé qui rappelle que les bords se referment, la souris puis le serpent.
  * [revision] n'est là que pour que le dessin se refasse quand elle change.
  */
 private fun DrawScope.drawSnakeBoard(game: SnakeGame, @Suppress("UNUSED_PARAMETER") revision: Int) {
-    val cell = size.width / Snake.COLS
-    for (row in 0 until Snake.ROWS) {
-        for (col in 0 until Snake.COLS) {
+    val cell = size.width / game.cols
+    for (row in 0 until game.rows) {
+        for (col in 0 until game.cols) {
             drawRect(
                 color = if ((row + col) % 2 == 0) SnakeBoardColor else SnakeBoardAltColor,
                 topLeft = Offset(col * cell, row * cell),
@@ -553,7 +654,7 @@ private fun DrawScope.drawSnakeBoard(game: SnakeGame, @Suppress("UNUSED_PARAMETE
         size = size,
         style = Stroke(width = cell * 0.1f, pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, dash)))
     )
-    if (game.mouse != SnakeGame.NONE) drawMouse(cellCenter(game.mouse, cell), cell)
+    if (game.mouse != SnakeGame.NONE) drawMouse(cellCenter(game.mouse, cell, game.cols), cell)
     drawSnake(game, cell)
 }
 
@@ -577,7 +678,7 @@ private fun DrawScope.drawSnake(game: SnakeGame, cell: Float) {
     }
     // La langue rose, fourchue, dessinée avant le serpent pour que la tête la recouvre à sa base : elle sort et rentre à chaque case.
     run {
-        val start = cellCenter(cells.first(), cell)
+        val start = cellCenter(cells.first(), cell, game.cols)
         val ahead = Offset(game.direction.dx.toFloat(), game.direction.dy.toFloat())
         val across = Offset(-ahead.y, ahead.x)
         val length = cell * (0.3f + 0.25f * sin(game.progress * PI.toFloat()))
@@ -596,16 +697,16 @@ private fun DrawScope.drawSnake(game: SnakeGame, cell: Float) {
         // Du bout de la queue vers la tête : la tête est dessinée en dernier, par-dessus.
         for (i in n - 1 downTo 0) {
             val color = if (!fill) SnakeOutlineColor else if (i == 0) SnakeHeadColor else if (i % 2 == 0) SnakeBodyColor else SnakeBodyAltColor
-            val center = cellCenter(cells[i], cell)
+            val center = cellCenter(cells[i], cell, game.cols)
             val thick = thickness(i) + grow
             drawCircle(color, thick / 2f, center)
             // Un raccord vers la case suivante (vers la queue), et un autre depuis la précédente : chacun s'arrête au bord de
             // sa case, si bien qu'à travers un bord du plateau le serpent ressort de l'autre côté sans trait traversant l'écran.
-            if (i + 1 < n) connector(cells[i], cells[i + 1], center, half, thick, color)
-            if (i > 0) connector(cells[i], cells[i - 1], center, half, thick, color)
+            if (i + 1 < n) connector(cells[i], cells[i + 1], center, half, thick, color, game.cols, game.rows)
+            if (i > 0) connector(cells[i], cells[i - 1], center, half, thick, color, game.cols, game.rows)
         }
     }
-    val head = cellCenter(cells.first(), cell)
+    val head = cellCenter(cells.first(), cell, game.cols)
     val forward = Offset(game.direction.dx.toFloat(), game.direction.dy.toFloat())
     val side = Offset(-forward.y, forward.x)
     val eye = cell * 0.13f
@@ -619,10 +720,10 @@ private fun DrawScope.drawSnake(game: SnakeGame, cell: Float) {
 }
 
 /** Un raccord de la case [from] vers sa voisine [to] : un rectangle qui va du centre de [from] jusqu'au bord de sa case. */
-private fun DrawScope.connector(from: Int, to: Int, center: Offset, half: Float, thick: Float, color: Color) {
+private fun DrawScope.connector(from: Int, to: Int, center: Offset, half: Float, thick: Float, color: Color, cols: Int, rows: Int) {
     val dir = SnakeDir.entries.firstOrNull {
-        val (c, r) = Snake.wrap(from % Snake.COLS, from / Snake.COLS, it)
-        r * Snake.COLS + c == to
+        val (c, r) = Snake.wrap(from % cols, from / cols, it, cols, rows)
+        r * cols + c == to
     } ?: return
     val length = half
     val topLeft = when (dir) {

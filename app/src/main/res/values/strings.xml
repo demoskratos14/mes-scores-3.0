@@ -3052,6 +3052,11 @@
     <string name="trio_trios_title">Trios gagnés</string>
     <!-- Manette -->
     <string name="snake_pad_pause">Pause / Démarrer</string>
+    <string name="tv_mode_title">Mode TV</string>
+    <string name="tv_mode_hint">Plein écran en paysage, sans les flèches : pour jouer à la manette sur la télé (Chromecast).</string>
+    <string name="snake_tv_start_hint">Appuie sur Start pour jouer.</string>
+    <string name="snake_tv_pause_hint">Start : pause</string>
+    <string name="snake_tv_resume_hint">Appuie sur Start pour reprendre.</string>
     <string name="xonix_pad_halt">Arrêter (sur la terre)</string>
     <string name="gamepad_title">Manette</string>
     <string name="gamepad_none">Aucune manette détectée. Connecte-la en Bluetooth dans les réglages du téléphone.</string>

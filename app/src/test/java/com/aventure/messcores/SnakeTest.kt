@@ -325,10 +325,63 @@ class SnakeTest {
         assertNull(SnakeGame.restore(listOf(99) + good.drop(1)))
         assertNull(SnakeGame.restore(good.dropLast(1)))
         // La souris sur le corps.
-        assertNull(SnakeGame.restore(good.toMutableList().also { it[2] = good.last() }))
+        assertNull(SnakeGame.restore(good.toMutableList().also { it[4] = good.last() }))
         // Une case en dehors du plateau.
         assertNull(SnakeGame.restore(good.toMutableList().also { it[it.lastIndex] = cols * rows }))
         // Deux cases du corps qui ne se touchent pas.
         assertNull(SnakeGame.restore(good.toMutableList().also { it[it.lastIndex] = cell(7, 2) }))
+    }
+
+    // --- Le plateau du mode TV ---
+
+    @Test
+    fun lePlateauTvEstPlusLargeEtSeRefermeSurSesBords() {
+        val game = SnakeGame(Random(1), cols = 30, rows = Snake.TV_ROWS)
+        assertEquals(30, game.cols)
+        assertEquals(Snake.TV_ROWS, game.rows)
+        val row = Snake.TV_ROWS / 2
+        assertEquals(row * 30 + 2, game.head)
+        game.placeMouseAt(0)
+        repeat(27) { game.step() }
+        assertEquals(row * 30 + 29, game.head)
+        game.step()
+        assertEquals(row * 30, game.head)
+        assertFalse(game.isOver)
+    }
+
+    @Test
+    fun lePlateauTvSeRestaureAvecSaTaille() {
+        val game = SnakeGame(Random(3), cols = 28, rows = Snake.TV_ROWS)
+        game.tick(Snake.stepMs(1) * 3)
+        val restored = SnakeGame.restore(game.save(), Random(3))
+        assertNotNull(restored)
+        assertEquals(28, restored!!.cols)
+        assertEquals(Snake.TV_ROWS, restored.rows)
+        assertEquals(game.save(), restored.save())
+    }
+
+    @Test
+    fun uneTailleDePlateauAbsurdeEstRefusee() {
+        val good = newGame().save()
+        assertNull(SnakeGame.restore(good.toMutableList().also { it[1] = 1 }))
+        assertNull(SnakeGame.restore(good.toMutableList().also { it[2] = 500 }))
+    }
+
+    @Test
+    fun lesColonnesTvSuiventLEcranEnResteantDansLesBornes() {
+        assertEquals(Snake.TV_MIN_COLS, Snake.tvCols(1f))
+        assertEquals(Snake.TV_MAX_COLS, Snake.tvCols(5f))
+        assertEquals(28, Snake.tvCols(2f))
+    }
+
+    @Test
+    fun uneAncienneSauvegardeSansTailleSeLitEncore() {
+        val row = rows / 2
+        val old = listOf(2, SnakeDir.RIGHT.ordinal, cell(8, 8), 0, 0, 0, 0, 0, 0, 0, 3,
+            cell(2, row), cell(1, row), cell(0, row))
+        val game = SnakeGame.restore(old)
+        assertNotNull(game)
+        assertEquals(cols, game!!.cols)
+        assertEquals(rows, game.rows)
     }
 }
