@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -77,6 +78,21 @@ private const val TETRIS_PHASE_READY = 0 // on attend que le joueur lance la par
 private const val TETRIS_PHASE_PLAYING = 1 // les pièces tombent
 private const val TETRIS_PHASE_OVER = 2 // la pile a atteint le haut : la partie est finie
 
+/**
+ * Les actions de Tetris réglables à la manette : gauche, droite et descente (croix ou stick), pivoter (haut ou A),
+ * chute immédiate (B), réserve (X ou L) et pause / démarrer (Start).
+ */
+private val TETRIS_PAD_ACTIONS = listOf(
+    padDirection("left", R.string.tetris_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.tetris_right, horizontal = true, sign = 1),
+    padDirection("down", R.string.tetris_soft_drop, horizontal = false, sign = 1),
+    padDirection("rotate", R.string.tetris_rotate, horizontal = false, sign = -1)
+        .plusButtons(KeyEvent.KEYCODE_BUTTON_A),
+    padButtons("drop", R.string.tetris_hard_drop, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BUTTON_R1),
+    padButtons("hold", R.string.tetris_hold, KeyEvent.KEYCODE_BUTTON_X, KeyEvent.KEYCODE_BUTTON_L1),
+    padStart()
+)
+
 /** Plus long temps d'une image pris en compte : après un à-coup, les pièces ne doivent pas sauter plusieurs cases d'un coup. */
 private const val MAX_FRAME_MS = 100L
 
@@ -109,6 +125,8 @@ internal fun TetrisScreen(players: List<String>) {
     val game = rememberSaveable(saver = TetrisGameSaver) { TetrisGame() }
     var phase by rememberSaveable { mutableIntStateOf(TETRIS_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
+    // Vrai pendant que le réglage de la manette est affiché à la place de l'écran d'accueil ou de fin.
+    var showPad by remember { mutableStateOf(false) }
     val record = rememberSoloRecord(TETRIS_ID)
 
     // La partie se met en pause quand l'appli passe en arrière-plan (et donc aussi quand l'écran tourne).
@@ -130,9 +148,20 @@ internal fun TetrisScreen(players: List<String>) {
         phase = TETRIS_PHASE_PLAYING
     }
 
+    // La manette hors partie : Start lance la partie (en partie, c'est le terrain qui écoute).
+    GamepadListener { input ->
+        if (phase == TETRIS_PHASE_PLAYING || showPad) return@GamepadListener false
+        if (GamepadBindings.resolve(context, TETRIS_ID, TETRIS_PAD_ACTIONS, input) == "pause") {
+            startGame()
+            true
+        } else false
+    }
+
     // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
-        when (phase) {
+        when {
+            showPad -> TetrisCard { GamepadSettings(TETRIS_ID, TETRIS_PAD_ACTIONS) { showPad = false } }
+            else -> when (phase) {
             TETRIS_PHASE_PLAYING -> TetrisPlayfield(
                 game = game,
                 paused = paused,
@@ -169,6 +198,9 @@ internal fun TetrisScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.tetris_play_again))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
             }
             else -> TetrisCard {
                 Text(
@@ -186,6 +218,10 @@ internal fun TetrisScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.tetris_go))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
+            }
             }
         }
         RecordSparkles(record)
@@ -248,6 +284,7 @@ private fun TetrisPlayfield(
     var lines by remember { mutableIntStateOf(game.lines) }
     var level by remember { mutableIntStateOf(game.level) }
     val finished by rememberUpdatedState(onOver)
+    val context = LocalContext.current
 
     fun sync() {
         revision++
@@ -261,6 +298,21 @@ private fun TetrisPlayfield(
         if (paused || game.isOver) return
         game.action()
         sync()
+    }
+
+    // La manette : les directions déplacent ou pivotent la pièce, A / B / X ses autres gestes, Start met en pause ou reprend.
+    GamepadListener { input ->
+        when (GamepadBindings.resolve(context, TETRIS_ID, TETRIS_PAD_ACTIONS, input)) {
+            "left" -> act { moveLeft() }
+            "right" -> act { moveRight() }
+            "down" -> act { softDrop() }
+            "rotate" -> act { rotate() }
+            "drop" -> act { hardDrop() }
+            "hold" -> act { hold() }
+            "pause" -> onPausedChange(!paused)
+            else -> return@GamepadListener false
+        }
+        true
     }
 
     LaunchedEffect(paused) {
