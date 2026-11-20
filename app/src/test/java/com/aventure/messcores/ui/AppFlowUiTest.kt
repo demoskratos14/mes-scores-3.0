@@ -20,7 +20,8 @@ import org.robolectric.annotation.Config
 
 /** Navigation de bout en bout depuis l'écran d'accueil, avec l'application complète. */
 @RunWith(RobolectricTestRunner::class)
-@Config(qualifiers = "fr")
+// Écran de téléphone réaliste : l'écran « Jeux solo » (grille d'icônes) est plus haut que l'écran par défaut de Robolectric (320x470 dp).
+@Config(qualifiers = "fr-w411dp-h891dp")
 class AppFlowUiTest {
 
     @get:Rule
@@ -59,8 +60,8 @@ class AppFlowUiTest {
         composeRule.setContent {
             MesScoresTheme(mode = ThemeMode.SYSTEM) { ScoreApp() }
         }
-        composeRule.onNodeWithText(context.getString(R.string.home_solo)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.home_solo)).performScrollTo().performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.choose_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.choose_title)).performScrollTo().assertIsDisplayed()
     }
 }
