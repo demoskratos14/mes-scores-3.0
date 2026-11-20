@@ -202,7 +202,7 @@ internal class HangmanOnline(
         send(HgMessage.Start(setter, wins, round))
     }
 
-    private fun resetLocal() {
+    internal fun resetLocal() {
         active = false
         isHost = false
         seat = -1

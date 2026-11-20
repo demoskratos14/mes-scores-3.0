@@ -144,6 +144,24 @@ internal sealed interface SyncMessage {
 
     /** Le tour de dés en cours, envoyé par le téléphone du joueur qui joue (l'organisateur le relaie aux autres). */
     data class Dice(val table: DiceTable) : SyncMessage
+
+    /** Un message de la salle multijoueur, de l'organisateur vers les invités (voir [RoomMessage]). */
+    data class Room(val room: RoomMessage) : SyncMessage
+}
+
+/** Ce que l'organisateur d'une salle dit à ses invités, en dehors des jeux eux-mêmes. */
+internal sealed interface RoomMessage {
+    /** Les joueurs présents dans la salle, l'organisateur en premier. */
+    data class Members(val names: List<String>) : RoomMessage
+
+    /** L'organisateur quitte le jeu en cours : tout le monde revient dans la salle, en attendant le jeu suivant. */
+    data object Back : RoomMessage
+
+    /** L'organisateur ouvre un nouveau jeu : les invités qui avaient quitté le précédent peuvent le suivre. */
+    data object Next : RoomMessage
+
+    /** Invité vers organisateur : je quitte le jeu en cours mais je reste dans la salle (ma place se libère). */
+    data object Left : RoomMessage
 }
 
 /** Exécute sur la partie de l'organisateur l'action reçue d'un invité. */
@@ -265,6 +283,13 @@ internal object SyncCodec {
             is SyncMessage.DominoMsg -> json.put("t", "domino").put("domino", message.domino.toJson())
             is SyncMessage.TrioMsg -> json.put("t", "trio").put("trio", message.trio.toJson())
             is SyncMessage.PokerMsg -> json.put("t", "poker").put("poker", message.poker.toJson())
+            is SyncMessage.Room -> when (val room = message.room) {
+                is RoomMessage.Members -> json.put("t", "room").put("k", "members")
+                    .put("names", JSONArray().also { array -> room.names.forEach { array.put(it) } })
+                RoomMessage.Back -> json.put("t", "room").put("k", "back")
+                RoomMessage.Next -> json.put("t", "room").put("k", "next")
+                RoomMessage.Left -> json.put("t", "room").put("k", "left")
+            }
             is SyncMessage.Dice -> json.put("t", "dice").put("player", message.table.player)
                 .put("turn", JSONArray().also { array -> message.table.turn.forEach { array.put(it) } })
                 .put("pig", message.table.pigTotal).put("bust", message.table.pigBust)
@@ -321,6 +346,16 @@ internal object SyncCodec {
                 "domino" -> dominoMessageFromJson(json.getJSONObject("domino"))?.let { SyncMessage.DominoMsg(it) }
                 "trio" -> trioMessageFromJson(json.getJSONObject("trio"))?.let { SyncMessage.TrioMsg(it) }
                 "poker" -> pokerMessageFromJson(json.getJSONObject("poker"))?.let { SyncMessage.PokerMsg(it) }
+                "room" -> when (json.optString("k")) {
+                    "members" -> {
+                        val names = json.getJSONArray("names")
+                        SyncMessage.Room(RoomMessage.Members((0 until names.length()).map { names.getString(it) }))
+                    }
+                    "back" -> SyncMessage.Room(RoomMessage.Back)
+                    "next" -> SyncMessage.Room(RoomMessage.Next)
+                    "left" -> SyncMessage.Room(RoomMessage.Left)
+                    else -> null
+                }
                 "dice" -> {
                     val turn = json.getJSONArray("turn")
                     SyncMessage.Dice(

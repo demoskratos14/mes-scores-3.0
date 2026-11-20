@@ -140,9 +140,9 @@ internal fun ShareScreen(
     onHostedChess: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val defaultName = remember { Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android" }
-    // Le nom que voient les autres téléphones (et, au Mastermind, le nom du joueur).
-    var playerName by rememberSaveable { mutableStateOf(defaultName) }
+    val defaultName = remember { MultiplayerName.fallback() }
+    // Le nom que voient les autres téléphones (et, au Mastermind, le nom du joueur) : gardé d'une fois sur l'autre.
+    var playerName by rememberSaveable { mutableStateOf(MultiplayerName.load(context) ?: defaultName) }
     val deviceName = playerName.trim().ifBlank { defaultName }
 
     // Ce que l'utilisateur a demandé avant que les autorisations soient accordées.
@@ -283,7 +283,10 @@ internal fun ShareScreen(
                     if (session.role == SyncRole.NONE) {
                         OutlinedTextField(
                             value = playerName,
-                            onValueChange = { playerName = it.take(MAX_NAME_LENGTH) },
+                            onValueChange = {
+                                playerName = it.take(MAX_NAME_LENGTH)
+                                MultiplayerName.save(context, playerName)
+                            },
                             label = { Text(stringResource(R.string.share_your_name)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
@@ -348,7 +351,7 @@ internal fun ShareScreen(
                     }
 
                     if (session.role != SyncRole.NONE) {
-                        OutlinedButton(onClick = { session.disconnect() }, modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(onClick = { session.closeRoom() }, modifier = Modifier.fillMaxWidth()) {
                             Text(stringResource(R.string.share_disconnect))
                         }
                     }
@@ -458,89 +461,96 @@ internal fun SyncEffects(
     LaunchedEffect(mastermind.joined) {
         if (mastermind.joined == 0 || mastermind.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup") onMastermindJoined()
+        if (current == "share" || current == "setup" || current == "room") onMastermindJoined()
     }
     LaunchedEffect(ticTacToe.joined) {
         if (ticTacToe.joined == 0 || ticTacToe.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareMorpion") onTicTacToeJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareMorpion") onTicTacToeJoined()
     }
     LaunchedEffect(connect4.joined) {
         if (connect4.joined == 0 || connect4.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareConnect4") onConnect4Joined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareConnect4") onConnect4Joined()
     }
     LaunchedEffect(battleship.joined) {
         if (battleship.joined == 0 || battleship.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup") onBattleshipJoined()
+        if (current == "share" || current == "setup" || current == "room") onBattleshipJoined()
     }
     LaunchedEffect(nim.joined) {
         if (nim.joined == 0 || nim.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareNim") onNimJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareNim") onNimJoined()
     }
     LaunchedEffect(reflex.joined) {
         if (reflex.joined == 0 || reflex.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareReflex") onReflexJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareReflex") onReflexJoined()
     }
     LaunchedEffect(emoji.joined) {
         if (emoji.joined == 0 || emoji.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareEmoji") onEmojiJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareEmoji") onEmojiJoined()
     }
     LaunchedEffect(simon.joined) {
         if (simon.joined == 0 || simon.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareSimon") onSimonJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareSimon") onSimonJoined()
     }
     LaunchedEffect(circles.joined) {
         if (circles.joined == 0 || circles.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareCircles") onCirclesJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareCircles") onCirclesJoined()
     }
     LaunchedEffect(rockPaperScissors.joined) {
         if (rockPaperScissors.joined == 0 || rockPaperScissors.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "sharePfc") onRockPaperScissorsJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "sharePfc") onRockPaperScissorsJoined()
     }
     LaunchedEffect(gomoku.joined) {
         if (gomoku.joined == 0 || gomoku.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareGomoku") onGomokuJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareGomoku") onGomokuJoined()
     }
     LaunchedEffect(dots.joined) {
         if (dots.joined == 0 || dots.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareDots") onDotsJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareDots") onDotsJoined()
     }
     LaunchedEffect(draughts.joined) {
         if (draughts.joined == 0 || draughts.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareDraughts") onDraughtsJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareDraughts") onDraughtsJoined()
     }
     LaunchedEffect(othello.joined) {
         if (othello.joined == 0 || othello.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareOthello") onOthelloJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareOthello") onOthelloJoined()
     }
     LaunchedEffect(hangman.joined) {
         if (hangman.joined == 0 || hangman.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup") onHangmanJoined()
+        if (current == "share" || current == "setup" || current == "room") onHangmanJoined()
     }
     LaunchedEffect(chess.joined) {
         if (chess.joined == 0 || chess.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
-        if (current == "share" || current == "setup" || current == "shareChess") onChessJoined()
+        if (current == "share" || current == "setup" || current == "room" || current == "shareChess") onChessJoined()
+    }
+    // Salle : quand l'organisateur quitte son jeu, il ramène tout le monde dans la salle.
+    LaunchedEffect(session.roomBackCount) {
+        if (session.roomBackCount == 0 || !session.roomActive) return@LaunchedEffect
+        if (!navController.popBackStack("room", inclusive = false)) {
+            navController.navigate("room") { popUpTo("home") }
+        }
     }
     LaunchedEffect(session.receivedStates) {
         if (session.receivedStates == 0 || session.role != SyncRole.GUEST) return@LaunchedEffect
         val target = routeFor(game.gameRules)
         val current = navController.currentDestination?.route
         // On n'arrache pas l'utilisateur à un autre écran (journal, statistiques…) : seulement à l'attente ou à une partie.
-        if (current != target && (current == "share" || current == "setup" || current in GAME_ROUTES)) {
+        if (current != target && (current == "share" || current == "setup" || current == "room" || current in GAME_ROUTES)) {
             navController.navigate(target) { popUpTo("home") }
         }
     }

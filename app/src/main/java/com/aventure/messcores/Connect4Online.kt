@@ -101,7 +101,7 @@ internal class Connect4Online(private val session: SyncSession) {
         session.disconnect()
     }
 
-    private fun resetLocal() {
+    internal fun resetLocal() {
         active = false
         isHost = false
         seat = -1

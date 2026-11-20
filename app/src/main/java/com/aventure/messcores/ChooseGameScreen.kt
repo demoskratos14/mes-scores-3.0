@@ -26,7 +26,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -64,9 +63,12 @@ fun ChooseGameScreen(
     // Vrai : seuls les jeux jouables dans l'appli sont proposés ; faux : les feuilles de scores (tous les jeux qui n'ont pas leur propre écran : Mastermind, Morpion, dames, Othello, touché coulé…).
     playableOnly: Boolean = false,
     // Vrai (avec playableOnly) : seuls les jeux solo sont proposés (accueil « Jeux solo »), sans téléphones à légender.
-    soloOnly: Boolean = false
+    soloOnly: Boolean = false,
+    // Vrai : l'organisateur d'une salle choisit le jeu de tout le monde ; seuls les jeux qui se jouent à plusieurs téléphones sont proposés,
+    // et le nombre de joueurs n'est pas vérifié ici (les joueurs sont ceux de la salle, complétés au besoin au lancement du jeu).
+    roomOnly: Boolean = false
 ) {
-    var games by remember { mutableStateOf(repository.gamesFor(playableOnly, soloOnly, playerCount)) }
+    var games by remember { mutableStateOf(repository.gamesFor(playableOnly, soloOnly, playerCount, roomOnly)) }
     // On retient l'id (et non le jeu) : la sélection survit au passage par le formulaire de modification.
     var selectedId by rememberSaveable { mutableStateOf(if (playableOnly && !soloOnly) "builtin_yams" else "builtin_generic") }
     val selected = games.firstOrNull { it.id == selectedId } ?: games.first()
@@ -108,7 +110,7 @@ fun ChooseGameScreen(
                         true to resources.getString(R.string.choose_import_failed, e.message ?: resources.getString(R.string.error_unknown))
                     }
                 }
-                games = repository.gamesFor(playableOnly, soloOnly, playerCount)
+                games = repository.gamesFor(playableOnly, soloOnly, playerCount, roomOnly)
                 errorMessage = if (outcome.first) outcome.second else null
                 infoMessage = if (outcome.first) null else outcome.second
             }
@@ -327,7 +329,7 @@ fun ChooseGameScreen(
 
                 Button(
                     onClick = {
-                        errorMessage = playerCountError(context, selected, playerCount)
+                        errorMessage = if (roomOnly) null else playerCountError(context, selected, playerCount)
                         if (errorMessage != null) return@Button
                         val finalRules = when {
                             selected.id == "builtin_generic" -> selected.copy(scoreMode = genericMode)
@@ -357,7 +359,7 @@ fun ChooseGameScreen(
             confirmButton = {
                 TextButton(onClick = {
                     repository.deleteCustomGame(selected.id)
-                    games = repository.gamesFor(playableOnly, soloOnly, playerCount)
+                    games = repository.gamesFor(playableOnly, soloOnly, playerCount, roomOnly)
                     selectedId = "builtin_generic"
                     errorMessage = null
                     confirmDelete = false
@@ -399,7 +401,9 @@ private fun ruleSummary(context: Context, game: GameRules): String {
  * Seuls les jeux qui acceptent le nombre de joueurs saisi sont gardés (ni les jeux en solo à 2 joueurs, ni ceux qui demandent 3 joueurs ou plus).
  * Si aucun jeu ne convient, on garde toute la liste plutôt que de laisser l'écran vide.
  */
-private fun GameRepository.gamesFor(playableOnly: Boolean, soloOnly: Boolean, playerCount: Int): List<GameRules> {
+private fun GameRepository.gamesFor(playableOnly: Boolean, soloOnly: Boolean, playerCount: Int, roomOnly: Boolean = false): List<GameRules> {
+    // Salle multijoueur : tous les jeux qui se jouent sur plusieurs téléphones, quel que soit le nombre de joueurs.
+    if (roomOnly) return allGames().filter { it.isMultiPhone() && !it.isSoloOnlyGame() }
     // Les jeux réservés à un seul joueur ont leur propre rubrique d'accueil : « Jeux jouables » ne les liste plus (les Ronds et Simon sont dans les deux).
     val all = allGames().filter {
         when {

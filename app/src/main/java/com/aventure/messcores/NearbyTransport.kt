@@ -211,6 +211,6 @@ class SyncViewModel(application: Application) : AndroidViewModel(application) {
     internal val trio = TrioOnline(session)
 
     override fun onCleared() {
-        session.disconnect()
+        session.closeRoom()
     }
 }

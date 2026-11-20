@@ -426,3 +426,14 @@ Le minuteur (`TimerViewModel`, `TimerOverlay`) accepte `5` (minutes), `4:30` ou 
 - **Poules** : chacun rencontre tous les autres (12 participants au maximum), matchs répartis en journées, avec un repos par journée si le nombre est impair. Classement aux victoires ; à égalité, victoires dans les matchs entre les joueurs à égalité ; sinon ex æquo. Pas de match nul pour l'instant.
 - **Élimination directe, ordre de la liste** : le 1er affronte le 2e, le 3e le 4e… ; s'il manque des joueurs pour remplir le tableau, les derniers de la liste sont qualifiés d'office.
 - Un championnat sauvegardé avant cette version reste lisible (il est considéré comme de l'élimination directe).
+
+## Salle multijoueur
+
+Sur l'accueil, « Salle multijoueur » connecte les téléphones **une seule fois** (Nearby Connections, comme le partage d'une partie) :
+
+- l'organisateur crée la salle, les autres la rejoignent ; chacun garde son nom d'une fois sur l'autre (voir `MultiplayerName`) ;
+- l'organisateur choisit un jeu (parmi ceux qui se jouent à plusieurs téléphones) : les invités y sont emmenés automatiquement, sans passer par « Multi téléphone » ;
+- quand l'organisateur quitte le jeu, tout le monde revient dans la salle et il en choisit un autre, sans reconnexion ;
+- un invité qui quitte un jeu reste dans la salle et retrouve le jeu suivant ; « Quitter la salle » / « Fermer la salle » coupe les connexions.
+
+Côté code : `SyncSession` (`startHostingRoom`, `startJoiningRoom`, `startRoomGame`, `startRoomScoreGame`, `closeRoom`), `RoomScreen`, messages `RoomMessage` dans `SyncProtocol.kt`, ouverture automatique du jeu dans `MainActivity`, test `SyncRoomTest`.

@@ -23,12 +23,14 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Première page de l'appli : on choisit entre les feuilles de scores (compter les points d'un jeu
- * qui se joue ailleurs), les jeux jouables directement dans l'appli (à plusieurs) et les jeux solo.
+ * qui se joue ailleurs), les jeux jouables directement dans l'appli (à plusieurs), la salle multijoueur
+ * (plusieurs téléphones connectés une fois pour toutes, jeu après jeu) et les jeux solo.
  */
 @Composable
 fun HomeScreen(
     onOpenScores: () -> Unit,
     onOpenPlayable: () -> Unit,
+    onOpenRoom: () -> Unit,
     onOpenSolo: () -> Unit,
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
@@ -67,6 +69,11 @@ fun HomeScreen(
                     title = stringResource(R.string.home_playable),
                     hint = stringResource(R.string.home_playable_hint),
                     onClick = onOpenPlayable
+                )
+                HomeChoice(
+                    title = stringResource(R.string.home_room),
+                    hint = stringResource(R.string.home_room_hint),
+                    onClick = onOpenRoom
                 )
                 HomeChoice(
                     title = stringResource(R.string.home_solo),

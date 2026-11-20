@@ -20,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -246,22 +247,33 @@ fun ScoreApp(
         }
     }
 
-    fun quitGame(save: Boolean) {
-        // Enregistrer : état actuel. Ne pas enregistrer : on défait l'auto-sauvegarde faite par onStop.
-        if (save) viewModel.saveToJournal(gameHistoryRepository) else viewModel.discardToJournal(gameHistoryRepository)
-        viewModel.closeGame()
-        sync.disconnect()
-        showQuitDialog = false
+    // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
+    // Dans une salle multijoueur : l'organisateur revient au choix du jeu (pour en changer), un invité revient dans la salle.
+    fun leaveToSetup() {
+        if (sync.roomActive) {
+            if (sync.role == SyncRole.HOST) {
+                if (!navController.popBackStack("chooseGame", inclusive = false)) {
+                    navController.popBackStack("room", inclusive = false)
+                }
+            } else if (!navController.popBackStack("room", inclusive = false)) {
+                // Un invité arrive dans un jeu en ayant quitté la pile de navigation de la salle : il y revient directement.
+                navController.navigate("room") { popUpTo("home") }
+            }
+            return
+        }
         if (!navController.popBackStack("setup", inclusive = false)) {
             navController.popBackStack("home", inclusive = false)
         }
     }
 
-    // Retour à la saisie des joueurs (ou à l'accueil pour un invité qui n'est pas passé par là).
-    fun leaveToSetup() {
-        if (!navController.popBackStack("setup", inclusive = false)) {
-            navController.popBackStack("home", inclusive = false)
-        }
+    fun quitGame(save: Boolean) {
+        // Enregistrer : état actuel. Ne pas enregistrer : on défait l'auto-sauvegarde faite par onStop.
+        if (save) viewModel.saveToJournal(gameHistoryRepository) else viewModel.discardToJournal(gameHistoryRepository)
+        viewModel.closeGame()
+        // Dans une salle, l'organisateur qui quitte son jeu y ramène tout le monde (sans couper les connexions).
+        sync.disconnect()
+        showQuitDialog = false
+        leaveToSetup()
     }
 
     // Noms saisis à l'étape 1, en attente d'être associés à un jeu à l'étape 2.
@@ -274,6 +286,14 @@ fun ScoreApp(
         stateSaver = listSaver<List<Int>, Int>(save = { it }, restore = { it })
     ) { mutableStateOf(listOf<Int>()) }
     fun pendingColors(): List<Color?> = pendingPlayerColors.map { if (it == 0) null else Color(it) }
+
+    // Salle multijoueur : les joueurs sont les téléphones de la salle (l'organisateur en premier), complétés jusqu'au minimum
+    // du jeu par des joueurs « Joueur 3 »… qui jouent sur le téléphone de l'organisateur, et limités au maximum du jeu.
+    fun roomPlayerNames(rules: GameRules): List<String> {
+        val members = sync.roomMembers
+        val padded = members + (members.size until rules.minPlayers).map { "$playerDefault ${it + 1}" }
+        return PlayerNames.makeUnique(padded).take(rules.maxPlayers)
+    }
 
     // Accueil : false = feuilles de scores seules, true = jeux jouables dans l'appli (dés, Mastermind).
     // (playMode est déclaré plus haut : le dialogue de sortie en a besoin.)
@@ -329,6 +349,12 @@ fun ScoreApp(
                         soloMode = false
                         navController.navigate("setup")
                     },
+                    onOpenRoom = {
+                        // La salle ne propose que des jeux jouables à plusieurs téléphones.
+                        playMode = true
+                        soloMode = false
+                        navController.navigate("room")
+                    },
                     onOpenSolo = {
                         playMode = true
                         soloMode = true
@@ -377,6 +403,18 @@ fun ScoreApp(
                     }
                 )
             }
+            composable("room") {
+                RoomScreen(
+                    session = sync,
+                    onBack = { navController.popBackStack() },
+                    onChooseGame = {
+                        // Les joueurs sont ceux de la salle ; l'organisateur choisit le jeu pour tout le monde.
+                        pendingPlayerNames = sync.roomMembers
+                        pendingPlayerColors = sync.roomMembers.map { 0 }
+                        navController.navigate("chooseGame")
+                    }
+                )
+            }
             composable("tournamentSetup") {
                 TournamentSetupScreen(
                     onNext = { names, format, ordered ->
@@ -416,6 +454,10 @@ fun ScoreApp(
                     repository = gameRepository,
                     playerCount = pendingPlayerNames.size,
                     onGameChosen = { rules ->
+                        if (sync.isRoomHost) {
+                            pendingPlayerNames = roomPlayerNames(rules)
+                            pendingPlayerColors = pendingPlayerNames.map { 0 }
+                        }
                         val ownScreenRoute = OWN_SCREEN_ROUTES[rules.id]
                         if (rules.id == MASTERMIND_ID) {
                             // Le Mastermind a son propre écran et n'utilise ni le tableau ni les compteurs.
@@ -447,7 +489,8 @@ fun ScoreApp(
                         navController.navigate("createGame?editId=${Uri.encode(rules.id)}")
                     },
                     playableOnly = playMode,
-                    soloOnly = soloMode
+                    soloOnly = soloMode,
+                    roomOnly = sync.isRoomHost
                 )
             }
             // editId absent : création d'un jeu ; présent : modification du jeu personnalisé correspondant.
@@ -1116,6 +1159,48 @@ fun ScoreApp(
         // Doit être déclaré APRÈS le NavHost : le dernier BackHandler enregistré est prioritaire,
         // sinon celui du NavHost quitte l'écran sans jamais afficher la confirmation.
         BackHandler(enabled = onScoreRoute && viewModel.hasProgress()) { showQuitDialog = true }
+
+        // Salle multijoueur : dès que l'organisateur ouvre l'écran d'un jeu, ce jeu s'ouvre aux téléphones de la salle, sans passer
+        // par « Multi téléphone ». Une seule fois par jeu (clé : l'écran) : quitter le jeu ramène tout le monde dans la salle.
+        LaunchedEffect(currentRoute) {
+            if (!sync.isRoomHost) return@LaunchedEffect
+            if (sync.roomGameRunning) {
+                // De retour au choix du jeu sans être passé par la sortie du jeu (retour système) : tout le monde revient dans la salle.
+                if (currentRoute == "chooseGame" || currentRoute == "room") sync.disconnect()
+                return@LaunchedEffect
+            }
+            val name = sync.roomName
+            fun hostInRoom(kind: SyncKind, openTable: () -> Unit) {
+                sync.startRoomGame(kind)
+                openTable()
+                sync.seatRoomPeers()
+            }
+            when (currentRoute) {
+                "mastermind" -> hostInRoom(SyncKind.MASTERMIND) { mastermindOnline.openLobby(name, mastermindViewModel.settings) }
+                "battleship" -> hostInRoom(SyncKind.BATTLESHIP) { battleshipOnline.openLobby(name, battleshipViewModel.settings) }
+                "hangman" -> hostInRoom(SyncKind.HANGMAN) { hangmanOnline.openLobby(name, hangmanViewModel.settings) }
+                "morpion" -> hostInRoom(SyncKind.MORPION) { ticTacToeOnline.openLobby(name) }
+                "connect4" -> hostInRoom(SyncKind.CONNECT4) { connect4Online.openLobby(name) }
+                "nim" -> hostInRoom(SyncKind.NIM) { nimOnline.openLobby(name) }
+                "reflex" -> hostInRoom(SyncKind.REFLEX) { reflexOnline.openLobby(name) }
+                "emoji" -> hostInRoom(SyncKind.EMOJI) { emojiOnline.openLobby(name) }
+                "simon" -> hostInRoom(SyncKind.SIMON) { simonOnline.openLobby(name) }
+                "circles" -> hostInRoom(SyncKind.CIRCLES) { circlesOnline.openLobby(name) }
+                "pfc" -> hostInRoom(SyncKind.PFC) { rockPaperScissorsOnline.openLobby(name) }
+                "draughts" -> hostInRoom(SyncKind.DRAUGHTS) { draughtsOnline.openLobby(name) }
+                "othello" -> hostInRoom(SyncKind.OTHELLO) { othelloOnline.openLobby(name) }
+                "chess" -> hostInRoom(SyncKind.CHESS) { chessOnline.openLobby(name) }
+                "gomoku" -> hostInRoom(SyncKind.GOMOKU) { gomokuOnline.openLobby(name) }
+                "dots" -> hostInRoom(SyncKind.DOTS) { dotsOnline.openLobby(name) }
+                else -> {
+                    if (onScoreRoute) {
+                        // Cartes et dés : la partie de l'appli est partagée comme avec « Multi téléphone ».
+                        sync.playable = playMode
+                        sync.startRoomScoreGame()
+                    }
+                }
+            }
+        }
 
         // Envoie la partie aux téléphones connectés à chaque changement, et ouvre la partie reçue (invité).
         SyncEffects(

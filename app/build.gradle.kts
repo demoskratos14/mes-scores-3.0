@@ -13,12 +13,7 @@ base {
 
 android {
     namespace = "com.aventure.messcores"
-    // 37.1 : requis par Compose 1.13 (compose-bom 2026.11.01) ; targetSdk reste 37.
-    compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.aventure.messcores"
@@ -91,14 +86,14 @@ kotlin {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.19.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
     implementation("androidx.activity:activity-compose:1.13.0")
     // Choix de la langue depuis l'appli (AppCompatDelegate.setApplicationLocales) : fonctionne sur Android 13+
     // via le système, et est rétroporté jusqu'à minSdk 26 par AppCompat.
     implementation("androidx.appcompat:appcompat:1.8.0")
 
     // Compose
-    implementation(platform("androidx.compose:compose-bom:2026.11.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -106,7 +101,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // ViewModel + Navigation en Compose
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.navigation:navigation-compose:2.10.2")
 
     // Partage d'une partie entre deux téléphones sans internet (Bluetooth et connexion directe).

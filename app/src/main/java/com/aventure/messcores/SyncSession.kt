@@ -14,8 +14,8 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 
 internal enum class SyncRole { NONE, HOST, GUEST }
 
-/** Ce qui est partagé : la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des Ronds, des dames, un Othello, un Pendu ou des échecs chacun sur son téléphone. */
-internal enum class SyncKind { SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, SIMON, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS, CIRCLES }
+/** Ce qui est partagé : la salle multijoueur sans jeu en cours ([ROOM]), la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des Ronds, des dames, un Othello, un Pendu ou des échecs chacun sur son téléphone. */
+internal enum class SyncKind { ROOM, SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, SIMON, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS, CIRCLES }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -223,6 +223,42 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
     var receivedStates by mutableIntStateOf(0)
         private set
 
+    /**
+     * Vrai tant qu'une salle multijoueur est ouverte (organisateur) ou rejointe (invité). Dans une salle, la connexion reste
+     * en place d'un jeu à l'autre : l'organisateur choisit le jeu, et quand il le quitte tout le monde revient dans la salle.
+     */
+    var roomActive by mutableStateOf(false)
+        private set
+
+    /** Organisateur d'une salle : le nom qu'il porte (celui de sa table dans les jeux). */
+    var roomName by mutableStateOf("")
+        private set
+
+    /** Organisateur d'une salle : un jeu est en cours, ouvert aux téléphones de la salle. */
+    var roomGameRunning by mutableStateOf(false)
+        private set
+
+    /** Invité : les joueurs de la salle, tels que l'organisateur les annonce. */
+    private var guestRoomMembers by mutableStateOf<List<String>>(emptyList())
+
+    // Invité d'une salle qui a quitté le jeu en cours : il ignore ce jeu jusqu'à ce que l'organisateur en ouvre un autre.
+    private var guestWaiting = false
+
+    /** Invité : nombre de fois où l'organisateur a ramené tout le monde dans la salle (pour y revenir à l'écran). */
+    var roomBackCount by mutableIntStateOf(0)
+        private set
+
+    /** Vrai pour l'organisateur d'une salle. */
+    val isRoomHost: Boolean get() = roomActive && role == SyncRole.HOST
+
+    /** Les joueurs de la salle, l'organisateur en premier, chacun avec un nom distinct. */
+    val roomMembers: List<String>
+        get() = when {
+            !roomActive -> emptyList()
+            role == SyncRole.HOST -> PlayerNames.makeUnique(listOf(roomName) + connected.map { it.name })
+            else -> guestRoomMembers
+        }
+
     /** Organisateur : joue en version jouable (page des dés), à annoncer aux invités avec l'état de la partie. */
     var playable: Boolean = false
 
@@ -417,6 +453,89 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         transport.startDiscovery()
     }
 
+    // ---------- Salle multijoueur ----------
+
+    /** Ouvre une salle : annonce le téléphone aux autres, sans jeu pour l'instant (l'organisateur le choisit ensuite). */
+    fun startHostingRoom(deviceName: String) {
+        reset()
+        role = SyncRole.HOST
+        kind = SyncKind.ROOM
+        roomActive = true
+        roomName = deviceName
+        advertising = true
+        transport.startHosting(deviceName)
+    }
+
+    /** Cherche les salles ouvertes à proximité. */
+    fun startJoiningRoom() {
+        reset()
+        role = SyncRole.GUEST
+        kind = SyncKind.ROOM
+        roomActive = true
+        scanning = true
+        transport.startDiscovery()
+    }
+
+    /**
+     * Organisateur d'une salle : ouvre aux téléphones de la salle un jeu à table en ligne ([kind]) sans couper les connexions.
+     * À appeler avant l'ouverture de la table du jeu (`openLobby`), puis [seatRoomPeers] pour y asseoir ceux qui sont déjà là.
+     */
+    fun startRoomGame(kind: SyncKind) {
+        if (!isRoomHost) return
+        resetGames()
+        this.kind = kind
+        roomGameRunning = true
+        announceNextGame()
+    }
+
+    /** Organisateur d'une salle : la table du jeu est ouverte, les téléphones déjà connectés y prennent place. */
+    fun seatRoomPeers() {
+        if (!isRoomHost) return
+        connected.map { it.id }.forEach { notifyPeerConnected(it) }
+    }
+
+    /**
+     * Organisateur d'une salle : partage avec les téléphones de la salle la partie de l'appli (cartes, dés) qui vient d'être ouverte.
+     * Renvoie faux si elle ne peut pas être partagée.
+     */
+    fun startRoomScoreGame(): Boolean {
+        if (!isRoomHost || !canShareCurrentGame()) return false
+        resetGames()
+        kind = SyncKind.SCORE
+        roomGameRunning = true
+        announceNextGame()
+        connected.map { it.id }.forEach { id ->
+            sendState(listOf(id))
+            notifyPeerConnected(id)
+        }
+        return true
+    }
+
+    /** Ferme la salle (ou la quitte) : toutes les connexions sont coupées. */
+    fun closeRoom() {
+        reset()
+        problem = null
+    }
+
+    /** Organisateur : le jeu est fini, tout le monde revient dans la salle ; les connexions restent. */
+    private fun endRoomGame() {
+        if (connected.isNotEmpty()) send(connected.map { it.id }, SyncMessage.Room(RoomMessage.Back))
+        resetGames()
+        kind = SyncKind.ROOM
+        roomGameRunning = false
+    }
+
+    /** Organisateur : un nouveau jeu s'ouvre ; ceux qui avaient quitté le précédent le suivent de nouveau. */
+    private fun announceNextGame() {
+        if (connected.isNotEmpty()) send(connected.map { it.id }, SyncMessage.Room(RoomMessage.Next))
+    }
+
+    /** Annonce la liste des joueurs de la salle aux invités. */
+    private fun broadcastRoomMembers() {
+        if (!isRoomHost || connected.isEmpty()) return
+        send(connected.map { it.id }, SyncMessage.Room(RoomMessage.Members(roomMembers)))
+    }
+
     fun connectTo(endpoint: NearbyEndpoint, deviceName: String) {
         problem = null
         transport.requestConnection(deviceName, endpoint.id)
@@ -436,8 +555,26 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         transport.rejectConnection(request.id)
     }
 
-    /** Coupe tout : la partie reste sur chaque téléphone, mais n'est plus partagée. */
+    /**
+     * Coupe tout : la partie reste sur chaque téléphone, mais n'est plus partagée.
+     * Exception, dans une salle : l'organisateur qui quitte un jeu ne coupe rien, il ramène tout le monde dans la salle,
+     * et un invité qui quitte un jeu reste dans la salle (pour la fermer ou la quitter vraiment, voir [closeRoom]).
+     */
     fun disconnect() {
+        if (isRoomHost) {
+            endRoomGame()
+            problem = null
+            return
+        }
+        if (roomActive && role == SyncRole.GUEST && connected.isNotEmpty()) {
+            // Invité d'une salle : quitter un jeu ne fait pas quitter la salle. L'organisateur libère notre place.
+            send(connected.map { it.id }, SyncMessage.Room(RoomMessage.Left))
+            resetGames()
+            kind = SyncKind.ROOM
+            guestWaiting = true
+            problem = null
+            return
+        }
         reset()
         problem = null
     }
@@ -452,10 +589,56 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         names.clear()
         pending = null
         kind = SyncKind.SCORE
+        roomActive = false
+        roomName = ""
+        roomGameRunning = false
+        guestRoomMembers = emptyList()
+        guestWaiting = false
         hostCanUndo = false
         hostCanRedo = false
         diceTable = null
         dicePlayer = DICE_UNSET
+        president?.reset()
+        hearts?.reset()
+        tarot?.reset()
+        ohHell?.reset()
+        barbu?.reset()
+        uno?.reset()
+        poker?.reset()
+        huit?.reset()
+        yaniv?.reset()
+        rami?.reset()
+        flip7?.reset()
+        skyjo?.reset()
+        domino?.reset()
+        trio?.reset()
+    }
+
+    /**
+     * Remet à zéro l'état de chaque jeu, sans toucher aux connexions : entre deux jeux d'une salle, chaque téléphone
+     * repart d'une table vide (les jeux à table en ligne se remettent à zéro eux-mêmes, comme quand on les quitte).
+     */
+    private fun resetGames() {
+        hostCanUndo = false
+        hostCanRedo = false
+        hostPlayable = false
+        diceTable = null
+        dicePlayer = DICE_UNSET
+        mastermind?.resetLocal()
+        ticTacToe?.resetLocal()
+        connect4?.resetLocal()
+        battleship?.resetLocal()
+        nim?.resetLocal()
+        reflex?.resetLocal()
+        emoji?.resetLocal()
+        simon?.resetLocal()
+        circles?.resetLocal()
+        rockPaperScissors?.resetLocal()
+        draughts?.resetLocal()
+        othello?.resetLocal()
+        hangman?.resetLocal()
+        chess?.resetLocal()
+        duoGames.forEach { it.resetLocal() }
         president?.reset()
         hearts?.reset()
         tarot?.reset()
@@ -513,8 +696,12 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         if (role == SyncRole.GUEST) send(connected.map { it.id }, message)
     }
 
-    /** Coupe la connexion avec un seul téléphone. */
+    /**
+     * Coupe la connexion avec un seul téléphone. Dans une salle, on ne chasse personne : un téléphone qui n'a pas
+     * de place à la table du jeu en cours reste dans la salle et rejoindra le jeu suivant.
+     */
     fun disconnectEndpoint(id: String) {
+        if (roomActive) return
         transport.disconnect(id)
         connected.removeAll { it.id == id }
     }
@@ -553,6 +740,13 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             sendState(listOf(id))
             diceTable?.let { send(listOf(id), SyncMessage.Dice(it)) }
         }
+        notifyPeerConnected(id)
+        // Salle : le nouveau venu voit la liste des joueurs, et tous les autres aussi.
+        broadcastRoomMembers()
+    }
+
+    /** Prévient chaque jeu qu'un téléphone est connecté : seul le jeu ouvert s'en occupe. */
+    private fun notifyPeerConnected(id: String) {
         mastermind?.onPeerConnected(id)
         ticTacToe?.onPeerConnected(id)
         connect4?.onPeerConnected(id)
@@ -591,6 +785,18 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     override fun onDisconnected(id: String) {
         connected.removeAll { it.id == id }
+        notifyPeerDisconnected(id)
+        // Salle : les autres voient partir ce joueur.
+        broadcastRoomMembers()
+        if (role == SyncRole.GUEST && connected.isEmpty()) {
+            // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
+            reset()
+            problem = SyncProblem.HOST_LOST
+        }
+    }
+
+    /** Prévient chaque jeu qu'un téléphone est parti (ou a quitté le jeu) : seul le jeu ouvert s'en occupe. */
+    private fun notifyPeerDisconnected(id: String) {
         mastermind?.onPeerDisconnected(id)
         ticTacToe?.onPeerDisconnected(id)
         connect4?.onPeerDisconnected(id)
@@ -620,15 +826,12 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         domino?.onPeerDisconnected(id)
         trio?.onPeerDisconnected(id)
         duoGames.forEach { it.onPeerDisconnected(id) }
-        if (role == SyncRole.GUEST && connected.isEmpty()) {
-            // La partie reste sur ce téléphone ; les actions s'y appliquent de nouveau directement.
-            reset()
-            problem = SyncProblem.HOST_LOST
-        }
     }
 
     override fun onMessage(id: String, bytes: ByteArray) {
         val message = SyncCodec.decode(bytes) ?: return
+        // Invité qui a quitté le jeu en cours : il ne suit plus rien avant que l'organisateur n'en ouvre un autre.
+        if (guestWaiting && role == SyncRole.GUEST && message !is SyncMessage.Room) return
         when (message) {
             is SyncMessage.Mm -> {
                 if (role == SyncRole.GUEST) kind = SyncKind.MASTERMIND
@@ -693,6 +896,8 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.State -> {
                 val game = game ?: return
                 if (role == SyncRole.GUEST) {
+                    // Dans une salle, c'est l'état de la partie qui annonce à l'invité que l'organisateur a ouvert un jeu de l'appli.
+                    kind = SyncKind.SCORE
                     game.loadFromSaved(message.game, keepRound = true)
                     hostCanUndo = message.canUndo
                     hostCanRedo = message.canRedo
@@ -714,6 +919,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.SkyjoMsg -> skyjo?.onMessage(id, message.skyjo)
             is SyncMessage.DominoMsg -> domino?.onMessage(id, message.domino)
             is SyncMessage.TrioMsg -> trio?.onMessage(id, message.trio)
+            is SyncMessage.Room -> if (roomActive) onRoomMessage(id, message.room)
             is SyncMessage.Dice -> {
                 if (kind != SyncKind.SCORE || connected.isEmpty()) return
                 diceTable = message.table
@@ -727,6 +933,28 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
                 val game = game ?: return
                 if (role == SyncRole.HOST && kind == SyncKind.SCORE && game.isGameActive) message.op.applyTo(game)
             }
+        }
+    }
+
+    private fun onRoomMessage(id: String, room: RoomMessage) {
+        if (role == SyncRole.HOST) {
+            // Un invité a quitté le jeu en cours mais reste dans la salle : sa place à la table se libère.
+            if (room == RoomMessage.Left) notifyPeerDisconnected(id)
+            return
+        }
+        when (room) {
+            is RoomMessage.Members -> guestRoomMembers = room.names
+            RoomMessage.Next -> guestWaiting = false
+            RoomMessage.Back -> {
+                // L'organisateur a quitté son jeu : on quitte le nôtre et on revient dans la salle, connexion intacte.
+                val wasScore = kind == SyncKind.SCORE
+                guestWaiting = false
+                resetGames()
+                kind = SyncKind.ROOM
+                if (wasScore) game?.closeGame()
+                roomBackCount++
+            }
+            RoomMessage.Left -> Unit
         }
     }
 
