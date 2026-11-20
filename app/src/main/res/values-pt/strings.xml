@@ -1613,25 +1613,6 @@
     <string name="home_playable_hint">Joga diretamente na app (dados, cartas, Mastermind…), com um telemóvel ou com vários</string>
     <string name="home_solo">Jogos a solo</string>
     <string name="home_solo_hint">Joga sozinho no teu telemóvel (Tetris, Snake, Breakout…)</string>
-    <string name="home_room">Sala multijogador</string>
-    <string name="home_room_hint">Liga todos os telemóveis uma só vez e encadeia os jogos todos juntos</string>
-    <string name="room_title">Sala multijogador</string>
-    <string name="room_intro">Liga-se uma só vez para a noite toda: o organizador escolhe o jogo e, quando sai dele, todos voltam à sala para escolher outro. O teu nome fica guardado de uma vez para a outra.</string>
-    <string name="room_create_button">Criar uma sala</string>
-    <string name="room_join_button">Entrar numa sala</string>
-    <string name="room_host_wait">A sala está aberta. Nos outros telemóveis, toca em «Entrar numa sala». Quando estiverem todos, escolhe um jogo: os outros são levados lá automaticamente.</string>
-    <string name="room_choose_game">Escolher um jogo</string>
-    <string name="room_guest_wait">Estás na sala. Assim que o organizador escolher um jogo, és levado lá automaticamente.</string>
-    <string name="room_pending_guest">Código %1$s. Confirma que é o mesmo no telemóvel do organizador e espera que aceite.</string>
-    <string name="room_searching">A procurar salas por perto…</string>
-    <string name="room_join_endpoint">Entrar na sala de %1$s</string>
-    <string name="room_close">Fechar a sala</string>
-    <string name="room_leave">Sair da sala</string>
-    <string name="room_close_title">Fechar a sala?</string>
-    <string name="room_close_message">Os outros telemóveis ficam desligados e será preciso criar uma nova sala para voltar a jogar juntos.</string>
-    <string name="room_leave_title">Sair da sala?</string>
-    <string name="room_leave_message">Vais ficar desligado do organizador e dos outros jogadores. Podes voltar a entrar na sala.</string>
-    <string name="room_problem_host_lost">A ligação ao organizador perdeu-se: saíste da sala.</string>
     <string name="playable_one_phone">Um só telemóvel</string>
     <string name="playable_multi_phone">Podem ligar-se vários telemóveis</string>
     <string name="game_morpion">Jogo do galo</string>
@@ -3051,6 +3032,7 @@
     <string name="trio_trios_title">Trios ganhos</string>
     <!-- Manette -->
     <string name="snake_pad_pause">Pausa / Iniciar</string>
+    <string name="xonix_pad_halt">Parar (em terra)</string>
     <string name="gamepad_title">Comando</string>
     <string name="gamepad_none">Nenhum comando detetado. Liga-o por Bluetooth nas definições do telemóvel.</string>
     <string name="gamepad_connected">Comando detetado: %1$s</string>
@@ -3059,6 +3041,8 @@
     <string name="gamepad_cancel">Cancelar</string>
     <string name="gamepad_reset">Repor tudo</string>
     <string name="gamepad_close">Fechar</string>
+    <string name="gamepad_last">Último sinal recebido: %1$s</string>
+    <string name="gamepad_button">Botão n.º %1$d</string>
     <string name="gamepad_left">esquerdo</string>
     <string name="gamepad_right">direito</string>
     <string name="gamepad_dpad">Cruzeta %1$s</string>
