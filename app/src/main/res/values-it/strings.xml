@@ -1623,25 +1623,6 @@
     <string name="home_playable_hint">Gioca direttamente nell\'app (dadi, carte, Mastermind…), con un telefono o con più telefoni</string>
     <string name="home_solo">Giochi singoli</string>
     <string name="home_solo_hint">Gioca da solo sul tuo telefono (Tetris, Snake, Breakout…)</string>
-    <string name="home_room">Sala multigiocatore</string>
-    <string name="home_room_hint">Collega tutti i telefoni una sola volta e passa da un gioco all’altro insieme</string>
-    <string name="room_title">Sala multigiocatore</string>
-    <string name="room_intro">Ci si connette una sola volta per tutta la serata: l’organizzatore sceglie il gioco e, quando ne esce, tutti tornano nella sala per sceglierne un altro. Il tuo nome viene ricordato di volta in volta.</string>
-    <string name="room_create_button">Crea una sala</string>
-    <string name="room_join_button">Unisciti a una sala</string>
-    <string name="room_host_wait">La sala è aperta. Sugli altri telefoni tocca «Unisciti a una sala». Quando ci sono tutti, scegli un gioco: gli altri vengono portati lì automaticamente.</string>
-    <string name="room_choose_game">Scegli un gioco</string>
-    <string name="room_guest_wait">Sei nella sala. Appena l’organizzatore sceglie un gioco, vieni portato lì automaticamente.</string>
-    <string name="room_pending_guest">Codice %1$s. Controlla che sia lo stesso sul telefono dell’organizzatore, poi aspetta che accetti.</string>
-    <string name="room_searching">Ricerca delle sale vicine…</string>
-    <string name="room_join_endpoint">Unisciti alla sala di %1$s</string>
-    <string name="room_close">Chiudi la sala</string>
-    <string name="room_leave">Esci dalla sala</string>
-    <string name="room_close_title">Chiudere la sala?</string>
-    <string name="room_close_message">Gli altri telefoni verranno disconnessi e bisognerà creare una nuova sala per giocare ancora insieme.</string>
-    <string name="room_leave_title">Uscire dalla sala?</string>
-    <string name="room_leave_message">Verrai disconnesso dall’organizzatore e dagli altri giocatori. Potrai unirti di nuovo alla sala.</string>
-    <string name="room_problem_host_lost">La connessione con l’organizzatore è persa: sei uscito dalla sala.</string>
     <string name="playable_one_phone">Un solo telefono</string>
     <string name="playable_multi_phone">Si possono collegare più telefoni</string>
     <string name="game_morpion">Tris</string>
@@ -3061,6 +3042,7 @@
     <string name="trio_trios_title">Tris vinti</string>
     <!-- Manette -->
     <string name="snake_pad_pause">Pausa / Avvia</string>
+    <string name="xonix_pad_halt">Fermati (sulla terra)</string>
     <string name="gamepad_title">Controller</string>
     <string name="gamepad_none">Nessun controller rilevato. Collegalo via Bluetooth nelle impostazioni del telefono.</string>
     <string name="gamepad_connected">Controller rilevato: %1$s</string>
@@ -3069,6 +3051,8 @@
     <string name="gamepad_cancel">Annulla</string>
     <string name="gamepad_reset">Ripristina tutto</string>
     <string name="gamepad_close">Chiudi</string>
+    <string name="gamepad_last">Ultimo segnale ricevuto: %1$s</string>
+    <string name="gamepad_button">Pulsante n. %1$d</string>
     <string name="gamepad_left">sinistro</string>
     <string name="gamepad_right">destro</string>
     <string name="gamepad_dpad">Croce %1$s</string>
