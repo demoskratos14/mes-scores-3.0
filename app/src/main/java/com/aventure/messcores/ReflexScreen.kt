@@ -66,8 +66,7 @@ private const val PHASE_LOSER = 4 // un seul téléphone : le vainqueur a touch�
 internal fun ReflexScreen(
     players: List<String>,
     online: ReflexOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
@@ -86,7 +85,7 @@ internal fun ReflexScreen(
             onExit()
         })
     } else {
-        LocalReflex(players = players, onPlayOnline = onHostOnline)
+        LocalReflex(players = players)
     }
 
     if (showQuit && online.active) {
@@ -116,7 +115,7 @@ internal fun ReflexScreen(
  * trop tôt la donne à l'autre. Le premier à [Reflex.TARGET] manches gagne la partie. Tout est gardé quand l'écran tourne.
  */
 @Composable
-private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalReflex(players: List<String>) {
     KeepScreenOn()
     val name1 = players.getOrElse(0) { "1" }
     val name2 = players.getOrElse(1) { "2" }
@@ -284,12 +283,6 @@ private fun LocalReflex(players: List<String>, onPlayOnline: () -> Unit) {
                         onClick = { phase = PHASE_WAITING },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(stringResource(R.string.reflex_next_round)) }
-                }
-                // Proposé tant que rien n'a été joué : passer à deux téléphones en pleine séance perdrait le score.
-                if (phase == PHASE_READY && match == ReflexMatch()) {
-                    OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.reflex_online_button))
-                    }
                 }
             }
         }

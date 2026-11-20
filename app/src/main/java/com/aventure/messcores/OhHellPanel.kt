@@ -33,14 +33,13 @@ import androidx.compose.ui.unit.dp
  * - Sur un seul téléphone, ou sur celui de l'organisateur : [OhHellHostSection], où l'on se passe le téléphone.
  * - Sur un téléphone invité : [OhHellGuestSection], qui affiche la main du joueur à sa place et envoie ses actions à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun OhHellScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: OhHellOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != OH_HELL_ID) {
@@ -54,9 +53,7 @@ internal fun OhHellScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(table?.current, table?.phase, table?.roundNumber, table?.roundOver, table?.trickDone, online.mySeat),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(table?.current, table?.phase, table?.roundNumber, table?.roundOver, table?.trickDone, online.mySeat)
         ) {
             OhHellGuestSection(viewModel = viewModel, online = online)
         }
@@ -74,9 +71,7 @@ internal fun OhHellScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber, round.trickDone, round.phase),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber, round.trickDone, round.phase)
     ) {
         OhHellHostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }

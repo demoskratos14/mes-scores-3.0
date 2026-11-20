@@ -84,8 +84,7 @@ private const val KEYS_PER_ROW = 7
 internal fun HangmanScreen(
     viewModel: HangmanViewModel,
     online: HangmanOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     val rules = viewModel.rules
     val game = viewModel.game
@@ -139,8 +138,7 @@ internal fun HangmanScreen(
                 game == null -> SettingsCard(
                     settings = viewModel.settings,
                     onChange = { viewModel.updateSettings(it) },
-                    onStart = { viewModel.start() },
-                    onPlayOnline = onHostOnline
+                    onStart = { viewModel.start() }
                 )
                 else -> LocalContent(viewModel = viewModel, game = game, onExit = {
                     viewModel.close()
@@ -177,8 +175,7 @@ internal fun HangmanScreen(
 private fun SettingsCard(
     settings: HangmanSettings,
     onChange: (HangmanSettings) -> Unit,
-    onStart: () -> Unit,
-    onPlayOnline: () -> Unit
+    onStart: () -> Unit
 ) {
     Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -203,9 +200,6 @@ private fun SettingsCard(
             }
             Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.hg_start))
-            }
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.hg_online_button))
             }
         }
     }

@@ -56,8 +56,7 @@ import androidx.compose.ui.unit.dp
 internal fun TicTacToeScreen(
     players: List<String>,
     online: TicTacToeOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
@@ -76,7 +75,7 @@ internal fun TicTacToeScreen(
             onExit()
         })
     } else {
-        LocalTicTacToe(players = players, onPlayOnline = onHostOnline)
+        LocalTicTacToe(players = players)
     }
 
     if (showQuit && online.active) {
@@ -103,7 +102,7 @@ internal fun TicTacToeScreen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun LocalTicTacToe(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalTicTacToe(players: List<String>) {
     val nameX = players.getOrElse(0) { "X" }
     val nameO = players.getOrElse(1) { "O" }
 
@@ -120,8 +119,6 @@ private fun LocalTicTacToe(players: List<String>, onPlayOnline: () -> Unit) {
     val full = TicTacToe.isFull(cells)
     val over = winner != 0 || full
     val current = TicTacToe.nextPlayer(cells, starter + 1)
-    // Proposé tant que rien n'a été joué : passer à deux téléphones en pleine séance perdrait le score.
-    val fresh = board == TicTacToe.EMPTY && winsX + winsO + draws == 0
 
     fun play(index: Int) {
         val next = TicTacToe.play(cells, index, current) ?: return
@@ -158,11 +155,6 @@ private fun LocalTicTacToe(players: List<String>, onPlayOnline: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.morpion_new_round))
-            }
-        }
-        if (fresh) {
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.morpion_online_button))
             }
         }
     }

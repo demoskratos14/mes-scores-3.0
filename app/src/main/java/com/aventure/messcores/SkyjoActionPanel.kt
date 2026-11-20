@@ -93,14 +93,13 @@ private fun skyjoCardLabel(card: Int): String =
  *   par un autre téléphone y sont jouées chez leur joueur : ici on ne touche à rien pour elles.
  * - Sur un téléphone invité : [SkyjoActionGuestSection], qui affiche la table reçue et envoie les actions de l'invité à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun SkyjoActionScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: SkyjoActionOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != SKYJO_ACTION_ID) {
@@ -114,9 +113,7 @@ internal fun SkyjoActionScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(shown?.actor, shown?.roundOver, shown?.roundNumber, shown?.phase),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(shown?.actor, shown?.roundOver, shown?.roundNumber, shown?.phase)
         ) {
             SkyjoActionGuestSection(viewModel = viewModel, online = online, onLeave = onBack)
         }
@@ -130,9 +127,7 @@ internal fun SkyjoActionScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.actor, round.roundOver, round.roundNumber, round.phase),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.actor, round.roundOver, round.roundNumber, round.phase)
     ) {
         SkyjoActionSection(
             viewModel = viewModel,

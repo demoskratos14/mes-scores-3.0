@@ -43,14 +43,13 @@ private const val HAND_CARDS_PER_ROW = 7
  * - Sur un seul téléphone, ou sur celui de l'organisateur : [RamiHostSection], où l'on se passe le téléphone.
  * - Sur un téléphone invité : [RamiGuestSection], qui affiche la main du joueur à sa place et envoie ses actions à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun RamiScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: RamiOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != RAMI_ID) {
@@ -64,9 +63,7 @@ internal fun RamiScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(table?.current, table?.roundOver, table?.roundNumber, table?.drawing, online.mySeat),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(table?.current, table?.roundOver, table?.roundNumber, table?.drawing, online.mySeat)
         ) {
             RamiGuestSection(viewModel = viewModel, online = online)
         }
@@ -84,9 +81,7 @@ internal fun RamiScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber)
     ) {
         RamiHostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }

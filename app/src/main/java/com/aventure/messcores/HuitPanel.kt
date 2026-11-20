@@ -34,14 +34,13 @@ import androidx.compose.ui.unit.dp
  * - Sur un seul téléphone, ou sur celui de l'organisateur : [HuitHostSection], où l'on se passe le téléphone.
  * - Sur un téléphone invité : [HuitGuestSection], qui affiche la main du joueur à sa place et envoie ses actions à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun HuitScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: HuitOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != HUIT_ID) {
@@ -55,9 +54,7 @@ internal fun HuitScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(table?.current, table?.roundOver, table?.roundNumber, online.mySeat),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(table?.current, table?.roundOver, table?.roundNumber, online.mySeat)
         ) {
             HuitGuestSection(viewModel = viewModel, online = online)
         }
@@ -75,9 +72,7 @@ internal fun HuitScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber)
     ) {
         HuitHostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }

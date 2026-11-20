@@ -128,8 +128,7 @@ private val SHIP_NAMES = listOf(
 internal fun BattleshipScreen(
     viewModel: BattleshipViewModel,
     online: BattleshipOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     val rules = viewModel.rules
     val game = viewModel.game
@@ -198,8 +197,7 @@ internal fun BattleshipScreen(
                 game == null -> SettingsCard(
                     settings = viewModel.settings,
                     onChange = { viewModel.updateSettings(it) },
-                    onStart = { viewModel.start() },
-                    onPlayOnline = onHostOnline
+                    onStart = { viewModel.start() }
                 )
                 else -> LocalContent(viewModel = viewModel, game = game, onExit = {
                     viewModel.close()
@@ -306,8 +304,7 @@ private fun BackdropChoiceCard(
 private fun SettingsCard(
     settings: BattleshipSettings,
     onChange: (BattleshipSettings) -> Unit,
-    onStart: () -> Unit,
-    onPlayOnline: () -> Unit
+    onStart: () -> Unit
 ) {
     Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -331,9 +328,6 @@ private fun SettingsCard(
             }
             Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.bs_start))
-            }
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.bs_online_button))
             }
         }
     }

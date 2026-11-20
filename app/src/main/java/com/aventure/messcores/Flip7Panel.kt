@@ -40,14 +40,13 @@ private const val FLIP7_CARDS_PER_ROW = 7
  * - Sur un seul téléphone, ou sur celui de l'organisateur : [Flip7HostSection], où l'on se passe le téléphone.
  * - Sur un téléphone invité : [Flip7GuestSection], qui affiche la table et envoie les actions de l'invité à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun Flip7Screen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: Flip7Online,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != FLIP7_ID) {
@@ -61,9 +60,7 @@ internal fun Flip7Screen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(table?.roundNumber, table?.roundOver),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(table?.roundNumber, table?.roundOver)
         ) {
             Flip7GuestSection(viewModel = viewModel, online = online)
         }
@@ -81,9 +78,7 @@ internal fun Flip7Screen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.roundNumber, round.roundOver),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.roundNumber, round.roundOver)
     ) {
         Flip7HostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }

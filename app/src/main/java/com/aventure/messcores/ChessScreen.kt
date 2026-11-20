@@ -88,8 +88,7 @@ import kotlinx.coroutines.withContext
 internal fun ChessScreen(
     players: List<String>,
     online: ChessOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Le style de l'échiquier (classique ou sorcier) est un choix de chacun, retenu d'une fois sur l'autre : il ne change
@@ -116,7 +115,7 @@ internal fun ChessScreen(
             onExit()
         })
     } else {
-        LocalChess(players = players, wizard = wizard, onToggleStyle = toggleStyle, onPlayOnline = onHostOnline)
+        LocalChess(players = players, wizard = wizard, onToggleStyle = toggleStyle)
     }
 
     if (showQuit && online.active) {
@@ -143,7 +142,7 @@ internal fun ChessScreen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: () -> Unit, onPlayOnline: () -> Unit) {
+private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: () -> Unit) {
     val names = listOf(players.getOrElse(0) { "1" }, players.getOrElse(1) { "2" })
 
     // Tout est gardé quand l'écran tourne (la séance, voir ChessMatchSaver).
@@ -164,8 +163,6 @@ private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: ()
 
     val game = match.game
     val result = match.result
-    // Proposé tant que rien n'a été joué : passer à deux téléphones en pleine séance perdrait le score.
-    val fresh = match.moves.isEmpty() && match.wins0 + match.wins1 + match.draws == 0
 
     ChessCard {
         ChessTitle()
@@ -246,11 +243,6 @@ private fun LocalChess(players: List<String>, wizard: Boolean, onToggleStyle: ()
             Text(stringResource(R.string.chess_flip))
         }
         StyleButton(wizard = wizard, onToggle = onToggleStyle)
-        if (fresh) {
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.chess_online_button))
-            }
-        }
     }
 
     if (showResign) {

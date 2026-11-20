@@ -83,8 +83,7 @@ internal fun <M : DuoMatch<M>> DuoGameScreen(
     spec: DuoGameSpec<M>,
     players: List<String>,
     online: DuoOnline<M>,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Les couleurs choisies (0 : celle du jeu), gardées quand l'écran tourne.
@@ -113,7 +112,7 @@ internal fun <M : DuoMatch<M>> DuoGameScreen(
                 onExit()
             })
         } else {
-            LocalDuo(spec = spec, players = players, colors = colors, onPlayOnline = onHostOnline)
+            LocalDuo(spec = spec, players = players, colors = colors)
         }
     }
 
@@ -141,7 +140,7 @@ internal fun <M : DuoMatch<M>> DuoGameScreen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun <M : DuoMatch<M>> LocalDuo(spec: DuoGameSpec<M>, players: List<String>, colors: DuoColors, onPlayOnline: () -> Unit) {
+private fun <M : DuoMatch<M>> LocalDuo(spec: DuoGameSpec<M>, players: List<String>, colors: DuoColors) {
     val defaultA = stringResource(R.string.duo_player_default, 1)
     val defaultB = stringResource(R.string.duo_player_default, 2)
     val nameA = players.getOrElse(0) { defaultA }
@@ -178,11 +177,6 @@ private fun <M : DuoMatch<M>> LocalDuo(spec: DuoGameSpec<M>, players: List<Strin
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.duo_new_round))
-            }
-        }
-        if (fresh) {
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.duo_online_button))
             }
         }
     }

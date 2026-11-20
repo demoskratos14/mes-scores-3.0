@@ -56,8 +56,7 @@ import androidx.compose.ui.unit.sp
 internal fun Connect4Screen(
     players: List<String>,
     online: Connect4Online,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
@@ -76,7 +75,7 @@ internal fun Connect4Screen(
             onExit()
         })
     } else {
-        LocalConnect4(players = players, onPlayOnline = onHostOnline)
+        LocalConnect4(players = players)
     }
 
     if (showQuit && online.active) {
@@ -103,7 +102,7 @@ internal fun Connect4Screen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun LocalConnect4(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalConnect4(players: List<String>) {
     val nameRed = players.getOrElse(0) { stringResource(R.string.connect4_red) }
     val nameYellow = players.getOrElse(1) { stringResource(R.string.connect4_yellow) }
 
@@ -120,8 +119,6 @@ private fun LocalConnect4(players: List<String>, onPlayOnline: () -> Unit) {
     val full = Connect4.isFull(cells)
     val over = winner != 0 || full
     val current = Connect4.nextPlayer(cells, starter + 1)
-    // Proposé tant que rien n'a été joué : passer à deux téléphones en pleine séance perdrait le score.
-    val fresh = board == Connect4.EMPTY && winsRed + winsYellow + draws == 0
 
     fun play(column: Int) {
         val next = Connect4.drop(cells, column, current) ?: return
@@ -158,11 +155,6 @@ private fun LocalConnect4(players: List<String>, onPlayOnline: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.morpion_new_round))
-            }
-        }
-        if (fresh) {
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.morpion_online_button))
             }
         }
     }

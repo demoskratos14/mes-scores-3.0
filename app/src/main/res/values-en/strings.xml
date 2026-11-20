@@ -1559,7 +1559,6 @@
     <string name="share_problem_too_big">The game is too large to be sent to the other phone.</string>
 
     <!-- Mastermind chacun sur son téléphone -->
-    <string name="mm_online_button">Play on separate phones</string>
     <string name="mm_online_lobby_title">Players at the table</string>
     <string name="mm_online_you">%1$s (you)</string>
     <string name="mm_online_start">Start the game</string>
@@ -1606,8 +1605,6 @@
     <string name="room_leave_title">Leave the room?</string>
     <string name="room_leave_message">You will be disconnected from the host and the other players. You can join the room again.</string>
     <string name="room_problem_host_lost">The connection with the host is lost: you have left the room.</string>
-    <string name="playable_one_phone">One phone only</string>
-    <string name="playable_multi_phone">Can connect several phones</string>
     <string name="game_morpion">Tic-tac-toe</string>
     <string name="morpion_turn">%1$s\'s turn (%2$s)</string>
     <string name="morpion_win">%1$s wins the round!</string>
@@ -1617,7 +1614,6 @@
     <string name="morpion_cell_empty">Square %1$d, empty</string>
     <string name="morpion_cell_x">Square %1$d, cross</string>
     <string name="morpion_cell_o">Square %1$d, circle</string>
-    <string name="morpion_online_button">Play on separate phones</string>
     <string name="morpion_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
     <string name="morpion_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="morpion_online_host_left">The host disconnected: the game is over.</string>
@@ -1652,7 +1648,6 @@
     <string name="bs_backdrop_stars">Starry sky</string>
     <string name="bs_backdrop_continue">Continue</string>
     <string name="bs_start">Start</string>
-    <string name="bs_online_button">Play on separate phones</string>
     <string name="bs_quit_title">Quit the game?</string>
     <string name="bs_quit_message">The current Battleship game will be lost.</string>
     <string name="bs_quit_confirm">Quit</string>
@@ -1756,7 +1751,6 @@
     <string name="nim_score">%1$s: %2$d · %3$s: %4$d</string>
     <string name="nim_new_round">New round</string>
     <string name="nim_take_hint">Take 1, 2 or 3 matches. Whoever takes the last one loses!</string>
-    <string name="nim_online_button">Play on separate phones</string>
     <string name="nim_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
     <string name="nim_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="nim_online_host_left">The host disconnected: the game is over.</string>
@@ -1795,7 +1789,6 @@
     <string name="pfc_match_win">%1$s wins the game!</string>
     <string name="pfc_next_round">Next round</string>
     <string name="pfc_new_match">New game</string>
-    <string name="pfc_online_button">Play on separate phones</string>
     <string name="pfc_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
     <string name="pfc_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="pfc_online_host_left">The host disconnected: the game is over.</string>
@@ -1853,7 +1846,6 @@
     <string name="duo_win">%1$s wins the round!</string>
     <string name="duo_draw">Draw</string>
     <string name="duo_new_round">New round</string>
-    <string name="duo_online_button">Play on separate phones</string>
     <string name="duo_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
     <string name="duo_online_notice_left">The other player has disconnected. You can wait for a phone to join the game again.</string>
     <string name="duo_online_host_left">The host has disconnected: the game is over.</string>
@@ -1891,7 +1883,6 @@
     <string name="draughts_cell_man_black">Square %1$d, black man</string>
     <string name="draughts_cell_king_white">Square %1$d, white king</string>
     <string name="draughts_cell_king_black">Square %1$d, black king</string>
-    <string name="draughts_online_button">Play on separate phones</string>
     <string name="draughts_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
     <string name="draughts_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="draughts_online_host_left">The host disconnected: the game is over.</string>
@@ -1926,7 +1917,6 @@
     <string name="othello_cell_hint">Square %1$s%2$d, possible move</string>
     <string name="othello_cell_black">Square %1$s%2$d, black disc</string>
     <string name="othello_cell_white">Square %1$s%2$d, white disc</string>
-    <string name="othello_online_button">Play on separate phones</string>
     <string name="othello_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
     <string name="othello_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="othello_online_host_left">The host disconnected: the game is over.</string>
@@ -1950,7 +1940,6 @@
     <string name="rules_hangman_4_body">On a single phone, it is passed from hand to hand and the screen hides while the word is being chosen. On separate phones, the word never leaves the phone of the player who chose it: the other one sends letters and gets their positions back as an answer. The word is only revealed at the end of the round, and the app then checks that the answers were honest.</string>
     <string name="hg_setting_mistakes">Mistakes allowed: %1$d</string>
     <string name="hg_start">Start</string>
-    <string name="hg_online_button">Play on separate phones</string>
     <string name="hg_quit_title">Quit the game?</string>
     <string name="hg_quit_message">The current Hangman game will be lost.</string>
     <string name="hg_quit_confirm">Quit</string>
@@ -2032,7 +2021,6 @@
     <string name="chess_style_to_classic">Switch to classic style</string>
     <string name="chess_explore_on">Explore the board (zoom, rotate, move)</string>
     <string name="chess_explore_off">Stop exploring the board</string>
-    <string name="chess_online_button">Play on separate phones</string>
     <string name="chess_online_waiting">Waiting for the other player… On the other phone, tap “Join a game”.</string>
     <string name="chess_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="chess_online_host_left">The host disconnected: the game is over.</string>
@@ -2171,7 +2159,6 @@
     <string name="reflex_zone_early">Too early!</string>
     <string name="reflex_zone_lose">Lost</string>
     <string name="reflex_zone_lose_ms">Lost · %1$d ms</string>
-    <string name="reflex_online_button">Play on separate phones</string>
     <string name="reflex_online_waiting">Waiting for the other players… On the other phones, tap “Join a game”.</string>
     <string name="reflex_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="reflex_online_host_left">The host disconnected: the game is over.</string>
@@ -2588,7 +2575,6 @@
     <string name="circles_level_hard">Hard</string>
     <string name="circles_hard_hint">Skulls booby-trap the screen: touch one and your streak ends. They vanish together with the circle.</string>
     <string name="circles_skull_hit">%1$s touched a skull! Streak: %2$d.</string>
-    <string name="circles_online_button">Play on separate phones</string>
     <string name="circles_online_waiting">Waiting for the other players… On the other phones, tap “Join a game”.</string>
     <string name="circles_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="circles_online_notice_left_some">A player left the game.</string>
@@ -2653,7 +2639,6 @@
     <string name="simon_turns_winner">%1$s wins: last one standing!</string>
     <string name="simon_turns_reached">Longest sequence repeated: %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
-    <string name="simon_online_button">Play on separate phones</string>
     <string name="simon_online_waiting">Waiting for the other players… On the other phones, tap “Join a game”.</string>
     <string name="simon_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="simon_online_notice_left_some">A player left the game.</string>
@@ -2850,7 +2835,6 @@
     <string name="emoji_over_title">Time’s up!</string>
     <string name="emoji_over_levels">Levels cleared: %1$d</string>
     <string name="emoji_new_game">Play again</string>
-    <string name="emoji_online_button">Play on separate phones</string>
     <string name="emoji_online_waiting">Waiting for the other players… On the other phones, tap “Join a game”.</string>
     <string name="emoji_online_notice_left">The other player disconnected. You can wait for a phone to join the game again.</string>
     <string name="emoji_online_notice_left_some">A player left the game: the current round is cancelled.</string>

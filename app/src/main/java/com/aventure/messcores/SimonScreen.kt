@@ -123,8 +123,7 @@ private val IntListSaver = listSaver<List<Int>, Int>(save = { it }, restore = { 
 internal fun SimonScreen(
     players: List<String>,
     online: SimonOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à plusieurs téléphones, le retour système quitte simplement l'écran.
@@ -143,7 +142,7 @@ internal fun SimonScreen(
             onExit()
         })
     } else {
-        LocalSimon(players = players, onPlayOnline = onHostOnline)
+        LocalSimon(players = players)
     }
 
     if (showQuit && online.active) {
@@ -167,16 +166,15 @@ internal fun SimonScreen(
     }
 }
 
-/** Simon sur un seul téléphone qu'on se passe : seul, ou à plusieurs avec le choix du mode. [onPlayOnline] ouvre une table pour jouer chacun sur son téléphone. */
+/** Simon sur un seul téléphone qu'on se passe : seul, ou à plusieurs avec le choix du mode. */
 @Composable
-private fun LocalSimon(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalSimon(players: List<String>) {
     val names = players.take(Simon.MAX_PLAYERS).ifEmpty { listOf("1") }
     var mode by rememberSaveable { mutableIntStateOf(if (names.size >= 2) MODE_MENU else MODE_SERIES) }
     when (mode) {
         MODE_SERIES -> SimonSeries(
             names = names,
-            onChangeMode = if (names.size >= 2) ({ mode = MODE_MENU }) else null,
-            onPlayOnline = onPlayOnline
+            onChangeMode = if (names.size >= 2) ({ mode = MODE_MENU }) else null
         )
         MODE_TURNS -> SimonTurnsMode(names = names, onChangeMode = { mode = MODE_MENU })
         else -> SimonCard {
@@ -203,16 +201,13 @@ private fun LocalSimon(players: List<String>, onPlayOnline: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.simon_online_button))
-            }
         }
     }
 }
 
 /** Le mode « chacun sa série » : chacun joue sa série à son tour, avec sa propre suite, puis on compare les scores. */
 @Composable
-private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?, onPlayOnline: () -> Unit) {
+private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?) {
     var scores by rememberSaveable(stateSaver = IntListSaver) { mutableStateOf(listOf<Int>()) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var lastScore by rememberSaveable { mutableIntStateOf(0) }
@@ -278,12 +273,6 @@ private fun SimonSeries(names: List<String>, onChangeMode: (() -> Unit)?, onPlay
                 }
                 Button(onClick = { phase = PHASE_PLAYING }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.simon_go))
-                }
-                // Avant la première série, on peut aussi ouvrir une table pour jouer chacun sur son téléphone.
-                if (scores.isEmpty()) {
-                    OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.simon_online_button))
-                    }
                 }
             }
         }

@@ -81,14 +81,13 @@ private fun rememberUnoLabels(): UnoLabels = UnoLabels(
  * - Sur un seul téléphone, ou sur celui de l'organisateur : [UnoHostSection], où l'on se passe le téléphone.
  * - Sur un téléphone invité : [UnoGuestSection], qui affiche la main du joueur à sa place et envoie ses actions à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun UnoScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: UnoOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != UNO_ID) {
@@ -102,9 +101,7 @@ internal fun UnoScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(table?.current, table?.roundOver, table?.roundNumber, online.mySeat),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(table?.current, table?.roundOver, table?.roundNumber, online.mySeat)
         ) {
             UnoGuestSection(viewModel = viewModel, online = online)
         }
@@ -122,9 +119,7 @@ internal fun UnoScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber)
     ) {
         UnoHostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }

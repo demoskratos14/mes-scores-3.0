@@ -1585,7 +1585,6 @@
     <string name="share_problem_too_big">La partida es demasiado grande para enviarla al otro teléfono.</string>
 
     <!-- Mastermind chacun sur son téléphone -->
-    <string name="mm_online_button">Jugar cada uno en su teléfono</string>
     <string name="mm_online_lobby_title">Jugadores en la mesa</string>
     <string name="mm_online_you">%1$s (tú)</string>
     <string name="mm_online_start">Empezar la partida</string>
@@ -1632,8 +1631,6 @@
     <string name="room_leave_title">¿Salir de la sala?</string>
     <string name="room_leave_message">Te desconectarás del organizador y de los demás jugadores. Podrás volver a unirte a la sala.</string>
     <string name="room_problem_host_lost">Se ha perdido la conexión con el organizador: has salido de la sala.</string>
-    <string name="playable_one_phone">Un solo teléfono</string>
-    <string name="playable_multi_phone">Se pueden conectar varios teléfonos</string>
     <string name="game_morpion">Tres en raya</string>
     <string name="morpion_turn">Turno de %1$s (%2$s)</string>
     <string name="morpion_win">¡%1$s gana la ronda!</string>
@@ -1643,7 +1640,6 @@
     <string name="morpion_cell_empty">Casilla %1$d, vacía</string>
     <string name="morpion_cell_x">Casilla %1$d, cruz</string>
     <string name="morpion_cell_o">Casilla %1$d, círculo</string>
-    <string name="morpion_online_button">Jugar cada uno en su teléfono</string>
     <string name="morpion_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="morpion_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
     <string name="morpion_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
@@ -1678,7 +1674,6 @@
     <string name="bs_backdrop_stars">Cielo estrellado</string>
     <string name="bs_backdrop_continue">Continuar</string>
     <string name="bs_start">Empezar</string>
-    <string name="bs_online_button">Jugar cada uno en su teléfono</string>
     <string name="bs_quit_title">¿Salir de la partida?</string>
     <string name="bs_quit_message">Se perderá la partida de Hundir la flota en curso.</string>
     <string name="bs_quit_confirm">Salir</string>
@@ -1782,7 +1777,6 @@
     <string name="nim_score">%1$s: %2$d · %3$s: %4$d</string>
     <string name="nim_new_round">Nueva ronda</string>
     <string name="nim_take_hint">Retira 1, 2 o 3 cerillas. ¡El que coge la última pierde!</string>
-    <string name="nim_online_button">Jugar cada uno en su teléfono</string>
     <string name="nim_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="nim_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
     <string name="nim_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
@@ -1823,7 +1817,6 @@
     <string name="pfc_match_win">¡%1$s gana la partida!</string>
     <string name="pfc_next_round">Ronda siguiente</string>
     <string name="pfc_new_match">Nueva partida</string>
-    <string name="pfc_online_button">Jugar cada uno en su teléfono</string>
     <string name="pfc_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="pfc_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono se una de nuevo a la partida.</string>
     <string name="pfc_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
@@ -1881,7 +1874,6 @@
     <string name="duo_win">¡%1$s gana la ronda!</string>
     <string name="duo_draw">Empate</string>
     <string name="duo_new_round">Nueva ronda</string>
-    <string name="duo_online_button">Jugar cada uno en su teléfono</string>
     <string name="duo_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="duo_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
     <string name="duo_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
@@ -1919,7 +1911,6 @@
     <string name="draughts_cell_man_black">Casilla %1$d, peón negro</string>
     <string name="draughts_cell_king_white">Casilla %1$d, dama blanca</string>
     <string name="draughts_cell_king_black">Casilla %1$d, dama negra</string>
-    <string name="draughts_online_button">Jugar cada uno en su teléfono</string>
     <string name="draughts_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="draughts_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
     <string name="draughts_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
@@ -1954,7 +1945,6 @@
     <string name="othello_cell_hint">Casilla %1$s%2$d, jugada posible</string>
     <string name="othello_cell_black">Casilla %1$s%2$d, ficha negra</string>
     <string name="othello_cell_white">Casilla %1$s%2$d, ficha blanca</string>
-    <string name="othello_online_button">Jugar cada uno en su teléfono</string>
     <string name="othello_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="othello_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
     <string name="othello_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
@@ -1978,7 +1968,6 @@
     <string name="rules_hangman_4_body">Con un solo teléfono, este pasa de mano en mano y la pantalla se oculta mientras se elige la palabra. Cada uno en su teléfono, la palabra nunca sale del teléfono de quien la eligió: el otro envía letras y recibe su posición como respuesta. La palabra solo se revela al final de la ronda, y entonces la app comprueba que las respuestas fueran honestas.</string>
     <string name="hg_setting_mistakes">Errores permitidos: %1$d</string>
     <string name="hg_start">Empezar</string>
-    <string name="hg_online_button">Jugar cada uno en su teléfono</string>
     <string name="hg_quit_title">¿Salir de la partida?</string>
     <string name="hg_quit_message">Se perderá la partida en curso.</string>
     <string name="hg_quit_confirm">Salir</string>
@@ -2060,7 +2049,6 @@
     <string name="chess_style_to_classic">Cambiar al estilo clásico</string>
     <string name="chess_explore_on">Explorar el tablero (zoom, giro, desplazamiento)</string>
     <string name="chess_explore_off">Dejar de explorar el tablero</string>
-    <string name="chess_online_button">Jugar cada uno en su teléfono</string>
     <string name="chess_online_waiting">Esperando al otro jugador… En el otro teléfono, toca «Unirse a una partida».</string>
     <string name="chess_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono vuelva a unirse a la partida.</string>
     <string name="chess_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
@@ -2201,7 +2189,6 @@
     <string name="reflex_zone_early">¡Demasiado pronto!</string>
     <string name="reflex_zone_lose">Pierdes</string>
     <string name="reflex_zone_lose_ms">Pierdes · %1$d ms</string>
-    <string name="reflex_online_button">Jugar cada uno en su teléfono</string>
     <string name="reflex_online_waiting">Esperando a los demás jugadores… En los otros teléfonos, toca «Unirse a una partida».</string>
     <string name="reflex_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono se una de nuevo a la partida.</string>
     <string name="reflex_online_host_left">El organizador se ha desconectado: la partida ha terminado.</string>
@@ -2619,7 +2606,6 @@
     <string name="circles_level_hard">Difícil</string>
     <string name="circles_hard_hint">Hay calaveras trampa en la pantalla: si tocas una, la racha termina. Desaparecen junto con el círculo.</string>
     <string name="circles_skull_hit">¡%1$s ha tocado una calavera! Racha: %2$d.</string>
-    <string name="circles_online_button">Jugar cada uno en su teléfono</string>
     <string name="circles_online_waiting">Esperando a los demás jugadores… En los otros teléfonos, toca «Unirse a una partida».</string>
     <string name="circles_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono se una de nuevo a la partida.</string>
     <string name="circles_online_notice_left_some">Un jugador ha abandonado la partida.</string>
@@ -2684,7 +2670,6 @@
     <string name="simon_turns_winner">¡%1$s gana: último en juego!</string>
     <string name="simon_turns_reached">Secuencia más larga repetida: %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
-    <string name="simon_online_button">Jugar cada uno en su teléfono</string>
     <string name="simon_online_waiting">Esperando a los demás jugadores… En los otros teléfonos, toca «Unirse a una partida».</string>
     <string name="simon_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono se una de nuevo a la partida.</string>
     <string name="simon_online_notice_left_some">Un jugador ha abandonado la partida.</string>
@@ -2881,7 +2866,6 @@
     <string name="emoji_over_title">¡Se acabó el tiempo!</string>
     <string name="emoji_over_levels">Niveles superados: %1$d</string>
     <string name="emoji_new_game">Volver a jugar</string>
-    <string name="emoji_online_button">Jugar cada uno en su teléfono</string>
     <string name="emoji_online_waiting">Esperando a los demás jugadores… En los otros teléfonos, toca «Unirse a una partida».</string>
     <string name="emoji_online_notice_left">El otro jugador se ha desconectado. Puedes esperar a que un teléfono se una de nuevo a la partida.</string>
     <string name="emoji_online_notice_left_some">Un jugador ha salido de la partida: la ronda en curso se anula.</string>

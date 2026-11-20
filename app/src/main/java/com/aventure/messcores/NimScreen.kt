@@ -62,8 +62,7 @@ import kotlinx.coroutines.launch
 internal fun NimScreen(
     players: List<String>,
     online: NimOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
@@ -82,7 +81,7 @@ internal fun NimScreen(
             onExit()
         })
     } else {
-        LocalNim(players = players, onPlayOnline = onHostOnline)
+        LocalNim(players = players)
     }
 
     if (showQuit && online.active) {
@@ -109,7 +108,7 @@ internal fun NimScreen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun LocalNim(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalNim(players: List<String>) {
     val name1 = players.getOrElse(0) { "1" }
     val name2 = players.getOrElse(1) { "2" }
 
@@ -122,8 +121,6 @@ private fun LocalNim(players: List<String>, onPlayOnline: () -> Unit) {
     var wins2 by rememberSaveable { mutableIntStateOf(0) }
 
     val match = NimMatch(remaining, turn, starter, loser, wins1, wins2)
-    // Proposé tant que rien n'a été joué : passer à deux téléphones en pleine séance perdrait le score.
-    val fresh = match == NimMatch()
 
     fun applyMatch(next: NimMatch) {
         remaining = next.remaining
@@ -163,11 +160,6 @@ private fun LocalNim(players: List<String>, onPlayOnline: () -> Unit) {
             }
         } else {
             TakeButtons(remaining = match.remaining, enabled = true, onTake = { count -> match.play(count, match.turn)?.let(::applyMatch) })
-        }
-        if (fresh) {
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.nim_online_button))
-            }
         }
     }
 }

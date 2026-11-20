@@ -58,8 +58,7 @@ private val DiscWhite = Color(0xFFF5F5F5)
 internal fun OthelloScreen(
     players: List<String>,
     online: OthelloOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
@@ -78,7 +77,7 @@ internal fun OthelloScreen(
             onExit()
         })
     } else {
-        LocalOthello(players = players, onPlayOnline = onHostOnline)
+        LocalOthello(players = players)
     }
 
     if (showQuit && online.active) {
@@ -105,13 +104,11 @@ internal fun OthelloScreen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun LocalOthello(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalOthello(players: List<String>) {
     val names = listOf(players.getOrElse(0) { "1" }, players.getOrElse(1) { "2" })
 
     // Toute la séance est gardée quand l'écran tourne (voir OthelloMatch.encode).
     var match by rememberSaveable(stateSaver = OthelloMatchSaver) { mutableStateOf(OthelloMatch()) }
-    // Proposé tant que rien n'a été joué : passer à deux téléphones en pleine séance perdrait le score.
-    val fresh = match == OthelloMatch()
 
     OthelloCard {
         OthelloTitle()
@@ -125,11 +122,6 @@ private fun LocalOthello(players: List<String>, onPlayOnline: () -> Unit) {
         if (match.isOver) {
             Button(onClick = { match.newRound()?.let { match = it } }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.othello_new_round))
-            }
-        }
-        if (fresh) {
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.othello_online_button))
             }
         }
     }

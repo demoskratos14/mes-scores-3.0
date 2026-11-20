@@ -78,14 +78,13 @@ internal const val TRIO_RATIO = 324f / 489f
  *   par un autre téléphone y sont jouées chez leur joueur : ici on ne touche à rien pour elles.
  * - Sur un téléphone invité : [TrioGuestSection], qui affiche la table reçue et envoie les actions de l'invité à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun TrioScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: TrioOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != TRIO_ID) {
@@ -99,9 +98,7 @@ internal fun TrioScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(shown?.current, shown?.roundOver, shown?.roundNumber, shown?.mismatch, shown?.lastTrio),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(shown?.current, shown?.roundOver, shown?.roundNumber, shown?.mismatch, shown?.lastTrio)
         ) {
             TrioGuestSection(viewModel = viewModel, online = online, onLeave = onBack)
         }
@@ -116,9 +113,7 @@ internal fun TrioScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.shown, round.roundOver, round.roundNumber, round.mismatch, round.lastTrio),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.shown, round.roundOver, round.roundNumber, round.mismatch, round.lastTrio)
     ) {
         TrioSection(
             viewModel = viewModel,

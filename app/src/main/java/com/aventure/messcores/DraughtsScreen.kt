@@ -58,8 +58,7 @@ import org.json.JSONObject
 internal fun DraughtsScreen(
     players: List<String>,
     online: DraughtsOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
@@ -78,7 +77,7 @@ internal fun DraughtsScreen(
             onExit()
         })
     } else {
-        LocalDraughts(players = players, onPlayOnline = onHostOnline)
+        LocalDraughts(players = players)
     }
 
     if (showQuit && online.active) {
@@ -111,12 +110,10 @@ private val DraughtsMatchSaver = Saver<DraughtsMatch, String>(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun LocalDraughts(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalDraughts(players: List<String>) {
     val names = listOf(players.getOrElse(0) { "1" }, players.getOrElse(1) { "2" })
     var match by rememberSaveable(stateSaver = DraughtsMatchSaver) { mutableStateOf(DraughtsMatch()) }
     var showResign by rememberSaveable { mutableStateOf(false) }
-    // Proposé tant que rien n'a été joué : passer à deux téléphones en pleine séance perdrait le score.
-    val fresh = match == DraughtsMatch()
 
     DraughtsCard {
         DraughtsTitle()
@@ -143,11 +140,6 @@ private fun LocalDraughts(players: List<String>, onPlayOnline: () -> Unit) {
         } else {
             OutlinedButton(onClick = { showResign = true }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.draughts_resign))
-            }
-        }
-        if (fresh) {
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.draughts_online_button))
             }
         }
     }

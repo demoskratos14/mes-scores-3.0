@@ -43,14 +43,13 @@ internal fun BarbuContract.labelRes(): Int = when (this) {
  * - Sur un seul téléphone, ou sur celui de l'organisateur : [BarbuHostSection], où l'on se passe le téléphone.
  * - Sur un téléphone invité : [BarbuGuestSection], qui affiche la main du joueur à sa place et envoie ses actions à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun BarbuScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: BarbuOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != BARBU_ID) {
@@ -64,9 +63,7 @@ internal fun BarbuScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(table?.current, table?.phase, table?.roundNumber, table?.roundOver, table?.trickDone, online.mySeat),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(table?.current, table?.phase, table?.roundNumber, table?.roundOver, table?.trickDone, online.mySeat)
         ) {
             BarbuGuestSection(viewModel = viewModel, online = online)
         }
@@ -84,9 +81,7 @@ internal fun BarbuScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber, round.trickDone, round.phase),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber, round.trickDone, round.phase)
     ) {
         BarbuHostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }

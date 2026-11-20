@@ -41,14 +41,13 @@ import androidx.compose.ui.unit.dp
  * - Sur un seul téléphone, ou sur celui de l'organisateur : [TarotHostSection], où l'on se passe le téléphone.
  * - Sur un téléphone invité : [TarotGuestSection], qui affiche la main du joueur à sa place et envoie ses actions à l'organisateur.
  *
- * « Retour » quitte la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » quitte la partie ([onBack]).
  */
 @Composable
 internal fun TarotScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: TarotOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != TAROT_ID) {
@@ -62,9 +61,7 @@ internal fun TarotScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(table?.current, table?.phase, table?.roundNumber, table?.roundOver, table?.trickDone, online.mySeat),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(table?.current, table?.phase, table?.roundNumber, table?.roundOver, table?.trickDone, online.mySeat)
         ) {
             TarotGuestSection(viewModel = viewModel, online = online)
         }
@@ -87,9 +84,7 @@ internal fun TarotScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber, round.trickDone, round.phase, round.dealer),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber, round.trickDone, round.phase, round.dealer)
     ) {
         TarotHostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }

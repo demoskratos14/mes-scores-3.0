@@ -70,7 +70,7 @@ internal fun writeRoundPoints(viewModel: ScoreViewModel, points: List<Int>): Boo
 
 /**
  * Le cadre de l'écran d'un jeu de cartes jouable : « Retour », la rubrique, le nom du jeu avec son bouton de règles, puis le
- * contenu du jeu dans une zone qui défile. [onOpenShare] : le bouton de partage entre téléphones, pour les jeux qui le permettent ([shareActive] quand un autre téléphone est connecté). [scrollKeys] : quand l'une de ces valeurs change (autre joueur, nouvelle manche,
+ * contenu du jeu dans une zone qui défile. [scrollKeys] : quand l'une de ces valeurs change (autre joueur, nouvelle manche,
  * main dévoilée), la page remonte en haut.
  */
 @Composable
@@ -78,8 +78,6 @@ internal fun CardGameScreen(
     viewModel: ScoreViewModel,
     onBack: () -> Unit,
     scrollKeys: List<Any?>,
-    onOpenShare: (() -> Unit)? = null,
-    shareActive: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val rules = viewModel.gameRules
@@ -111,11 +109,6 @@ internal fun CardGameScreen(
             )
             Spacer(modifier = Modifier.width(10.dp))
             RulesButton(rules = rules)
-        }
-        // Les jeux qui se jouent aussi chacun sur son téléphone (Président) proposent le partage, comme les jeux de dés.
-        if (onOpenShare != null) {
-            Spacer(modifier = Modifier.height(6.dp))
-            ShareButton(active = shareActive, onClick = onOpenShare)
         }
         Spacer(modifier = Modifier.height(12.dp))
         Column(

@@ -31,14 +31,13 @@ import androidx.compose.ui.unit.dp
  * - Sur un seul téléphone, ou sur celui de l'organisateur : [PresidentHostSection], où l'on se passe le téléphone.
  * - Sur un téléphone invité : [PresidentGuestSection], qui affiche la main du joueur à sa place et envoie ses actions à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun PresidentScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: PresidentOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != PRESIDENT_ID) {
@@ -52,9 +51,7 @@ internal fun PresidentScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(table?.current, table?.phase, table?.roundNumber, online.mySeat),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(table?.current, table?.phase, table?.roundNumber, online.mySeat)
         ) {
             PresidentGuestSection(viewModel = viewModel, online = online)
         }
@@ -71,9 +68,7 @@ internal fun PresidentScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.phase, round.roundNumber),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.revealed, round.phase, round.roundNumber)
     ) {
         PresidentHostSection(viewModel = viewModel, round = round, online = online, onLeave = onBack)
     }

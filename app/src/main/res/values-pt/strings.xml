@@ -1585,7 +1585,6 @@
     <string name="share_problem_too_big">O jogo é demasiado grande para ser enviado ao outro telemóvel.</string>
 
     <!-- Mastermind chacun sur son téléphone -->
-    <string name="mm_online_button">Jogar cada um no seu telemóvel</string>
     <string name="mm_online_lobby_title">Jogadores à mesa</string>
     <string name="mm_online_you">%1$s (tu)</string>
     <string name="mm_online_start">Iniciar o jogo</string>
@@ -1632,8 +1631,6 @@
     <string name="room_leave_title">Sair da sala?</string>
     <string name="room_leave_message">Vais ficar desligado do organizador e dos outros jogadores. Podes voltar a entrar na sala.</string>
     <string name="room_problem_host_lost">A ligação ao organizador perdeu-se: saíste da sala.</string>
-    <string name="playable_one_phone">Um só telemóvel</string>
-    <string name="playable_multi_phone">Podem ligar-se vários telemóveis</string>
     <string name="game_morpion">Jogo do galo</string>
     <string name="morpion_turn">Vez de %1$s (%2$s)</string>
     <string name="morpion_win">%1$s ganha a ronda!</string>
@@ -1643,7 +1640,6 @@
     <string name="morpion_cell_empty">Casa %1$d, vazia</string>
     <string name="morpion_cell_x">Casa %1$d, cruz</string>
     <string name="morpion_cell_o">Casa %1$d, círculo</string>
-    <string name="morpion_online_button">Jogar cada um no seu telemóvel</string>
     <string name="morpion_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
     <string name="morpion_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a entrar na partida.</string>
     <string name="morpion_online_host_left">O organizador desligou-se: a partida terminou.</string>
@@ -1678,7 +1674,6 @@
     <string name="bs_backdrop_stars">Céu estrelado</string>
     <string name="bs_backdrop_continue">Continuar</string>
     <string name="bs_start">Começar</string>
-    <string name="bs_online_button">Jogar cada um no seu telemóvel</string>
     <string name="bs_quit_title">Sair do jogo?</string>
     <string name="bs_quit_message">O jogo de Batalha naval em curso será perdido.</string>
     <string name="bs_quit_confirm">Sair</string>
@@ -1782,7 +1777,6 @@
     <string name="nim_score">%1$s: %2$d · %3$s: %4$d</string>
     <string name="nim_new_round">Nova ronda</string>
     <string name="nim_take_hint">Tira 1, 2 ou 3 fósforos. Quem tirar o último perde!</string>
-    <string name="nim_online_button">Jogar cada um no seu telemóvel</string>
     <string name="nim_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
     <string name="nim_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a entrar na partida.</string>
     <string name="nim_online_host_left">O organizador desligou-se: a partida terminou.</string>
@@ -1823,7 +1817,6 @@
     <string name="pfc_match_win">%1$s ganha o jogo!</string>
     <string name="pfc_next_round">Ronda seguinte</string>
     <string name="pfc_new_match">Novo jogo</string>
-    <string name="pfc_online_button">Jogar cada um no seu telemóvel</string>
     <string name="pfc_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
     <string name="pfc_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a juntar-se ao jogo.</string>
     <string name="pfc_online_host_left">O organizador desligou-se: o jogo terminou.</string>
@@ -1881,7 +1874,6 @@
     <string name="duo_win">%1$s ganha a ronda!</string>
     <string name="duo_draw">Empate</string>
     <string name="duo_new_round">Nova ronda</string>
-    <string name="duo_online_button">Jogar cada um no seu telemóvel</string>
     <string name="duo_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
     <string name="duo_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a juntar-se ao jogo.</string>
     <string name="duo_online_host_left">O organizador desligou-se: o jogo terminou.</string>
@@ -1919,7 +1911,6 @@
     <string name="draughts_cell_man_black">Casa %1$d, peão preto</string>
     <string name="draughts_cell_king_white">Casa %1$d, dama branca</string>
     <string name="draughts_cell_king_black">Casa %1$d, dama preta</string>
-    <string name="draughts_online_button">Jogar cada um no seu telemóvel</string>
     <string name="draughts_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
     <string name="draughts_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a entrar na partida.</string>
     <string name="draughts_online_host_left">O organizador desligou-se: a partida terminou.</string>
@@ -1954,7 +1945,6 @@
     <string name="othello_cell_hint">Casa %1$s%2$d, jogada possível</string>
     <string name="othello_cell_black">Casa %1$s%2$d, peça preta</string>
     <string name="othello_cell_white">Casa %1$s%2$d, peça branca</string>
-    <string name="othello_online_button">Jogar cada um no seu telemóvel</string>
     <string name="othello_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
     <string name="othello_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a juntar-se ao jogo.</string>
     <string name="othello_online_host_left">O organizador desligou-se: o jogo terminou.</string>
@@ -1978,7 +1968,6 @@
     <string name="rules_hangman_4_body">Com um só telemóvel, este passa de mão em mão e o ecrã esconde-se enquanto se escolhe a palavra. Cada um no seu telemóvel, a palavra nunca sai do telemóvel de quem a escolheu: o outro envia letras e recebe a sua posição como resposta. A palavra só é revelada no fim da ronda, e a app verifica então que as respostas eram honestas.</string>
     <string name="hg_setting_mistakes">Erros permitidos: %1$d</string>
     <string name="hg_start">Começar</string>
-    <string name="hg_online_button">Jogar cada um no seu telemóvel</string>
     <string name="hg_quit_title">Sair do jogo?</string>
     <string name="hg_quit_message">O jogo da forca em curso será perdido.</string>
     <string name="hg_quit_confirm">Sair</string>
@@ -2060,7 +2049,6 @@
     <string name="chess_style_to_classic">Mudar para o estilo clássico</string>
     <string name="chess_explore_on">Explorar o tabuleiro (zoom, rotação, deslocamento)</string>
     <string name="chess_explore_off">Sair da exploração do tabuleiro</string>
-    <string name="chess_online_button">Jogar cada um no seu telemóvel</string>
     <string name="chess_online_waiting">À espera do outro jogador… No outro telemóvel, toca em «Juntar-se a um jogo».</string>
     <string name="chess_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a entrar na partida.</string>
     <string name="chess_online_host_left">O organizador desligou-se: a partida terminou.</string>
@@ -2201,7 +2189,6 @@
     <string name="reflex_zone_early">Cedo demais!</string>
     <string name="reflex_zone_lose">Perdeu</string>
     <string name="reflex_zone_lose_ms">Perdeu · %1$d ms</string>
-    <string name="reflex_online_button">Jogar cada um no seu telemóvel</string>
     <string name="reflex_online_waiting">À espera dos outros jogadores… Nos outros telemóveis, toca em «Juntar-se a um jogo».</string>
     <string name="reflex_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a juntar-se ao jogo.</string>
     <string name="reflex_online_host_left">O organizador desligou-se: o jogo terminou.</string>
@@ -2619,7 +2606,6 @@
     <string name="circles_level_hard">Difícil</string>
     <string name="circles_hard_hint">Caveiras armadilha enchem o ecrã: se tocar numa, a sequência termina. Desaparecem com o círculo.</string>
     <string name="circles_skull_hit">%1$s tocou numa caveira! Sequência: %2$d.</string>
-    <string name="circles_online_button">Jogar cada um no seu telemóvel</string>
     <string name="circles_online_waiting">A aguardar os outros jogadores… Nos outros telemóveis, toca em «Juntar-se a um jogo».</string>
     <string name="circles_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a juntar-se ao jogo.</string>
     <string name="circles_online_notice_left_some">Um jogador saiu do jogo.</string>
@@ -2684,7 +2670,6 @@
     <string name="simon_turns_winner">%1$s ganha: último em jogo!</string>
     <string name="simon_turns_reached">Sequência mais longa repetida: %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
-    <string name="simon_online_button">Jogar cada um no seu telemóvel</string>
     <string name="simon_online_waiting">A aguardar os outros jogadores… Nos outros telemóveis, toca em «Juntar-se a um jogo».</string>
     <string name="simon_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a juntar-se ao jogo.</string>
     <string name="simon_online_notice_left_some">Um jogador saiu do jogo.</string>
@@ -2881,7 +2866,6 @@
     <string name="emoji_over_title">O tempo acabou!</string>
     <string name="emoji_over_levels">Níveis superados: %1$d</string>
     <string name="emoji_new_game">Jogar de novo</string>
-    <string name="emoji_online_button">Jogar cada um no seu telemóvel</string>
     <string name="emoji_online_waiting">A aguardar os outros jogadores… Nos outros telemóveis, toca em «Juntar-se a um jogo».</string>
     <string name="emoji_online_notice_left">O outro jogador desligou-se. Podes esperar que um telemóvel volte a entrar na partida.</string>
     <string name="emoji_online_notice_left_some">Um jogador saiu da partida: a ronda em curso é anulada.</string>

@@ -538,142 +538,56 @@ fun ScoreApp(
                 BattleshipScreen(
                     viewModel = battleshipViewModel,
                     online = battleshipOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareBattleship") }
-                )
-            }
-            composable("shareBattleship") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.BATTLESHIP,
-                    battleship = battleshipOnline,
-                    battleshipSettings = battleshipViewModel.settings,
-                    // La salle d'attente du touché coulé est l'écran du jeu, juste derrière.
-                    onHostedBattleship = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("morpion") {
                 TicTacToeScreen(
                     players = pendingPlayerNames,
                     online = ticTacToeOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareMorpion") }
-                )
-            }
-            composable("shareMorpion") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.MORPION,
-                    ticTacToe = ticTacToeOnline,
-                    // La table du Morpion est l'écran du jeu, juste derrière.
-                    onHostedTicTacToe = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("connect4") {
                 Connect4Screen(
                     players = pendingPlayerNames,
                     online = connect4Online,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareConnect4") }
-                )
-            }
-            composable("shareConnect4") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.CONNECT4,
-                    connect4 = connect4Online,
-                    // La table du Puissance 4 est l'écran du jeu, juste derrière.
-                    onHostedConnect4 = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("nim") {
                 NimScreen(
                     players = pendingPlayerNames,
                     online = nimOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareNim") }
-                )
-            }
-            composable("shareNim") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.NIM,
-                    nim = nimOnline,
-                    // La table du jeu des allumettes est l'écran du jeu, juste derrière.
-                    onHostedNim = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("reflex") {
                 ReflexScreen(
                     players = pendingPlayerNames,
                     online = reflexOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareReflex") }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("emoji") {
                 EmojiScreen(
                     players = pendingPlayerNames,
                     online = emojiOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareEmoji") }
-                )
-            }
-            composable("shareEmoji") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.EMOJI,
-                    emoji = emojiOnline,
-                    // La table de la Chasse à l'émoji est l'écran du jeu, juste derrière.
-                    onHostedEmoji = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("circles") {
                 CirclesScreen(
                     players = pendingPlayerNames,
                     online = circlesOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareCircles") }
-                )
-            }
-            composable("shareCircles") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.CIRCLES,
-                    circles = circlesOnline,
-                    // La table des Ronds est l'écran du jeu, juste derrière.
-                    onHostedCircles = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("simon") {
                 SimonScreen(
                     players = pendingPlayerNames,
                     online = simonOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareSimon") }
-                )
-            }
-            composable("shareSimon") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.SIMON,
-                    simon = simonOnline,
-                    // La table du Simon est l'écran du jeu, juste derrière.
-                    onHostedSimon = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("rhythm") {
@@ -712,34 +626,11 @@ fun ScoreApp(
             composable("invaders") {
                 InvadersScreen(players = pendingPlayerNames)
             }
-            composable("shareReflex") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.REFLEX,
-                    reflex = reflexOnline,
-                    // La table du Duel de réflexes est l'écran du jeu, juste derrière.
-                    onHostedReflex = { navController.popBackStack() }
-                )
-            }
             composable("pfc") {
                 RockPaperScissorsScreen(
                     players = pendingPlayerNames,
                     online = rockPaperScissorsOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("sharePfc") }
-                )
-            }
-            composable("sharePfc") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.PFC,
-                    rockPaperScissors = rockPaperScissorsOnline,
-                    // La table est l'écran du jeu, juste derrière.
-                    onHostedRockPaperScissors = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("gomoku") {
@@ -747,19 +638,7 @@ fun ScoreApp(
                     spec = GomokuSpec,
                     players = pendingPlayerNames,
                     online = gomokuOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareGomoku") }
-                )
-            }
-            composable("shareGomoku") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.GOMOKU,
-                    duo = gomokuOnline,
-                    // La table du Gomoku est l'écran du jeu, juste derrière.
-                    onHostedDuo = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("dots") {
@@ -767,96 +646,35 @@ fun ScoreApp(
                     spec = DotsSpec,
                     players = pendingPlayerNames,
                     online = dotsOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareDots") }
-                )
-            }
-            composable("shareDots") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.DOTS,
-                    duo = dotsOnline,
-                    // La table de la Pipopipette est l'écran du jeu, juste derrière.
-                    onHostedDuo = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("hangman") {
                 HangmanScreen(
                     viewModel = hangmanViewModel,
                     online = hangmanOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareHangman") }
-                )
-            }
-            composable("shareHangman") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.HANGMAN,
-                    hangman = hangmanOnline,
-                    hangmanSettings = hangmanViewModel.settings,
-                    // La salle d'attente du Pendu est l'écran du jeu, juste derrière.
-                    onHostedHangman = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("chess") {
                 ChessScreen(
                     players = pendingPlayerNames,
                     online = chessOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareChess") }
-                )
-            }
-            composable("shareChess") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.CHESS,
-                    chess = chessOnline,
-                    // La table d'échecs est l'écran du jeu, juste derrière.
-                    onHostedChess = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("draughts") {
                 DraughtsScreen(
                     players = pendingPlayerNames,
                     online = draughtsOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareDraughts") }
-                )
-            }
-            composable("shareDraughts") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.DRAUGHTS,
-                    draughts = draughtsOnline,
-                    // La table des dames est l'écran du jeu, juste derrière.
-                    onHostedDraughts = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("othello") {
                 OthelloScreen(
                     players = pendingPlayerNames,
                     online = othelloOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareOthello") }
-                )
-            }
-            composable("shareOthello") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.OTHELLO,
-                    othello = othelloOnline,
-                    // La table de l'Othello est l'écran du jeu, juste derrière.
-                    onHostedOthello = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("poker") {
@@ -864,8 +682,7 @@ fun ScoreApp(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
                     session = sync,
-                    online = syncViewModel.poker,
-                    onOpenShare = { navController.navigate("share") }
+                    online = syncViewModel.poker
                 )
             }
             composable("score") {
@@ -873,7 +690,7 @@ fun ScoreApp(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
                     onOpenDice = openDice,
-                    onOpenShare = { navController.navigate("share") },
+                    onOpenShare = if (playMode) null else ({ navController.navigate("share") }),
                     shareActive = sync.isConnected
                 )
             }
@@ -884,20 +701,7 @@ fun ScoreApp(
                 MastermindScreen(
                     viewModel = mastermindViewModel,
                     online = mastermindOnline,
-                    onExit = { leaveToSetup() },
-                    onHostOnline = { navController.navigate("shareMastermind") }
-                )
-            }
-            composable("shareMastermind") {
-                ShareScreen(
-                    game = viewModel,
-                    session = sync,
-                    onBack = { navController.popBackStack() },
-                    kind = ShareKind.MASTERMIND,
-                    mastermind = mastermindOnline,
-                    mastermindSettings = mastermindViewModel.settings,
-                    // La salle d'attente du Mastermind est l'écran du jeu, juste derrière.
-                    onHostedMastermind = { navController.popBackStack() }
+                    onExit = { leaveToSetup() }
                 )
             }
             composable("dice") {
@@ -905,8 +709,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     diceOnly = onDiceOnlyRoute,
-                    onOpenShare = { navController.navigate("share") },
-                    shareActive = sync.isConnected,
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (!onDiceOnlyRoute) {
@@ -924,7 +726,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.huit,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -940,7 +741,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.uno,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -956,7 +756,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.hearts,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -972,7 +771,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.barbu,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -988,7 +786,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.ohHell,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1004,7 +801,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.tarot,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1020,7 +816,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.yaniv,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1036,7 +831,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.rami,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1052,7 +846,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.flip7,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1068,7 +861,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.skyjo,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1084,7 +876,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.domino,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1100,7 +891,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.trio,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1116,7 +906,6 @@ fun ScoreApp(
                     viewModel = viewModel,
                     session = sync,
                     online = syncViewModel.president,
-                    onOpenShare = { navController.navigate("share") },
                     // Sans feuille de score derrière, « Retour » quitte la partie (avec la confirmation s'il y a des scores).
                     onBack = {
                         if (viewModel.hasProgress()) {
@@ -1135,7 +924,7 @@ fun ScoreApp(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
                     onOpenDice = openDice,
-                    onOpenShare = { navController.navigate("share") },
+                    onOpenShare = if (playMode) null else ({ navController.navigate("share") }),
                     shareActive = sync.isConnected
                 )
             }
@@ -1144,7 +933,7 @@ fun ScoreApp(
                     viewModel = viewModel,
                     historyRepository = gameHistoryRepository,
                     onAddRound = { navController.navigate("newTeamRound") },
-                    onOpenShare = { navController.navigate("share") },
+                    onOpenShare = if (playMode) null else ({ navController.navigate("share") }),
                     shareActive = sync.isConnected
                 )
             }

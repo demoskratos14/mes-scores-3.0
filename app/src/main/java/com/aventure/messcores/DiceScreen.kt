@@ -145,15 +145,13 @@ private fun rememberQwixxRound(viewModel: ScoreViewModel): QwixxRound =
  * - autres jeux : les dés et leur total.
  *
  * [diceOnly] : Yams, Cochon, 421, Mexicain, Bunco, Cul de chouette, Dix mille, Qwixx et Shut the Box jouables n'ont pas de feuille de score derrière cet écran (tout s'y affiche) ;
- * « Retour » et la fin de partie quittent alors la partie ([onBack]), et [onOpenShare] ouvre le partage.
+ * « Retour » et la fin de partie quittent alors la partie ([onBack]).
  */
 @Composable
 internal fun DiceScreen(
     viewModel: ScoreViewModel,
     session: SyncSession? = null,
     diceOnly: Boolean = false,
-    onOpenShare: (() -> Unit)? = null,
-    shareActive: Boolean = false,
     onBack: () -> Unit
 ) {
     val rules = viewModel.gameRules
@@ -295,10 +293,6 @@ internal fun DiceScreen(
             )
             Spacer(modifier = Modifier.width(10.dp))
             RulesButton(rules = rules)
-        }
-        if (diceOnly && onOpenShare != null) {
-            Spacer(modifier = Modifier.height(6.dp))
-            ShareButton(active = shareActive, onClick = onOpenShare)
         }
         Spacer(modifier = Modifier.height(12.dp))
 

@@ -45,8 +45,7 @@ import androidx.compose.ui.unit.sp
 internal fun RockPaperScissorsScreen(
     players: List<String>,
     online: RockPaperScissorsOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à deux téléphones, le retour système quitte simplement l'écran.
@@ -65,7 +64,7 @@ internal fun RockPaperScissorsScreen(
             onExit()
         })
     } else {
-        LocalRps(players = players, online = online, onPlayOnline = onHostOnline)
+        LocalRps(players = players)
     }
 
     if (showQuit && online.active) {
@@ -92,7 +91,7 @@ internal fun RockPaperScissorsScreen(
 // ---------- Un seul téléphone ----------
 
 @Composable
-private fun LocalRps(players: List<String>, online: RockPaperScissorsOnline, onPlayOnline: () -> Unit) {
+private fun LocalRps(players: List<String>) {
     val nameA = players.getOrElse(0) { "1" }
     val nameB = players.getOrElse(1) { "2" }
 
@@ -163,7 +162,7 @@ private fun LocalRps(players: List<String>, online: RockPaperScissorsOnline, onP
                 }
             }
         }
-        // Le nombre de manches et le passage à deux téléphones ne se changent que tant que rien n'a été joué.
+        // Le nombre de manches et la variante ne se changent que tant que rien n'a été joué.
         if (match.isFresh) {
             Text(
                 text = stringResource(R.string.pfc_target_label),
@@ -175,16 +174,6 @@ private fun LocalRps(players: List<String>, online: RockPaperScissorsOnline, onP
                 style = MaterialTheme.typography.labelLarge
             )
             VariantPicker(selected = match.extended, onSelect = { update(match.withExtended(it)) })
-            OutlinedButton(
-                onClick = {
-                    online.chooseTarget(match.target)
-                    online.chooseExtended(match.extended)
-                    onPlayOnline()
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.pfc_online_button))
-            }
         }
     }
 }

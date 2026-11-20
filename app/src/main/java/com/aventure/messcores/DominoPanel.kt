@@ -43,14 +43,13 @@ private const val CHAIN_PER_ROW = 4
  *   par un autre téléphone y sont jouées chez leur joueur : ici on ne touche à rien pour elles.
  * - Sur un téléphone invité : [DominoGuestSection], qui affiche la table reçue et envoie les actions de l'invité à l'organisateur.
  *
- * « Retour » et la fin de partie quittent la partie ([onBack]) ; [onOpenShare] ouvre le partage entre téléphones.
+ * « Retour » et la fin de partie quittent la partie ([onBack]).
  */
 @Composable
 internal fun DominoScreen(
     viewModel: ScoreViewModel,
     session: SyncSession,
     online: DominoOnline,
-    onOpenShare: () -> Unit,
     onBack: () -> Unit
 ) {
     if (viewModel.gameRules.id != DOMINOS_ID) {
@@ -64,9 +63,7 @@ internal fun DominoScreen(
         CardGameScreen(
             viewModel = viewModel,
             onBack = onBack,
-            scrollKeys = listOf(shown?.current, shown?.roundOver, shown?.roundNumber),
-            onOpenShare = onOpenShare,
-            shareActive = true
+            scrollKeys = listOf(shown?.current, shown?.roundOver, shown?.roundNumber)
         ) {
             DominoGuestSection(viewModel = viewModel, online = online, onLeave = onBack)
         }
@@ -81,9 +78,7 @@ internal fun DominoScreen(
     CardGameScreen(
         viewModel = viewModel,
         onBack = onBack,
-        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber),
-        onOpenShare = onOpenShare,
-        shareActive = session.isConnected
+        scrollKeys = listOf(round.current, round.revealed, round.roundOver, round.roundNumber)
     ) {
         DominoSection(
             viewModel = viewModel,

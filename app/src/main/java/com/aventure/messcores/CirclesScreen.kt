@@ -87,8 +87,7 @@ private val IntListSaver = listSaver<List<Int>, Int>(save = { it }, restore = { 
 internal fun CirclesScreen(
     players: List<String>,
     online: CirclesOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à plusieurs téléphones, le retour système quitte simplement l'écran.
@@ -107,7 +106,7 @@ internal fun CirclesScreen(
             onExit()
         })
     } else {
-        LocalCircles(players = players, onPlayOnline = onHostOnline)
+        LocalCircles(players = players)
     }
 
     if (showQuit && online.active) {
@@ -132,11 +131,10 @@ internal fun CirclesScreen(
 }
 
 /**
- * Les Ronds sur un seul téléphone qu'on se passe : chacun joue sa série à son tour, puis on compare. [onPlayOnline]
- * ouvre une table pour jouer chacun sur son téléphone (proposé tant que personne n'a joué).
+ * Les Ronds sur un seul téléphone qu'on se passe : chacun joue sa série à son tour, puis on compare.
  */
 @Composable
-private fun LocalCircles(players: List<String>, onPlayOnline: () -> Unit) {
+private fun LocalCircles(players: List<String>) {
     val names = players.take(Circles.MAX_PLAYERS).ifEmpty { listOf("1") }
     var streaks by rememberSaveable(stateSaver = IntListSaver) { mutableStateOf(listOf<Int>()) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
@@ -247,12 +245,6 @@ private fun LocalCircles(players: List<String>, onPlayOnline: () -> Unit) {
                 }
                 Button(onClick = { phase = PHASE_PLAYING }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.circles_go))
-                }
-                // Avant la première série, on peut aussi ouvrir une table pour jouer chacun sur son téléphone.
-                if (streaks.isEmpty()) {
-                    OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.circles_online_button))
-                    }
                 }
             }
         }

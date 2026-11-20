@@ -95,8 +95,7 @@ internal fun PokerScreen(
     viewModel: ScoreViewModel,
     historyRepository: GameHistoryRepository,
     session: SyncSession,
-    online: PokerOnline,
-    onOpenShare: () -> Unit
+    online: PokerOnline
 ) {
     // Invité : l'organisateur lui envoie la table vue de sa place (ses cartes, jamais celles des autres).
     val guest = session.role == SyncRole.GUEST && session.isConnected && session.kind == SyncKind.SCORE
@@ -153,10 +152,6 @@ internal fun PokerScreen(
             modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Les cartes se jouent aussi chacun sur son téléphone : bouton de partage, comme pour les autres jeux de cartes.
-            if (game.settings.dealCards) {
-                ShareButton(active = session.isConnected, onClick = onOpenShare)
-            }
             PokerHeader(
                 title = viewModel.gameRules.name,
                 game = game,

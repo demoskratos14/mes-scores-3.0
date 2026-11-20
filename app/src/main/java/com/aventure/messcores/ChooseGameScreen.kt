@@ -132,25 +132,6 @@ fun ChooseGameScreen(
             ) {
                 Text(stringResource(R.string.choose_title), style = MaterialTheme.typography.headlineMedium)
 
-                // Légende des téléphones dessinés à droite de chaque jeu.
-                if (playableOnly && !soloOnly) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        listOf(false, true).forEach { multi ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                PhoneIcons(multi = multi, describe = false)
-                                Text(
-                                    text = stringResource(if (multi) R.string.playable_multi_phone else R.string.playable_one_phone),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-
                 // Un menu déroulant par rubrique (sauf les jeux jouables spéciaux, en grille d'icônes) : chaque liste reste courte. Le jeu choisi s'affiche
                 // dans le menu de sa rubrique, les autres menus restent vides.
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -163,8 +144,6 @@ fun ChooseGameScreen(
                                     title = stringResource(category.label),
                                     games = inCategory,
                                     selectedId = selected.id,
-                                    // Les téléphones ne se dessinent que dans « Jeux jouables », pas dans « Jeux solo ».
-                                    showPhones = !soloOnly,
                                     onSelect = { game ->
                                         selectedId = game.id
                                         errorMessage = null
@@ -194,13 +173,7 @@ fun ChooseGameScreen(
                                         DropdownMenuItem(
                                             text = {
                                                 Column {
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Text(game.name, modifier = Modifier.weight(1f))
-                                                        // Jeux jouables : un téléphone ou deux au bout de la ligne.
-                                                        if (playableOnly && !soloOnly) {
-                                                            PhoneIcons(multi = game.isMultiPhone(), modifier = Modifier.padding(start = 8.dp))
-                                                        }
-                                                    }
+                                                    Text(game.name)
                                                     Text(
                                                         text = ruleSummary(context, game),
                                                         style = MaterialTheme.typography.bodySmall,

@@ -1600,7 +1600,6 @@
     <string name="share_problem_too_big">La partie est trop volumineuse pour être envoyée à l’autre téléphone.</string>
 
     <!-- Mastermind chacun sur son téléphone -->
-    <string name="mm_online_button">Jouer chacun sur son téléphone</string>
     <string name="mm_online_lobby_title">Joueurs à la table</string>
     <string name="mm_online_you">%1$s (toi)</string>
     <string name="mm_online_start">Lancer la partie</string>
@@ -1647,8 +1646,6 @@
     <string name="room_leave_title">Quitter la salle ?</string>
     <string name="room_leave_message">Tu seras déconnecté de l’organisateur et des autres joueurs. Tu pourras rejoindre la salle de nouveau.</string>
     <string name="room_problem_host_lost">La connexion avec l’organisateur est perdue : tu as quitté la salle.</string>
-    <string name="playable_one_phone">Un seul téléphone</string>
-    <string name="playable_multi_phone">Plusieurs téléphones possibles</string>
     <string name="game_morpion">Morpion</string>
     <string name="morpion_turn">À %1$s de jouer (%2$s)</string>
     <string name="morpion_win">%1$s gagne la manche !</string>
@@ -1658,7 +1655,6 @@
     <string name="morpion_cell_empty">Case %1$d, vide</string>
     <string name="morpion_cell_x">Case %1$d, croix</string>
     <string name="morpion_cell_o">Case %1$d, rond</string>
-    <string name="morpion_online_button">Jouer chacun sur son téléphone</string>
     <string name="morpion_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="morpion_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="morpion_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
@@ -1693,7 +1689,6 @@
     <string name="bs_backdrop_stars">Ciel étoilé</string>
     <string name="bs_backdrop_continue">Continuer</string>
     <string name="bs_start">Commencer</string>
-    <string name="bs_online_button">Jouer chacun sur son téléphone</string>
     <string name="bs_quit_title">Quitter la partie ?</string>
     <string name="bs_quit_message">La partie de touché coulé en cours sera perdue.</string>
     <string name="bs_quit_confirm">Quitter</string>
@@ -1797,7 +1792,6 @@
     <string name="nim_score">%1$s : %2$d · %3$s : %4$d</string>
     <string name="nim_new_round">Nouvelle manche</string>
     <string name="nim_take_hint">Retire 1, 2 ou 3 allumettes. Celui qui prend la dernière perd !</string>
-    <string name="nim_online_button">Jouer chacun sur son téléphone</string>
     <string name="nim_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="nim_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="nim_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
@@ -1838,7 +1832,6 @@
     <string name="pfc_match_win">%1$s remporte la partie !</string>
     <string name="pfc_next_round">Manche suivante</string>
     <string name="pfc_new_match">Nouvelle partie</string>
-    <string name="pfc_online_button">Jouer chacun sur son téléphone</string>
     <string name="pfc_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="pfc_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="pfc_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
@@ -1896,7 +1889,6 @@
     <string name="duo_win">%1$s gagne la manche !</string>
     <string name="duo_draw">Égalité</string>
     <string name="duo_new_round">Nouvelle manche</string>
-    <string name="duo_online_button">Jouer chacun sur son téléphone</string>
     <string name="duo_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="duo_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="duo_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
@@ -1934,7 +1926,6 @@
     <string name="draughts_cell_man_black">Case %1$d, pion noir</string>
     <string name="draughts_cell_king_white">Case %1$d, dame blanche</string>
     <string name="draughts_cell_king_black">Case %1$d, dame noire</string>
-    <string name="draughts_online_button">Jouer chacun sur son téléphone</string>
     <string name="draughts_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="draughts_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="draughts_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
@@ -1969,7 +1960,6 @@
     <string name="othello_cell_hint">Case %1$s%2$d, coup possible</string>
     <string name="othello_cell_black">Case %1$s%2$d, pion noir</string>
     <string name="othello_cell_white">Case %1$s%2$d, pion blanc</string>
-    <string name="othello_online_button">Jouer chacun sur son téléphone</string>
     <string name="othello_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="othello_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="othello_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
@@ -1993,7 +1983,6 @@
     <string name="rules_hangman_4_body">Sur un seul téléphone, il passe de main en main et l’écran se cache pendant qu’on choisit le mot. Chacun sur son téléphone, le mot ne quitte jamais le téléphone de celui qui l’a choisi : l’autre envoie des lettres et reçoit leur place en réponse. Le mot n’est dévoilé qu’à la fin de la manche, et l’appli vérifie alors que les réponses étaient honnêtes.</string>
     <string name="hg_setting_mistakes">Erreurs permises : %1$d</string>
     <string name="hg_start">Commencer</string>
-    <string name="hg_online_button">Jouer chacun sur son téléphone</string>
     <string name="hg_quit_title">Quitter la partie ?</string>
     <string name="hg_quit_message">La partie de Pendu en cours sera perdue.</string>
     <string name="hg_quit_confirm">Quitter</string>
@@ -2075,7 +2064,6 @@
     <string name="chess_style_to_classic">Passer au style classique</string>
     <string name="chess_explore_on">Explorer le plateau (zoom, rotation, déplacement)</string>
     <string name="chess_explore_off">Quitter l’exploration du plateau</string>
-    <string name="chess_online_button">Jouer chacun sur son téléphone</string>
     <string name="chess_online_waiting">En attente de l’autre joueur… Sur l’autre téléphone, touche « Rejoindre une partie ».</string>
     <string name="chess_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="chess_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
@@ -2217,7 +2205,6 @@
     <string name="reflex_zone_early">Trop tôt !</string>
     <string name="reflex_zone_lose">Perdu</string>
     <string name="reflex_zone_lose_ms">Perdu · %1$d ms</string>
-    <string name="reflex_online_button">Jouer chacun sur son téléphone</string>
     <string name="reflex_online_waiting">En attente des autres joueurs… Sur les autres téléphones, touche « Rejoindre une partie ».</string>
     <string name="reflex_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="reflex_online_host_left">L’organisateur s’est déconnecté : la partie est terminée.</string>
@@ -2636,7 +2623,6 @@
     <string name="circles_level_hard">Difficile</string>
     <string name="circles_hard_hint">Des têtes de mort piègent l’écran : si tu en touches une, la série s’arrête. Elles disparaissent avec le rond.</string>
     <string name="circles_skull_hit">%1$s a touché une tête de mort ! Série de %2$d.</string>
-    <string name="circles_online_button">Jouer chacun sur son téléphone</string>
     <string name="circles_online_waiting">En attente des autres joueurs… Sur les autres téléphones, touche « Rejoindre une partie ».</string>
     <string name="circles_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="circles_online_notice_left_some">Un joueur a quitté la partie.</string>
@@ -2701,7 +2687,6 @@
     <string name="simon_turns_winner">%1$s gagne : dernier en jeu !</string>
     <string name="simon_turns_reached">Plus longue suite reproduite : %1$d</string>
     <string name="simon_turns_rank_entry">%1$d. %2$s</string>
-    <string name="simon_online_button">Jouer chacun sur son téléphone</string>
     <string name="simon_online_waiting">En attente des autres joueurs… Sur les autres téléphones, touche « Rejoindre une partie ».</string>
     <string name="simon_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="simon_online_notice_left_some">Un joueur a quitté la partie.</string>
@@ -2898,7 +2883,6 @@
     <string name="emoji_over_title">Temps écoulé !</string>
     <string name="emoji_over_levels">Niveaux réussis : %1$d</string>
     <string name="emoji_new_game">Rejouer</string>
-    <string name="emoji_online_button">Jouer chacun sur son téléphone</string>
     <string name="emoji_online_waiting">En attente des autres joueurs… Sur les autres téléphones, touche « Rejoindre une partie ».</string>
     <string name="emoji_online_notice_left">L’autre joueur s’est déconnecté. Tu peux attendre qu’un téléphone rejoigne de nouveau la partie.</string>
     <string name="emoji_online_notice_left_some">Un joueur a quitté la partie : la manche en cours est annulée.</string>

@@ -99,8 +99,7 @@ private const val REACH_FRACTION = 0.55f
 internal fun EmojiScreen(
     players: List<String> = emptyList(),
     online: EmojiOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     var showQuit by rememberSaveable { mutableStateOf(false) }
     // Hors partie à plusieurs téléphones, le retour système quitte simplement l'écran.
@@ -119,7 +118,7 @@ internal fun EmojiScreen(
             onExit()
         })
     } else {
-        SoloEmoji(players = players, onPlayOnline = onHostOnline)
+        SoloEmoji(players = players)
     }
 
     if (showQuit && online.active) {
@@ -151,7 +150,7 @@ internal fun EmojiScreen(
  * Tout est gardé quand l'écran tourne.
  */
 @Composable
-private fun SoloEmoji(players: List<String>, onPlayOnline: () -> Unit) {
+private fun SoloEmoji(players: List<String>) {
     val record = rememberSoloRecord(EMOJI_ID)
     // Le duel à deux sur ce téléphone remplace la séance seul tant qu'il dure.
     var duel by rememberSaveable { mutableStateOf(false) }
@@ -225,9 +224,6 @@ private fun SoloEmoji(players: List<String>, onPlayOnline: () -> Unit) {
                 if (phase == SOLO_READY) {
                     OutlinedButton(onClick = { duel = true }, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.emoji_duel_button))
-                    }
-                    OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.emoji_online_button))
                     }
                 }
             }

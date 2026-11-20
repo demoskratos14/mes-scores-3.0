@@ -53,7 +53,7 @@ internal val GAME_ICON_IDS = setOf(
 
 /**
  * Grille de jeux : une case par jeu, avec sa petite icône dessinée et son nom. Une seule case est
- * choisie à la fois (boutons radio pour TalkBack : le nom et les téléphones sont lus avec la case).
+ * choisie à la fois (boutons radio pour TalkBack : le nom est lu avec la case).
  */
 @Composable
 internal fun GameIconGrid(
@@ -61,9 +61,7 @@ internal fun GameIconGrid(
     games: List<GameRules>,
     selectedId: String,
     onSelect: (GameRules) -> Unit,
-    modifier: Modifier = Modifier,
-    // Faux dans « Jeux solo » : les téléphones dessinés (multi-téléphones) n'ont pas de sens là, on ne les affiche donc pas.
-    showPhones: Boolean = true
+    modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title, style = MaterialTheme.typography.titleSmall)
@@ -79,7 +77,6 @@ internal fun GameIconGrid(
                             game = game,
                             selected = game.id == selectedId,
                             onClick = { onSelect(game) },
-                            showPhones = showPhones,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -92,7 +89,7 @@ internal fun GameIconGrid(
 }
 
 @Composable
-private fun GameTile(game: GameRules, selected: Boolean, onClick: () -> Unit, showPhones: Boolean, modifier: Modifier = Modifier) {
+private fun GameTile(game: GameRules, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val shape = RoundedCornerShape(14.dp)
     val colors = MaterialTheme.colorScheme
     Column(
@@ -113,7 +110,6 @@ private fun GameTile(game: GameRules, selected: Boolean, onClick: () -> Unit, sh
             textAlign = TextAlign.Center,
             color = if (selected) colors.onPrimaryContainer else colors.onSurface
         )
-        if (showPhones && game.isMultiPhone()) PhoneIcons(multi = true)
     }
 }
 

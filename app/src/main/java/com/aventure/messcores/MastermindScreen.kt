@@ -81,8 +81,7 @@ private fun colorName(color: Int): String = stringResource(MASTERMIND_COLOR_NAME
 internal fun MastermindScreen(
     viewModel: MastermindViewModel,
     online: MastermindOnline,
-    onExit: () -> Unit,
-    onHostOnline: () -> Unit
+    onExit: () -> Unit
 ) {
     val rules = viewModel.rules
     val state = viewModel.state
@@ -136,8 +135,7 @@ internal fun MastermindScreen(
                 state == null -> SettingsContent(
                     settings = viewModel.settings,
                     onChange = { viewModel.updateSettings(it) },
-                    onStart = { viewModel.start() },
-                    onPlayOnline = onHostOnline
+                    onStart = { viewModel.start() }
                 )
                 state.phase == MastermindPhase.SECRETS -> SecretsContent(state, onSecret = { viewModel.submitSecret(it) })
                 state.phase == MastermindPhase.PLAYING -> PlayContent(
@@ -184,8 +182,7 @@ internal fun MastermindScreen(
 private fun SettingsContent(
     settings: MastermindSettings,
     onChange: (MastermindSettings) -> Unit,
-    onStart: () -> Unit,
-    onPlayOnline: () -> Unit
+    onStart: () -> Unit
 ) {
     Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -209,9 +206,6 @@ private fun SettingsContent(
             )
             Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.mm_start))
-            }
-            OutlinedButton(onClick = onPlayOnline, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.mm_online_button))
             }
         }
     }
