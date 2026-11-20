@@ -80,7 +80,7 @@ private const val TETRIS_PHASE_OVER = 2 // la pile a atteint le haut : la partie
 
 /**
  * Les actions de Tetris réglables à la manette : gauche, droite et descente (croix ou stick), pivoter (haut ou A),
- * chute immédiate (B), réserve (X ou L) et pause / démarrer (Start).
+ * chute immédiate (B ou R), réserve (X ou L) et pause / démarrer (Start).
  */
 private val TETRIS_PAD_ACTIONS = listOf(
     padDirection("left", R.string.tetris_left, horizontal = true, sign = -1),
@@ -92,6 +92,7 @@ private val TETRIS_PAD_ACTIONS = listOf(
     padButtons("hold", R.string.tetris_hold, KeyEvent.KEYCODE_BUTTON_X, KeyEvent.KEYCODE_BUTTON_L1),
     padStart()
 )
+
 
 /** Plus long temps d'une image pris en compte : après un à-coup, les pièces ne doivent pas sauter plusieurs cases d'un coup. */
 private const val MAX_FRAME_MS = 100L

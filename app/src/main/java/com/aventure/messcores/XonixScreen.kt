@@ -76,7 +76,7 @@ private const val XONIX_PHASE_READY = 0 // on attend que le joueur lance la part
 private const val XONIX_PHASE_PLAYING = 1 // le joueur avance, les billes rebondissent
 private const val XONIX_PHASE_OVER = 2 // la dernière vie est perdue : la partie est finie
 
-/** Les actions de Xonix réglables à la manette : les quatre directions (croix ou stick), s'arrêter (A) et pause / démarrer (Start). */
+/** Les actions de Xonix réglables à la manette : les quatre directions (croix ou stick), s'arrêter (A ou B) et pause / démarrer (Start). */
 private val XONIX_PAD_ACTIONS = listOf(
     padDirection("up", R.string.xonix_up, horizontal = false, sign = -1),
     padDirection("down", R.string.xonix_down, horizontal = false, sign = 1),
