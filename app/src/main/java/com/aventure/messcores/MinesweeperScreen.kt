@@ -719,8 +719,9 @@ private fun MineCell(
         // Le curseur de la manette : un contour clair doublé d'un trait sombre, lisible sur toutes les cases.
         if (cursor) {
             Canvas(modifier = Modifier.fillMaxSize()) {
-                val line = size.minDimension * 0.08f
-                val corner = CornerRadius(size.minDimension * 0.14f)
+                val cell = this.size.minDimension
+                val line = cell * 0.08f
+                val corner = CornerRadius(cell * 0.14f)
                 drawRoundRect(Color.Black, cornerRadius = corner, style = Stroke(width = line * 1.8f))
                 drawRoundRect(Color(0xFFFFD54F), cornerRadius = corner, style = Stroke(width = line))
             }
