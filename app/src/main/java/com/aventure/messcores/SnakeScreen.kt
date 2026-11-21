@@ -60,9 +60,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -144,9 +144,10 @@ internal fun SnakeScreen(players: List<String>) {
     var tvMode by remember { mutableStateOf(TvMode.load(context, SNAKE_ID)) }
     // Le plateau du mode TV épouse l'écran en paysage (qu'il soit tenu droit ou couché au moment du choix) : on compte donc
     // sur le grand côté et le petit côté, moins la bande de score.
-    val configuration = LocalConfiguration.current
-    val longSide = maxOf(configuration.screenWidthDp, configuration.screenHeightDp).toFloat()
-    val shortSide = minOf(configuration.screenWidthDp, configuration.screenHeightDp).toFloat()
+    val windowSize = LocalWindowInfo.current.containerSize
+    val screenDensity = LocalDensity.current.density
+    val longSide = maxOf(windowSize.width, windowSize.height) / screenDensity
+    val shortSide = minOf(windowSize.width, windowSize.height) / screenDensity
     val tvCols = Snake.tvCols(longSide / (shortSide - SNAKE_TV_HUD_DP).coerceAtLeast(1f))
     val game = rememberSaveable(tvMode, saver = SnakeGameSaver) {
         if (tvMode) SnakeGame(cols = tvCols, rows = Snake.TV_ROWS) else SnakeGame()
