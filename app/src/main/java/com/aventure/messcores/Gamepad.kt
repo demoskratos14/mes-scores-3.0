@@ -104,6 +104,8 @@ internal object GamepadHub {
     private const val STICK_SWITCH_MARGIN = 0.08f
 
     private val listeners = mutableListOf<(PadInput) -> Boolean>()
+    /** Les écouteurs de relâchement (jeux où l'on tient une direction ou un tir) : seul le dernier reçoit les événements. */
+    private val releaseListeners = mutableListOf<(PadInput) -> Unit>()
     private val consumedKeys = mutableSetOf<Int>()
     private val activeAxes = mutableSetOf<Int>()
     /** La direction actuellement tenue par chaque stick (clé : l'axe horizontal du stick), ou absente au repos. */
@@ -144,6 +146,19 @@ internal object GamepadHub {
         listeners.add(listener)
     }
 
+    fun registerRelease(listener: (PadInput) -> Unit) {
+        releaseListeners.add(listener)
+    }
+
+    fun unregisterRelease(listener: (PadInput) -> Unit) {
+        releaseListeners.remove(listener)
+    }
+
+    /** Prévient l'écouteur de relâchement que [input], qu'il avait reçu comme appui, n'est plus tenu. */
+    private fun released(input: PadInput) {
+        releaseListeners.lastOrNull()?.invoke(input)
+    }
+
     fun unregister(listener: (PadInput) -> Boolean) {
         listeners.remove(listener)
         if (listeners.isEmpty()) {
@@ -180,7 +195,11 @@ internal object GamepadHub {
                 if (used) consumedKeys.add(id)
                 used
             }
-            KeyEvent.ACTION_UP -> consumedKeys.remove(id)
+            KeyEvent.ACTION_UP -> {
+                val wasConsumed = consumedKeys.remove(id)
+                if (wasConsumed) released(input)
+                wasConsumed
+            }
             else -> false
         }
     }
@@ -213,6 +232,7 @@ internal object GamepadHub {
                     if (listeners.last()(PadInput.Axis(axis, sign))) used = true
                 } else {
                     activeAxes.remove(id)
+                    released(PadInput.Axis(axis, sign))
                 }
             }
         }
@@ -230,6 +250,7 @@ internal object GamepadHub {
         val held = stickDirections[axisX]
         if (strength < (if (held != null) STICK_RELEASE else STICK_PRESS)) {
             stickDirections.remove(axisX)
+            if (held != null) released(held)
             return false
         }
         val horizontal = kotlin.math.abs(x) >= kotlin.math.abs(y)
@@ -242,19 +263,29 @@ internal object GamepadHub {
         }
         if (candidate == held) return false
         if (strength < STICK_PRESS) return false
+        if (held != null) released(held)
         stickDirections[axisX] = candidate
         return listeners.last()(candidate)
     }
 }
 
-/** Écoute la manette tant que l'écran est affiché ; [onInput] renvoie vrai si la commande a servi. */
+/**
+ * Écoute la manette tant que l'écran est affiché ; [onInput] renvoie vrai si la commande a servi. [onRelease], s'il est
+ * donné, est appelé quand une commande qui avait servi est relâchée (pour les jeux où l'on tient une direction ou un tir).
+ */
 @Composable
-internal fun GamepadListener(onInput: (PadInput) -> Boolean) {
+internal fun GamepadListener(onRelease: ((PadInput) -> Unit)? = null, onInput: (PadInput) -> Boolean) {
     val current by rememberUpdatedState(onInput)
+    val currentRelease by rememberUpdatedState(onRelease)
     DisposableEffect(Unit) {
         val listener: (PadInput) -> Boolean = { current(it) }
+        val releaseListener: (PadInput) -> Unit = { currentRelease?.invoke(it) }
         GamepadHub.register(listener)
-        onDispose { GamepadHub.unregister(listener) }
+        if (onRelease != null) GamepadHub.registerRelease(releaseListener)
+        onDispose {
+            GamepadHub.unregister(listener)
+            GamepadHub.unregisterRelease(releaseListener)
+        }
     }
 }
 

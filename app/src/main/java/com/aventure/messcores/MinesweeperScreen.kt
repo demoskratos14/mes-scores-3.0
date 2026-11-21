@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
@@ -54,6 +55,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -84,6 +86,24 @@ import kotlinx.coroutines.delay
 private const val MINE_PHASE_READY = 0
 private const val MINE_PHASE_PLAYING = 1
 
+/**
+ * Les actions du Démineur réglables à la manette : déplacer le curseur sur le plateau (croix ou stick, tenir répète le pas),
+ * dévoiler la case (A, ou accord sur un nombre), poser ou retirer un drapeau (B ou X) et pause / reprise (Start). Une fois la
+ * partie finie, A rejoue et B revient au choix du niveau.
+ */
+private val MINE_PAD_ACTIONS = listOf(
+    padDirection("up", R.string.pad_up, horizontal = false, sign = -1),
+    padDirection("down", R.string.pad_down, horizontal = false, sign = 1),
+    padDirection("left", R.string.pad_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.pad_right, horizontal = true, sign = 1),
+    padButtons("reveal", R.string.minesweeper_mode_reveal, KeyEvent.KEYCODE_BUTTON_A),
+    padButtons("flag", R.string.minesweeper_mode_flag, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BUTTON_X),
+    padStart()
+)
+
+/** Le délai avant qu'une direction tenue à la manette répète le pas, puis le délai entre deux pas. */
+private const val MINE_PAD_FIRST_MS = 320L
+private const val MINE_PAD_REPEAT_MS = 110L
 /** Pas du chronomètre en millisecondes, et plus long temps compté d'un coup (après un à-coup, il ne saute pas). */
 private const val TIMER_STEP_MS = 100L
 private const val MAX_TICK_MS = 500L
@@ -142,6 +162,8 @@ internal fun MinesweeperScreen(players: List<String>) {
     var phase by rememberSaveable { mutableIntStateOf(MINE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
     var flagMode by rememberSaveable { mutableStateOf(false) }
+    // Vrai pendant que le réglage de la manette est affiché à la place du choix du niveau.
+    var showPad by remember { mutableStateOf(false) }
     // Change à chaque nouvelle partie : le plateau est alors reconstruit à neuf.
     var round by rememberSaveable { mutableIntStateOf(0) }
     val record = rememberSoloRecord(Minesweeper.recordKey(level))
@@ -179,6 +201,15 @@ internal fun MinesweeperScreen(players: List<String>) {
         phase = MINE_PHASE_READY
     }
 
+    // La manette dans le menu : Start lance la partie (en partie, c'est le plateau qui écoute).
+    GamepadListener { input ->
+        if (phase == MINE_PHASE_PLAYING || showPad) return@GamepadListener false
+        if (GamepadBindings.resolve(context, MINESWEEPER_ID, MINE_PAD_ACTIONS, input) == "pause") {
+            startGame()
+            true
+        } else false
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (phase == MINE_PHASE_PLAYING) {
             key(round) {
@@ -194,6 +225,8 @@ internal fun MinesweeperScreen(players: List<String>) {
                     onChangeLevel = { backToMenu() }
                 )
             }
+        } else if (showPad) {
+            MinesweeperCard { GamepadSettings(MINESWEEPER_ID, MINE_PAD_ACTIONS) { showPad = false } }
         } else {
             MinesweeperCard {
                 Text(
@@ -238,6 +271,9 @@ internal fun MinesweeperScreen(players: List<String>) {
                 SoloRecordLine(record)
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.minesweeper_go))
+                }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
                 }
             }
         }
@@ -304,7 +340,13 @@ private fun MinesweeperPlayfield(
     var minesLeft by remember { mutableIntStateOf(game.minesLeft) }
     var seconds by remember { mutableIntStateOf(game.seconds) }
     val finishedCallback by rememberUpdatedState(onFinished)
-
+    val context = LocalContext.current
+    // Le curseur de la manette : il n'apparaît qu'après le premier appui sur la manette.
+    var cursorCol by remember { mutableIntStateOf(game.cols / 2) }
+    var cursorRow by remember { mutableIntStateOf(game.rows / 2) }
+    var padUsed by remember { mutableStateOf(false) }
+    // La direction tenue à la manette (0 haut, 1 bas, 2 gauche, 3 droite), ou -1 : elle répète le pas.
+    var padDir by remember { mutableIntStateOf(-1) }
     fun sync() {
         revision++
         gameState = game.state
@@ -322,6 +364,66 @@ private fun MinesweeperPlayfield(
         if (game.isFinished) finishedCallback()
     }
 
+    fun moveCursor(dir: Int) {
+        if (paused || game.isFinished) return
+        padUsed = true
+        when (dir) {
+            0 -> cursorRow = (cursorRow - 1).coerceAtLeast(0)
+            1 -> cursorRow = (cursorRow + 1).coerceAtMost(game.rows - 1)
+            2 -> cursorCol = (cursorCol - 1).coerceAtLeast(0)
+            else -> cursorCol = (cursorCol + 1).coerceAtMost(game.cols - 1)
+        }
+    }
+    // Tenir une direction répète le pas après un court délai.
+    LaunchedEffect(padDir) {
+        if (padDir < 0) return@LaunchedEffect
+        delay(MINE_PAD_FIRST_MS)
+        while (true) {
+            moveCursor(padDir)
+            delay(MINE_PAD_REPEAT_MS)
+        }
+    }
+    // La manette : la croix déplace le curseur, A dévoile, B pose un drapeau, Start met en pause ou reprend.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, MINESWEEPER_ID, MINE_PAD_ACTIONS, input)) {
+            "up", "down", "left", "right" -> padDir = -1
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, MINESWEEPER_ID, MINE_PAD_ACTIONS, input)) {
+            "up" -> {
+                moveCursor(0)
+                padDir = 0
+            }
+            "down" -> {
+                moveCursor(1)
+                padDir = 1
+            }
+            "left" -> {
+                moveCursor(2)
+                padDir = 2
+            }
+            "right" -> {
+                moveCursor(3)
+                padDir = 3
+            }
+            "reveal" -> if (game.isFinished) {
+                onReplay()
+            } else {
+                padUsed = true
+                act(cursorCol, cursorRow, flagMode)
+            }
+            "flag" -> if (game.isFinished) {
+                onChangeLevel()
+            } else {
+                padUsed = true
+                act(cursorCol, cursorRow, !flagMode)
+            }
+            "pause" -> if (!game.isFinished) onPausedChange(!paused)
+            else -> return@GamepadListener false
+        }
+        true
+    }
     // Le chronomètre ne tourne que partie en cours et hors pause.
     LaunchedEffect(paused, gameState) {
         if (paused || gameState != MinesweeperGame.PLAYING) return@LaunchedEffect
@@ -402,6 +504,8 @@ private fun MinesweeperPlayfield(
                         revision = revision,
                         cell = cell,
                         flagMode = flagMode,
+                        cursorCol = if (padUsed) cursorCol else -1,
+                        cursorRow = if (padUsed) cursorRow else -1,
                         onAct = { col, row, alternate -> act(col, row, alternate) }
                     )
                 }
@@ -507,6 +611,8 @@ private fun MinesweeperBoard(
     revision: Int,
     cell: Dp,
     flagMode: Boolean,
+    cursorCol: Int,
+    cursorRow: Int,
     onAct: (col: Int, row: Int, alternate: Boolean) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -556,6 +662,7 @@ private fun MinesweeperBoard(
                         col = c + 1,
                         tapLabel = tapLabel,
                         longLabel = longLabel,
+                        cursor = c == cursorCol && r == cursorRow,
                         onTap = { act(c, r, false) },
                         onLongTap = { act(c, r, true) }
                     )
@@ -576,6 +683,7 @@ private fun MineCell(
     col: Int,
     tapLabel: String,
     longLabel: String,
+    cursor: Boolean,
     onTap: () -> Unit,
     onLongTap: () -> Unit
 ) {
@@ -608,6 +716,15 @@ private fun MineCell(
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) { drawMineCell(look, checker) }
+        // Le curseur de la manette : un contour clair doublé d'un trait sombre, lisible sur toutes les cases.
+        if (cursor) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val line = size.minDimension * 0.08f
+                val corner = CornerRadius(size.minDimension * 0.14f)
+                drawRoundRect(Color.Black, cornerRadius = corner, style = Stroke(width = line * 1.8f))
+                drawRoundRect(Color(0xFFFFD54F), cornerRadius = corner, style = Stroke(width = line))
+            }
+        }
         if (look == LOOK_OPEN && count > 0) {
             val fontSize = with(LocalDensity.current) { (size * 0.6f).toSp() }
             Text(

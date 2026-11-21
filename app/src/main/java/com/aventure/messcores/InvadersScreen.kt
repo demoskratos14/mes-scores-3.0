@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -76,6 +77,18 @@ private const val INVADERS_PHASE_READY = 0 // on attend que le joueur lance la p
 private const val INVADERS_PHASE_PLAYING = 1 // la grille descend
 private const val INVADERS_PHASE_OVER = 2 // la dernière vie est perdue ou la grille est arrivée : la partie est finie
 
+/**
+ * Les actions d'Invaders réglables à la manette : aller à gauche ou à droite (croix ou stick), tirer (A, B, R ou ZR)
+ * et pause / démarrer (Start). Se déplacer et tirer se font en tenant la commande.
+ */
+private val INVADERS_PAD_ACTIONS = listOf(
+    padDirection("left", R.string.invaders_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.invaders_right, horizontal = true, sign = 1),
+    padButtons("fire", R.string.invaders_fire, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_R2),
+    padStart()
+)
+
+
 /** Plus long temps d'une image pris en compte : après un à-coup, rien ne doit sauter loin d'un coup. */
 private const val INVADERS_MAX_FRAME_MS = 100L
 
@@ -113,6 +126,8 @@ internal fun InvadersScreen(players: List<String>) {
     val game = rememberSaveable(saver = InvadersGameSaver) { InvadersGame() }
     var phase by rememberSaveable { mutableIntStateOf(INVADERS_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
+    // Vrai pendant que le réglage de la manette est affiché à la place de l'écran d'accueil ou de fin.
+    var showPad by remember { mutableStateOf(false) }
     val record = rememberSoloRecord(INVADERS_ID)
 
     // La partie se met en pause quand l'appli passe en arrière-plan (et donc aussi quand l'écran tourne).
@@ -134,9 +149,20 @@ internal fun InvadersScreen(players: List<String>) {
         phase = INVADERS_PHASE_PLAYING
     }
 
+    // La manette hors partie : Start lance la partie (en partie, c'est le terrain qui écoute).
+    GamepadListener { input ->
+        if (phase == INVADERS_PHASE_PLAYING || showPad) return@GamepadListener false
+        if (GamepadBindings.resolve(context, INVADERS_ID, INVADERS_PAD_ACTIONS, input) == "pause") {
+            startGame()
+            true
+        } else false
+    }
+
     // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
-        when (phase) {
+        when {
+            showPad -> InvadersCard { GamepadSettings(INVADERS_ID, INVADERS_PAD_ACTIONS) { showPad = false } }
+            else -> when (phase) {
             INVADERS_PHASE_PLAYING -> InvadersPlayfield(
                 game = game,
                 paused = paused,
@@ -173,6 +199,9 @@ internal fun InvadersScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.invaders_play_again))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
             }
             else -> InvadersCard {
                 Text(
@@ -190,6 +219,10 @@ internal fun InvadersScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.invaders_go))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
+            }
             }
         }
         RecordSparkles(record)
@@ -263,6 +296,25 @@ private fun InvadersPlayfield(
         lives = game.lives
         level = game.level
         betweenLevels = game.isBetweenLevels
+    }
+
+    // La manette : se déplacer et tirer se font tant que la commande est tenue, Start met en pause ou reprend.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, INVADERS_ID, INVADERS_PAD_ACTIONS, input)) {
+            "left" -> game.moveLeft = false
+            "right" -> game.moveRight = false
+            "fire" -> game.fire = false
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, INVADERS_ID, INVADERS_PAD_ACTIONS, input)) {
+            "left" -> game.moveLeft = true
+            "right" -> game.moveRight = true
+            "fire" -> game.fire = true
+            "pause" -> onPausedChange(!paused)
+            else -> return@GamepadListener false
+        }
+        true
     }
 
     LaunchedEffect(paused) {

@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.view.KeyEvent
 import android.graphics.Paint
 import android.graphics.Typeface
 import androidx.activity.compose.BackHandler
@@ -78,6 +79,21 @@ private const val BREAKOUT_PHASE_READY = 0 // on attend que le joueur lance la p
 private const val BREAKOUT_PHASE_PLAYING = 1 // la balle est en jeu (ou attend sur la raquette)
 private const val BREAKOUT_PHASE_OVER = 2 // la dernière vie est perdue : la partie est finie
 
+/**
+ * Les actions de Casse-briques réglables à la manette : déplacer la raquette à gauche ou à droite en tenant la
+ * commande (croix ou stick), lancer la balle (A ou B) et pause / démarrer (Start).
+ */
+private val BREAKOUT_PAD_ACTIONS = listOf(
+    padDirection("left", R.string.pad_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.pad_right, horizontal = true, sign = 1),
+    padButtons("launch", R.string.breakout_launch, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_B),
+    padStart()
+)
+
+/** La vitesse de la raquette à la manette, en largeurs de terrain par seconde. */
+private const val BREAKOUT_PAD_SPEED = 1.1f
+
+
 /** Plus long temps d'une image pris en compte : après un à-coup, la balle ne doit pas sauter loin d'un coup. */
 private const val MAX_FRAME_MS = 100L
 
@@ -125,6 +141,8 @@ internal fun BreakoutScreen(players: List<String>) {
     val game = rememberSaveable(saver = BreakoutGameSaver) { BreakoutGame() }
     var phase by rememberSaveable { mutableIntStateOf(BREAKOUT_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
+    // Vrai pendant que le réglage de la manette est affiché à la place de l'écran d'accueil ou de fin.
+    var showPad by remember { mutableStateOf(false) }
     val record = rememberSoloRecord(BREAKOUT_ID)
 
     // La partie se met en pause quand l'appli passe en arrière-plan (et donc aussi quand l'écran tourne).
@@ -146,9 +164,20 @@ internal fun BreakoutScreen(players: List<String>) {
         phase = BREAKOUT_PHASE_PLAYING
     }
 
+    // La manette hors partie : Start lance la partie (en partie, c'est le terrain qui écoute).
+    GamepadListener { input ->
+        if (phase == BREAKOUT_PHASE_PLAYING || showPad) return@GamepadListener false
+        if (GamepadBindings.resolve(context, BREAKOUT_ID, BREAKOUT_PAD_ACTIONS, input) == "pause") {
+            startGame()
+            true
+        } else false
+    }
+
     // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
-        when (phase) {
+        when {
+            showPad -> BreakoutCard { GamepadSettings(BREAKOUT_ID, BREAKOUT_PAD_ACTIONS) { showPad = false } }
+            else -> when (phase) {
             BREAKOUT_PHASE_PLAYING -> BreakoutPlayfield(
                 game = game,
                 paused = paused,
@@ -185,6 +214,9 @@ internal fun BreakoutScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.breakout_play_again))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
             }
             else -> BreakoutCard {
                 Text(
@@ -202,6 +234,10 @@ internal fun BreakoutScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.breakout_go))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
+            }
             }
         }
         RecordSparkles(record)
@@ -264,6 +300,7 @@ private fun BreakoutPlayfield(
     var level by remember { mutableIntStateOf(game.level) }
     var waiting by remember { mutableStateOf(game.hasStuckBall) }
     val finished by rememberUpdatedState(onOver)
+    val context = LocalContext.current
     val isPaused by rememberUpdatedState(paused)
 
     fun sync() {
@@ -274,6 +311,30 @@ private fun BreakoutPlayfield(
         waiting = game.hasStuckBall
     }
 
+    // Les directions tenues à la manette : [0] gauche, [1] droite.
+    val padHeld = remember { BooleanArray(2) }
+
+    // La manette : la raquette suit la direction tenue, A lance la balle, Start met en pause ou reprend.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, BREAKOUT_ID, BREAKOUT_PAD_ACTIONS, input)) {
+            "left" -> padHeld[0] = false
+            "right" -> padHeld[1] = false
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, BREAKOUT_ID, BREAKOUT_PAD_ACTIONS, input)) {
+            "left" -> padHeld[0] = true
+            "right" -> padHeld[1] = true
+            "launch" -> {
+                game.launch()
+                sync()
+            }
+            "pause" -> onPausedChange(!paused)
+            else -> return@GamepadListener false
+        }
+        true
+    }
+
     LaunchedEffect(paused) {
         if (paused) return@LaunchedEffect
         var last = withFrameNanos { it }
@@ -281,6 +342,8 @@ private fun BreakoutPlayfield(
             val now = withFrameNanos { it }
             val elapsed = ((now - last) / 1_000_000L).coerceIn(0L, MAX_FRAME_MS)
             last = now
+            val padDir = (if (padHeld[1]) 1 else 0) - (if (padHeld[0]) 1 else 0)
+            if (padDir != 0) game.movePaddleTo(game.paddleX + padDir * game.width * BREAKOUT_PAD_SPEED * elapsed / 1000f)
             game.tick(elapsed)
             sync()
         }

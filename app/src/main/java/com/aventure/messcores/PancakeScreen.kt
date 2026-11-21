@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.ActivityInfo
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -31,6 +32,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -84,6 +86,19 @@ import androidx.lifecycle.LifecycleOwner
 private const val PANCAKE_PHASE_READY = 0 // on attend que le joueur lance la partie
 private const val PANCAKE_PHASE_PLAYING = 1 // les crêpes volent
 private const val PANCAKE_PHASE_OVER = 2 // cinq crêpes sont tombées : la partie est finie
+
+/**
+ * Les actions de la console Crêpes réglables à la manette : le serveur à gauche ou à droite (croix ou stick), GAME A (A),
+ * GAME B (B) et TIME, pause ou reprise (Start).
+ */
+private val PANCAKE_PAD_ACTIONS = listOf(
+    padDirection("left", R.string.pancake_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.pancake_right, horizontal = true, sign = 1),
+    padButtons("a", R.string.pancake_button_a, KeyEvent.KEYCODE_BUTTON_A),
+    padButtons("b", R.string.pancake_button_b, KeyEvent.KEYCODE_BUTTON_B),
+    padButtons("time", R.string.pancake_button_time, KeyEvent.KEYCODE_BUTTON_START)
+)
+
 
 /** Plus long temps d'une image pris en compte : après un à-coup, les crêpes ne doivent pas sauter plusieurs positions d'un coup. */
 private const val PANCAKE_MAX_FRAME_MS = 100L
@@ -195,6 +210,8 @@ internal fun PancakeScreen(players: List<String>) {
     var misses by remember { mutableIntStateOf(game.misses) }
     // Les boutons de la console actuellement enfoncés (un bit chacun, voir PRESS_LEFT et les suivants).
     var pressed by remember { mutableIntStateOf(0) }
+    // Vrai pendant que le réglage de la manette est affiché sur l'écran de la console.
+    var showPad by remember { mutableStateOf(false) }
     val shapes = remember { PancakeShapes() }
     val background = ImageBitmap.imageResource(R.drawable.pancake_bg)
     val console = ImageBitmap.imageResource(R.drawable.pancake_console)
@@ -262,6 +279,43 @@ internal fun PancakeScreen(players: List<String>) {
         phase = PANCAKE_PHASE_OVER
     }
 
+    // La manette agit comme les boutons de la console : le bouton s'enfonce à l'appui et se relève au relâchement.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, PANCAKE_ID, PANCAKE_PAD_ACTIONS, input)) {
+            "left" -> press(PRESS_LEFT, false)
+            "right" -> press(PRESS_RIGHT, false)
+            "a" -> press(PRESS_A, false)
+            "b" -> press(PRESS_B, false)
+            "time" -> press(PRESS_TIME, false)
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, PANCAKE_ID, PANCAKE_PAD_ACTIONS, input)) {
+            "left" -> {
+                press(PRESS_LEFT, true)
+                move(toLeft = true)
+            }
+            "right" -> {
+                press(PRESS_RIGHT, true)
+                move(toLeft = false)
+            }
+            "a" -> {
+                press(PRESS_A, true)
+                if (phase != PANCAKE_PHASE_PLAYING) startGame(hard = false)
+            }
+            "b" -> {
+                press(PRESS_B, true)
+                if (phase != PANCAKE_PHASE_PLAYING) startGame(hard = true)
+            }
+            "time" -> {
+                press(PRESS_TIME, true)
+                if (phase == PANCAKE_PHASE_PLAYING) paused = !paused
+            }
+            else -> return@GamepadListener false
+        }
+        true
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // La console remplit tout l'écran (hors zones système), sur fond noir, en gardant ses proportions.
         BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
@@ -323,7 +377,7 @@ internal fun PancakeScreen(players: List<String>) {
                     }
                 )
                 // Les messages se posent sur l'écran à cristaux liquides, pas sur le reste de la console.
-                if (phase != PANCAKE_PHASE_PLAYING || paused) {
+                if (showPad || phase != PANCAKE_PHASE_PLAYING || paused) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopStart)
@@ -331,6 +385,7 @@ internal fun PancakeScreen(players: List<String>) {
                             .size(unit * PancakeArt.WIDTH, unit * PancakeArt.HEIGHT)
                     ) {
                         when {
+                            showPad -> PancakeInfoCard { GamepadSettings(PANCAKE_ID, PANCAKE_PAD_ACTIONS) { showPad = false } }
                             phase == PANCAKE_PHASE_PLAYING -> Column(
                                 modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
                                 verticalArrangement = Arrangement.Center,
@@ -372,6 +427,9 @@ internal fun PancakeScreen(players: List<String>) {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
                                 )
+                                OutlinedButton(onClick = { showPad = true }) {
+                                    Text(stringResource(R.string.gamepad_title))
+                                }
                             }
                             else -> PancakeInfoCard {
                                 Text(
@@ -386,6 +444,9 @@ internal fun PancakeScreen(players: List<String>) {
                                     textAlign = TextAlign.Center
                                 )
                                 SoloRecordLine(record)
+                                OutlinedButton(onClick = { showPad = true }) {
+                                    Text(stringResource(R.string.gamepad_title))
+                                }
                             }
                         }
                     }

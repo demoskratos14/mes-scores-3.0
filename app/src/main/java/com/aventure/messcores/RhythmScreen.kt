@@ -7,6 +7,7 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.SystemClock
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -91,6 +92,20 @@ import kotlinx.coroutines.withContext
 
 private enum class RhythmStage { MENU, ANALYZING, PLAYING, RESULT }
 
+/**
+ * Les actions du jeu de rythme réglables à la manette : une par piste, de la gauche vers la droite (X ou gauche, A ou bas,
+ * Y ou haut, B ou droite, et R pour la cinquième piste du niveau difficile). Les pistes des bords sont à tenir pour les notes
+ * longues : la manette signale aussi le relâchement. Start met en pause ou reprend, lance la partie depuis le menu et
+ * rejoue depuis le résultat.
+ */
+private val RHYTHM_PAD_ACTIONS = listOf(
+    padButtons("lane0", R.string.rhythm_pad_lane1, KeyEvent.KEYCODE_BUTTON_X, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_BUTTON_L1),
+    padButtons("lane1", R.string.rhythm_pad_lane2, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_DOWN),
+    padButtons("lane2", R.string.rhythm_pad_lane3, KeyEvent.KEYCODE_BUTTON_Y, KeyEvent.KEYCODE_DPAD_UP),
+    padButtons("lane3", R.string.rhythm_pad_lane4, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_DPAD_RIGHT),
+    padButtons("lane4", R.string.rhythm_pad_lane5, KeyEvent.KEYCODE_BUTTON_R1),
+    padStart("pause")
+)
 private enum class RhythmError { NONE, UNREADABLE, TOO_LONG, NO_NOTES }
 
 /** Couleurs des pistes, façon manche de guitare ; en mode daltonien, des teintes qui se distinguent par leur clarté. */
@@ -114,6 +129,8 @@ internal fun RhythmScreen(players: List<String>) {
     val colorBlind = LocalColorBlindMode.current
 
     var stage by remember { mutableStateOf(RhythmStage.MENU) }
+    // Vrai pendant que le réglage de la manette remplace le menu.
+    var showPad by remember { mutableStateOf(false) }
     var songUri by rememberSaveable { mutableStateOf<String?>(null) }
     var songName by rememberSaveable { mutableStateOf<String?>(null) }
     // Le morceau tel que le reconnaît le record (nom et taille du fichier).
@@ -228,10 +245,30 @@ internal fun RhythmScreen(players: List<String>) {
         }
     }
 
+    // La manette hors partie : Start lance la partie depuis le menu et la relance depuis le résultat (en partie, c'est le terrain qui écoute).
+    GamepadListener { input ->
+        if (showPad || stage == RhythmStage.PLAYING || stage == RhythmStage.ANALYZING) return@GamepadListener false
+        if (GamepadBindings.resolve(context, RHYTHM_ID, RHYTHM_PAD_ACTIONS, input) != "pause") return@GamepadListener false
+        when (stage) {
+            RhythmStage.MENU -> if (songUri != null) startGame()
+            RhythmStage.RESULT -> startGame()
+            else -> {}
+        }
+        true
+    }
+
     // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
         when (stage) {
-            RhythmStage.MENU -> RhythmMenu(
+            RhythmStage.MENU -> if (showPad) {
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+                    Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            GamepadSettings(RHYTHM_ID, RHYTHM_PAD_ACTIONS) { showPad = false }
+                        }
+                    }
+                }
+            } else RhythmMenu(
                 hasSong = songUri != null,
                 songName = songName,
                 difficultyIndex = difficultyIndex,
@@ -241,7 +278,8 @@ internal fun RhythmScreen(players: List<String>) {
                 onPickSong = { picker.launch(arrayOf("audio/*")) },
                 onDifficulty = { difficultyIndex = it },
                 onOffset = { offsetMs = it.coerceIn(-RhythmPreferences.MAX_OFFSET_MS, RhythmPreferences.MAX_OFFSET_MS) },
-                onPlay = startGame
+                onPlay = startGame,
+                onGamepad = { showPad = true }
             )
             RhythmStage.ANALYZING -> RhythmAnalyzing(progress = progress, onCancel = backToMenu)
             RhythmStage.PLAYING -> session?.let { current ->
@@ -309,7 +347,8 @@ private fun RhythmMenu(
     onPickSong: () -> Unit,
     onDifficulty: (Int) -> Unit,
     onOffset: (Int) -> Unit,
-    onPlay: () -> Unit
+    onPlay: () -> Unit,
+    onGamepad: () -> Unit
 ) {
     val cardColors = CardDefaults.cardColors(containerColor = cardSurface())
     Column(
@@ -413,9 +452,11 @@ private fun RhythmMenu(
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.rhythm_play))
         }
+        OutlinedButton(onClick = onGamepad, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.gamepad_title))
+        }
     }
 }
-
 private fun difficultyName(difficulty: RhythmDifficulty): Int = when (difficulty) {
     RhythmDifficulty.EASY -> R.string.rhythm_easy
     RhythmDifficulty.MEDIUM -> R.string.rhythm_medium
@@ -454,7 +495,43 @@ private fun RhythmPlayfield(session: RhythmSession, colorBlind: Boolean, onFinis
     val colors = remember(colorBlind) { laneColors(colorBlind) }
     var pressedMask by remember { mutableIntStateOf(0) }
     val currentOnFinished by rememberUpdatedState(onFinished)
-
+    val context = LocalContext.current
+    /** Une piste pressée ou relâchée à la manette, comme un doigt sur la touche du bas. */
+    fun padLane(lane: Int, down: Boolean) {
+        if (lane >= lanes) return
+        if (down) {
+            pressedMask = pressedMask or (1 shl lane)
+            session.press(lane, SystemClock.uptimeMillis())
+        } else {
+            pressedMask = pressedMask and (1 shl lane).inv()
+            session.release(lane, SystemClock.uptimeMillis())
+        }
+    }
+    // La manette : une touche par piste (à tenir pour les notes longues), Start met en pause ou reprend.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, RHYTHM_ID, RHYTHM_PAD_ACTIONS, input)) {
+            "lane0" -> padLane(0, false)
+            "lane1" -> padLane(1, false)
+            "lane2" -> padLane(2, false)
+            "lane3" -> padLane(3, false)
+            "lane4" -> padLane(4, false)
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, RHYTHM_ID, RHYTHM_PAD_ACTIONS, input)) {
+            "lane0" -> padLane(0, true)
+            "lane1" -> padLane(1, true)
+            "lane2" -> padLane(2, true)
+            "lane3" -> padLane(3, true)
+            "lane4" -> padLane(4, true)
+            "pause" -> {
+                val now = SystemClock.uptimeMillis()
+                if (session.stage == SessionStage.PAUSED) session.resume(now) else session.pause(now)
+            }
+            else -> return@GamepadListener false
+        }
+        true
+    }
     // Une image après l'autre, la partie avance.
     LaunchedEffect(session) {
         while (isActive) {

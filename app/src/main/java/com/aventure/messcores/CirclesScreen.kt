@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import android.content.Context
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -66,6 +67,23 @@ private const val PHASE_READY = 0 // on attend que le joueur courant lance sa s�
 private const val PHASE_PLAYING = 1 // les ronds apparaissent
 private const val PHASE_RUN_OVER = 2 // la série du joueur courant est finie (ou toute la partie)
 
+/**
+ * Les actions des Ronds réglables à la manette : déplacer le viseur (croix ou stick ; plus on tient longtemps, plus il va
+ * vite), toucher à l'endroit du viseur (A, R ou ZR) et, entre les séries, Start pour continuer.
+ */
+private val CIRCLES_PAD_ACTIONS = listOf(
+    padDirection("up", R.string.pad_up, horizontal = false, sign = -1),
+    padDirection("down", R.string.pad_down, horizontal = false, sign = 1),
+    padDirection("left", R.string.pad_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.pad_right, horizontal = true, sign = 1),
+    padButtons("tap", R.string.pad_tap, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_R2),
+    padStart("start")
+)
+
+/** La vitesse du viseur à la manette, en fractions du plus grand côté du terrain par seconde : au départ, puis après 0,8 s tenu. */
+private const val PAD_SPEED_MIN = 0.35f
+private const val PAD_SPEED_MAX = 1.0f
+private const val PAD_SPEED_RAMP_MS = 800f
 /** Rayon de départ d'un rond, en dp : assez grand pour viser au doigt, assez petit pour qu'on doive bouger. */
 private const val MAX_RADIUS_DP = 46
 
@@ -149,6 +167,23 @@ private fun LocalCircles(players: List<String>) {
 
     val game = CirclesGame(players = names.size, streaks = streaks)
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
+
+    // La manette entre les séries : Start continue (en série, c'est le terrain qui écoute).
+    GamepadListener { input ->
+        if (phase == PHASE_PLAYING && !game.isOver) return@GamepadListener false
+        if (GamepadBindings.resolve(context, CIRCLES_ID, CIRCLES_PAD_ACTIONS, input) != "start") return@GamepadListener false
+        when {
+            phase == PHASE_READY -> phase = PHASE_PLAYING
+            phase == PHASE_RUN_OVER && !game.isOver -> phase = PHASE_READY
+            phase == PHASE_RUN_OVER -> {
+                streaks = game.newGame().streaks
+                lastSkull = false
+                record.clearNew()
+                phase = PHASE_READY
+            }
+        }
+        true
+    }
 
     // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
@@ -255,6 +290,8 @@ private fun LocalCircles(players: List<String>) {
 /** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. */
 @Composable
 internal fun CirclesCard(content: @Composable ColumnScope.() -> Unit) {
+    // Vrai pendant que le réglage de la manette remplace le contenu de la carte.
+    var showPad by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -281,12 +318,18 @@ internal fun CirclesCard(content: @Composable ColumnScope.() -> Unit) {
                         contentColor = MaterialTheme.colorScheme.primary
                     )
                 }
-                content()
+                if (showPad) {
+                    GamepadSettings(CIRCLES_ID, CIRCLES_PAD_ACTIONS) { showPad = false }
+                } else {
+                    content()
+                    OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.gamepad_title))
+                    }
+                }
             }
         }
     }
 }
-
 /** Le résultat de la partie : le gagnant (ou les ex æquo), puis toutes les séries de la plus longue à la plus courte. */
 @Composable
 private fun CirclesResults(game: CirclesGame, names: List<String>, record: SoloRecord, onNewGame: () -> Unit) {
@@ -357,6 +400,93 @@ internal fun CirclesPlayfield(name: String, level: CirclesLevel, onFinished: (st
     // Vrai dès que la série est finie sur une tête de mort : l'animation du rond ne doit plus la terminer une seconde fois.
     var skullHit by remember { mutableStateOf(false) }
     val finished by rememberUpdatedState(onFinished)
+    val context = LocalContext.current
+
+    /** Un toucher en ([x], [y]) : une tête de mort passe en premier (un piège touché coûte la série), puis le rond. */
+    fun tapAt(x: Float, y: Float) {
+        if (!active) return
+        if (skulls.any { Circles.isSkullHit(x, y, it, skullRadius) }) {
+            skullHit = true
+            active = false
+            skulls = emptyList()
+            finished(streak, true)
+        } else if (Circles.isHit(x, y, spot.x, spot.y, radius, maxRadius)) {
+            active = false
+            skulls = emptyList()
+            streak += 1
+            circleId += 1
+        }
+    }
+
+    // Le viseur de la manette : il apparaît au centre dès le premier appui, puis suit les directions tenues.
+    var padUsed by remember { mutableStateOf(false) }
+    var padX by remember { mutableFloatStateOf(0f) }
+    var padY by remember { mutableFloatStateOf(0f) }
+    // Les directions tenues : [0] haut, [1] bas, [2] gauche, [3] droite.
+    val padHeld = remember { BooleanArray(4) }
+    fun showPadCursor() {
+        if (!padUsed && areaWidth > 0f && areaHeight > 0f) {
+            padX = areaWidth / 2f
+            padY = areaHeight / 2f
+            padUsed = true
+        }
+    }
+    LaunchedEffect(Unit) {
+        var last = withFrameNanos { it }
+        var heldMs = 0f
+        while (true) {
+            val now = withFrameNanos { it }
+            val elapsedMs = ((now - last) / 1_000_000f).coerceIn(0f, 100f)
+            last = now
+            val dx = (if (padHeld[3]) 1 else 0) - (if (padHeld[2]) 1 else 0)
+            val dy = (if (padHeld[1]) 1 else 0) - (if (padHeld[0]) 1 else 0)
+            if (dx == 0 && dy == 0) {
+                heldMs = 0f
+                continue
+            }
+            heldMs += elapsedMs
+            val ramp = (heldMs / PAD_SPEED_RAMP_MS).coerceAtMost(1f)
+            val step = maxOf(areaWidth, areaHeight) * (PAD_SPEED_MIN + (PAD_SPEED_MAX - PAD_SPEED_MIN) * ramp) * elapsedMs / 1000f
+            val norm = if (dx != 0 && dy != 0) 0.7071f else 1f
+            padX = (padX + dx * step * norm).coerceIn(0f, areaWidth)
+            padY = (padY + dy * step * norm).coerceIn(0f, areaHeight)
+        }
+    }
+    // La manette : la croix déplace le viseur, A touche à son emplacement.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, CIRCLES_ID, CIRCLES_PAD_ACTIONS, input)) {
+            "up" -> padHeld[0] = false
+            "down" -> padHeld[1] = false
+            "left" -> padHeld[2] = false
+            "right" -> padHeld[3] = false
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, CIRCLES_ID, CIRCLES_PAD_ACTIONS, input)) {
+            "up" -> {
+                showPadCursor()
+                padHeld[0] = true
+            }
+            "down" -> {
+                showPadCursor()
+                padHeld[1] = true
+            }
+            "left" -> {
+                showPadCursor()
+                padHeld[2] = true
+            }
+            "right" -> {
+                showPadCursor()
+                padHeld[3] = true
+            }
+            "tap" -> {
+                showPadCursor()
+                tapAt(padX, padY)
+            }
+            else -> return@GamepadListener false
+        }
+        true
+    }
 
     LaunchedEffect(circleId, areaWidth, areaHeight) {
         if (areaWidth <= 0f || areaHeight <= 0f) return@LaunchedEffect
@@ -413,22 +543,7 @@ internal fun CirclesPlayfield(name: String, level: CirclesLevel, onFinished: (st
                 }
                 .pointerInput(maxRadius, skullRadius) {
                     // Dès le doigt posé : attendre qu'il se lève ferait perdre un temps précieux.
-                    detectTapGestures(onPress = { tap ->
-                        if (active) {
-                            // La tête de mort passe en premier : un piège touché coûte la série, même si le rond est tout près.
-                            if (skulls.any { Circles.isSkullHit(tap.x, tap.y, it, skullRadius) }) {
-                                skullHit = true
-                                active = false
-                                skulls = emptyList()
-                                finished(streak, true)
-                            } else if (Circles.isHit(tap.x, tap.y, spot.x, spot.y, radius, maxRadius)) {
-                                active = false
-                                skulls = emptyList()
-                                streak += 1
-                                circleId += 1
-                            }
-                        }
-                    })
+                    detectTapGestures(onPress = { tap -> tapAt(tap.x, tap.y) })
                 }
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -441,6 +556,15 @@ internal fun CirclesPlayfield(name: String, level: CirclesLevel, onFinished: (st
                     drawCircle(Color.White.copy(alpha = 0.85f), radius = radius * 0.4f, center = middle)
                     // Au niveau difficile, le fond des têtes de mort prend la couleur du rond, qui change à chaque rond touché.
                     skulls.forEach { drawSkull(Offset(it.x, it.y), skullRadius, background = color) }
+                }
+                // Le viseur de la manette : un cercle clair cerné de sombre avec un point au centre.
+                if (padUsed) {
+                    val c = Offset(padX, padY)
+                    val r = 14.dp.toPx()
+                    drawCircle(Color.Black, radius = r, center = c, style = Stroke(width = 5.dp.toPx()))
+                    drawCircle(Color.White, radius = r, center = c, style = Stroke(width = 2.5.dp.toPx()))
+                    drawCircle(Color.Black, radius = 3.5.dp.toPx(), center = c)
+                    drawCircle(Color.White, radius = 2.dp.toPx(), center = c)
                 }
             }
         }

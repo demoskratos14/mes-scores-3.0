@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -84,6 +85,22 @@ private const val SHMUP_PHASE_READY = 0 // on attend que le joueur lance la part
 private const val SHMUP_PHASE_PLAYING = 1 // la partie est en cours
 private const val SHMUP_PHASE_OVER = 2 // la dernière vie est perdue : la partie est finie
 
+/**
+ * Les actions de Shmup réglables à la manette : déplacer le vaisseau dans les quatre directions en tenant la commande
+ * (croix ou stick) et pause / démarrer (Start). Le vaisseau tire tout seul.
+ */
+private val SHMUP_PAD_ACTIONS = listOf(
+    padDirection("up", R.string.pad_up, horizontal = false, sign = -1),
+    padDirection("down", R.string.pad_down, horizontal = false, sign = 1),
+    padDirection("left", R.string.pad_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.pad_right, horizontal = true, sign = 1),
+    padStart()
+)
+
+/** La vitesse du vaisseau à la manette, en unités de terrain par seconde. */
+private const val SHMUP_PAD_SPEED = 7f
+
+
 /** Plus long temps d'une image pris en compte : après un à-coup, rien ne doit sauter loin d'un coup. */
 private const val SHMUP_MAX_FRAME_MS = 100L
 
@@ -131,6 +148,8 @@ internal fun ShmupScreen(players: List<String>) {
     val game = rememberSaveable(saver = ShmupGameSaver) { ShmupGame() }
     var phase by rememberSaveable { mutableIntStateOf(SHMUP_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
+    // Vrai pendant que le réglage de la manette est affiché à la place de l'écran d'accueil ou de fin.
+    var showPad by remember { mutableStateOf(false) }
     val record = rememberSoloRecord(SHMUP_ID)
 
     // La partie se met en pause quand l'appli passe en arrière-plan (et donc aussi quand l'écran tourne).
@@ -152,8 +171,20 @@ internal fun ShmupScreen(players: List<String>) {
         phase = SHMUP_PHASE_PLAYING
     }
 
+    // La manette hors partie : Start lance la partie (en partie, c'est le terrain qui écoute).
+    GamepadListener { input ->
+        if (phase == SHMUP_PHASE_PLAYING || showPad) return@GamepadListener false
+        if (GamepadBindings.resolve(context, SHMUP_ID, SHMUP_PAD_ACTIONS, input) == "pause") {
+            startGame()
+            true
+        } else false
+    }
+
+    // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
-        when (phase) {
+        when {
+            showPad -> ShmupCard { GamepadSettings(SHMUP_ID, SHMUP_PAD_ACTIONS) { showPad = false } }
+            else -> when (phase) {
             SHMUP_PHASE_PLAYING -> ShmupPlayfield(
                 game = game,
                 paused = paused,
@@ -190,6 +221,9 @@ internal fun ShmupScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.shmup_play_again))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
             }
             else -> ShmupCard {
                 Text(
@@ -207,6 +241,10 @@ internal fun ShmupScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.shmup_go))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
+            }
             }
         }
         RecordSparkles(record)
@@ -281,7 +319,32 @@ private fun ShmupPlayfield(
     var banner by remember { mutableIntStateOf(BANNER_NONE) }
     var bannerStage by remember { mutableIntStateOf(game.stage + 1) }
     val finished by rememberUpdatedState(onOver)
+    val context = LocalContext.current
     val isPaused by rememberUpdatedState(paused)
+
+    // Les directions tenues à la manette : [0] haut, [1] bas, [2] gauche, [3] droite.
+    val padHeld = remember { BooleanArray(4) }
+
+    // La manette : le vaisseau suit les directions tenues, Start met en pause ou reprend.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, SHMUP_ID, SHMUP_PAD_ACTIONS, input)) {
+            "up" -> padHeld[0] = false
+            "down" -> padHeld[1] = false
+            "left" -> padHeld[2] = false
+            "right" -> padHeld[3] = false
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, SHMUP_ID, SHMUP_PAD_ACTIONS, input)) {
+            "up" -> padHeld[0] = true
+            "down" -> padHeld[1] = true
+            "left" -> padHeld[2] = true
+            "right" -> padHeld[3] = true
+            "pause" -> onPausedChange(!paused)
+            else -> return@GamepadListener false
+        }
+        true
+    }
 
     LaunchedEffect(paused) {
         if (paused) return@LaunchedEffect
@@ -290,6 +353,13 @@ private fun ShmupPlayfield(
             val now = withFrameNanos { it }
             val elapsed = ((now - last) / 1_000_000L).coerceIn(0L, SHMUP_MAX_FRAME_MS)
             last = now
+            val padX = (if (padHeld[3]) 1 else 0) - (if (padHeld[2]) 1 else 0)
+            val padY = (if (padHeld[1]) 1 else 0) - (if (padHeld[0]) 1 else 0)
+            if (padX != 0 || padY != 0) {
+                // En diagonale, on ne va pas plus vite qu'en ligne droite.
+                val step = SHMUP_PAD_SPEED * elapsed / 1000f * (if (padX != 0 && padY != 0) 0.7071f else 1f)
+                game.movePlayerTo(game.playerX + padX * step, game.playerY + padY * step)
+            }
             game.tick(elapsed)
             revision++
             score = game.score

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.ActivityInfo
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -29,6 +30,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -82,6 +84,20 @@ import androidx.lifecycle.LifecycleOwner
 private const val DRIVE_PHASE_READY = 0 // on attend que le joueur lance la partie (touche A)
 private const val DRIVE_PHASE_PLAYING = 1 // la partie tourne
 private const val DRIVE_PHASE_OVER = 2 // trois erreurs : le joueur est licencié
+
+/**
+ * Les actions de Drive réglables à la manette : sauter (haut), aller à gauche ou à droite (croix ou stick, tenir répète le
+ * pas), les boutons A et B, et pause / reprise (Start).
+ */
+private val DRIVE_PAD_ACTIONS = listOf(
+    padDirection("up", R.string.drive_button_up, horizontal = false, sign = -1),
+    padDirection("left", R.string.drive_dir_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.drive_dir_right, horizontal = true, sign = 1),
+    padButtons("a", R.string.drive_button_a, KeyEvent.KEYCODE_BUTTON_A),
+    padButtons("b", R.string.drive_button_b, KeyEvent.KEYCODE_BUTTON_B),
+    padStart()
+)
+
 
 /** Plus long temps d'une image pris en compte : après un à-coup, la partie ne doit pas sauter d'un coup plusieurs secondes. */
 private const val DRIVE_MAX_FRAME_MS = 100L
@@ -179,6 +195,8 @@ internal fun DriveScreen(players: List<String>) {
     var deliveries by remember { mutableIntStateOf(game.deliveries) }
     // Les boutons de la console actuellement enfoncés (un bit chacun, voir PRESS_LEFT et les suivants).
     var pressed by remember { mutableIntStateOf(0) }
+    // Vrai pendant que le réglage de la manette est affiché sur l'écran de la console.
+    var showPad by remember { mutableStateOf(false) }
     val sprites = remember { loadDriveSprites(context) }
     val measurer = rememberTextMeasurer()
     val labels = DriveLabels(
@@ -276,6 +294,47 @@ internal fun DriveScreen(players: List<String>) {
         }
     }
 
+    // La manette agit comme la croix et les boutons de la console : le bouton s'enfonce à l'appui et se relève au relâchement.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, DRIVE_ID, DRIVE_PAD_ACTIONS, input)) {
+            "up" -> press(PRESS_UP, false)
+            "left" -> press(PRESS_LEFT, false)
+            "right" -> press(PRESS_RIGHT, false)
+            "a" -> press(PRESS_A, false)
+            "b" -> press(PRESS_B, false)
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, DRIVE_ID, DRIVE_PAD_ACTIONS, input)) {
+            "up" -> {
+                press(PRESS_UP, true)
+                key(DRIVE_UP)
+            }
+            "left" -> {
+                press(PRESS_LEFT, true)
+                key(DRIVE_LEFT)
+            }
+            "right" -> {
+                press(PRESS_RIGHT, true)
+                key(DRIVE_RIGHT)
+            }
+            "a" -> {
+                press(PRESS_A, true)
+                key(DRIVE_A)
+            }
+            "b" -> {
+                press(PRESS_B, true)
+                key(DRIVE_B)
+            }
+            "pause" -> {
+                if (phase == DRIVE_PHASE_PLAYING) paused = !paused
+                else if (!paused && (phase == DRIVE_PHASE_READY || game.canRestart)) startGame()
+            }
+            else -> return@GamepadListener false
+        }
+        true
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // La console remplit tout l'écran (hors zones système), sur fond noir, en gardant ses proportions.
         BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
@@ -322,7 +381,7 @@ internal fun DriveScreen(players: List<String>) {
                 }
 
                 // Les messages se posent sur l'écran à cristaux liquides, pas sur le reste de la console.
-                if (phase != DRIVE_PHASE_PLAYING || paused) {
+                if (showPad || phase != DRIVE_PHASE_PLAYING || paused) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopStart)
@@ -330,6 +389,7 @@ internal fun DriveScreen(players: List<String>) {
                             .size(unit * LCD_W, unit * LCD_H)
                     ) {
                         when {
+                            showPad -> DriveInfoCard { GamepadSettings(DRIVE_ID, DRIVE_PAD_ACTIONS) { showPad = false } }
                             phase == DRIVE_PHASE_PLAYING -> Column(
                                 modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
                                 verticalArrangement = Arrangement.Center,
@@ -379,6 +439,9 @@ internal fun DriveScreen(players: List<String>) {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
                                 )
+                                OutlinedButton(onClick = { showPad = true }) {
+                                    Text(stringResource(R.string.gamepad_title))
+                                }
                             }
                             else -> DriveInfoCard {
                                 Text(
@@ -393,6 +456,9 @@ internal fun DriveScreen(players: List<String>) {
                                     textAlign = TextAlign.Center
                                 )
                                 SoloRecordLine(record)
+                                OutlinedButton(onClick = { showPad = true }) {
+                                    Text(stringResource(R.string.gamepad_title))
+                                }
                             }
                         }
                     }

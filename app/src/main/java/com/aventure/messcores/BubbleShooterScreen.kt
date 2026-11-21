@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
@@ -109,6 +110,17 @@ private const val AIM_STEP = 0.025f
 private const val AIM_REPEAT_DELAY_MS = 250L
 private const val AIM_REPEAT_MS = 25L
 
+/**
+ * Les actions du Bubble Shooter réglables à la manette : viser à gauche ou à droite (croix ou stick, tenir répète le pas),
+ * tirer (A, R ou ZR), échanger les deux bulles (B, X ou L) et pause / démarrer (Start).
+ */
+private val BUBBLE_PAD_ACTIONS = listOf(
+    padDirection("left", R.string.bubble_left, horizontal = true, sign = -1),
+    padDirection("right", R.string.bubble_right, horizontal = true, sign = 1),
+    padButtons("fire", R.string.bubble_fire, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_R2),
+    padButtons("swap", R.string.bubble_swap, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BUTTON_X, KeyEvent.KEYCODE_BUTTON_L1),
+    padStart()
+)
 /** La bulle suivante, posée à gauche du lanceur : son décalage, son rayon (en unités du terrain) et la tolérance du toucher. */
 private const val NEXT_OFFSET_X = -2.6f
 private const val NEXT_OFFSET_Y = 0.25f
@@ -240,6 +252,8 @@ internal fun BubbleShooterScreen(players: List<String>) {
     val game = rememberSaveable(saver = BubbleGameSaver) { BubbleGame() }
     var phase by rememberSaveable { mutableIntStateOf(BUBBLE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
+    // Vrai pendant que le réglage de la manette est affiché à la place de l'écran d'accueil ou de fin.
+    var showPad by remember { mutableStateOf(false) }
     // Nombre de tableaux vidés : à chaque hausse, la pluie de paillettes tombe.
     var cleared by rememberSaveable { mutableIntStateOf(game.level - 1) }
     // Le mode et le guide : gardés d'une séance à l'autre dans les préférences, et quand l'écran tourne.
@@ -281,8 +295,19 @@ internal fun BubbleShooterScreen(players: List<String>) {
         phase = BUBBLE_PHASE_PLAYING
     }
 
+    // La manette hors partie : Start lance la partie (en partie, c'est le terrain qui écoute).
+    GamepadListener { input ->
+        if (phase == BUBBLE_PHASE_PLAYING || showPad) return@GamepadListener false
+        if (GamepadBindings.resolve(context, BUBBLE_ID, BUBBLE_PAD_ACTIONS, input) == "pause") {
+            startGame()
+            true
+        } else false
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        when (phase) {
+        when {
+            showPad -> BubbleCard { GamepadSettings(BUBBLE_ID, BUBBLE_PAD_ACTIONS) { showPad = false } }
+            else -> when (phase) {
             BUBBLE_PHASE_PLAYING -> BubblePlayfield(
                 game = game,
                 guide = guide,
@@ -324,6 +349,9 @@ internal fun BubbleShooterScreen(players: List<String>) {
                 OutlinedButton(onClick = { phase = BUBBLE_PHASE_READY }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.bubble_change_mode))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
             }
             else -> BubbleCard {
                 Text(
@@ -353,7 +381,11 @@ internal fun BubbleShooterScreen(players: List<String>) {
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.bubble_go))
                 }
+                OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.gamepad_title))
+                }
             }
+        }
         }
         RecordSparkles(record)
         SparkleRain(cleared)
@@ -492,7 +524,7 @@ private fun BubblePlayfield(
     var celebrating by remember { mutableStateOf(false) }
     val finished by rememberUpdatedState(onOver)
     val clearedChanged by rememberUpdatedState(onCleared)
-
+    val context = LocalContext.current
     fun sync() {
         revision++
         score = game.score
@@ -578,6 +610,34 @@ private fun BubblePlayfield(
     val aimLeftAction by rememberUpdatedState<() -> Unit>({ turnAim(AIM_STEP) })
     val aimRightAction by rememberUpdatedState<() -> Unit>({ turnAim(-AIM_STEP) })
 
+    // La direction de visée tenue à la manette (-1 gauche, 1 droite, 0 aucune) : elle répète le pas, comme une touche tenue.
+    var padAim by remember { mutableIntStateOf(0) }
+    LaunchedEffect(padAim) {
+        if (padAim == 0) return@LaunchedEffect
+        if (padAim < 0) aimLeftAction() else aimRightAction()
+        delay(AIM_REPEAT_DELAY_MS)
+        while (true) {
+            if (padAim < 0) aimLeftAction() else aimRightAction()
+            delay(AIM_REPEAT_MS)
+        }
+    }
+    // La manette : la croix vise, A tire, B échange les bulles, Start met en pause ou reprend.
+    GamepadListener(onRelease = { input ->
+        when (GamepadBindings.resolve(context, BUBBLE_ID, BUBBLE_PAD_ACTIONS, input)) {
+            "left", "right" -> padAim = 0
+            else -> {}
+        }
+    }) { input ->
+        when (GamepadBindings.resolve(context, BUBBLE_ID, BUBBLE_PAD_ACTIONS, input)) {
+            "left" -> padAim = -1
+            "right" -> padAim = 1
+            "fire" -> fireAction()
+            "swap" -> swapAction()
+            "pause" -> onPausedChange(!paused)
+            else -> return@GamepadListener false
+        }
+        true
+    }
     LaunchedEffect(celebrating) {
         if (!celebrating) return@LaunchedEffect
         delay(CELEBRATION_MS)

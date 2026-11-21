@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import android.os.SystemClock
+import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -39,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -59,6 +62,16 @@ private const val PHASE_GO = 2 // le signal est donné : le premier qui touche g
 private const val PHASE_DONE = 3 // la manche est jouée
 private const val PHASE_LOSER = 4 // un seul téléphone : le vainqueur a touché, on note encore le temps du perdant
 
+/**
+ * Les actions de Réflexes réglables à la manette : toucher pour le joueur 1 (L, ZL ou X) et pour le joueur 2 (R, ZR ou B),
+ * de sorte que deux joueurs peuvent se partager une manette, une moitié chacun ; Start (ou A) lance la manche. À deux
+ * téléphones, les deux commandes de toucher valent pour le seul joueur du téléphone.
+ */
+private val REFLEX_PAD_ACTIONS = listOf(
+    padButtons("tap1", R.string.reflex_pad_tap1, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_L2, KeyEvent.KEYCODE_BUTTON_X),
+    padButtons("tap2", R.string.reflex_pad_tap2, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_R2, KeyEvent.KEYCODE_BUTTON_B),
+    padButtons("start", R.string.snake_pad_pause, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_BUTTON_A)
+)
 /**
  * Duel de réflexes à deux joueurs : sur un seul téléphone (voir [LocalReflex]) ou chacun sur le sien (voir [ReflexOnline]).
  */
@@ -133,7 +146,9 @@ private fun LocalReflex(players: List<String>) {
     var timedRounds2 by rememberSaveable { mutableIntStateOf(0) }
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var goAt by rememberSaveable { mutableLongStateOf(0L) }
-
+    val context = LocalContext.current
+    // Vrai pendant que le réglage de la manette remplace l'écran de jeu.
+    var showPad by remember { mutableStateOf(false) }
     // La séance relue dans les états à chaque appel : un toucher n'est pas traité sur la photo prise à la dernière
     // recomposition. Sinon, quand le second joueur touche quelques millisecondes après le premier (avant que l'écran
     // ne soit redessiné), sa zone verrait encore la manche d'avant et son temps serait perdu.
@@ -195,8 +210,27 @@ private fun LocalReflex(players: List<String>) {
         }
     }
 
+    // La manette : un toucher par joueur, Start (ou A) lance la manche ou la partie suivante.
+    GamepadListener { input ->
+        when (GamepadBindings.resolve(context, REFLEX_ID, REFLEX_PAD_ACTIONS, input)) {
+            "tap1" -> onTap(1)
+            "tap2" -> onTap(2)
+            "start" -> {
+                val current = readMatch()
+                when {
+                    phase == PHASE_READY -> phase = PHASE_WAITING
+                    phase == PHASE_DONE && current.isOver -> {
+                        applyMatch(current.newMatch())
+                        phase = PHASE_READY
+                    }
+                    phase == PHASE_DONE -> phase = PHASE_WAITING
+                }
+            }
+            else -> return@GamepadListener false
+        }
+        true
+    }
     fun nameOf(player: Int) = if (player == 1) name1 else name2
-
     val statusText = when {
         phase == PHASE_READY -> pluralStringResource(R.plurals.reflex_hint, Reflex.TARGET, Reflex.TARGET)
         phase == PHASE_WAITING -> stringResource(R.string.reflex_status_wait)
@@ -218,7 +252,9 @@ private fun LocalReflex(players: List<String>) {
         else -> stringResource(R.string.reflex_round_won, nameOf(match.lastWinner), match.lastReactionMs)
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    if (showPad) InfoCard {
+        GamepadSettings(REFLEX_ID, REFLEX_PAD_ACTIONS) { showPad = false }
+    } else Column(modifier = Modifier.fillMaxSize()) {
         // Le joueur 2 est en haut, face à son adversaire : sa zone est retournée.
         ReflexZone(
             player = 2,
@@ -283,6 +319,11 @@ private fun LocalReflex(players: List<String>) {
                         onClick = { phase = PHASE_WAITING },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(stringResource(R.string.reflex_next_round)) }
+                }
+                if (phase == PHASE_READY || phase == PHASE_DONE) {
+                    OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.gamepad_title))
+                    }
                 }
             }
         }
@@ -439,7 +480,9 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
     fun nameOf(seat: Int) = names.getOrElse(seat) { (seat + 1).toString() }
     val others = names.filterIndexed { index, _ -> index != me }.joinToString(", ")
     val colorBlind = LocalColorBlindMode.current
-
+    val context = LocalContext.current
+    // Vrai pendant que le réglage de la manette remplace l'écran de jeu.
+    var showPad by remember { mutableStateOf(false) }
     // Étape de MA manche, suivie sur ce téléphone seulement ; [phaseRound] dit à quelle manche elle correspond.
     var phase by rememberSaveable { mutableIntStateOf(PHASE_READY) }
     var phaseRound by rememberSaveable { mutableIntStateOf(-1) }
@@ -471,6 +514,22 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
     val stop = if (colorBlind) Color(0xFFD55E00) else Color(0xFFC62828)
     val go = if (colorBlind) Color(0xFF0072B2) else Color(0xFF2E7D32)
     val idle = Color(0xFF455A64)
+    // La manette : l'une ou l'autre commande de toucher vaut pour moi, Start (ou A) lance la manche ou la partie suivante.
+    GamepadListener { input ->
+        when (GamepadBindings.resolve(context, REFLEX_ID, REFLEX_PAD_ACTIONS, input)) {
+            "tap1", "tap2" -> onTap()
+            "start" -> if (!online.running) {
+                when {
+                    online.match.isOver -> online.newMatch()
+                    // Tant que les joueurs arrivent, seul l'organisateur lance la partie.
+                    online.gathering && !online.isHost -> Unit
+                    else -> online.startRound()
+                }
+            }
+            else -> return@GamepadListener false
+        }
+        true
+    }
     val roundDone = match.roundPlayed
     val iWon = match.lastWinner == me
     val myResult = match.lastResults.getOrNull(me) ?: Reflex.MISS
@@ -511,7 +570,9 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    if (showPad) InfoCard {
+        GamepadSettings(REFLEX_ID, REFLEX_PAD_ACTIONS) { showPad = false }
+    } else Column(modifier = Modifier.fillMaxSize()) {
         Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -600,6 +661,11 @@ private fun OnlineReflex(online: ReflexOnline, onQuit: () -> Unit, onClose: () -
                         else -> Button(onClick = { online.startRound() }, modifier = Modifier.fillMaxWidth()) {
                             Text(stringResource(if (online.round > 0) R.string.reflex_next_round else R.string.reflex_start))
                         }
+                    }
+                }
+                if (!online.running) {
+                    OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.gamepad_title))
                     }
                 }
                 OutlinedButton(onClick = onQuit, modifier = Modifier.fillMaxWidth()) {

@@ -2,6 +2,7 @@ package com.aventure.messcores
 
 import android.media.AudioManager
 import android.media.ToneGenerator
+import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -56,6 +57,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -98,6 +100,17 @@ private val PAD_COLORS = listOf(Color(0xFF2E9E4F), Color(0xFFD93A35), Color(0xFF
 /** Début (en degrés, dans le sens des aiguilles d'une montre depuis 3 h) du quart de chaque touche, comme sur le Simon d'origine : vert en haut à gauche, rouge en haut à droite, jaune en bas à gauche, bleu en bas à droite. */
 private val PAD_START_ANGLES = floatArrayOf(180f, 270f, 90f, 0f)
 
+/**
+ * Les actions de Simon réglables à la manette : une par touche du plateau (A le rond vert, B le triangle rouge, X le carré
+ * jaune, Y le losange bleu) et Start pour lancer la suite.
+ */
+private val SIMON_PAD_ACTIONS = listOf(
+    padButtons("pad0", R.string.simon_pad_green, KeyEvent.KEYCODE_BUTTON_A),
+    padButtons("pad1", R.string.simon_pad_red, KeyEvent.KEYCODE_BUTTON_B),
+    padButtons("pad2", R.string.simon_pad_yellow, KeyEvent.KEYCODE_BUTTON_X),
+    padButtons("pad3", R.string.simon_pad_blue, KeyEvent.KEYCODE_BUTTON_Y),
+    padStart("start")
+)
 /** Rayon du bouton central, en fraction du rayon du plateau. */
 private const val HUB_FRACTION = 0.36f
 
@@ -364,6 +377,8 @@ private fun SimonTurnsMode(names: List<String>, onChangeMode: () -> Unit) {
 /** La carte de la séance : le titre du jeu, ses règles, puis [content]. */
 @Composable
 internal fun SimonCard(content: @Composable ColumnScope.() -> Unit) {
+    // Vrai pendant que le réglage de la manette remplace le contenu de la carte.
+    var showPad by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -390,7 +405,14 @@ internal fun SimonCard(content: @Composable ColumnScope.() -> Unit) {
                         contentColor = MaterialTheme.colorScheme.primary
                     )
                 }
-                content()
+                if (showPad) {
+                    GamepadSettings(SIMON_ID, SIMON_PAD_ACTIONS) { showPad = false }
+                } else {
+                    content()
+                    OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.gamepad_title))
+                    }
+                }
             }
         }
     }
@@ -548,6 +570,19 @@ private class PadSectorShape(private val startAngle: Float) : Shape {
  */
 @Composable
 private fun ColumnScope.SimonBoard(lit: Int, started: Boolean, onStart: () -> Unit, onPad: (Int) -> Unit) {
+    val context = LocalContext.current
+    // La manette : une touche par couleur, Start lance la suite (tant qu'elle n'est pas lancée).
+    GamepadListener { input ->
+        when (GamepadBindings.resolve(context, SIMON_ID, SIMON_PAD_ACTIONS, input)) {
+            "pad0" -> onPad(0)
+            "pad1" -> onPad(1)
+            "pad2" -> onPad(2)
+            "pad3" -> onPad(3)
+            "start" -> if (!started) onStart()
+            else -> return@GamepadListener false
+        }
+        true
+    }
     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
