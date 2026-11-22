@@ -45,10 +45,13 @@ jobs:
       - name: Rendre gradlew exécutable
         run: chmod +x gradlew
 
+      # L'appli existe en deux variantes : « phone » (téléphone) et « tv » (Google TV / Android TV), construites
+      # à partir du même code. Les tests et le lint ne tournent qu'une fois, sur la variante téléphone (le code
+      # est commun) ; les deux releases sont en revanche construites à chaque fois (voir plus bas).
       # Les tests (Tarot, règles de fin de partie, championnat) tournent avant l'APK :
       # une régression bloque le workflow au lieu de passer inaperçue.
       - name: Lancer les tests unitaires
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testPhoneDebugUnitTest --stacktrace
 
       - name: Publier le rapport de tests (en cas d'échec)
         if: failure()
@@ -62,20 +65,21 @@ jobs:
       # Les erreurs et les avertissements bloquent le workflow (lint { warningsAsErrors = true } dans app/build.gradle.kts) ;
       # le rapport HTML reste consultable.
       - name: Lancer le lint
-        run: ./gradlew lintDebug --stacktrace
+        run: ./gradlew lintPhoneDebug --stacktrace
 
       - name: Publier le rapport de lint
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: "Rapport de lint"
-          path: app/build/reports/lint-results-debug.html
+          path: app/build/reports/lint-results-phoneDebug.html
           if-no-files-found: ignore
 
       # --- Release : construite à chaque exécution, signée quand les secrets existent ---
       # La release est minifiée par R8 (isMinifyEnabled) : une règle manquante peut casser l'APK release
       # sans jamais gêner le debug. On la construit donc à chaque push, pour que le problème se voie
-      # tout de suite et non au moment de publier.
+      # tout de suite et non au moment de publier. Les deux variantes (téléphone et télé) sont construites ;
+      # seule celle du téléphone a un AAB (Play Store), la version télé s'installe à la main.
       # Secrets à créer dans Settings > Secrets and variables > Actions :
       #   KEYSTORE_BASE64 (le fichier .jks encodé en base64), KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
       # Sans eux, la release est construite non signée : elle vérifie le build mais ne s'installe pas
@@ -90,18 +94,26 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
-          KEYSTORE_FILE="$RUNNER_TEMP/release.jks" ./gradlew assembleRelease bundleRelease --stacktrace
+          KEYSTORE_FILE="$RUNNER_TEMP/release.jks" ./gradlew assemblePhoneRelease assembleTvRelease bundlePhoneRelease --stacktrace
 
       - name: Construire l'APK release (non signé, secrets absents)
         if: ${{ env.HAS_SIGNING != 'true' }}
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assemblePhoneRelease assembleTvRelease --stacktrace
 
       - name: Publier l'APK release
         if: ${{ env.HAS_SIGNING == 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: "Mes scores (release)"
-          path: "app/build/outputs/apk/release/Mes scores-release.apk"
+          path: "app/build/outputs/apk/phone/release/*.apk"
+          if-no-files-found: error
+
+      - name: Publier l'APK release TV (Google TV / Android TV)
+        if: ${{ env.HAS_SIGNING == 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: "Mes scores TV (release)"
+          path: "app/build/outputs/apk/tv/release/*.apk"
           if-no-files-found: error
 
       - name: Publier l'APK release non signé
@@ -109,7 +121,15 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: "Mes scores (release non signée)"
-          path: "app/build/outputs/apk/release/*.apk"
+          path: "app/build/outputs/apk/phone/release/*.apk"
+          if-no-files-found: error
+
+      - name: Publier l'APK release TV non signé
+        if: ${{ env.HAS_SIGNING != 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: "Mes scores TV (release non signée)"
+          path: "app/build/outputs/apk/tv/release/*.apk"
           if-no-files-found: error
 
       - name: Publier l'AAB release (Play Store)
@@ -117,5 +137,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: "Mes scores (release AAB)"
-          path: "app/build/outputs/bundle/release/*.aab"
+          path: "app/build/outputs/bundle/phoneRelease/*.aab"
           if-no-files-found: error
