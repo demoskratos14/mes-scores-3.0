@@ -145,9 +145,9 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     CHESS_ID to "chess"
 )
 
-/** Écrans de jeux jouables sur lesquels le badge chronomètre / minuteur est masqué. */
+/** Écrans de jeux jouables (et l'accueil de l'appli pour télé) sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
+    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -336,7 +336,27 @@ fun ScoreApp(
         // Fond commun à tous les écrans, décodé une seule fois.
         AppBackground()
 
-        NavHost(navController = navController, startDestination = "home") {
+        // L'appli pour télé (variante « tv ») s'ouvre sur sa grille de jeux solo, pas sur l'accueil du téléphone.
+        NavHost(navController = navController, startDestination = if (BuildConfig.IS_TV) "tvHome" else "home") {
+            if (BuildConfig.IS_TV) {
+                composable("tvHome") {
+                    val tvGames = remember {
+                        val all = gameRepository.builtInGames()
+                        TV_GAME_IDS.mapNotNull { id -> all.firstOrNull { it.id == id } }
+                    }
+                    TvHomeScreen(
+                        games = tvGames,
+                        onGameChosen = { rules ->
+                            // Comme « Jeux solo » du téléphone : un seul joueur, sans écran de saisie des noms.
+                            playMode = true
+                            soloMode = true
+                            pendingPlayerNames = PlayerNames.resolve(loadLastPlayerNames(context).take(1).ifEmpty { listOf("") }, playerDefault)
+                            pendingPlayerColors = listOf(0)
+                            OWN_SCREEN_ROUTES[rules.id]?.let { navController.navigate(it) }
+                        }
+                    )
+                }
+            }
             composable("home") {
                 HomeScreen(
                     onOpenScores = {

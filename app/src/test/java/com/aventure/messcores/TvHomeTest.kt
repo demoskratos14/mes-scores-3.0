@@ -1,0 +1,41 @@
+package com.aventure.messcores
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(qualifiers = "fr")
+class TvHomeTest {
+
+    private val builtIns = GameRepository(RuntimeEnvironment.getApplication()).builtInGames()
+
+    @Test
+    fun lAccueilTvListeAuMoinsUnJeuSansDoublon() {
+        assertTrue(TV_GAME_IDS.isNotEmpty())
+        assertEquals(TV_GAME_IDS.size, TV_GAME_IDS.toSet().size)
+    }
+
+    @Test
+    fun chaqueJeuTvExisteSeJoueSeulEtAUneRoute() {
+        // Un jeu de la liste qui n'existe plus, qui demande d'autres joueurs ou qui n'a pas de route ne s'ouvrirait pas.
+        for (id in TV_GAME_IDS) {
+            val game = builtIns.firstOrNull { it.id == id }
+            assertTrue("jeu inconnu : $id", game != null)
+            assertTrue("$id n'est pas un jeu solo", game!!.isSoloOnlyGame())
+            assertTrue("$id n'a pas de route dans OWN_SCREEN_ROUTES", id in OWN_SCREEN_ROUTES)
+        }
+    }
+
+    @Test
+    fun lAppliTelephoneNEstPasEnModeTvParDefaut() {
+        // Les tests tournent dans la variante téléphone : le mode TV n'y est ni forcé ni allumé sur un téléphone.
+        assertFalse(BuildConfig.IS_TV)
+        assertFalse(TvMode.load(RuntimeEnvironment.getApplication(), SNAKE_ID))
+    }
+}

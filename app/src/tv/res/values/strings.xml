@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Le nom de l'appli sur la télé : le même dans toutes les langues. -->
+    <string name="app_name_tv" translatable="false">Mes Scores TV</string>
+</resources>

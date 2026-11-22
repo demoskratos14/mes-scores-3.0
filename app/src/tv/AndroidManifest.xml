@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ce qui ne concerne que la version Google TV / Android TV (variante « tv ») ; fusionné avec le manifeste commun.
+    Une télé n'a pas d'écran tactile : on le déclare facultatif, ainsi que le mode « leanback » (la télé), pour que
+    cette appli puisse aussi s'essayer sur un téléphone.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+
+    <!-- Un nom et une bannière à elle dans la liste des applis de la télé. -->
+    <application
+        android:banner="@drawable/tv_banner"
+        android:label="@string/app_name_tv"
+        tools:replace="android:label">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <!-- L'entrée de l'appli dans le lanceur d'une Google TV / Android TV (en plus de l'entrée habituelle). -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

@@ -5,8 +5,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
-// Nom des APK générés : "Mes scores-debug.apk", "Mes scores-release.apk", etc.
-// (au lieu de "app-debug.apk" basé sur le nom du module).
+// Nom des APK générés : "Mes scores-phone-release.apk", "Mes scores-tv-release.apk", etc.
+// (au lieu de "app-phone-release.apk" basé sur le nom du module).
 base {
     archivesName.set("Mes scores")
 }
@@ -28,6 +28,25 @@ android {
         // en CI on reprend le numéro d'exécution du workflow GitHub (toujours croissant), en local 1.
         versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
         versionName = "3.0"
+    }
+
+    // Deux applis construites à partir du même code :
+    //  - « phone » : l'appli habituelle, sur téléphone ;
+    //  - « tv »    : la version pour Google TV / Android TV (accueil en grille des jeux solo, jouée à la manette).
+    // Elles ont des identifiants différents : on peut installer les deux sur un même appareil. Le code est commun ;
+    // BuildConfig.IS_TV dit dans quelle version on est, et les fichiers propres à la télé sont dans app/src/tv.
+    flavorDimensions += "target"
+    productFlavors {
+        create("phone") {
+            dimension = "target"
+            buildConfigField("boolean", "IS_TV", "false")
+        }
+        create("tv") {
+            dimension = "target"
+            applicationIdSuffix = ".tv"
+            versionNameSuffix = "-tv"
+            buildConfigField("boolean", "IS_TV", "true")
+        }
     }
 
     // Signature release : les infos viennent de variables d'environnement (jamais du dépôt).
@@ -63,6 +82,8 @@ android {
 
     buildFeatures {
         compose = true
+        // BuildConfig.IS_TV (voir les variantes ci-dessus).
+        buildConfig = true
     }
 
     // Robolectric (tests des SharedPreferences) a besoin des ressources de l'appli.

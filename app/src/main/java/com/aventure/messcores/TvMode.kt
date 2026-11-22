@@ -3,6 +3,7 @@ package com.aventure.messcores
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.res.Configuration
 import android.content.pm.ActivityInfo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,8 +43,17 @@ internal object TvMode {
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    /** Vrai si le mode TV est choisi pour le jeu [gameId] (désactivé tant qu'on ne l'a pas allumé). */
-    fun load(context: Context, gameId: String): Boolean = prefs(context).getBoolean(gameId, false)
+    /** Vrai si l'appli tourne sur une télé (Google TV, Android TV) et non sur un téléphone. */
+    fun isTelevision(context: Context): Boolean =
+        context.resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK == Configuration.UI_MODE_TYPE_TELEVISION
+
+    /**
+     * Vrai si le mode TV est choisi pour le jeu [gameId]. Tant qu'on n'a pas touché à l'interrupteur, il est allumé sur
+     * une télé (où il n'y a ni écran tactile ni intérêt pour les flèches à l'écran) et éteint sur un téléphone.
+     * Dans l'appli pour télé (variante « tv »), il est toujours allumé.
+     */
+    fun load(context: Context, gameId: String): Boolean =
+        BuildConfig.IS_TV || prefs(context).getBoolean(gameId, isTelevision(context))
 
     fun save(context: Context, gameId: String, enabled: Boolean) {
         prefs(context).edit { putBoolean(gameId, enabled) }
@@ -72,9 +82,11 @@ internal fun TvModeEffect() {
     }
 }
 
-/** La ligne « Mode TV » avec son interrupteur, à mettre sur l'écran d'accueil d'un jeu. */
+/** La ligne « Mode TV » avec son interrupteur, à mettre sur l'écran d'accueil d'un jeu (absente de l'appli pour télé). */
 @Composable
 internal fun TvModeToggle(checked: Boolean, onChange: (Boolean) -> Unit) {
+    // Dans l'appli pour télé, le mode est toujours allumé : pas d'interrupteur.
+    if (BuildConfig.IS_TV) return
     Row(
         modifier = Modifier
             .fillMaxWidth()

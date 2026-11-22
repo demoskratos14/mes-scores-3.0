@@ -10,18 +10,29 @@ Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux
 
 Le wrapper Gradle est inclus (`gradlew`, `gradlew.bat`, `gradle/wrapper/`) : aucune installation de Gradle n'est nécessaire, seulement un JDK 17.
 
+L'appli existe en deux variantes, construites à partir du même code : **phone** (l'appli habituelle) et **tv** (la version pour Google TV / Android TV, voir plus bas).
+
 ```
-./gradlew assembleDebug      # APK de test  -> app/build/outputs/apk/debug/Mes scores-debug.apk
-./gradlew assembleRelease    # APK minifié  -> app/build/outputs/apk/release/Mes scores-release.apk
-./gradlew bundleRelease      # AAB pour le Play Store -> app/build/outputs/bundle/release/
+./gradlew assemblePhoneDebug    # APK de test  -> app/build/outputs/apk/phone/debug/
+./gradlew assemblePhoneRelease  # APK minifié  -> app/build/outputs/apk/phone/release/Mes scores-phone-release.apk
+./gradlew bundlePhoneRelease    # AAB pour le Play Store -> app/build/outputs/bundle/phoneRelease/
+./gradlew assembleTvRelease     # APK télé     -> app/build/outputs/apk/tv/release/Mes scores-tv-release.apk
 ```
 
 Le `versionCode` vaut `1` en local ; dans GitHub Actions il reprend le numéro d'exécution du workflow (`GITHUB_RUN_NUMBER`), qui ne fait qu'augmenter : chaque build publié peut donc s'installer par-dessus le précédent et être envoyé au Play Store. `versionName` (« 3.0 ») se change à la main dans `app/build.gradle.kts`, à chaque nouvelle version du projet.
 
+## Version pour télé (Google TV / Android TV)
+
+La variante **tv** (identifiant `com.aventure.messcores.tv`, nom « Mes Scores TV ») s'installe à côté de l'appli du téléphone. Elle s'ouvre sur une grille de jeux solo (`TvHomeScreen`), se parcourt à la manette ou à la télécommande, et ses jeux se jouent en mode TV : paysage, plein écran, sans commandes tactiles (`TvMode`). Les jeux proposés sont la liste `TV_GAME_IDS` (`TvHomeScreen.kt`) : un jeu s'ajoute quand son écran sait se jouer en mode TV.
+
+- Le code est commun aux deux variantes ; `BuildConfig.IS_TV` dit dans laquelle on est. Les fichiers propres à la télé (manifeste avec l'entrée du lanceur TV, bannière, nom) sont dans `app/src/tv/`.
+- Sur le téléphone, le mode TV reste un réglage de certains jeux (interrupteur « Mode TV » du Snake), pour caster l'écran sur une télé.
+- Installation sur la télé : copier l'APK `Mes scores-tv-release.apk` (par exemple avec l'application Downloader, ou `adb install`).
+
 ## Tests
 
 ```
-./gradlew testDebugUnitTest
+./gradlew testPhoneDebugUnitTest
 ```
 
 Les tests unitaires (`app/src/test/`) couvrent notamment les noms en double (`PlayerNames`), le texte de partage (`ResultText`) et l'image du classement (`ResultImageTest`), la sauvegarde du journal (`JournalBackup`), l'annulation de saisie, le score du tennis et du padel (`RacketScoringTest`, `RacketViewModelTest` : jeux, avantage, point d'or, tie-break, super tie-break, annulation, reprise depuis le journal), ainsi que le calcul du Tarot (`TarotScoring.kt` : 3, 4 et 5 joueurs, garde sans, primes, chelems, somme des scores toujours nulle), du bridge (`BridgeScoringTest`) et du skat (`SkatScoringTest`), les règles de classement et de fin de partie (`ScoreViewModel`, `ScoreStandingTest`, `ScoreRulesTest`, `MinLeadTest` : seuil, écart minimum, plafond, manche à terminer, égalité, nombre de manches), les feuilles de catégories (`ScoreSheetTest`, `CustomSheetTest`, `WingspanHanabiTest`), le poker (`PokerEngineTest`, `PokerTournamentTest`, `PokerReseatTest` : enchères, pots annexes, blinds, pauses, recaves, gains, réunion de tables), les couleurs des joueurs (`PlayerColorsTest`), la saisie de la durée du minuteur (`CountdownInputTest`), le partage de jeux personnalisés (`CustomGameShareTest`), les statistiques (`StatsCalculator`) et les formats de championnat (`TournamentFormatsTest` : calendrier des poules, classement et départage, tableau suivant l'ordre de la liste).
@@ -41,7 +52,7 @@ Pour régénérer le wrapper : `gradle wrapper --gradle-version 9.8.2`.
 
 ## GitHub Actions
 
-Le workflow `.github/workflows/build.yml` lance les tests unitaires et le lint (`./gradlew lintDebug`, où un avertissement fait échouer la construction comme une erreur), puis construit la release (minifiée par R8) à chaque push et à chaque pull request vers `main` (Dependabot compris) et la publie comme artefact ; l'APK debug n'est plus construit par le workflow. Le rapport de lint est publié en artefact à chaque exécution.
+Le workflow `.github/workflows/build.yml` lance les tests unitaires et le lint (`./gradlew testPhoneDebugUnitTest` et `./gradlew lintPhoneDebug`, une seule fois, sur la variante téléphone ; un avertissement fait échouer la construction comme une erreur), puis construit les deux releases (téléphone et télé, minifiées par R8) à chaque push et à chaque pull request vers `main` (Dependabot compris) et les publie comme artefacts (« Mes scores » et « Mes scores TV ») ; l'APK debug n'est plus construit par le workflow. Le rapport de lint est publié en artefact à chaque exécution.
 
 Le fichier `.github/dependabot.yml` demande à Dependabot de proposer chaque semaine les mises à jour de Kotlin, Compose, AndroidX, du plugin Android et de Gradle (et chaque mois celles des actions GitHub).
 
@@ -55,7 +66,7 @@ Sans ces variables, la release est construite non signée. Gardez votre clé de 
 
 La même liste sert de modèle de pull request (`.github/pull_request_template.md`) ; à parcourir aussi quand on pousse directement sur `main` :
 
-- les tests passent (`./gradlew testDebugUnitTest`) et le lint ne signale rien (`./gradlew lintDebug`) ;
+- les tests passent (`./gradlew testPhoneDebugUnitTest`) et le lint ne signale rien (`./gradlew lintPhoneDebug`) ;
 - tout nouveau texte visible est dans `strings.xml` **dans les 5 langues** (français, anglais, espagnol, portugais, italien) ; un nombre suivi d'un mot (« 2 sets ») est un `<plurals>` ;
 - un nouveau jeu ou une nouvelle mécanique a ses tests, et sa fiche de règles (`GameRulesText.kt`) ;
 - le **README** est à jour : fonctionnalités, liste des tests, structure du projet, versions (Kotlin, AGP, Gradle) ;
