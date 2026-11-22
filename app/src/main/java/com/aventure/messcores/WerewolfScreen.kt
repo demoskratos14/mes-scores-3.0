@@ -24,12 +24,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -43,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -99,40 +102,44 @@ internal fun WerewolfScreen(online: WerewolfOnline, onExit: () -> Unit) {
     KeepScreenOn()
 
     val view = online.view
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    // Le fond de l'appli est une photo assombrie : le texte posé directement dessus doit être blanc
+    // (les cartes et boîtes de dialogue gardent leurs propres couleurs).
+    CompositionLocalProvider(LocalContentColor provides Color.White) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(stringResource(R.string.game_werewolf), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            OutlinedButton(onClick = { showRoles = true }) { Text(stringResource(R.string.ww_roles_button)) }
-        }
-        when {
-            !online.active -> Text(stringResource(R.string.ww_connecting))
-            online.notice == WerewolfNotice.HOST_LEFT -> {
-                Text(stringResource(R.string.ww_notice_host_left))
-                Button(onClick = {
-                    online.leave()
-                    onExit()
-                }) { Text(stringResource(R.string.ww_quit)) }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(stringResource(R.string.game_werewolf), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                OutlinedButton(onClick = { showRoles = true }) { Text(stringResource(R.string.ww_roles_button)) }
             }
-            online.isHost && !online.started -> HostLobby(online)
-            view == null -> GuestLobby(online)
-            else -> {
-                // L'organisateur est aussi le narrateur : ses commandes passent avant son écran de joueur.
-                if (online.isHost) NarratorControls(online)
-                PlayerBody(view, online)
+            when {
+                !online.active -> Text(stringResource(R.string.ww_connecting))
+                online.notice == WerewolfNotice.HOST_LEFT -> {
+                    Text(stringResource(R.string.ww_notice_host_left))
+                    Button(onClick = {
+                        online.leave()
+                        onExit()
+                    }) { Text(stringResource(R.string.ww_quit)) }
+                }
+                online.isHost && !online.started -> HostLobby(online)
+                view == null -> GuestLobby(online)
+                else -> {
+                    // L'organisateur est aussi le narrateur : ses commandes passent avant son écran de joueur.
+                    if (online.isHost) NarratorControls(online)
+                    PlayerBody(view, online)
+                }
             }
-        }
-        if (online.active && online.notice != WerewolfNotice.HOST_LEFT) {
-            TextButton(onClick = { showQuit = true }) { Text(stringResource(R.string.ww_quit), color = MaterialTheme.colorScheme.error) }
+            if (online.active && online.notice != WerewolfNotice.HOST_LEFT) {
+                TextButton(onClick = { showQuit = true }) { Text(stringResource(R.string.ww_quit), color = MaterialTheme.colorScheme.error) }
+            }
         }
     }
 
