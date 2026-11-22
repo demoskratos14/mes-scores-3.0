@@ -382,7 +382,7 @@ private fun GameRepository.gamesFor(playableOnly: Boolean, soloOnly: Boolean, pl
     val all = allGames().filter {
         when {
             soloOnly -> it.isSoloGame()
-            playableOnly -> it.isPlayableGame() && !it.isSoloOnlyGame()
+            playableOnly -> it.isPlayableGame() && !it.isSoloOnlyGame() && !it.isMultiPhoneOnly()
             else -> it.hasScoreSheet()
         }
     }

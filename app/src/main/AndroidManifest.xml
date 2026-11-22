@@ -3,6 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Voix du narrateur du Loup-garou (synthèse vocale d'Android) : à déclarer pour pouvoir trouver le moteur vocal (Android 11+). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
     <!-- Notification de fin de minuteur quand l'appli est en arrière-plan (Android 13+, demandée au lancement d'un minuteur). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 

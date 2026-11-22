@@ -48,7 +48,7 @@ private const val GRID_COLUMNS = 3
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
     MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID,
-    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID
+    GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
 /**
@@ -151,6 +151,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             SKYJO_ACTION_ID -> drawSkyjoAction()
             DOMINOS_ID -> drawDominos()
             TRIO_ID -> drawTrio()
+            WEREWOLF_ID -> drawWerewolf()
             else -> drawGeneric()
         }
     }
@@ -900,6 +901,25 @@ private fun DrawScope.drawFlip7() {
     card(Color(0xFFEF6C00), -26f, -s * 0.12f, seven = false)
     card(Color(0xFF29B6F6), 0f, 0f, seven = false)
     card(Color(0xFF26A69A), 26f, s * 0.12f, seven = true)
+}
+
+private fun DrawScope.drawWerewolf() {
+    paper(Color(0xFF1A237E))
+    val s = size.minDimension
+    // Pleine lune derrière une tête de loup noire aux yeux jaunes.
+    drawCircle(Color(0xFFFFF59D), radius = s * 0.27f, center = Offset(s * 0.5f, s * 0.38f))
+    val head = Path().apply {
+        moveTo(s * 0.26f, s * 0.9f)
+        lineTo(s * 0.28f, s * 0.44f)
+        lineTo(s * 0.38f, s * 0.6f)
+        lineTo(s * 0.62f, s * 0.6f)
+        lineTo(s * 0.72f, s * 0.44f)
+        lineTo(s * 0.74f, s * 0.9f)
+        close()
+    }
+    drawPath(head, Color(0xFF111111))
+    drawCircle(Color(0xFFFFEB3B), radius = s * 0.035f, center = Offset(s * 0.42f, s * 0.72f))
+    drawCircle(Color(0xFFFFEB3B), radius = s * 0.035f, center = Offset(s * 0.58f, s * 0.72f))
 }
 
 private fun DrawScope.drawTrio() {

@@ -139,6 +139,9 @@ internal sealed interface SyncMessage {
     /** Un message du Trio chacun sur son téléphone, sur la connexion de la feuille de scores (voir [TrioOnline]). */
     data class TrioMsg(val trio: TrioMessage) : SyncMessage
 
+    /** Un message du Loup-garou chacun sur son téléphone, dans la salle (voir [WerewolfOnline]). */
+    data class WerewolfMsg(val werewolf: WerewolfMessage) : SyncMessage
+
     /** Un message du poker chacun sur son téléphone, sur la connexion de la feuille de scores (voir [PokerOnline]). */
     data class PokerMsg(val poker: PokerMessage) : SyncMessage
 
@@ -282,6 +285,7 @@ internal object SyncCodec {
             is SyncMessage.SkyjoMsg -> json.put("t", "skyjo").put("skyjo", message.skyjo.toJson())
             is SyncMessage.DominoMsg -> json.put("t", "domino").put("domino", message.domino.toJson())
             is SyncMessage.TrioMsg -> json.put("t", "trio").put("trio", message.trio.toJson())
+            is SyncMessage.WerewolfMsg -> json.put("t", "ww").put("ww", message.werewolf.toJson())
             is SyncMessage.PokerMsg -> json.put("t", "poker").put("poker", message.poker.toJson())
             is SyncMessage.Room -> when (val room = message.room) {
                 is RoomMessage.Members -> json.put("t", "room").put("k", "members")
@@ -345,6 +349,7 @@ internal object SyncCodec {
                 "skyjo" -> skyjoMessageFromJson(json.getJSONObject("skyjo"))?.let { SyncMessage.SkyjoMsg(it) }
                 "domino" -> dominoMessageFromJson(json.getJSONObject("domino"))?.let { SyncMessage.DominoMsg(it) }
                 "trio" -> trioMessageFromJson(json.getJSONObject("trio"))?.let { SyncMessage.TrioMsg(it) }
+                "ww" -> werewolfMessageFromJson(json.getJSONObject("ww"))?.let { SyncMessage.WerewolfMsg(it) }
                 "poker" -> pokerMessageFromJson(json.getJSONObject("poker"))?.let { SyncMessage.PokerMsg(it) }
                 "room" -> when (json.optString("k")) {
                     "members" -> {

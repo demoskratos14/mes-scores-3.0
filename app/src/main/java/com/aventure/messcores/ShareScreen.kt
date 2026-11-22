@@ -449,7 +449,9 @@ internal fun SyncEffects(
     hangman: HangmanOnline,
     onHangmanJoined: () -> Unit,
     chess: ChessOnline,
-    onChessJoined: () -> Unit
+    onChessJoined: () -> Unit,
+    werewolf: WerewolfOnline,
+    onWerewolfJoined: () -> Unit
 ) {
     LaunchedEffect(game, session) {
         snapshotFlow { Triple(game.chartSnapshot().contentKey(), game.canUndo, game.canRedo) }
@@ -537,6 +539,11 @@ internal fun SyncEffects(
         if (chess.joined == 0 || chess.isHost) return@LaunchedEffect
         val current = navController.currentDestination?.route
         if (current == "share" || current == "setup" || current == "room" || current == "shareChess") onChessJoined()
+    }
+    LaunchedEffect(werewolf.joined) {
+        if (werewolf.joined == 0 || werewolf.isHost) return@LaunchedEffect
+        val current = navController.currentDestination?.route
+        if (current == "share" || current == "setup" || current == "room") onWerewolfJoined()
     }
     // Salle : quand l'organisateur quitte son jeu, il ramène tout le monde dans la salle.
     LaunchedEffect(session.roomBackCount) {

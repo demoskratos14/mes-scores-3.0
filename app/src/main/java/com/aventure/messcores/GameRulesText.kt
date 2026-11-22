@@ -259,6 +259,12 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_dominos_3_title, R.string.rules_dominos_3_body),
         RulesSection(R.string.rules_dominos_4_title, R.string.rules_dominos_4_body)
     ),
+    "builtin_werewolf" to listOf(
+        RulesSection(R.string.rules_werewolf_1_title, R.string.rules_werewolf_1_body),
+        RulesSection(R.string.rules_werewolf_2_title, R.string.rules_werewolf_2_body),
+        RulesSection(R.string.rules_werewolf_3_title, R.string.rules_werewolf_3_body),
+        RulesSection(R.string.rules_werewolf_4_title, R.string.rules_werewolf_4_body)
+    ),
     "builtin_trio" to listOf(
         RulesSection(R.string.rules_trio_1_title, R.string.rules_trio_1_body),
         RulesSection(R.string.rules_trio_2_title, R.string.rules_trio_2_body),

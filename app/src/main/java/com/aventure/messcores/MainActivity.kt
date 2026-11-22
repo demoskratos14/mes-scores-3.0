@@ -126,6 +126,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     NIM_ID to "nim",
     REFLEX_ID to "reflex",
     EMOJI_ID to "emoji",
+    WEREWOLF_ID to "werewolf",
     CIRCLES_ID to "circles",
     SIMON_ID to "simon",
     RHYTHM_ID to "rhythm",
@@ -147,7 +148,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
 
 /** Écrans de jeux jouables (et l'accueil de l'appli pour télé) sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
+    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -188,6 +189,7 @@ fun ScoreApp(
     val othelloOnline = syncViewModel.othello
     val hangmanOnline = syncViewModel.hangman
     val chessOnline = syncViewModel.chess
+    val werewolfOnline = syncViewModel.werewolf
     SideEffect { sync.attach(viewModel) }
 
     val context = LocalContext.current
@@ -683,6 +685,12 @@ fun ScoreApp(
                     onExit = { leaveToSetup() }
                 )
             }
+            composable("werewolf") {
+                WerewolfScreen(
+                    online = werewolfOnline,
+                    onExit = { leaveToSetup() }
+                )
+            }
             composable("draughts") {
                 DraughtsScreen(
                     players = pendingPlayerNames,
@@ -993,6 +1001,7 @@ fun ScoreApp(
                 "nim" -> hostInRoom(SyncKind.NIM) { nimOnline.openLobby(name) }
                 "reflex" -> hostInRoom(SyncKind.REFLEX) { reflexOnline.openLobby(name) }
                 "emoji" -> hostInRoom(SyncKind.EMOJI) { emojiOnline.openLobby(name) }
+                "werewolf" -> hostInRoom(SyncKind.WEREWOLF) { werewolfOnline.openLobby(name) }
                 "simon" -> hostInRoom(SyncKind.SIMON) { simonOnline.openLobby(name) }
                 "circles" -> hostInRoom(SyncKind.CIRCLES) { circlesOnline.openLobby(name) }
                 "pfc" -> hostInRoom(SyncKind.PFC) { rockPaperScissorsOnline.openLobby(name) }
@@ -1057,7 +1066,9 @@ fun ScoreApp(
                 navController.navigate("hangman") { popUpTo("home") }
             },
             chess = chessOnline,
-            onChessJoined = { navController.navigate("chess") { popUpTo("home") } }
+            onChessJoined = { navController.navigate("chess") { popUpTo("home") } },
+            werewolf = werewolfOnline,
+            onWerewolfJoined = { navController.navigate("werewolf") { popUpTo("home") } }
         )
         // Demande de connexion d'un autre téléphone : visible sur n'importe quel écran.
         SyncPendingDialog(sync)

@@ -349,6 +349,17 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Loup-garou de Thiercelieux : écran à part (voir WerewolfScreen), uniquement chacun sur son téléphone dans la salle multijoueur :
+    // le téléphone de l'organisateur est le narrateur (il ne joue pas), les autres sont les joueurs (de 4 à 18, voir WerewolfOnline) ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = WEREWOLF_ID,
+        name = context.getString(R.string.game_werewolf),
+        minPlayers = WEREWOLF_MIN_PLAYERS,
+        maxPlayers = WEREWOLF_MAX_PLAYERS,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Ronds : écran à part (voir CirclesScreen), seul ou jusqu'à huit joueurs sur un téléphone qu'on se passe, ou chacun sur son téléphone (voir CirclesOnline) ; le mode de score n'est pas utilisé.
     GameRules(
         id = CIRCLES_ID,

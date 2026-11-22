@@ -15,7 +15,7 @@ internal data class PendingConnection(val id: String, val name: String, val digi
 internal enum class SyncRole { NONE, HOST, GUEST }
 
 /** Ce qui est partagé : la salle multijoueur sans jeu en cours ([ROOM]), la partie en cours d'un jeu de score, un Mastermind, un Morpion, un touché coulé, un jeu des allumettes, des Ronds, des dames, un Othello, un Pendu ou des échecs chacun sur son téléphone. */
-internal enum class SyncKind { ROOM, SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, SIMON, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS, CIRCLES }
+internal enum class SyncKind { ROOM, SCORE, MASTERMIND, MORPION, CONNECT4, BATTLESHIP, NIM, PFC, REFLEX, EMOJI, SIMON, GOMOKU, DOTS, DRAUGHTS, OTHELLO, HANGMAN, CHESS, CIRCLES, WEREWOLF }
 
 /** Ce qui a mal tourné, pour l'expliquer à l'utilisateur. */
 internal enum class SyncProblem {
@@ -183,6 +183,9 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
 
     /** Le Trio chacun sur son téléphone, qui reçoit ses messages et les événements de connexion. */
     var trio: TrioOnline? = null
+
+    /** Le Loup-garou chacun sur son téléphone (narrateur + joueurs), qui reçoit ses messages et les événements de connexion. */
+    var werewolf: WerewolfOnline? = null
 
     /** La partie de l'appli à laquelle la session est reliée (pour les jeux qui en lisent la partie en cours). */
     internal val attachedGame: ScoreViewModel? get() = game
@@ -638,6 +641,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         othello?.resetLocal()
         hangman?.resetLocal()
         chess?.resetLocal()
+        werewolf?.resetLocal()
         duoGames.forEach { it.resetLocal() }
         president?.reset()
         hearts?.reset()
@@ -761,6 +765,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         othello?.onPeerConnected(id)
         hangman?.onPeerConnected(id)
         chess?.onPeerConnected(id)
+        werewolf?.onPeerConnected(id)
         president?.onPeerConnected(id)
         hearts?.onPeerConnected(id)
         tarot?.onPeerConnected(id)
@@ -811,6 +816,7 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
         othello?.onPeerDisconnected(id)
         hangman?.onPeerDisconnected(id)
         chess?.onPeerDisconnected(id)
+        werewolf?.onPeerDisconnected(id)
         president?.onPeerDisconnected(id)
         hearts?.onPeerDisconnected(id)
         tarot?.onPeerDisconnected(id)
@@ -919,6 +925,10 @@ internal class SyncSession(private val transport: SyncTransport) : TransportList
             is SyncMessage.SkyjoMsg -> skyjo?.onMessage(id, message.skyjo)
             is SyncMessage.DominoMsg -> domino?.onMessage(id, message.domino)
             is SyncMessage.TrioMsg -> trio?.onMessage(id, message.trio)
+            is SyncMessage.WerewolfMsg -> {
+                if (role == SyncRole.GUEST) kind = SyncKind.WEREWOLF
+                werewolf?.onMessage(id, message.werewolf)
+            }
             is SyncMessage.Room -> if (roomActive) onRoomMessage(id, message.room)
             is SyncMessage.Dice -> {
                 if (kind != SyncKind.SCORE || connected.isEmpty()) return
