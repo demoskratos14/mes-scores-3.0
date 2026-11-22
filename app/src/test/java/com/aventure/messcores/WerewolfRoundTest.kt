@@ -548,19 +548,241 @@ class WerewolfRoundTest {
         assertTrue(r.viewFor(2).siblings.isEmpty())
     }
 
+    private fun pyroRound() =
+        roundOf(cards(WerewolfRole.PYROMANIAC, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER))
+
     @Test
-    fun lePyromaneIncendieLesJoueursArroses() {
-        val r = roundOf(cards(WerewolfRole.PYROMANIAC, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER))
+    fun lePyromaneAppelleAvantLesLoupsEtNIncendieQuUneFois() {
+        val r = pyroRound()
         r.startNight()
         r.skipTo(WerewolfStep.PYRO)
-        assertFalse(r.perform(0, WerewolfAction(WerewolfActionKind.IGNITE)))
-        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.DOUSE, 2, 3)))
-        r.skipTo(WerewolfStep.NIGHT_START)
-        r.skipTo(WerewolfStep.PYRO)
-        assertTrue(r.viewFor(0).canIgnite)
-        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.IGNITE)))
+        assertEquals(WerewolfPrompt.BURN, r.viewFor(0).prompt)
+        // Pas son propre bâtiment, ni un joueur inexistant.
+        assertFalse(r.perform(0, WerewolfAction(WerewolfActionKind.BURN, 0)))
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.BURN, 3)))
+        r.advance()
+        assertEquals(WerewolfStep.WOLVES, r.step)
         r.skipTo(WerewolfStep.DAWN)
-        assertEquals(setOf(2, 3), r.lastDeaths.toSet())
+        assertEquals(3, r.burnedNow)
+        assertTrue(r.viewFor(0).vagabonds[3])
+        assertFalse(r.viewFor(0).vagabonds[2])
+        // Le joueur du bâtiment brûlé n'est pas éliminé.
+        assertTrue(r.alive[3])
+        // Un seul incendie dans la partie : la nuit suivante, le Pyromane n'a plus rien à faire.
+        r.skipTo(WerewolfStep.NIGHT_START)
+        r.advance()
+        r.skipTo(WerewolfStep.PYRO)
+        assertTrue(r.expected().isEmpty())
+    }
+
+    @Test
+    fun lePyromaneQuiNIncendiePasGardeSonPouvoir() {
+        val r = pyroRound()
+        r.startNight()
+        r.skipTo(WerewolfStep.PYRO)
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.BURN, -1)))
+        r.skipTo(WerewolfStep.DAWN)
+        assertEquals(-1, r.burnedNow)
+        r.skipTo(WerewolfStep.NIGHT_START)
+        r.advance()
+        r.skipTo(WerewolfStep.PYRO)
+        assertEquals(listOf(0), r.expected())
+    }
+
+    @Test
+    fun lePyromaneGagneAvecLeVillage() {
+        // Le Pyromane n'est plus un joueur solitaire : quand le village élimine le dernier loup, il gagne avec lui.
+        val r = pyroRound()
+        r.startNight()
+        r.skipTo(WerewolfStep.DEBATE)
+        r.advance()
+        r.everyoneVotes(1, 2)
+        r.advance()
+        assertEquals(WerewolfStep.VOTE_RESULT, r.step)
+        r.advance()
+        assertEquals(WerewolfWinner.VILLAGE, r.winner)
+        assertTrue(r.alive[0])
+    }
+
+    @Test
+    fun lIncendieDeLaVictimeDesLoupsLaSauveEtBruleLeLoupAdroite() {
+        // Places : 0 Pyromane, 1 loup, 2 villageois, 3 loup, 4 villageois, 5 villageois ; les loups visent la place 4.
+        val r = roundOf(cards(WerewolfRole.PYROMANIAC, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER))
+        r.startNight()
+        r.skipTo(WerewolfStep.PYRO)
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.BURN, 4)))
+        r.advance()
+        assertEquals(WerewolfStep.WOLVES, r.step)
+        r.wolves().forEach { assertTrue(r.perform(it, WerewolfAction(WerewolfActionKind.WOLF, 4))) }
+        r.skipTo(WerewolfStep.DAWN)
+        assertTrue(r.fireSaved)
+        assertEquals(4, r.burnedNow)
+        assertTrue(r.alive[4])
+        // Le premier loup à droite de la place 4 (en reculant : 3) meurt carbonisé.
+        assertEquals(listOf(3), r.lastDeaths)
+        assertFalse(r.alive[3])
+        assertTrue(r.alive[1])
+    }
+
+    @Test
+    fun unIncendieAilleursNeSauvePersonne() {
+        val r = roundOf(cards(WerewolfRole.PYROMANIAC, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER))
+        r.startNight()
+        r.skipTo(WerewolfStep.PYRO)
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.BURN, 2)))
+        r.advance()
+        r.wolves().forEach { assertTrue(r.perform(it, WerewolfAction(WerewolfActionKind.WOLF, 4))) }
+        r.skipTo(WerewolfStep.DAWN)
+        assertFalse(r.fireSaved)
+        assertEquals(listOf(4), r.lastDeaths)
+        assertTrue(r.alive[2])
+    }
+
+    @Test
+    fun unChasseurQuiPerdSonMetierNeTirePlus() {
+        // Deux loups (places 1 et 4) : le feu sur la maison du Chasseur, visé par les loups, tue le loup de la place 1 à sa droite.
+        val r = roundOf(cards(WerewolfRole.PYROMANIAC, WerewolfRole.WEREWOLF, WerewolfRole.HUNTER, WerewolfRole.VILLAGER, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER))
+        r.startNight()
+        r.skipTo(WerewolfStep.PYRO)
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.BURN, 2)))
+        r.advance()
+        r.wolves().forEach { assertTrue(r.perform(it, WerewolfAction(WerewolfActionKind.WOLF, 2))) }
+        r.skipTo(WerewolfStep.DAWN)
+        // La victime des loups est la maison brûlée : sauvée, et devenue Vagabond.
+        assertTrue(r.alive[2])
+        assertEquals(listOf(1), r.lastDeaths)
+        r.skipTo(WerewolfStep.DEBATE)
+        r.advance()
+        r.everyoneVotes(2, 3)
+        r.advance()
+        assertEquals(WerewolfStep.VOTE_RESULT, r.step)
+        assertFalse(r.alive[2])
+        r.advance()
+        // Pas d'étape du Chasseur : il n'a plus de métier.
+        assertEquals(WerewolfStep.NIGHT_START, r.step)
+    }
+
+    private fun gypsyRound() =
+        roundOf(cards(WerewolfRole.GYPSY, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER))
+
+    @Test
+    fun laGitaneVoitUneCarteSpiritismeEtValideUneQuestion() {
+        val r = gypsyRound()
+        r.startNight()
+        r.skipTo(WerewolfStep.GYPSY)
+        val view = r.viewFor(0)
+        assertEquals(WerewolfPrompt.GYPSY, view.prompt)
+        assertTrue(view.gypsyCard in 0 until SPIRIT_CARDS)
+        // Les autres ne voient pas la carte de la Gitane.
+        assertEquals(-1, r.viewFor(2).gypsyCard)
+        // Une question hors carte, ou un Spirite qui est elle-même, est refusé.
+        assertFalse(r.perform(0, WerewolfAction(WerewolfActionKind.GYPSY, 4, 2)))
+        assertFalse(r.perform(0, WerewolfAction(WerewolfActionKind.GYPSY, 1, 0)))
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.GYPSY, 1, 2)))
+        r.skipTo(WerewolfStep.DAWN)
+        val code = view.gypsyCard * SPIRIT_QUESTIONS + 1
+        assertTrue(r.spiritAnnounce)
+        assertEquals(2, r.spiritSeat())
+        assertEquals(code, r.spiritQuestionCode())
+        assertEquals(code, r.viewFor(3).spiritQuestion)
+        assertEquals(2, r.viewFor(3).spirite)
+    }
+
+    @Test
+    fun lePremierElimineRepondAuSpirite() {
+        val r = gypsyRound()
+        r.startNight()
+        r.skipTo(WerewolfStep.GYPSY)
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.GYPSY, 0, 2)))
+        r.advance()
+        r.wolvesChoose(5)
+        r.skipTo(WerewolfStep.DAWN)
+        assertEquals(listOf(5), r.lastDeaths)
+        // L'éliminé de la nuit répond avant le débat.
+        r.advance()
+        assertEquals(WerewolfStep.SPIRIT, r.step)
+        assertEquals(listOf(5), r.expected())
+        assertEquals(WerewolfPrompt.SPIRIT, r.viewFor(5).prompt)
+        assertFalse(r.perform(4, WerewolfAction(WerewolfActionKind.SPIRIT_ANSWER, 1)))
+        assertFalse(r.perform(5, WerewolfAction(WerewolfActionKind.SPIRIT_ANSWER, 2)))
+        assertTrue(r.perform(5, WerewolfAction(WerewolfActionKind.SPIRIT_ANSWER, 1)))
+        assertTrue(r.isComplete())
+        assertEquals(1, r.spiritAnswer)
+        assertEquals(1, r.viewFor(3).spiritAnswer)
+        r.advance()
+        assertEquals(WerewolfStep.DEBATE, r.step)
+        // La question est close : plus rien n'est affiché.
+        assertEquals(-1, r.viewFor(3).spiritQuestion)
+    }
+
+    @Test
+    fun sansMortLaNuitLeCondamneDuVillageRepond() {
+        val r = gypsyRound()
+        r.startNight()
+        r.skipTo(WerewolfStep.GYPSY)
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.GYPSY, 3, 4)))
+        // Les loups ne tuent personne (le jeu saute leur étape) : le premier éliminé est le condamné du vote.
+        r.skipTo(WerewolfStep.DAWN)
+        assertTrue(r.lastDeaths.isEmpty())
+        r.advance()
+        assertEquals(WerewolfStep.DEBATE, r.step)
+        assertEquals(4, r.spiritSeat())
+        r.advance()
+        r.everyoneVotes(3, 2)
+        r.advance()
+        assertEquals(WerewolfStep.VOTE_RESULT, r.step)
+        r.advance()
+        assertEquals(WerewolfStep.SPIRIT, r.step)
+        assertEquals(listOf(3), r.expected())
+        assertTrue(r.perform(3, WerewolfAction(WerewolfActionKind.SPIRIT_ANSWER, 0)))
+        r.advance()
+        assertEquals(WerewolfStep.NIGHT_START, r.step)
+    }
+
+    @Test
+    fun laGitaneNeRejouePasTantQueLaQuestionEstSansReponse() {
+        val r = gypsyRound()
+        r.startNight()
+        r.skipTo(WerewolfStep.GYPSY)
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.GYPSY, 0, 2)))
+        r.skipTo(WerewolfStep.DEBATE)
+        r.advance()
+        // Égalité au vote (trois voix chacun pour les places 2 et 3) : personne n'est éliminé, la question reste sans réponse.
+        val votes = listOf(2, 3, 3, 2, 2, 3)
+        r.expected().forEach { seat -> assertTrue(r.perform(seat, WerewolfAction(WerewolfActionKind.VOTE, votes[seat]))) }
+        r.advance()
+        assertEquals(WerewolfVoteOutcome.TIE, r.voteOutcome)
+        r.advance()
+        assertEquals(WerewolfStep.NIGHT_START, r.step)
+        r.advance()
+        r.skipTo(WerewolfStep.GYPSY)
+        // La Gitane est appelée pour la forme, sans rien à décider.
+        assertTrue(r.expected().isEmpty())
+    }
+
+    @Test
+    fun laGitaneQuiNeServePasDeSonPouvoirGardeLaCarte() {
+        val r = gypsyRound()
+        r.startNight()
+        r.skipTo(WerewolfStep.GYPSY)
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.GYPSY, -1)))
+        r.skipTo(WerewolfStep.DAWN)
+        assertEquals(-1, r.spiritQuestionCode())
+        r.skipTo(WerewolfStep.NIGHT_START)
+        r.advance()
+        r.skipTo(WerewolfStep.GYPSY)
+        assertEquals(listOf(0), r.expected())
+        assertTrue(r.viewFor(0).gypsyCard in 0 until SPIRIT_CARDS)
+    }
+
+    @Test
+    fun lesQuestionsSpiritismeSontToutesDefinies() {
+        assertEquals(SPIRIT_CARDS, SPIRIT_CARD_TITLES.size)
+        assertEquals(SPIRIT_CARDS, SPIRIT_QUESTION_TEXTS.size)
+        SPIRIT_QUESTION_TEXTS.forEach { assertEquals(SPIRIT_QUESTIONS, it.size) }
+        for (code in 0 until SPIRIT_CARDS * SPIRIT_QUESTIONS) assertTrue(spiritQuestionText(code) != null)
+        assertEquals(null, spiritQuestionText(-1))
+        assertEquals(null, spiritQuestionText(SPIRIT_CARDS * SPIRIT_QUESTIONS))
     }
 
     @Test

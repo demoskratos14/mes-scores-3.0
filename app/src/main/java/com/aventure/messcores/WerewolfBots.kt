@@ -39,7 +39,9 @@ internal object WerewolfBots {
             WerewolfPrompt.CAMP -> WerewolfAction(WerewolfActionKind.CAMP, random.nextInt(2))
             WerewolfPrompt.MODEL -> pick(candidates, random)?.let { WerewolfAction(WerewolfActionKind.MODEL, it) }
             WerewolfPrompt.FOX -> WerewolfAction(WerewolfActionKind.FOX, pick(candidates, random) ?: -1)
-            WerewolfPrompt.GYPSY -> WerewolfAction(WerewolfActionKind.GYPSY, pick(candidates, random) ?: -1)
+            WerewolfPrompt.GYPSY -> pick(candidates, random)
+                ?.let { WerewolfAction(WerewolfActionKind.GYPSY, random.nextInt(SPIRIT_QUESTIONS), it) }
+                ?: WerewolfAction(WerewolfActionKind.GYPSY, -1)
             WerewolfPrompt.COMEDIAN -> WerewolfAction(WerewolfActionKind.COMEDIAN, view.comedianLeft.randomOrNull(random) ?: -1)
             WerewolfPrompt.INFECT -> WerewolfAction(WerewolfActionKind.INFECT, random.nextInt(2))
             WerewolfPrompt.BIG_BAD -> pick(candidates, random)?.let { WerewolfAction(WerewolfActionKind.BIG_BAD, it) }
@@ -47,9 +49,8 @@ internal object WerewolfBots {
             WerewolfPrompt.CHARM -> candidates.shuffled(random).take(2).let {
                 if (it.isEmpty()) null else WerewolfAction(WerewolfActionKind.CHARM, it[0], if (it.size == 2) it[1] else -1)
             }
-            WerewolfPrompt.DOUSE -> candidates.shuffled(random).take(2).let {
-                WerewolfAction(WerewolfActionKind.DOUSE, it.getOrElse(0) { -1 }, it.getOrElse(1) { -1 })
-            }
+            WerewolfPrompt.BURN -> WerewolfAction(WerewolfActionKind.BURN, if (random.nextBoolean()) pick(candidates, random) ?: -1 else -1)
+            WerewolfPrompt.SPIRIT -> WerewolfAction(WerewolfActionKind.SPIRIT_ANSWER, random.nextInt(2))
             WerewolfPrompt.MAID -> WerewolfAction(WerewolfActionKind.MAID, random.nextInt(2))
             WerewolfPrompt.HEIR -> pick(candidates, random)?.let { WerewolfAction(WerewolfActionKind.HEIR, it) }
             WerewolfPrompt.ELECT -> pick(candidates, random)?.let { WerewolfAction(WerewolfActionKind.ELECT, it) }

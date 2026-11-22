@@ -16,6 +16,27 @@ internal const val WEREWOLF_FULL_TEST_MAX_PLAYERS = 40
 /** Voix en plus que le Corbeau ajoute contre le joueur qu'il désigne. */
 private const val RAVEN_EXTRA_VOTES = 2
 
+/** Les cartes Spiritisme de la Gitane : cinq cartes de quatre questions, chacune défaussée après usage. */
+internal const val SPIRIT_CARDS = 5
+internal const val SPIRIT_QUESTIONS = 4
+
+/** Le titre de chaque carte Spiritisme. */
+internal val SPIRIT_CARD_TITLES = listOf(
+    R.string.ww_spirit_card1, R.string.ww_spirit_card2, R.string.ww_spirit_card3, R.string.ww_spirit_card4, R.string.ww_spirit_card5
+)
+
+/** Les quatre questions de chaque carte Spiritisme (une question = carte * [SPIRIT_QUESTIONS] + numéro). */
+internal val SPIRIT_QUESTION_TEXTS = listOf(
+    listOf(R.string.ww_spirit_c1q1, R.string.ww_spirit_c1q2, R.string.ww_spirit_c1q3, R.string.ww_spirit_c1q4),
+    listOf(R.string.ww_spirit_c2q1, R.string.ww_spirit_c2q2, R.string.ww_spirit_c2q3, R.string.ww_spirit_c2q4),
+    listOf(R.string.ww_spirit_c3q1, R.string.ww_spirit_c3q2, R.string.ww_spirit_c3q3, R.string.ww_spirit_c3q4),
+    listOf(R.string.ww_spirit_c4q1, R.string.ww_spirit_c4q2, R.string.ww_spirit_c4q3, R.string.ww_spirit_c4q4),
+    listOf(R.string.ww_spirit_c5q1, R.string.ww_spirit_c5q2, R.string.ww_spirit_c5q3, R.string.ww_spirit_c5q4)
+)
+
+/** Le texte d'une question Spiritisme (code = carte * [SPIRIT_QUESTIONS] + numéro), ou null si le code n'existe pas. */
+internal fun spiritQuestionText(code: Int): Int? = SPIRIT_QUESTION_TEXTS.getOrNull(code / SPIRIT_QUESTIONS)?.getOrNull(code % SPIRIT_QUESTIONS)?.takeIf { code >= 0 }
+
 /** Les cartes du jeu (images découpées dans la planche de cartes : res/drawable-nodpi/werewolf_*.webp). */
 internal enum class WerewolfRole(
     @StringRes val nameRes: Int,
@@ -176,6 +197,9 @@ internal enum class WerewolfStep {
     ELECT,
     HUNTER,
     HEIR,
+
+    /** Le premier éliminé répond « OUIII » ou « NOOON » à la question du Spirite (Gitane). */
+    SPIRIT,
     DEBATE,
     VOTE,
     MAID,
@@ -186,8 +210,8 @@ internal enum class WerewolfStep {
 private val NIGHT_ORDER = listOf(
     WerewolfStep.THIEF, WerewolfStep.CUPID, WerewolfStep.SISTERS, WerewolfStep.BROTHERS, WerewolfStep.DOG_WOLF,
     WerewolfStep.WILD_CHILD, WerewolfStep.COMEDIAN, WerewolfStep.SAVIOR, WerewolfStep.SEER, WerewolfStep.FOX,
-    WerewolfStep.GYPSY, WerewolfStep.WOLVES, WerewolfStep.INFECT, WerewolfStep.BIG_BAD, WerewolfStep.WHITE_WOLF,
-    WerewolfStep.WITCH, WerewolfStep.PIPER, WerewolfStep.RAVEN, WerewolfStep.PYRO
+    WerewolfStep.GYPSY, WerewolfStep.PYRO, WerewolfStep.WOLVES, WerewolfStep.INFECT, WerewolfStep.BIG_BAD, WerewolfStep.WHITE_WOLF,
+    WerewolfStep.WITCH, WerewolfStep.PIPER, WerewolfStep.RAVEN
 )
 
 /** Les étapes qui n'ont lieu que la première nuit. */
@@ -219,7 +243,7 @@ internal fun WerewolfStep.nightRole(): WerewolfRole? = when (this) {
     else -> null
 }
 
-internal enum class WerewolfWinner { NONE, VILLAGE, WOLVES, LOVERS, ANGEL, PIPER, WHITE_WOLF, PYROMANIAC, SECTARIAN }
+internal enum class WerewolfWinner { NONE, VILLAGE, WOLVES, LOVERS, ANGEL, PIPER, WHITE_WOLF, SECTARIAN }
 
 /** Ce que le village a décidé au vote. */
 internal enum class WerewolfVoteOutcome { NONE, TIE, EXECUTED, IDIOT_SPARED, SCAPEGOAT }
@@ -265,7 +289,7 @@ internal enum class WerewolfActionKind {
     /** Renard : je flaire [a] et ses deux voisins (-1 : personne). */
     FOX,
 
-    /** Gitane : [a] ne pourra pas voter demain (-1 : personne). */
+    /** Gitane : je valide la question [a] (0 à 3) de ma carte Spiritisme, que le joueur [b] posera demain (-1 : je ne fais rien). */
     GYPSY,
 
     /** Comédien : j'emprunte le pouvoir de la carte de rôle d'ordinal [a] (-1 : aucun). */
@@ -283,11 +307,11 @@ internal enum class WerewolfActionKind {
     /** Joueur de flûte : je charme [a] et [b]. */
     CHARM,
 
-    /** Pyromane : j'arrose [a] et [b] d'essence (-1 : personne). */
-    DOUSE,
+    /** Pyromane : j'incendie le bâtiment de [a], une seule fois dans la partie (-1 : pas cette nuit). */
+    BURN,
 
-    /** Pyromane : j'allume le feu. */
-    IGNITE,
+    /** Premier éliminé : je réponds à la question du Spirite ([a] = 1 pour « OUIII », 0 pour « NOOON »). */
+    SPIRIT_ANSWER,
 
     /** Servante dévouée : [a] = 1 pour prendre la carte du condamné. */
     MAID,
@@ -307,7 +331,7 @@ internal data class WerewolfAction(val kind: WerewolfActionKind, val a: Int = -1
 /** Ce que l'écran d'un joueur lui demande de faire à cet instant. */
 internal enum class WerewolfPrompt {
     NONE, ACK, LOVERS, PROTECT, SEE, WOLF, WITCH, RAVEN, SHOOT, VOTE, THIEF, CAMP, MODEL, FOX, GYPSY, COMEDIAN, INFECT, BIG_BAD,
-    WHITE, CHARM, DOUSE, MAID, HEIR, ELECT
+    WHITE, CHARM, BURN, SPIRIT, MAID, HEIR, ELECT
 }
 
 private enum class Cause { WOLVES, VOTE, OTHER }
@@ -391,11 +415,36 @@ internal class WerewolfRound(
     private var powersLost = false
     private val converted = BooleanArray(size)
     private var wildModel = -1
-    private val silenced = BooleanArray(size)
     private val charmed = BooleanArray(size)
-    private val doused = BooleanArray(size)
-    private var igniteUsed = false
-    private var igniteNow = false
+
+    /** Pyromane : les joueurs dont le bâtiment a brûlé (ils ont perdu leur métier, sans être éliminés). */
+    private val vagabond = BooleanArray(size)
+    private var fireUsed = false
+    private var fireTarget = -1
+
+    /** Le joueur dont le bâtiment vient de brûler à l'aube (-1 : aucun). */
+    var burnedNow: Int = -1
+        private set
+
+    /** Vrai à l'aube si le feu est tombé sur la victime des loups : ils ont pris peur et n'ont attaqué personne. */
+    var fireSaved: Boolean = false
+        private set
+
+    // Gitane : les cartes Spiritisme pas encore défaussées, celle qu'elle a sous les yeux cette nuit, et la question en cours.
+    private val spiritLeft: MutableList<Int> = (0 until SPIRIT_CARDS).toMutableList()
+    private var gypsyCard = -1
+    private var spiritQuestion = -1
+    private var spirite = -1
+    private var spiritAsked = false
+    private var spiritAnswerer = -1
+
+    /** Vrai à l'aube si le Spirite doit poser sa question à voix haute. */
+    var spiritAnnounce: Boolean = false
+        private set
+
+    /** La réponse du premier éliminé : 1 « OUIII », 0 « NOOON », -1 pas encore. */
+    var spiritAnswer: Int = -1
+        private set
     private val comedianLeft: MutableList<WerewolfRole> = COMEDIAN_POOL.shuffled(random).take(3).toMutableList()
     private var borrowed: WerewolfRole? = null
     private var rustyDue = -1
@@ -460,7 +509,7 @@ internal class WerewolfRound(
 
     private fun wolfSeats(): List<Int> = (0 until size).filter { alive[it] && isWolf(it) }
 
-    private fun canUsePower(seat: Int): Boolean = alive[seat] && !(powersLost && roleList[seat] in VILLAGE_POWERS)
+    private fun canUsePower(seat: Int): Boolean = alive[seat] && !vagabond[seat] && !(powersLost && roleList[seat] in VILLAGE_POWERS)
 
     fun aliveCount(): Int = alive.count { it }
 
@@ -480,8 +529,8 @@ internal class WerewolfRound(
         return seats
     }
 
-    /** Les places qui ont droit de voter : les vivants, sauf un Idiot gracié ou un joueur réduit au silence par la Gitane. */
-    private fun voters(): List<Int> = (0 until size).filter { alive[it] && !idiotSpared[it] && !silenced[it] }
+    /** Les places qui ont droit de voter : les vivants, sauf un Idiot gracié. */
+    private fun voters(): List<Int> = (0 until size).filter { alive[it] && !idiotSpared[it] }
 
     /** Les voisins vivants de [seat] (à sa gauche et à sa droite autour de la table). */
     private fun neighbours(seat: Int): List<Int> {
@@ -508,6 +557,15 @@ internal class WerewolfRound(
         return -1
     }
 
+    /** Le premier loup-garou vivant à droite de [seat] (dans le sens inverse de [nextWolfClockwise], qui va à gauche). */
+    private fun nextWolfOnTheRight(seat: Int): Int {
+        for (i in 1 until size) {
+            val s = (seat - i + size) % size
+            if (alive[s] && isWolf(s)) return s
+        }
+        return -1
+    }
+
     private fun thiefForced(): Boolean = table.size == 2 && table.all { it in WOLF_ROLES }
 
     /** Les joueurs dont une action est attendue pour finir l'étape en cours. */
@@ -518,6 +576,7 @@ internal class WerewolfRound(
             else wolfSeats().filter { wolfPicks[it] < 0 }
         WerewolfStep.HUNTER -> if (hunterPending >= 0) listOf(hunterPending) else emptyList()
         WerewolfStep.HEIR -> if (heirPending >= 0) listOf(heirPending) else emptyList()
+        WerewolfStep.SPIRIT -> if (spiritAnswerer >= 0 && spiritAnswer < 0) listOf(spiritAnswerer) else emptyList()
         WerewolfStep.ELECT -> (0 until size).filter { alive[it] && votes[it] < 0 }
         WerewolfStep.VOTE -> voters().filter { votes[it] < 0 }
         WerewolfStep.MAID -> seatOf(WerewolfRole.MAID).let { if (it >= 0 && maidTarget >= 0 && (step to it) !in acted) listOf(it) else emptyList() }
@@ -541,6 +600,10 @@ internal class WerewolfRound(
         WerewolfStep.WHITE_WOLF -> night % 2 == 0 && candidates(WerewolfActionKind.WHITE, -1).isNotEmpty()
         WerewolfStep.WITCH -> healLeft || poisonLeft
         WerewolfStep.PIPER -> candidates(WerewolfActionKind.CHARM, -1).isNotEmpty()
+        // Gitane : encore une carte à jouer, et la question précédente a trouvé sa réponse.
+        WerewolfStep.GYPSY -> spiritLeft.isNotEmpty() && spiritQuestion < 0
+        // Pyromane : un seul incendie dans la partie.
+        WerewolfStep.PYRO -> !fireUsed && candidates(WerewolfActionKind.BURN, -1).isNotEmpty()
         else -> true
     }
 
@@ -561,7 +624,7 @@ internal class WerewolfRound(
             WerewolfActionKind.BIG_BAD -> living.filter { !isWolf(it) && it != victim }
             WerewolfActionKind.WHITE -> living.filter { isWolf(it) && it != seat }
             WerewolfActionKind.CHARM -> living.filter { !charmed[it] && it != seat }
-            WerewolfActionKind.DOUSE -> living.filter { !doused[it] && it != seat }
+            WerewolfActionKind.BURN -> living.filter { !vagabond[it] && it != seat }
             WerewolfActionKind.SEE, WerewolfActionKind.SHOOT, WerewolfActionKind.VOTE, WerewolfActionKind.ELECT,
             WerewolfActionKind.MODEL, WerewolfActionKind.GYPSY -> living.filter { it != seat }
             else -> emptyList()
@@ -581,6 +644,8 @@ internal class WerewolfRound(
     }
 
     private fun beginStep() {
+        // La Gitane découvre une carte Spiritisme tirée au hasard ; si elle ne s'en sert pas, la carte retourne dans le paquet.
+        if (step == WerewolfStep.GYPSY && gypsyCard < 0 && spiritLeft.isNotEmpty()) gypsyCard = spiritLeft.random(random)
         if (step != WerewolfStep.REVEAL) expected().forEach { bump(it) }
         // Les Sœurs et les Frères se réveillent ensemble : leurs téléphones vibrent, sans rien leur demander.
         val siblings = when (step) {
@@ -610,9 +675,12 @@ internal class WerewolfRound(
         witchHealed = false
         poisonTarget = -1
         ravenMark = -1
-        silenced.fill(false)
         foxResult.clear()
-        igniteNow = false
+        fireTarget = -1
+        burnedNow = -1
+        fireSaved = false
+        gypsyCard = -1
+        spiritAnnounce = false
         borrowed = null
         secondVote = false
         bearGrowl = false
@@ -636,6 +704,11 @@ internal class WerewolfRound(
             }
             WerewolfStep.HEIR -> {
                 heirPending = -1
+                proceed(resumeTo)
+            }
+            WerewolfStep.SPIRIT -> {
+                // La carte est défaussée (elle l'était déjà) : la question est close, même sans réponse.
+                clearSpirit()
                 proceed(resumeTo)
             }
             WerewolfStep.DEBATE -> startVote()
@@ -666,12 +739,31 @@ internal class WerewolfRound(
 
     private fun resolveNight() {
         val killed = mutableListOf<Int>()
+        // Pyromane : le bâtiment désigné brûle. Son occupant perd son métier (avant tout le reste : un Chasseur brûlé ne tire plus).
+        val burned = fireTarget.takeIf { it >= 0 && alive[it] } ?: -1
+        fireTarget = -1
+        if (burned >= 0) {
+            vagabond[burned] = true
+            burnedNow = burned
+        }
+        // Si c'est la maison de la victime des loups : elle est sauvée, les loups prennent peur et le premier loup à sa droite meurt.
+        if (burned >= 0 && victim == burned) {
+            fireSaved = true
+            if (victimInfected) {
+                // L'attaque n'a pas eu lieu : l'infection non plus.
+                converted[burned] = false
+                infectUsed = false
+                victimInfected = false
+            }
+            val scorched = nextWolfOnTheRight(burned)
+            if (scorched >= 0) kill(scorched, killed, Cause.OTHER)
+        }
         // L'épée rouillée du Chevalier : le loup à sa gauche meurt au matin qui suit.
         if (rustyDue >= 0) {
             kill(rustyDue, killed, Cause.OTHER)
             rustyDue = -1
         }
-        val target = witchVictim()
+        val target = if (fireSaved) -1 else witchVictim()
         if (target >= 0 && !victimInfected) {
             val saved = target in protectedSeats || witchHealed
             if (!saved) {
@@ -685,13 +777,16 @@ internal class WerewolfRound(
                 }
             }
         }
-        if (victim2 >= 0 && alive[victim2] && victim2 !in protectedSeats) kill(victim2, killed, Cause.WOLVES)
+        if (!fireSaved && victim2 >= 0 && alive[victim2] && victim2 !in protectedSeats) kill(victim2, killed, Cause.WOLVES)
         if (whiteTarget >= 0 && alive[whiteTarget] && whiteTarget !in protectedSeats) kill(whiteTarget, killed, Cause.OTHER)
         if (poisonTarget >= 0) kill(poisonTarget, killed, Cause.OTHER)
-        if (igniteNow) {
-            for (seat in 0 until size) if (doused[seat]) {
-                doused[seat] = false
-                kill(seat, killed, Cause.OTHER)
+        // Gitane : le Spirite pose sa question ce matin, sauf s'il est mort cette nuit (la question est alors perdue).
+        if (spiritQuestion >= 0 && !spiritAsked) {
+            if (alive[spirite]) {
+                spiritAsked = true
+                spiritAnnounce = true
+            } else {
+                clearSpirit()
             }
         }
         val bear = seatOf(WerewolfRole.BEAR_TAMER)
@@ -820,6 +915,12 @@ internal class WerewolfRound(
             setStep(WerewolfStep.HEIR)
             return
         }
+        // Le premier éliminé depuis la question du Spirite y répond avant que la partie continue.
+        if (spiritAnswerer >= 0 && spiritAnswer < 0) {
+            resumeTo = next
+            setStep(WerewolfStep.SPIRIT)
+            return
+        }
         when {
             next == WerewolfStep.NIGHT_START -> startNight()
             next == WerewolfStep.VOTE -> startVote()
@@ -835,7 +936,9 @@ internal class WerewolfRound(
         killed.add(seat)
         val role = roleList[seat]
         if (isWolf(seat)) wolfDied = true
-        if (role == WerewolfRole.HUNTER && !powersLost) hunterPending = seat
+        if (role == WerewolfRole.HUNTER && !powersLost && !vagabond[seat]) hunterPending = seat
+        // Le premier éliminé depuis que la Gitane a validé sa question est celui qui y répond.
+        if (spiritQuestion >= 0 && spiritAnswerer < 0 && spiritAnswer < 0) spiritAnswerer = seat
         if (seat == captain) {
             captain = -1
             heirPending = seat
@@ -852,19 +955,26 @@ internal class WerewolfRound(
         if (partner >= 0) kill(partner, killed, Cause.OTHER)
     }
 
+    /** La question Spiritisme en cours est close. */
+    private fun clearSpirit() {
+        spiritQuestion = -1
+        spirite = -1
+        spiritAsked = false
+        spiritAnswerer = -1
+        spiritAnswer = -1
+    }
+
     private fun checkWin() {
         val living = (0 until size).filter { alive[it] }
         val wolves = living.count { isWolf(it) }
         val piper = seatOf(WerewolfRole.PIPER)
-        val pyro = seatOf(WerewolfRole.PYROMANIAC)
         val white = seatOf(WerewolfRole.WHITE_WOLF)
         val sectarian = seatOf(WerewolfRole.SECTARIAN)
-        val soloAlive = living.any { roleList[it] == WerewolfRole.PIPER || roleList[it] == WerewolfRole.PYROMANIAC }
+        val soloAlive = living.any { roleList[it] == WerewolfRole.PIPER }
         winner = when {
             angelWon -> WerewolfWinner.ANGEL
             lover1 >= 0 && living.size == 2 && alive[lover1] && alive[lover2] && isWolf(lover1) != isWolf(lover2) -> WerewolfWinner.LOVERS
             piper >= 0 && alive[piper] && living.size > 1 && living.all { it == piper || charmed[it] } -> WerewolfWinner.PIPER
-            pyro >= 0 && alive[pyro] && living.size == 1 -> WerewolfWinner.PYROMANIAC
             white >= 0 && alive[white] && living.size == 1 -> WerewolfWinner.WHITE_WOLF
             sectarian >= 0 && alive[sectarian] && groups.isNotEmpty() && living.none { groups[it] != groups[sectarian] } -> WerewolfWinner.SECTARIAN
             wolves == 0 && !soloAlive -> WerewolfWinner.VILLAGE
@@ -882,6 +992,8 @@ internal class WerewolfRound(
         heirPending = -1
         votes[seat] = -1
         wolfPicks[seat] = -1
+        // Un joueur qui part ne répond pas au Spirite : c'est le suivant qui répondra.
+        if (spiritAnswerer == seat && spiritAnswer < 0) spiritAnswerer = -1
         lastDeaths = lastDeaths + killed
         checkWin()
         if (winner != WerewolfWinner.NONE) {
@@ -1046,9 +1158,15 @@ internal class WerewolfRound(
                 ok
             }
             WerewolfActionKind.GYPSY -> {
-                val ok = inStep(seat, WerewolfStep.GYPSY) && (a < 0 || a in candidates(action.kind, seat))
+                val ok = inStep(seat, WerewolfStep.GYPSY) &&
+                    (a < 0 || (a in 0 until SPIRIT_QUESTIONS && gypsyCard >= 0 && b in candidates(action.kind, seat)))
                 if (ok) {
-                    if (a >= 0) silenced[a] = true
+                    if (a >= 0) {
+                        // La question est validée, la carte défaussée ; le Spirite la posera ce matin.
+                        spiritQuestion = gypsyCard * SPIRIT_QUESTIONS + a
+                        spirite = b
+                        spiritLeft.remove(gypsyCard)
+                    }
                     done(seat)
                 }
                 ok
@@ -1111,23 +1229,20 @@ internal class WerewolfRound(
                 }
                 ok
             }
-            WerewolfActionKind.DOUSE -> {
-                val cand = candidates(action.kind, seat)
-                val ok = inStep(seat, WerewolfStep.PYRO) && (a < 0 || a in cand) && (b < 0 || (a >= 0 && b in cand && b != a))
+            WerewolfActionKind.BURN -> {
+                val ok = inStep(seat, WerewolfStep.PYRO) && !fireUsed && (a < 0 || a in candidates(action.kind, seat))
                 if (ok) {
-                    if (a >= 0) doused[a] = true
-                    if (b >= 0) doused[b] = true
+                    if (a >= 0) {
+                        fireUsed = true
+                        fireTarget = a
+                    }
                     done(seat)
                 }
                 ok
             }
-            WerewolfActionKind.IGNITE -> {
-                val ok = inStep(seat, WerewolfStep.PYRO) && !igniteUsed && (0 until size).any { doused[it] && alive[it] }
-                if (ok) {
-                    igniteUsed = true
-                    igniteNow = true
-                    done(seat)
-                }
+            WerewolfActionKind.SPIRIT_ANSWER -> {
+                val ok = step == WerewolfStep.SPIRIT && seat in expected() && (a == 0 || a == 1)
+                if (ok) spiritAnswer = a
                 ok
             }
             WerewolfActionKind.MAID -> {
@@ -1177,6 +1292,15 @@ internal class WerewolfRound(
     /** La place désignée par le Corbeau pour le prochain vote (-1 : aucune). */
     fun ravenTarget(): Int = ravenMark
 
+    /** La question Spiritisme posée ce matin (carte * [SPIRIT_QUESTIONS] + numéro, -1 : aucune). */
+    fun spiritQuestionCode(): Int = if (spiritAsked) spiritQuestion else -1
+
+    /** La place du Spirite, qui pose la question à voix haute (-1 : aucune). */
+    fun spiritSeat(): Int = if (spiritAsked) spirite else -1
+
+    /** La place du premier éliminé, qui répond au Spirite (-1 : aucune). */
+    fun spiritAnswererSeat(): Int = spiritAnswerer
+
     /** La place du condamné que la Servante dévouée peut remplacer (-1 : aucune). */
     fun maidTargetSeat(): Int = maidTarget
 
@@ -1219,7 +1343,7 @@ internal class WerewolfRound(
                 WerewolfStep.ELECT -> aliveCount()
                 else -> 0
             },
-            canVote = alive[seat] && !idiotSpared[seat] && !silenced[seat],
+            canVote = alive[seat] && !idiotSpared[seat],
             marked = if (step == WerewolfStep.VOTE) ravenMark else -1,
             tally = if (showTally) tally.toList() else emptyList(),
             voteOf = if (showTally) votes.toList() else emptyList(),
@@ -1239,8 +1363,11 @@ internal class WerewolfRound(
             maidTarget = if (prompt == WerewolfPrompt.MAID) maidTarget else -1,
             captain = captain,
             groups = groups,
-            doused = if (role == WerewolfRole.PYROMANIAC) doused.toList() else emptyList(),
-            canIgnite = prompt == WerewolfPrompt.DOUSE && !igniteUsed && (0 until size).any { doused[it] && alive[it] },
+            vagabonds = vagabond.toList(),
+            gypsyCard = if (prompt == WerewolfPrompt.GYPSY) gypsyCard else -1,
+            spiritQuestion = if (spiritAsked) spiritQuestion else -1,
+            spirite = if (spiritAsked) spirite else -1,
+            spiritAnswer = if (spiritAsked) spiritAnswer else -1,
             canJudge = step == WerewolfStep.VOTE && role == WerewolfRole.JUDGE && canUsePower(seat) && !judgeUsed && !judgeFlag,
             secondVote = secondVote,
             model = if (role == WerewolfRole.WILD_CHILD) wildModel else -1
@@ -1267,7 +1394,8 @@ internal class WerewolfRound(
             WerewolfStep.WITCH -> WerewolfPrompt.WITCH
             WerewolfStep.PIPER -> WerewolfPrompt.CHARM
             WerewolfStep.RAVEN -> WerewolfPrompt.RAVEN
-            WerewolfStep.PYRO -> WerewolfPrompt.DOUSE
+            WerewolfStep.PYRO -> WerewolfPrompt.BURN
+            WerewolfStep.SPIRIT -> WerewolfPrompt.SPIRIT
             WerewolfStep.HUNTER -> WerewolfPrompt.SHOOT
             WerewolfStep.HEIR -> WerewolfPrompt.HEIR
             WerewolfStep.ELECT -> WerewolfPrompt.ELECT
@@ -1293,7 +1421,7 @@ internal class WerewolfRound(
             WerewolfPrompt.BIG_BAD -> WerewolfActionKind.BIG_BAD
             WerewolfPrompt.WHITE -> WerewolfActionKind.WHITE
             WerewolfPrompt.CHARM -> WerewolfActionKind.CHARM
-            WerewolfPrompt.DOUSE -> WerewolfActionKind.DOUSE
+            WerewolfPrompt.BURN -> WerewolfActionKind.BURN
             WerewolfPrompt.HEIR -> WerewolfActionKind.HEIR
             WerewolfPrompt.ELECT -> WerewolfActionKind.ELECT
             else -> return emptyList()

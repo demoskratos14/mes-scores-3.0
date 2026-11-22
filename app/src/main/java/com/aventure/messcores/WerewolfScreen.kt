@@ -356,6 +356,12 @@ private class Script(val intro: List<String>, val outro: List<String>)
 private fun deathLines(context: Context, round: WerewolfRound, seats: List<Int>): List<String> =
     seats.map { context.getString(R.string.ww_say_death, round.names[it], context.getString(round.roleAt(it).nameRes)) }
 
+/** Ce que dit le narrateur quand le Spirite pose sa question (Gitane). */
+private fun spiritLines(context: Context, round: WerewolfRound): List<String> {
+    val question = spiritQuestionText(round.spiritQuestionCode()) ?: return emptyList()
+    return listOf(context.getString(R.string.ww_say_spirit_ask, round.names[round.spiritSeat().coerceAtLeast(0)], context.getString(question)))
+}
+
 /** Le texte de l'étape en cours de [round]. */
 private fun werewolfScript(context: Context, round: WerewolfRound): Script {
     fun nightScript(wake: Int, sleep: Int) = Script(listOf(context.getString(wake)), listOf(context.getString(sleep)))
@@ -385,9 +391,16 @@ private fun werewolfScript(context: Context, round: WerewolfRound): Script {
             val lines = mutableListOf(context.getString(R.string.ww_say_dawn))
             if (round.lastDeaths.isEmpty()) lines.add(context.getString(R.string.ww_say_nobody_died))
             else lines.addAll(deathLines(context, round, round.lastDeaths))
+            if (round.burnedNow >= 0) lines.add(context.getString(R.string.ww_say_fire, round.names[round.burnedNow]))
+            if (round.fireSaved) lines.add(context.getString(R.string.ww_say_fire_saved))
             if (round.bearGrowl) lines.add(context.getString(R.string.ww_say_growl))
+            if (round.spiritAnnounce) lines.addAll(spiritLines(context, round))
             Script(lines, emptyList())
         }
+        WerewolfStep.SPIRIT -> Script(
+            listOf(context.getString(R.string.ww_say_spirit_answerer, round.names[round.spiritAnswererSeat().coerceAtLeast(0)])),
+            emptyList()
+        )
         WerewolfStep.ELECT -> Script(listOf(context.getString(R.string.ww_say_elect)), emptyList())
         WerewolfStep.HUNTER -> Script(
             listOf(context.getString(R.string.ww_say_hunter, round.names[round.hunterToShoot().coerceAtLeast(0)])),
@@ -441,7 +454,6 @@ private fun werewolfScript(context: Context, round: WerewolfRound): Script {
                         WerewolfWinner.ANGEL -> R.string.ww_say_win_angel
                         WerewolfWinner.PIPER -> R.string.ww_say_win_piper
                         WerewolfWinner.WHITE_WOLF -> R.string.ww_say_win_white_wolf
-                        WerewolfWinner.PYROMANIAC -> R.string.ww_say_win_pyromaniac
                         WerewolfWinner.SECTARIAN -> R.string.ww_say_win_sectarian
                         else -> R.string.ww_say_win_lovers
                     }
@@ -459,7 +471,6 @@ private fun winnerText(winner: WerewolfWinner): Int = when (winner) {
     WerewolfWinner.ANGEL -> R.string.ww_win_angel
     WerewolfWinner.PIPER -> R.string.ww_win_piper
     WerewolfWinner.WHITE_WOLF -> R.string.ww_win_white_wolf
-    WerewolfWinner.PYROMANIAC -> R.string.ww_win_pyromaniac
     WerewolfWinner.SECTARIAN -> R.string.ww_win_sectarian
     else -> R.string.ww_win_lovers
 }
@@ -467,7 +478,7 @@ private fun winnerText(winner: WerewolfWinner): Int = when (winner) {
 /** L'étape (nuit, jour, vote…) en un mot pour l'écran du narrateur. */
 private fun phaseLabel(step: WerewolfStep): Int = when (step) {
     WerewolfStep.REVEAL -> R.string.ww_phase_reveal
-    WerewolfStep.DAWN, WerewolfStep.DEBATE, WerewolfStep.ELECT, WerewolfStep.HEIR -> R.string.ww_phase_day
+    WerewolfStep.DAWN, WerewolfStep.DEBATE, WerewolfStep.ELECT, WerewolfStep.HEIR, WerewolfStep.SPIRIT -> R.string.ww_phase_day
     WerewolfStep.HUNTER -> R.string.ww_phase_hunter
     WerewolfStep.VOTE, WerewolfStep.VOTE_RESULT, WerewolfStep.MAID -> R.string.ww_phase_vote
     WerewolfStep.GAME_OVER -> R.string.ww_phase_over
@@ -480,6 +491,7 @@ private fun lingerMs(step: WerewolfStep): Long = when (step) {
     WerewolfStep.DAWN -> 2_500L
     WerewolfStep.VOTE_RESULT -> 3_500L
     WerewolfStep.HUNTER -> 2_500L
+    WerewolfStep.SPIRIT -> 3_000L
     WerewolfStep.NIGHT_START, WerewolfStep.DEBATE, WerewolfStep.VOTE, WerewolfStep.REVEAL, WerewolfStep.GAME_OVER -> 500L
     else -> 1_200L
 }
@@ -561,6 +573,12 @@ private fun NarratorControls(online: WerewolfOnline) {
                 voice.say(text)
             }
         }
+        if (step == WerewolfStep.SPIRIT && round.spiritAnswer >= 0) {
+            // La voix sépulcrale du premier éliminé.
+            val text = resources.getString(if (round.spiritAnswer == 1) R.string.ww_spirit_yes else R.string.ww_spirit_no)
+            line = text
+            voice.say(text)
+        }
         if (step == WerewolfStep.HEIR && round.captain >= 0) {
             // Le nouveau Capitaine.
             val text = resources.getString(R.string.ww_say_captain, round.names[round.captain])
@@ -634,6 +652,8 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
     var showMine by remember(view.seat) { mutableStateOf(false) }
     var selected by remember(view.seat, view.step, view.night, view.prompt) { mutableStateOf(listOf<Int>()) }
     var heal by remember(view.seat, view.step, view.night) { mutableStateOf(false) }
+    // Gitane : la question que j'ai validée sur ma carte Spiritisme (-1 : aucune).
+    var question by remember(view.seat, view.step, view.night, view.prompt) { mutableIntStateOf(-1) }
     val me = view.seat
     val role = view.role
     val over = view.step == WerewolfStep.GAME_OVER
@@ -680,6 +700,25 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
     if (view.model >= 0) Text(stringResource(R.string.ww_info_model, view.names[view.model]))
     if (view.groups.isNotEmpty()) Text(stringResource(R.string.ww_info_group, if (view.groups.getOrElse(me) { 0 } == 0) "A" else "B"))
     if (view.captain >= 0) Text(stringResource(R.string.ww_info_captain, view.names[view.captain]))
+    if (view.vagabonds.getOrElse(me) { false }) Text(stringResource(R.string.ww_info_vagabond))
+    // La question du Spirite, posée à voix haute ce matin, et la réponse du premier éliminé.
+    val spiritText = spiritQuestionText(view.spiritQuestion)
+    if (spiritText != null && view.spirite >= 0) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    stringResource(R.string.ww_info_spirit, view.names.getOrElse(view.spirite) { "" }, stringResource(spiritText)),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                if (view.spiritAnswer >= 0) {
+                    Text(
+                        stringResource(R.string.ww_info_spirit_answer, stringResource(if (view.spiritAnswer == 1) R.string.ww_spirit_yes else R.string.ww_spirit_no)),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
 
     if (!iAmAlive) {
         Text(stringResource(R.string.ww_dead_info), fontWeight = FontWeight.Bold)
@@ -691,7 +730,7 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
     // Ce qu'on me demande.
     val prompt = view.prompt
     val selectable = view.candidates.toSet()
-    val multi = prompt == WerewolfPrompt.LOVERS || prompt == WerewolfPrompt.CHARM || prompt == WerewolfPrompt.DOUSE
+    val multi = prompt == WerewolfPrompt.LOVERS || prompt == WerewolfPrompt.CHARM
     val toggle: (Int) -> Unit = { seat ->
         selected = when {
             seat in selected -> selected - seat
@@ -737,6 +776,15 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
             Button(onClick = { online.act(WerewolfActionKind.MAID, 1) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_maid_yes)) }
             OutlinedButton(onClick = { online.act(WerewolfActionKind.MAID, 0) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_maid_no)) }
         }
+        WerewolfPrompt.SPIRIT -> {
+            Text(stringResource(R.string.ww_prompt_spirit), fontWeight = FontWeight.Bold)
+            Button(onClick = { online.act(WerewolfActionKind.SPIRIT_ANSWER, 1) }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.ww_spirit_yes))
+            }
+            Button(onClick = { online.act(WerewolfActionKind.SPIRIT_ANSWER, 0) }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.ww_spirit_no))
+            }
+        }
         WerewolfPrompt.COMEDIAN -> {
             Text(stringResource(R.string.ww_prompt_comedian), fontWeight = FontWeight.Bold)
             view.comedianLeft.forEach { ordinal ->
@@ -763,10 +811,23 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                 }
                 Text(stringResource(if (view.poisonLeft) R.string.ww_witch_poison_hint else R.string.ww_witch_no_poison))
             }
+            if (prompt == WerewolfPrompt.GYPSY) {
+                // La carte Spiritisme : je valide une des quatre questions.
+                val title = SPIRIT_CARD_TITLES.getOrNull(view.gypsyCard)
+                val texts = SPIRIT_QUESTION_TEXTS.getOrNull(view.gypsyCard)
+                if (title != null && texts != null) {
+                    Text(stringResource(R.string.ww_spirit_card, stringResource(title)), style = MaterialTheme.typography.titleSmall)
+                    texts.forEachIndexed { index, text ->
+                        OutlinedButton(onClick = { question = index }, modifier = Modifier.fillMaxWidth()) {
+                            Text((if (question == index) "✔ " else "") + stringResource(text))
+                        }
+                    }
+                }
+            }
             val ready = when (prompt) {
                 WerewolfPrompt.LOVERS -> selected.size == 2
                 WerewolfPrompt.CHARM -> selected.size == minOf(2, selectable.size) && selected.isNotEmpty()
-                WerewolfPrompt.DOUSE -> selected.size in 1..2
+                WerewolfPrompt.GYPSY -> selected.size == 1 && question >= 0
                 WerewolfPrompt.WITCH -> true
                 else -> selected.size == 1
             }
@@ -785,11 +846,11 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                         WerewolfPrompt.VOTE -> online.act(WerewolfActionKind.VOTE, first)
                         WerewolfPrompt.MODEL -> online.act(WerewolfActionKind.MODEL, first)
                         WerewolfPrompt.FOX -> online.act(WerewolfActionKind.FOX, first)
-                        WerewolfPrompt.GYPSY -> online.act(WerewolfActionKind.GYPSY, first)
+                        WerewolfPrompt.GYPSY -> online.act(WerewolfActionKind.GYPSY, question, first)
                         WerewolfPrompt.BIG_BAD -> online.act(WerewolfActionKind.BIG_BAD, first)
                         WerewolfPrompt.WHITE -> online.act(WerewolfActionKind.WHITE, first)
                         WerewolfPrompt.CHARM -> online.act(WerewolfActionKind.CHARM, first, second)
-                        WerewolfPrompt.DOUSE -> online.act(WerewolfActionKind.DOUSE, first, second)
+                        WerewolfPrompt.BURN -> online.act(WerewolfActionKind.BURN, first)
                         WerewolfPrompt.HEIR -> online.act(WerewolfActionKind.HEIR, first)
                         WerewolfPrompt.ELECT -> online.act(WerewolfActionKind.ELECT, first)
                         else -> Unit
@@ -798,7 +859,15 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                 enabled = ready,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(stringResource(if (prompt == WerewolfPrompt.VOTE) R.string.ww_vote_button else R.string.ww_confirm))
+                Text(
+                    stringResource(
+                        when (prompt) {
+                            WerewolfPrompt.VOTE -> R.string.ww_vote_button
+                            WerewolfPrompt.BURN -> R.string.ww_burn
+                            else -> R.string.ww_confirm
+                        }
+                    )
+                )
             }
             // Les pouvoirs qu'on n'est pas obligé d'utiliser.
             val skipKind = when (prompt) {
@@ -806,16 +875,13 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                 WerewolfPrompt.FOX -> WerewolfActionKind.FOX
                 WerewolfPrompt.GYPSY -> WerewolfActionKind.GYPSY
                 WerewolfPrompt.WHITE -> WerewolfActionKind.WHITE
-                WerewolfPrompt.DOUSE -> WerewolfActionKind.DOUSE
+                WerewolfPrompt.BURN -> WerewolfActionKind.BURN
                 else -> null
             }
             if (skipKind != null) {
                 OutlinedButton(onClick = { online.act(skipKind, -1, -1) }) {
                     Text(stringResource(if (prompt == WerewolfPrompt.RAVEN) R.string.ww_raven_nobody else R.string.ww_skip_power))
                 }
-            }
-            if (view.canIgnite) {
-                OutlinedButton(onClick = { online.act(WerewolfActionKind.IGNITE) }) { Text(stringResource(R.string.ww_ignite)) }
             }
         }
     }
@@ -834,7 +900,7 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
             if (seat == view.captain) append("👑 ")
             if (seat == view.lover) append("❤ ")
             if (view.groups.isNotEmpty()) append(if (view.groups.getOrElse(seat) { 0 } == 0) "A " else "B ")
-            if (view.doused.getOrElse(seat) { false }) append("🔥 ")
+            if (view.vagabonds.getOrElse(seat) { false }) append("🏚 ")
             if (seat in view.charmedSeats) append("♪ ")
             if (seat in view.mates && me in view.mates) append("🐺 ")
             val count = view.tally.getOrElse(seat) { 0 }
@@ -871,7 +937,7 @@ private fun promptText(prompt: WerewolfPrompt): Int = when (prompt) {
     WerewolfPrompt.BIG_BAD -> R.string.ww_prompt_big_bad
     WerewolfPrompt.WHITE -> R.string.ww_prompt_white
     WerewolfPrompt.CHARM -> R.string.ww_prompt_charm
-    WerewolfPrompt.DOUSE -> R.string.ww_prompt_douse
+    WerewolfPrompt.BURN -> R.string.ww_prompt_burn
     WerewolfPrompt.HEIR -> R.string.ww_prompt_heir
     WerewolfPrompt.ELECT -> R.string.ww_prompt_elect
     else -> R.string.ww_confirm
@@ -886,6 +952,6 @@ private fun waitingText(view: WerewolfView, iAmAlive: Boolean): String = when {
     view.step == WerewolfStep.VOTE && iAmAlive && !view.canVote -> stringResource(R.string.ww_idiot_no_vote)
     view.step == WerewolfStep.DEBATE || view.step == WerewolfStep.DAWN || view.step == WerewolfStep.VOTE ||
         view.step == WerewolfStep.VOTE_RESULT || view.step == WerewolfStep.HUNTER || view.step == WerewolfStep.ELECT ||
-        view.step == WerewolfStep.HEIR || view.step == WerewolfStep.MAID -> stringResource(R.string.ww_wait_day)
+        view.step == WerewolfStep.HEIR || view.step == WerewolfStep.MAID || view.step == WerewolfStep.SPIRIT -> stringResource(R.string.ww_wait_day)
     else -> stringResource(R.string.ww_wait_night)
 }

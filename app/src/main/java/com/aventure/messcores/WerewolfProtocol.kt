@@ -65,9 +65,14 @@ internal data class WerewolfView(
     val captain: Int,
     /** Abominable sectaire : le groupe (0 ou 1) de chaque joueur ; vide sans lui. */
     val groups: List<Int>,
-    /** Pyromane : les joueurs arrosés d'essence. */
-    val doused: List<Boolean>,
-    val canIgnite: Boolean,
+    /** Pyromane : les joueurs dont le bâtiment a brûlé (ils sont devenus Vagabonds, sans pouvoir). */
+    val vagabonds: List<Boolean>,
+    /** Gitane : la carte Spiritisme qu'elle a sous les yeux cette nuit (-1 : aucune). */
+    val gypsyCard: Int,
+    /** La question Spiritisme posée ce matin (carte * [SPIRIT_QUESTIONS] + numéro, -1 : aucune), celui qui la pose et la réponse (-1 : pas encore). */
+    val spiritQuestion: Int,
+    val spirite: Int,
+    val spiritAnswer: Int,
     val canJudge: Boolean,
     val secondVote: Boolean,
     /** Enfant sauvage : mon modèle. */
@@ -118,8 +123,9 @@ private fun WerewolfView.toJson(): JSONObject = JSONObject()
     .put("tc", thiefCards.toJson()).put("tf", thiefForced).put("fs", foxSeat).put("ff", foxFound)
     .put("sb", siblings.toJson()).put("ch", charmedSeats.toJson()).put("cv2", converted).put("cl", comedianLeft.toJson())
     .put("mt", maidTarget).put("cp", captain).put("gr", groups.toJson())
-    .put("do", JSONArray().also { array -> doused.forEach { array.put(it) } })
-    .put("ci", canIgnite).put("cj", canJudge).put("sv", secondVote).put("md", model)
+    .put("vg", JSONArray().also { array -> vagabonds.forEach { array.put(it) } })
+    .put("gc", gypsyCard).put("sq", spiritQuestion).put("sp", spirite).put("sa", spiritAnswer)
+    .put("cj", canJudge).put("sv", secondVote).put("md", model)
 
 private fun werewolfViewFromJson(json: JSONObject): WerewolfView {
     val namesArray = json.getJSONArray("nm")
@@ -166,8 +172,11 @@ private fun werewolfViewFromJson(json: JSONObject): WerewolfView {
         maidTarget = json.optInt("mt", -1),
         captain = json.optInt("cp", -1),
         groups = json.intList("gr"),
-        doused = json.optJSONArray("do")?.let { array -> (0 until array.length()).map { array.optBoolean(it, false) } } ?: emptyList(),
-        canIgnite = json.optBoolean("ci", false),
+        vagabonds = json.optJSONArray("vg")?.let { array -> (0 until array.length()).map { array.optBoolean(it, false) } } ?: emptyList(),
+        gypsyCard = json.optInt("gc", -1),
+        spiritQuestion = json.optInt("sq", -1),
+        spirite = json.optInt("sp", -1),
+        spiritAnswer = json.optInt("sa", -1),
         canJudge = json.optBoolean("cj", false),
         secondVote = json.optBoolean("sv", false),
         model = json.optInt("md", -1)
