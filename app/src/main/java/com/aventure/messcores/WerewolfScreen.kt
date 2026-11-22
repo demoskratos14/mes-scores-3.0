@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -62,6 +65,32 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlin.random.Random
+
+/** Couleurs lisibles sur la photo de fond assombrie (les couleurs du thème clair y sont trop sombres). */
+private val ErrorOnDark = Color(0xFFFF8A80)
+private val TertiaryOnDark = Color(0xFFEFB8C8)
+private val SelectionOnDark = Color(0xFFD0BCFF)
+
+/** Bouton à contour blanc, pour les boutons posés directement sur le fond sombre (ceux d'une carte claire gardent le style normal). */
+@Composable
+private fun WwOutlinedButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = Color.White,
+            disabledContentColor = Color.White.copy(alpha = 0.4f)
+        ),
+        border = BorderStroke(1.dp, if (enabled) Color.White else Color.White.copy(alpha = 0.4f)),
+        content = content
+    )
+}
 
 /** Cartes par ligne dans la table. */
 private const val TILES_PER_ROW = 3
@@ -118,7 +147,7 @@ internal fun WerewolfScreen(online: WerewolfOnline, onExit: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(stringResource(R.string.game_werewolf), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                OutlinedButton(onClick = { showRoles = true }) { Text(stringResource(R.string.ww_roles_button)) }
+                WwOutlinedButton(onClick = { showRoles = true }) { Text(stringResource(R.string.ww_roles_button)) }
             }
             when {
                 !online.active -> Text(stringResource(R.string.ww_connecting))
@@ -138,7 +167,7 @@ internal fun WerewolfScreen(online: WerewolfOnline, onExit: () -> Unit) {
                 }
             }
             if (online.active && online.notice != WerewolfNotice.HOST_LEFT) {
-                TextButton(onClick = { showQuit = true }) { Text(stringResource(R.string.ww_quit), color = MaterialTheme.colorScheme.error) }
+                TextButton(onClick = { showQuit = true }) { Text(stringResource(R.string.ww_quit), color = ErrorOnDark) }
             }
         }
     }
@@ -170,7 +199,7 @@ private fun HostLobby(online: WerewolfOnline) {
     PlayersList(online.lobby)
     Text(stringResource(R.string.ww_players_count, online.lobby.size, WEREWOLF_MAX_PLAYERS), fontWeight = FontWeight.Bold)
     if (online.lobby.size < WEREWOLF_MIN_PLAYERS) {
-        Text(stringResource(R.string.ww_need_players, WEREWOLF_MIN_PLAYERS), color = MaterialTheme.colorScheme.error)
+        Text(stringResource(R.string.ww_need_players, WEREWOLF_MIN_PLAYERS), color = ErrorOnDark)
     }
     CardsSetup(online)
     Button(onClick = { online.start() }, enabled = online.ready, modifier = Modifier.fillMaxWidth()) {
@@ -184,9 +213,9 @@ private fun HostLobby(online: WerewolfOnline) {
 private fun CardsSetup(online: WerewolfOnline) {
     Text(stringResource(R.string.ww_config_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = { online.changeWolves(-1) }, enabled = online.wolves > 1) { Text("−") }
+        WwOutlinedButton(onClick = { online.changeWolves(-1) }, enabled = online.wolves > 1) { Text("−") }
         Text(stringResource(R.string.ww_config_wolves, online.wolves), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-        OutlinedButton(onClick = { online.changeWolves(1) }) { Text("+") }
+        WwOutlinedButton(onClick = { online.changeWolves(1) }) { Text("+") }
     }
     WEREWOLF_SPECIALS.forEach { role ->
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -196,10 +225,10 @@ private fun CardsSetup(online: WerewolfOnline) {
     }
     Text(stringResource(R.string.ww_config_villagers, online.villagers.coerceAtLeast(0)))
     if (online.lobby.size >= WEREWOLF_MIN_PLAYERS && !online.validCards) {
-        Text(stringResource(R.string.ww_config_too_many, online.lobby.size), color = MaterialTheme.colorScheme.error)
+        Text(stringResource(R.string.ww_config_too_many, online.lobby.size), color = ErrorOnDark)
     }
     if (online.customCards) {
-        OutlinedButton(onClick = { online.resetCards() }) { Text(stringResource(R.string.ww_config_reset)) }
+        WwOutlinedButton(onClick = { online.resetCards() }) { Text(stringResource(R.string.ww_config_reset)) }
     }
 }
 
@@ -331,7 +360,7 @@ private fun PlayerTiles(
                     modifier = Modifier
                         .weight(1f)
                         .alpha(if (faded) 0.5f else 1f)
-                        .border(if (seat in selected) 3.dp else 0.dp, MaterialTheme.colorScheme.primary, shape)
+                        .border(if (seat in selected) 3.dp else 0.dp, SelectionOnDark, shape)
                         .clip(shape)
                         .clickable(enabled = enabled) { onToggle(seat) }
                         .padding(4.dp)
@@ -603,7 +632,7 @@ private fun NarratorControls(online: WerewolfOnline) {
     if (online.isTest) {
         Text(
             stringResource(if (online.testAll) R.string.ww_test_all_banner else R.string.ww_test_banner),
-            color = MaterialTheme.colorScheme.tertiary,
+            color = TertiaryOnDark,
             fontWeight = FontWeight.Bold
         )
     }
@@ -611,10 +640,10 @@ private fun NarratorControls(online: WerewolfOnline) {
         // Test complet : la place que ce téléphone joue, et de quoi en changer ou laisser les autres au hasard.
         Text(stringResource(R.string.ww_test_all_seat, round.names.getOrElse(online.controlled) { "" }), fontWeight = FontWeight.Bold)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { online.cycleControlled() }) { Text(stringResource(R.string.ww_test_all_next)) }
-            OutlinedButton(onClick = { online.randomForOthers() }) { Text(stringResource(R.string.ww_test_all_random)) }
+            WwOutlinedButton(onClick = { online.cycleControlled() }) { Text(stringResource(R.string.ww_test_all_next)) }
+            WwOutlinedButton(onClick = { online.randomForOthers() }) { Text(stringResource(R.string.ww_test_all_random)) }
         }
-        OutlinedButton(onClick = { online.backToLobby() }) { Text(stringResource(R.string.ww_test_all_stop)) }
+        WwOutlinedButton(onClick = { online.backToLobby() }) { Text(stringResource(R.string.ww_test_all_stop)) }
     }
     Card(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -635,10 +664,10 @@ private fun NarratorControls(online: WerewolfOnline) {
         uiStep == WerewolfStep.GAME_OVER ->
             Button(onClick = { online.backToLobby() }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_new_game)) }
         else -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { paused = !paused }) {
+            WwOutlinedButton(onClick = { paused = !paused }) {
                 Text(stringResource(if (paused) R.string.ww_resume else R.string.ww_pause))
             }
-            OutlinedButton(onClick = { skip++ }) {
+            WwOutlinedButton(onClick = { skip++ }) {
                 Text(stringResource(if (uiStep == WerewolfStep.DEBATE) R.string.ww_start_vote else R.string.ww_skip))
             }
         }
@@ -697,7 +726,7 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
             if (found != null) Text(stringResource(R.string.ww_seer_result, view.names.getOrElse(pair[0]) { "" }, stringResource(found.nameRes)))
         }
     }
-    if (view.wolfDisagree) Text(stringResource(R.string.ww_wolf_disagree), color = MaterialTheme.colorScheme.error)
+    if (view.wolfDisagree) Text(stringResource(R.string.ww_wolf_disagree), color = ErrorOnDark)
     if (view.siblings.isNotEmpty()) Text(stringResource(R.string.ww_info_siblings, view.siblings.joinToString { view.names[it] }))
     if (view.charmedSeats.isNotEmpty()) Text(stringResource(R.string.ww_info_charmed, view.charmedSeats.joinToString { view.names[it] }))
     if (view.converted) Text(stringResource(R.string.ww_info_converted))
@@ -761,7 +790,7 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                 }
             }
             if (!view.thiefForced) {
-                OutlinedButton(onClick = { online.act(WerewolfActionKind.THIEF, -1) }, modifier = Modifier.fillMaxWidth()) {
+                WwOutlinedButton(onClick = { online.act(WerewolfActionKind.THIEF, -1) }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.ww_thief_keep))
                 }
             }
@@ -775,13 +804,13 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
             Text(stringResource(R.string.ww_prompt_infect), fontWeight = FontWeight.Bold)
             if (view.witchVictim >= 0) Text(stringResource(R.string.ww_infect_victim, view.names[view.witchVictim]))
             Button(onClick = { online.act(WerewolfActionKind.INFECT, 1) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_infect_yes)) }
-            OutlinedButton(onClick = { online.act(WerewolfActionKind.INFECT, 0) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_infect_no)) }
+            WwOutlinedButton(onClick = { online.act(WerewolfActionKind.INFECT, 0) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_infect_no)) }
         }
         WerewolfPrompt.MAID -> {
             Text(stringResource(R.string.ww_prompt_maid), fontWeight = FontWeight.Bold)
             if (view.maidTarget >= 0) Text(stringResource(R.string.ww_maid_victim, view.names[view.maidTarget]))
             Button(onClick = { online.act(WerewolfActionKind.MAID, 1) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_maid_yes)) }
-            OutlinedButton(onClick = { online.act(WerewolfActionKind.MAID, 0) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_maid_no)) }
+            WwOutlinedButton(onClick = { online.act(WerewolfActionKind.MAID, 0) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.ww_maid_no)) }
         }
         WerewolfPrompt.SPIRIT -> {
             Text(stringResource(R.string.ww_prompt_spirit), fontWeight = FontWeight.Bold)
@@ -802,7 +831,7 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                     }
                 }
             }
-            OutlinedButton(onClick = { online.act(WerewolfActionKind.COMEDIAN, -1) }, modifier = Modifier.fillMaxWidth()) {
+            WwOutlinedButton(onClick = { online.act(WerewolfActionKind.COMEDIAN, -1) }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.ww_skip_power))
             }
         }
@@ -813,7 +842,7 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                     if (view.witchVictim >= 0) stringResource(R.string.ww_witch_victim, view.names[view.witchVictim])
                     else stringResource(R.string.ww_witch_nobody)
                 )
-                OutlinedButton(onClick = { heal = !heal }, enabled = view.healLeft && view.witchVictim >= 0) {
+                WwOutlinedButton(onClick = { heal = !heal }, enabled = view.healLeft && view.witchVictim >= 0) {
                     Text((if (heal) "✔ " else "") + stringResource(R.string.ww_witch_heal))
                 }
                 Text(stringResource(if (view.poisonLeft) R.string.ww_witch_poison_hint else R.string.ww_witch_no_poison))
@@ -825,7 +854,7 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                 if (title != null && texts != null) {
                     Text(stringResource(R.string.ww_spirit_card, stringResource(title)), style = MaterialTheme.typography.titleSmall)
                     texts.forEachIndexed { index, text ->
-                        OutlinedButton(onClick = { question = index }, modifier = Modifier.fillMaxWidth()) {
+                        WwOutlinedButton(onClick = { question = index }, modifier = Modifier.fillMaxWidth()) {
                             Text((if (question == index) "✔ " else "") + stringResource(text))
                         }
                     }
@@ -886,14 +915,14 @@ private fun PlayerBody(view: WerewolfView, online: WerewolfOnline) {
                 else -> null
             }
             if (skipKind != null) {
-                OutlinedButton(onClick = { online.act(skipKind, -1, -1) }) {
+                WwOutlinedButton(onClick = { online.act(skipKind, -1, -1) }) {
                     Text(stringResource(if (prompt == WerewolfPrompt.RAVEN) R.string.ww_raven_nobody else R.string.ww_skip_power))
                 }
             }
         }
     }
     if (view.canJudge) {
-        OutlinedButton(onClick = { online.act(WerewolfActionKind.JUDGE) }) { Text(stringResource(R.string.ww_judge_button)) }
+        WwOutlinedButton(onClick = { online.act(WerewolfActionKind.JUDGE) }) { Text(stringResource(R.string.ww_judge_button)) }
     }
     if ((view.step == WerewolfStep.VOTE || view.step == WerewolfStep.ELECT) && view.voters > 0) {
         Text(stringResource(R.string.ww_vote_progress, view.voted, view.voters), style = MaterialTheme.typography.labelLarge)

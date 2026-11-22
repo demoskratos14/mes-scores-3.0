@@ -519,14 +519,16 @@ internal class WerewolfRound(
         else -> -1
     }
 
-    /** Les joueurs qui jouent le rôle [role] cette nuit : ceux qui ont la carte, et le Comédien s'il l'a empruntée. */
-    private fun actors(role: WerewolfRole): List<Int> {
-        val seats = (0 until size).filter { roleList[it] == role }.toMutableList()
-        if (borrowed == role) {
-            val comedian = seatOf(WerewolfRole.COMEDIAN)
-            if (comedian >= 0 && comedian !in seats) seats.add(comedian)
-        }
-        return seats
+    /**
+     * Les joueurs qui jouent le rôle [role] cette nuit : ceux qui ont la carte. Le Comédien n'en fait pas partie même s'il a emprunté
+     * ce pouvoir : il l'utilise tout de suite, pendant sa propre étape (voir [borrowedStep]), sans que le narrateur l'annonce.
+     */
+    private fun actors(role: WerewolfRole): List<Int> = (0 until size).filter { roleList[it] == role }
+
+    /** L'étape de nuit du pouvoir que le Comédien a emprunté cette nuit (null : il n'a rien emprunté). */
+    private fun borrowedStep(): WerewolfStep? {
+        val role = borrowed ?: return null
+        return NIGHT_ORDER.firstOrNull { it.nightRole() == role }
     }
 
     /** Les places qui ont droit de voter : les vivants, sauf un Idiot gracié. */
@@ -593,7 +595,8 @@ internal class WerewolfRound(
     private fun stepCondition(step: WerewolfStep): Boolean = when (step) {
         WerewolfStep.SISTERS, WerewolfStep.BROTHERS, WerewolfStep.WOLVES -> false
         WerewolfStep.CUPID -> lover1 < 0
-        WerewolfStep.COMEDIAN -> comedianLeft.isNotEmpty()
+        // Le Comédien reste attendu tant qu'il n'a pas fini d'utiliser le pouvoir qu'il vient d'emprunter.
+        WerewolfStep.COMEDIAN -> comedianLeft.isNotEmpty() || borrowed != null
         WerewolfStep.FOX -> !foxLost
         WerewolfStep.INFECT -> !infectUsed && victim >= 0 && !victimInfected && !isWolf(victim)
         WerewolfStep.BIG_BAD -> !wolfDied && victim2 < 0 && candidates(WerewolfActionKind.BIG_BAD, -1).isNotEmpty()
@@ -726,8 +729,8 @@ internal class WerewolfRound(
             val candidate = NIGHT_ORDER[i]
             val role = candidate.nightRole() ?: continue
             if (candidate in FIRST_NIGHT_ONLY && night > 1) continue
-            // Une carte qui n'est pas dans le jeu n'est pas appelée (sauf si le Comédien l'a empruntée).
-            if (!roleList.contains(role) && borrowed != role) continue
+            // Une carte qui n'est pas dans le jeu n'est pas appelée (le pouvoir emprunté par le Comédien est joué pendant son étape).
+            if (!roleList.contains(role)) continue
             setStep(candidate)
             return
         }
@@ -1004,7 +1007,8 @@ internal class WerewolfRound(
 
     // ---------- Actions des joueurs ----------
 
-    private fun inStep(seat: Int, wanted: WerewolfStep): Boolean = step == wanted && seat in expected()
+    private fun inStep(seat: Int, wanted: WerewolfStep): Boolean =
+        seat in expected() && (step == wanted || (step == WerewolfStep.COMEDIAN && borrowedStep() == wanted))
 
     private fun done(seat: Int) {
         acted.add(step to seat)
@@ -1173,13 +1177,22 @@ internal class WerewolfRound(
             }
             WerewolfActionKind.COMEDIAN -> {
                 val role = WerewolfRole.entries.getOrNull(a)
-                val ok = inStep(seat, WerewolfStep.COMEDIAN) && (a < 0 || (role != null && role in comedianLeft))
+                val ok = inStep(seat, WerewolfStep.COMEDIAN) && borrowed == null && (a < 0 || (role != null && role in comedianLeft))
                 if (ok) {
                     if (role != null && a >= 0) {
                         borrowed = role
                         comedianLeft.remove(role)
+                        // Il utilise le pouvoir tout de suite : l'étape continue avec l'action de cette carte (voir promptFor).
+                        val power = borrowedStep()
+                        if (power == null || !stepCondition(power)) {
+                            done(seat)
+                        } else {
+                            if (power == WerewolfStep.GYPSY && gypsyCard < 0 && spiritLeft.isNotEmpty()) gypsyCard = spiritLeft.random(random)
+                            bump(seat)
+                        }
+                    } else {
+                        done(seat)
                     }
-                    done(seat)
                 }
                 ok
             }
@@ -1382,7 +1395,15 @@ internal class WerewolfRound(
             WerewolfStep.CUPID -> WerewolfPrompt.LOVERS
             WerewolfStep.DOG_WOLF -> WerewolfPrompt.CAMP
             WerewolfStep.WILD_CHILD -> WerewolfPrompt.MODEL
-            WerewolfStep.COMEDIAN -> WerewolfPrompt.COMEDIAN
+            WerewolfStep.COMEDIAN -> when (borrowedStep()) {
+                null -> WerewolfPrompt.COMEDIAN
+                WerewolfStep.SAVIOR -> WerewolfPrompt.PROTECT
+                WerewolfStep.SEER -> WerewolfPrompt.SEE
+                WerewolfStep.FOX -> WerewolfPrompt.FOX
+                WerewolfStep.GYPSY -> WerewolfPrompt.GYPSY
+                WerewolfStep.RAVEN -> WerewolfPrompt.RAVEN
+                else -> WerewolfPrompt.NONE
+            }
             WerewolfStep.SAVIOR -> WerewolfPrompt.PROTECT
             WerewolfStep.SEER -> WerewolfPrompt.SEE
             WerewolfStep.FOX -> WerewolfPrompt.FOX
