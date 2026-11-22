@@ -912,4 +912,36 @@ class WerewolfRoundTest {
         }
         assertTrue(r.night >= 2 || r.step == WerewolfStep.GAME_OVER)
     }
+
+    @Test
+    fun leComedienJoueLePouvoirEmprunteToutDeSuite() {
+        val roles = listOf(
+            WerewolfRole.COMEDIAN, WerewolfRole.SEER, WerewolfRole.WEREWOLF, WerewolfRole.VILLAGER, WerewolfRole.VILLAGER
+        )
+        // Une graine où la Voyante fait partie des trois pouvoirs posés devant le Comédien.
+        val seed = (0..300).first { WerewolfRole.SEER.ordinal in WerewolfRound(names(5), Random(it), roles).viewFor(0).comedianLeft }
+        val r = WerewolfRound(names(5), Random(seed), roles)
+        r.startNight()
+        r.skipTo(WerewolfStep.COMEDIAN)
+        assertEquals(listOf(0), r.expected())
+        assertEquals(WerewolfPrompt.COMEDIAN, r.viewFor(0).prompt)
+
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.COMEDIAN, WerewolfRole.SEER.ordinal)))
+        // Il joue la Voyante tout de suite, pendant sa propre étape.
+        assertEquals(WerewolfStep.COMEDIAN, r.step)
+        assertEquals(listOf(0), r.expected())
+        assertEquals(WerewolfPrompt.SEE, r.viewFor(0).prompt)
+        // Il ne peut pas rejouer le choix de pouvoir, ni un autre pouvoir.
+        assertFalse(r.perform(0, WerewolfAction(WerewolfActionKind.COMEDIAN, WerewolfRole.SEER.ordinal)))
+        assertFalse(r.perform(0, WerewolfAction(WerewolfActionKind.PROTECT, 2)))
+        assertTrue(r.perform(0, WerewolfAction(WerewolfActionKind.SEE, 2)))
+        assertTrue(r.isComplete())
+        assertEquals(listOf(WerewolfRole.WEREWOLF.ordinal), r.viewFor(0).seerFound.filterIndexed { i, _ -> i % 2 == 1 })
+
+        // À l'étape de la vraie Voyante, seule elle est attendue : le Comédien dort.
+        r.advance()
+        assertEquals(WerewolfStep.SEER, r.step)
+        assertEquals(listOf(1), r.expected())
+        assertEquals(WerewolfPrompt.NONE, r.viewFor(0).prompt)
+    }
 }
