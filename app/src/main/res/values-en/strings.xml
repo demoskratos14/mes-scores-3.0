@@ -3083,7 +3083,7 @@
     <string name="ww_quit_message">If you leave, you are eliminated from the current game (if the organizer leaves, the game stops for everyone).</string>
     <string name="ww_host_intro">Your phone will be the narrator’s voice and you will play like everyone else. The other players join the room with their own phones.</string>
     <string name="ww_players_count">Players at the table: %1$d (maximum %2$d)</string>
-    <string name="ww_need_players">At least %1$d players are needed, including you.</string>
+    <string name="ww_need_players">Players needed, including you: at least %1$d.</string>
     <string name="ww_start">Start the game</string>
     <string name="ww_guest_lobby">You are at the table. The narrator will start the game when everyone is here.</string>
     <string name="ww_card_hint">Tap your card to see or hide it. Show it to nobody!</string>
@@ -3166,7 +3166,7 @@
     <string name="ww_config_title">Cards in the game</string>
     <string name="ww_config_wolves">Werewolves: %1$d</string>
     <string name="ww_config_villagers">Plain villagers: %1$d</string>
-    <string name="ww_config_too_many">Too many cards for %1$d players: remove some or take out a werewolf.</string>
+    <string name="ww_config_too_many">Too many cards for this table (players: %1$d): remove some or take out a werewolf.</string>
     <string name="ww_config_reset">Automatic setting</string>
     <string name="ww_test_title">Test game</string>
     <string name="ww_test_hint">On your own, run one night and one day with simulated players to check that everything works: the voice, the vibrations, the choices and the vote.</string>

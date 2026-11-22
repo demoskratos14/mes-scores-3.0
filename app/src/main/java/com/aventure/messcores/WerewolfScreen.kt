@@ -46,6 +46,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -197,7 +199,7 @@ private fun CardsSetup(online: WerewolfOnline) {
 /** La partie test : seul, on déroule une nuit et un jour avec des joueurs simulés, pour vérifier que tout se passe bien. */
 @Composable
 private fun TestCard(online: WerewolfOnline, botNames: List<String>) {
-    val context = LocalContext.current
+    val resources = LocalResources.current
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.ww_test_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -212,7 +214,7 @@ private fun TestCard(online: WerewolfOnline, botNames: List<String>) {
             OutlinedButton(
                 onClick = {
                     online.startFullTest { place, role ->
-                        context.getString(R.string.ww_test_all_name, place + 1, context.getString(role.nameRes))
+                        resources.getString(R.string.ww_test_all_name, place + 1, resources.getString(role.nameRes))
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -491,8 +493,9 @@ private fun lingerMs(step: WerewolfStep): Long = when (step) {
 private fun NarratorControls(online: WerewolfOnline) {
     val round = online.round ?: return
     val context = LocalContext.current
-    val locale = remember { context.resources.configuration.locales[0] }
-    val voice = remember { WerewolfVoice(context, locale) }
+    val resources = LocalResources.current
+    val locale = LocalConfiguration.current.locales[0]
+    val voice = remember(locale) { WerewolfVoice(context, locale) }
     DisposableEffect(voice) { onDispose { voice.shutdown() } }
     var line by remember { mutableStateOf("") }
     var skip by remember { mutableIntStateOf(0) }
@@ -560,7 +563,7 @@ private fun NarratorControls(online: WerewolfOnline) {
         }
         if (step == WerewolfStep.HEIR && round.captain >= 0) {
             // Le nouveau Capitaine.
-            val text = context.getString(R.string.ww_say_captain, round.names[round.captain])
+            val text = resources.getString(R.string.ww_say_captain, round.names[round.captain])
             line = text
             voice.say(text)
         }
