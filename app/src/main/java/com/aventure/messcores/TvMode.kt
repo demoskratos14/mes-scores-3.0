@@ -5,10 +5,14 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.res.Configuration
 import android.content.pm.ActivityInfo
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -17,10 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.view.WindowCompat
@@ -36,7 +43,9 @@ import androidx.core.view.WindowInsetsControllerCompat
  *  1. lire le réglage avec [TvMode.load] (avec l'identifiant du jeu) et le garder dans un état ;
  *  2. appeler [TvModeEffect] tant que le mode est actif ;
  *  3. afficher un [TvModeToggle] sur l'écran d'accueil du jeu, qui enregistre le choix avec [TvMode.save] ;
- *  4. dans la partie, remplacer la mise en page par une version plein écran, sans boutons tactiles.
+ *  4. dans la partie, remplacer la mise en page par une version plein écran, sans boutons tactiles : une bande de score
+ *     [TvHud] à la place de l'en-tête, le terrain qui prend tout le reste, et un rappel [TvStartHint] / [TvResumeHint] ;
+ *  5. ajouter l'identifiant du jeu à `TV_GAME_IDS` (TvHomeScreen.kt) pour l'accueil de l'appli pour télé.
  */
 internal object TvMode {
     private const val PREFS = "tv_mode"
@@ -61,17 +70,18 @@ internal object TvMode {
 }
 
 /**
- * Tant que cet élément est affiché : l'écran est forcé en paysage et les barres du système (état, navigation) sont
- * cachées ; elles reviennent d'un balayage depuis le bord. L'orientation et les barres sont rendues à la sortie.
+ * Tant que cet élément est affiché : l'écran est forcé en paysage (sauf avec [forceLandscape] à faux, pour un jeu qui s'y
+ * met déjà tout seul) et les barres du système (état, navigation) sont cachées ; elles reviennent d'un balayage depuis le
+ * bord. L'orientation et les barres sont rendues à la sortie.
  */
 @Composable
-internal fun TvModeEffect() {
+internal fun TvModeEffect(forceLandscape: Boolean = true) {
     val context = LocalContext.current
     val view = LocalView.current
-    DisposableEffect(context, view) {
+    DisposableEffect(context, view, forceLandscape) {
         val activity = findTvActivity(context)
-        val previous = activity?.requestedOrientation
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        val previous = if (forceLandscape) activity?.requestedOrientation else null
+        if (forceLandscape) activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         val controller = activity?.window?.let { WindowCompat.getInsetsController(it, view) }
         controller?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         controller?.hide(WindowInsetsCompat.Type.systemBars())
@@ -113,4 +123,65 @@ private fun findTvActivity(context: Context): Activity? {
         current = current.baseContext
     }
     return null
+}
+
+/** Hauteur (en dp) de la bande de score des jeux en mode TV : le terrain prend tout le reste de l'écran. */
+internal const val TV_HUD_DP = 36
+
+/** Le fond des jeux en mode TV, derrière le terrain : presque noir, comme une borne d'arcade. */
+internal val TvBackground = Color(0xFF0B0F14)
+
+/**
+ * La bande de score d'un jeu en mode TV : [primary] en gras (le score), puis [secondary] et éventuellement [tertiary]
+ * (vies, niveau…), et à droite le rappel que Start met en pause.
+ */
+@Composable
+internal fun TvHud(primary: String, secondary: String, tertiary: String? = null) {
+    val dim = Color.White.copy(alpha = 0.8f)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(TV_HUD_DP.dp)
+            .background(Color.Black.copy(alpha = 0.55f))
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = primary,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(text = secondary, style = MaterialTheme.typography.bodyMedium, color = dim)
+        if (tertiary != null) {
+            Text(text = tertiary, style = MaterialTheme.typography.bodyMedium, color = dim)
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Text(text = stringResource(R.string.tv_pause_hint), style = MaterialTheme.typography.bodyMedium, color = dim)
+    }
+}
+
+/** Le rappel, en mode TV, que Start lance la partie (la manette n'a pas besoin de toucher l'écran). */
+@Composable
+internal fun TvStartHint() {
+    Text(
+        text = stringResource(R.string.tv_start_hint),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = highlightContent(),
+        textAlign = TextAlign.Center
+    )
+}
+
+/** Le rappel, en mode TV, que Start reprend la partie : à mettre sous le titre de l'écran de pause (fond sombre). */
+@Composable
+internal fun TvResumeHint() {
+    Text(
+        text = stringResource(R.string.tv_resume_hint),
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.White,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
 }

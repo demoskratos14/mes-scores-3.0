@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -145,6 +146,13 @@ private val ShmupGameSaver = listSaver<ShmupGame, Int>(
 internal fun ShmupScreen(players: List<String>) {
     val name = players.firstOrNull().orEmpty().ifEmpty { "1" }
     val context = LocalContext.current
+    // Le mode TV (voir [TvMode]) : jouer à la manette sur une télé, plein écran, sans commandes tactiles.
+    var tvMode by remember { mutableStateOf(TvMode.load(context, SHMUP_ID)) }
+    if (tvMode) TvModeEffect()
+    fun changeTvMode(enabled: Boolean) {
+        tvMode = enabled
+        TvMode.save(context, SHMUP_ID, enabled)
+    }
     val game = rememberSaveable(saver = ShmupGameSaver) { ShmupGame() }
     var phase by rememberSaveable { mutableIntStateOf(SHMUP_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
@@ -183,10 +191,11 @@ internal fun ShmupScreen(players: List<String>) {
     // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            showPad -> ShmupCard { GamepadSettings(SHMUP_ID, SHMUP_PAD_ACTIONS) { showPad = false } }
+            showPad -> ShmupCard(tvMode) { GamepadSettings(SHMUP_ID, SHMUP_PAD_ACTIONS) { showPad = false } }
             else -> when (phase) {
             SHMUP_PHASE_PLAYING -> ShmupPlayfield(
                 game = game,
+                tv = tvMode,
                 paused = paused,
                 onPausedChange = { paused = it },
                 onOver = {
@@ -194,7 +203,7 @@ internal fun ShmupScreen(players: List<String>) {
                     phase = SHMUP_PHASE_OVER
                 }
             )
-            SHMUP_PHASE_OVER -> ShmupCard {
+            SHMUP_PHASE_OVER -> ShmupCard(tvMode) {
                 Text(
                     text = stringResource(R.string.shmup_over_title),
                     style = MaterialTheme.typography.titleLarge,
@@ -218,29 +227,35 @@ internal fun ShmupScreen(players: List<String>) {
                     textAlign = TextAlign.Center
                 )
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.shmup_play_again))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
             }
-            else -> ShmupCard {
+            else -> ShmupCard(tvMode) {
                 Text(
                     text = stringResource(R.string.shmup_ready_title, name),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Text(
-                    text = stringResource(R.string.shmup_ready_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                if (!tvMode) {
+                    Text(
+                        text = stringResource(R.string.shmup_ready_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.shmup_go))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
@@ -251,18 +266,22 @@ internal fun ShmupScreen(players: List<String>) {
     }
 }
 
-/** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. */
+/** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. En mode [tv], la carte reste étroite, au centre de l'écran large. */
 @Composable
-private fun ShmupCard(content: @Composable ColumnScope.() -> Unit) {
+private fun ShmupCard(tv: Boolean, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = cardSurface()),
+            modifier = if (tv) Modifier.widthIn(max = 560.dp).fillMaxWidth() else Modifier.fillMaxWidth()
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -294,6 +313,7 @@ private fun ShmupCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun ShmupPlayfield(
     game: ShmupGame,
+    tv: Boolean,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
     onOver: () -> Unit
@@ -381,10 +401,23 @@ private fun ShmupPlayfield(
     val fieldDescription = stringResource(R.string.shmup_field)
 
     Column(
-        modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = if (tv) {
+            Modifier.fillMaxSize().background(TvBackground)
+        } else {
+            Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp)
+        },
+        verticalArrangement = Arrangement.spacedBy(if (tv) 0.dp else 8.dp)
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        // En mode TV : une bande de score fine, le terrain plein écran et pas de commandes tactiles (la manette suffit).
+        if (tv) TvHud(
+            primary = stringResource(R.string.shmup_score, score),
+            secondary = stringResource(R.string.shmup_stats, lives, level),
+            tertiary = if (satellites > 0) {
+                stringResource(R.string.shmup_weapon_sat, weapon, satellites, satWeapon)
+            } else {
+                stringResource(R.string.shmup_weapon, weapon)
+            }
+        ) else Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -481,6 +514,7 @@ private fun ShmupPlayfield(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(8.dp)
                         )
+                        if (tv) TvResumeHint()
                         Button(onClick = { onPausedChange(false) }) {
                             Text(stringResource(R.string.shmup_resume))
                         }

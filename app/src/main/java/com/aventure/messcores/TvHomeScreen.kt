@@ -43,12 +43,16 @@ import androidx.compose.ui.unit.dp
 /**
  * Les jeux de l'appli pour télé (variante « tv »), dans l'ordre d'affichage : ceux dont l'écran sait se jouer en mode
  * TV (voir [TvMode]), plein écran et à la manette. Un jeu qui est prêt s'ajoute ici ; il doit avoir sa route dans
- * [OWN_SCREEN_ROUTES].
+ * [OWN_SCREEN_ROUTES]. Rythme n'y est pas : il demande de choisir un fichier de musique avec le sélecteur de documents
+ * d'Android, qui n'existe pas sur une télé.
  */
-internal val TV_GAME_IDS = listOf(SNAKE_ID)
+internal val TV_GAME_IDS = listOf(
+    SNAKE_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID,
+    XONIX_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID
+)
 
 /** Nombre de vignettes par ligne sur l'accueil TV. */
-private const val TV_COLUMNS = 4
+private const val TV_COLUMNS = 6
 
 /**
  * L'accueil de l'appli pour télé : une grille de grosses vignettes de jeux, qui se parcourt à la croix de la manette ou de
@@ -66,8 +70,8 @@ internal fun TvHomeScreen(games: List<GameRules>, onGameChosen: (GameRules) -> U
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.5f))
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 48.dp, vertical = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .padding(horizontal = 40.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = stringResource(R.string.tv_home_title),
@@ -83,7 +87,7 @@ internal fun TvHomeScreen(games: List<GameRules>, onGameChosen: (GameRules) -> U
             // IntrinsicSize.Min : toutes les vignettes d'une ligne ont la hauteur de la plus haute (nom sur deux lignes).
             Row(
                 modifier = Modifier.height(IntrinsicSize.Min),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 rowGames.forEachIndexed { index, game ->
                     TvGameTile(
@@ -134,14 +138,14 @@ private fun TvGameTile(
             .onFocusChanged { focused = it.isFocused }
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
             .clickable(onClick = onClick)
-            .padding(24.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        GameIcon(game.id, size = 96.dp)
+        GameIcon(game.id, size = 72.dp)
         Text(
             text = game.name,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
             color = if (focused) colors.onPrimaryContainer else colors.onSurface
         )

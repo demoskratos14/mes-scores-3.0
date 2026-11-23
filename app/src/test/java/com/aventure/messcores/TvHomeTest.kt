@@ -33,6 +33,12 @@ class TvHomeTest {
     }
 
     @Test
+    fun rythmeNEstPasSurLaTele() {
+        // Rythme demande de choisir un fichier de musique avec le sélecteur de documents d'Android, absent des télés.
+        assertFalse(RHYTHM_ID in TV_GAME_IDS)
+    }
+
+    @Test
     fun lAppliTelephoneNEstPasEnModeTvParDefaut() {
         // Les tests tournent dans la variante téléphone : le mode TV n'y est ni forcé ni allumé sur un téléphone.
         assertFalse(BuildConfig.IS_TV)

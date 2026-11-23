@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -138,6 +139,13 @@ private val BreakoutGameSaver = listSaver<BreakoutGame, Int>(
 internal fun BreakoutScreen(players: List<String>) {
     val name = players.firstOrNull().orEmpty().ifEmpty { "1" }
     val context = LocalContext.current
+    // Le mode TV (voir [TvMode]) : jouer à la manette sur une télé, plein écran, sans commandes tactiles.
+    var tvMode by remember { mutableStateOf(TvMode.load(context, BREAKOUT_ID)) }
+    if (tvMode) TvModeEffect()
+    fun changeTvMode(enabled: Boolean) {
+        tvMode = enabled
+        TvMode.save(context, BREAKOUT_ID, enabled)
+    }
     val game = rememberSaveable(saver = BreakoutGameSaver) { BreakoutGame() }
     var phase by rememberSaveable { mutableIntStateOf(BREAKOUT_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
@@ -176,10 +184,11 @@ internal fun BreakoutScreen(players: List<String>) {
     // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            showPad -> BreakoutCard { GamepadSettings(BREAKOUT_ID, BREAKOUT_PAD_ACTIONS) { showPad = false } }
+            showPad -> BreakoutCard(tvMode) { GamepadSettings(BREAKOUT_ID, BREAKOUT_PAD_ACTIONS) { showPad = false } }
             else -> when (phase) {
             BREAKOUT_PHASE_PLAYING -> BreakoutPlayfield(
                 game = game,
+                tv = tvMode,
                 paused = paused,
                 onPausedChange = { paused = it },
                 onOver = {
@@ -187,7 +196,7 @@ internal fun BreakoutScreen(players: List<String>) {
                     phase = BREAKOUT_PHASE_OVER
                 }
             )
-            BREAKOUT_PHASE_OVER -> BreakoutCard {
+            BREAKOUT_PHASE_OVER -> BreakoutCard(tvMode) {
                 Text(
                     text = stringResource(R.string.breakout_over_title),
                     style = MaterialTheme.typography.titleLarge,
@@ -211,29 +220,35 @@ internal fun BreakoutScreen(players: List<String>) {
                     textAlign = TextAlign.Center
                 )
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.breakout_play_again))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
             }
-            else -> BreakoutCard {
+            else -> BreakoutCard(tvMode) {
                 Text(
                     text = stringResource(R.string.breakout_ready_title, name),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Text(
-                    text = stringResource(R.string.breakout_ready_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                if (!tvMode) {
+                    Text(
+                        text = stringResource(R.string.breakout_ready_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.breakout_go))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
@@ -244,18 +259,22 @@ internal fun BreakoutScreen(players: List<String>) {
     }
 }
 
-/** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. */
+/** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. En mode [tv], la carte reste étroite, au centre de l'écran large. */
 @Composable
-private fun BreakoutCard(content: @Composable ColumnScope.() -> Unit) {
+private fun BreakoutCard(tv: Boolean, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = cardSurface()),
+            modifier = if (tv) Modifier.widthIn(max = 560.dp).fillMaxWidth() else Modifier.fillMaxWidth()
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -287,6 +306,7 @@ private fun BreakoutCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun BreakoutPlayfield(
     game: BreakoutGame,
+    tv: Boolean,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
     onOver: () -> Unit
@@ -355,10 +375,18 @@ private fun BreakoutPlayfield(
 
     // La marge de la barre de navigation (boutons ou geste) garde le terrain hors de ses touches.
     Column(
-        modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = if (tv) {
+            Modifier.fillMaxSize().background(TvBackground)
+        } else {
+            Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp)
+        },
+        verticalArrangement = Arrangement.spacedBy(if (tv) 0.dp else 8.dp)
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        // En mode TV : une bande de score fine, le terrain plein écran et pas de commandes tactiles (la manette suffit).
+        if (tv) TvHud(
+            primary = stringResource(R.string.breakout_score, score),
+            secondary = stringResource(R.string.breakout_stats, lives, level)
+        ) else Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -428,7 +456,7 @@ private fun BreakoutPlayfield(
                 Canvas(modifier = Modifier.fillMaxSize()) { drawBreakoutField(game, revision) }
                 if (waiting && !paused) {
                     Text(
-                        text = stringResource(R.string.breakout_tap_to_launch),
+                        text = stringResource(if (tv) R.string.tv_launch_hint else R.string.breakout_tap_to_launch),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -455,6 +483,7 @@ private fun BreakoutPlayfield(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(8.dp)
                         )
+                        if (tv) TvResumeHint()
                         Button(onClick = { onPausedChange(false) }) {
                             Text(stringResource(R.string.breakout_resume))
                         }

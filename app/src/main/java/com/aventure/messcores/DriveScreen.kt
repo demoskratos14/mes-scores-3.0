@@ -182,6 +182,14 @@ private fun heldDirection(pressed: Int): Int = when {
 internal fun DriveScreen(players: List<String>) {
     val name = players.firstOrNull().orEmpty().ifEmpty { "1" }
     val context = LocalContext.current
+    // Le mode TV (voir [TvMode]) : jouer à la manette sur une télé, avec seulement l'écran du jeu, sur tout l'écran.
+    var tvMode by remember { mutableStateOf(TvMode.load(context, DRIVE_ID)) }
+    // Le jeu se met déjà en paysage tout seul : le mode TV n'ajoute que les barres du système cachées.
+    if (tvMode) TvModeEffect(forceLandscape = false)
+    fun changeTvMode(enabled: Boolean) {
+        tvMode = enabled
+        TvMode.save(context, DRIVE_ID, enabled)
+    }
     val game = rememberSaveable(saver = DriveGameSaver) { DriveGame() }
     var phase by rememberSaveable { mutableIntStateOf(DRIVE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
@@ -335,133 +343,157 @@ internal fun DriveScreen(players: List<String>) {
         true
     }
 
+    // Les messages (réglage de la manette, pause, fin de partie, accueil) : sur l'écran à cristaux liquides de la
+    // console, ou sur tout l'écran en mode TV.
+    val messages: @Composable (Modifier) -> Unit = { boxModifier ->
+        if (showPad || phase != DRIVE_PHASE_PLAYING || paused) {
+            Box(modifier = boxModifier) {
+                when {
+                    showPad -> DriveInfoCard { GamepadSettings(DRIVE_ID, DRIVE_PAD_ACTIONS) { showPad = false } }
+                    phase == DRIVE_PHASE_PLAYING -> Column(
+                        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.drive_paused_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                        if (tvMode) TvResumeHint()
+                        Button(onClick = { paused = false }) {
+                            Text(stringResource(R.string.drive_resume))
+                        }
+                    }
+                    phase == DRIVE_PHASE_OVER -> DriveInfoCard {
+                        Text(
+                            text = stringResource(R.string.drive_over_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = FontStyle.Italic,
+                            color = Color(0xFFE2001A),
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(R.string.drive_over_summary, deliveries, orders, points),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(R.string.drive_score, points),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = highlightContent(),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(highlightContainer())
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                        )
+                        SoloRecordLine(record)
+                        Text(
+                            text = stringResource(R.string.drive_replay_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
+                        OutlinedButton(onClick = { showPad = true }) {
+                            Text(stringResource(R.string.gamepad_title))
+                        }
+                    }
+                    else -> DriveInfoCard {
+                        Text(
+                            text = stringResource(R.string.drive_ready_title, name),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(R.string.drive_ready_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        SoloRecordLine(record)
+                        TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
+                        OutlinedButton(onClick = { showPad = true }) {
+                            Text(stringResource(R.string.gamepad_title))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // La console remplit tout l'écran (hors zones système), sur fond noir, en gardant ses proportions.
-        BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
-            val ratio = CONSOLE_W / CONSOLE_H
-            val consoleWidth = minOf(maxWidth, maxHeight * ratio)
-            // Une unité du dessin de la console, en dp.
-            val unit = consoleWidth / CONSOLE_W
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(consoleWidth, consoleWidth / ratio)
-            ) {
-                // La console et le décor de l'écran ne changent jamais : ils se dessinent une fois.
-                Canvas(modifier = Modifier.fillMaxSize()) { drawDriveConsole(labels, measurer) }
-                // Ce qui bouge : la scène sur l'écran et les boutons enfoncés.
-                Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = screenDescription }) {
-                    drawDriveLiveConsole(game, revision, pressed, sprites, labels, measurer)
+        if (tvMode) {
+            // Mode TV : seul l'écran du jeu (16:9, comme une télé), sans la console ni ses boutons, sur tout l'écran.
+            BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                val sceneRatio = Drive.WIDTH / Drive.HEIGHT
+                val sceneWidth = minOf(maxWidth, maxHeight * sceneRatio)
+                Box(modifier = Modifier.align(Alignment.Center).size(sceneWidth, sceneWidth / sceneRatio)) {
+                    // Le décor ne change jamais : il se dessine une fois ; ce qui bouge se dessine par-dessus.
+                    Canvas(modifier = Modifier.fillMaxSize()) { drawDriveTvScene(labels, measurer) }
+                    Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = screenDescription }) {
+                        drawDriveTvLive(game, revision, sprites, labels, measurer)
+                    }
+                    messages(Modifier.fillMaxSize())
                 }
+            }
+        } else {
+            // La console remplit tout l'écran (hors zones système), sur fond noir, en gardant ses proportions.
+            BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
+                val ratio = CONSOLE_W / CONSOLE_H
+                val consoleWidth = minOf(maxWidth, maxHeight * ratio)
+                // Une unité du dessin de la console, en dp.
+                val unit = consoleWidth / CONSOLE_W
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(consoleWidth, consoleWidth / ratio)
+                ) {
+                    // La console et le décor de l'écran ne changent jamais : ils se dessinent une fois.
+                    Canvas(modifier = Modifier.fillMaxSize()) { drawDriveConsole(labels, measurer) }
+                    // Ce qui bouge : la scène sur l'écran et les boutons enfoncés.
+                    Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = screenDescription }) {
+                        drawDriveLiveConsole(game, revision, pressed, sprites, labels, measurer)
+                    }
 
-                // Le titre sur le cadre de l'écran et l'inscription de la croix.
-                DriveLabel(R.string.game_drive, unit, LCD_X, 28f, LCD_W, 26f, Color.White, bold = true, italic = true)
-                DriveLabel(R.string.drive_label_pad, unit, UP_X - 60f, 683f, 120f, 13f, Color(0xFF14161A).copy(alpha = 0.7f), bold = true)
+                    // Le titre sur le cadre de l'écran et l'inscription de la croix.
+                    DriveLabel(R.string.game_drive, unit, LCD_X, 28f, LCD_W, 26f, Color.White, bold = true, italic = true)
+                    DriveLabel(R.string.drive_label_pad, unit, UP_X - 60f, 683f, 120f, 13f, Color(0xFF14161A).copy(alpha = 0.7f), bold = true)
 
-                // La croix et les deux boutons : ils réagissent dès que le doigt se pose.
-                DriveZone(stringResource(R.string.drive_button_up), UP_ZONE, unit) { down ->
-                    press(PRESS_UP, down)
-                    if (down) key(DRIVE_UP)
-                }
-                DriveZone(stringResource(R.string.drive_dir_left), LEFT_ZONE, unit) { down ->
-                    press(PRESS_LEFT, down)
-                    if (down) key(DRIVE_LEFT)
-                }
-                DriveZone(stringResource(R.string.drive_dir_right), RIGHT_ZONE, unit) { down ->
-                    press(PRESS_RIGHT, down)
-                    if (down) key(DRIVE_RIGHT)
-                }
-                DriveZone(stringResource(R.string.drive_button_a), A_ZONE, unit) { down ->
-                    press(PRESS_A, down)
-                    if (down) key(DRIVE_A)
-                }
-                DriveZone(stringResource(R.string.drive_button_b), B_ZONE, unit) { down ->
-                    press(PRESS_B, down)
-                    if (down) key(DRIVE_B)
-                }
+                    // La croix et les deux boutons : ils réagissent dès que le doigt se pose.
+                    DriveZone(stringResource(R.string.drive_button_up), UP_ZONE, unit) { down ->
+                        press(PRESS_UP, down)
+                        if (down) key(DRIVE_UP)
+                    }
+                    DriveZone(stringResource(R.string.drive_dir_left), LEFT_ZONE, unit) { down ->
+                        press(PRESS_LEFT, down)
+                        if (down) key(DRIVE_LEFT)
+                    }
+                    DriveZone(stringResource(R.string.drive_dir_right), RIGHT_ZONE, unit) { down ->
+                        press(PRESS_RIGHT, down)
+                        if (down) key(DRIVE_RIGHT)
+                    }
+                    DriveZone(stringResource(R.string.drive_button_a), A_ZONE, unit) { down ->
+                        press(PRESS_A, down)
+                        if (down) key(DRIVE_A)
+                    }
+                    DriveZone(stringResource(R.string.drive_button_b), B_ZONE, unit) { down ->
+                        press(PRESS_B, down)
+                        if (down) key(DRIVE_B)
+                    }
 
-                // Les messages se posent sur l'écran à cristaux liquides, pas sur le reste de la console.
-                if (showPad || phase != DRIVE_PHASE_PLAYING || paused) {
-                    Box(
-                        modifier = Modifier
+                    messages(
+                        Modifier
                             .align(Alignment.TopStart)
                             .offset(unit * LCD_X, unit * LCD_Y)
                             .size(unit * LCD_W, unit * LCD_H)
-                    ) {
-                        when {
-                            showPad -> DriveInfoCard { GamepadSettings(DRIVE_ID, DRIVE_PAD_ACTIONS) { showPad = false } }
-                            phase == DRIVE_PHASE_PLAYING -> Column(
-                                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.drive_paused_title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(8.dp)
-                                )
-                                Button(onClick = { paused = false }) {
-                                    Text(stringResource(R.string.drive_resume))
-                                }
-                            }
-                            phase == DRIVE_PHASE_OVER -> DriveInfoCard {
-                                Text(
-                                    text = stringResource(R.string.drive_over_title),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    fontStyle = FontStyle.Italic,
-                                    color = Color(0xFFE2001A),
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = stringResource(R.string.drive_over_summary, deliveries, orders, points),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = stringResource(R.string.drive_score, points),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = highlightContent(),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(highlightContainer())
-                                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                                )
-                                SoloRecordLine(record)
-                                Text(
-                                    text = stringResource(R.string.drive_replay_hint),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
-                                OutlinedButton(onClick = { showPad = true }) {
-                                    Text(stringResource(R.string.gamepad_title))
-                                }
-                            }
-                            else -> DriveInfoCard {
-                                Text(
-                                    text = stringResource(R.string.drive_ready_title, name),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = stringResource(R.string.drive_ready_hint),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
-                                SoloRecordLine(record)
-                                OutlinedButton(onClick = { showPad = true }) {
-                                    Text(stringResource(R.string.gamepad_title))
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
@@ -717,4 +749,30 @@ private fun findDriveLifecycleOwner(context: Context): LifecycleOwner? {
         current = current.baseContext
     }
     return null
+}
+
+/** Le décor de l'écran seul, sans la console : le mode TV (voir [TvMode]) l'agrandit sur tout l'écran. */
+private fun DrawScope.drawDriveTvScene(labels: DriveLabels, measurer: TextMeasurer) {
+    val k = size.width / Drive.WIDTH
+    clipRect(0f, 0f, size.width, size.height) {
+        withTransform({ scale(k, k, pivot = Offset.Zero) }) {
+            drawDriveScene(labels, measurer)
+        }
+    }
+}
+
+/** Ce qui bouge sur l'écran, sans la console ni ses boutons (voir [drawDriveTvScene]). */
+private fun DrawScope.drawDriveTvLive(
+    game: DriveGame,
+    @Suppress("UNUSED_PARAMETER") revision: Int,
+    sprites: DriveSprites,
+    labels: DriveLabels,
+    measurer: TextMeasurer
+) {
+    val k = size.width / Drive.WIDTH
+    clipRect(0f, 0f, size.width, size.height) {
+        withTransform({ scale(k, k, pivot = Offset.Zero) }) {
+            drawDriveLive(game, sprites, labels, measurer)
+        }
+    }
 }

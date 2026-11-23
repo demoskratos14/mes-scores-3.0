@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Les textes du mode TV partagés par les jeux (voir TvMode). -->
+<resources>
+    <string name="tv_start_hint">Appuie sur Start pour jouer.</string>
+    <string name="tv_pause_hint">Start : pause</string>
+    <string name="tv_resume_hint">Appuie sur Start pour reprendre.</string>
+    <string name="tv_launch_hint">Appuie sur un bouton pour lancer la balle.</string>
+    <string name="tv_pancake_ready_hint">Appuie sur A pour commencer, ou sur B pour partir directement au niveau supérieur. Start met en pause.</string>
+    <string name="tv_pancake_replay_hint">A pour rejouer, B pour rejouer au niveau supérieur.</string>
+</resources>

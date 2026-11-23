@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -156,6 +157,13 @@ private fun MineLevel.labelRes(): Int = when (this) {
 internal fun MinesweeperScreen(players: List<String>) {
     val name = players.firstOrNull().orEmpty().ifEmpty { "1" }
     val context = LocalContext.current
+    // Le mode TV (voir [TvMode]) : jouer à la manette sur une télé, plein écran, sans commandes tactiles.
+    var tvMode by remember { mutableStateOf(TvMode.load(context, MINESWEEPER_ID)) }
+    if (tvMode) TvModeEffect()
+    fun changeTvMode(enabled: Boolean) {
+        tvMode = enabled
+        TvMode.save(context, MINESWEEPER_ID, enabled)
+    }
     var levelIndex by rememberSaveable { mutableIntStateOf(0) }
     val level = MineLevel.entries[levelIndex.coerceIn(0, MineLevel.entries.size - 1)]
     val game = rememberSaveable(levelIndex, saver = MinesweeperGameSaver) { MinesweeperGame(level) }
@@ -215,6 +223,7 @@ internal fun MinesweeperScreen(players: List<String>) {
             key(round) {
                 MinesweeperPlayfield(
                     game = game,
+                    tv = tvMode,
                     paused = paused,
                     onPausedChange = { paused = it },
                     flagMode = flagMode,
@@ -226,20 +235,22 @@ internal fun MinesweeperScreen(players: List<String>) {
                 )
             }
         } else if (showPad) {
-            MinesweeperCard { GamepadSettings(MINESWEEPER_ID, MINE_PAD_ACTIONS) { showPad = false } }
+            MinesweeperCard(tvMode) { GamepadSettings(MINESWEEPER_ID, MINE_PAD_ACTIONS) { showPad = false } }
         } else {
-            MinesweeperCard {
+            MinesweeperCard(tvMode) {
                 Text(
                     text = stringResource(R.string.minesweeper_ready_title, name),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Text(
-                    text = stringResource(R.string.minesweeper_ready_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                if (!tvMode) {
+                    Text(
+                        text = stringResource(R.string.minesweeper_ready_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 Column(modifier = Modifier.fillMaxWidth().selectableGroup()) {
                     MineLevel.entries.forEach { option ->
                         Row(
@@ -269,9 +280,11 @@ internal fun MinesweeperScreen(players: List<String>) {
                     }
                 }
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.minesweeper_go))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
@@ -283,16 +296,20 @@ internal fun MinesweeperScreen(players: List<String>) {
 
 /** La carte de départ : le titre du jeu, ses règles, puis [content]. */
 @Composable
-private fun MinesweeperCard(content: @Composable ColumnScope.() -> Unit) {
+private fun MinesweeperCard(tv: Boolean, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = cardSurface()),
+            modifier = if (tv) Modifier.widthIn(max = 560.dp).fillMaxWidth() else Modifier.fillMaxWidth()
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -324,6 +341,7 @@ private fun MinesweeperCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun MinesweeperPlayfield(
     game: MinesweeperGame,
+    tv: Boolean,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
     flagMode: Boolean,
@@ -440,10 +458,18 @@ private fun MinesweeperPlayfield(
     val finished = gameState == MinesweeperGame.WON || gameState == MinesweeperGame.LOST
 
     Column(
-        modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = if (tv) {
+            Modifier.fillMaxSize().background(TvBackground)
+        } else {
+            Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp)
+        },
+        verticalArrangement = Arrangement.spacedBy(if (tv) 0.dp else 8.dp)
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        // En mode TV : une bande de score fine, le terrain plein écran et pas de commandes tactiles (la manette suffit).
+        if (tv) TvHud(
+            primary = stringResource(R.string.minesweeper_mines_left, minesLeft),
+            secondary = stringResource(R.string.minesweeper_time, seconds)
+        ) else Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -494,6 +520,7 @@ private fun MinesweeperPlayfield(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(8.dp)
                         )
+                        if (tv) TvResumeHint()
                         Button(onClick = { onPausedChange(false) }) {
                             Text(stringResource(R.string.minesweeper_resume))
                         }
@@ -514,7 +541,7 @@ private fun MinesweeperPlayfield(
 
         if (finished) {
             MinesweeperResult(game = game, won = gameState == MinesweeperGame.WON, record = record, onReplay = onReplay, onChangeLevel = onChangeLevel)
-        } else {
+        } else if (!tv) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ModeButton(stringResource(R.string.minesweeper_mode_reveal), selected = !flagMode, modifier = Modifier.weight(1f)) {
                     onFlagModeChange(false)

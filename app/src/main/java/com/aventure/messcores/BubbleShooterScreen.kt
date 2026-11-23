@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -249,6 +250,13 @@ private val BubbleGameSaver = listSaver<BubbleGame, Int>(
 internal fun BubbleShooterScreen(players: List<String>) {
     val name = players.firstOrNull().orEmpty().ifEmpty { "1" }
     val context = LocalContext.current
+    // Le mode TV (voir [TvMode]) : jouer à la manette sur une télé, plein écran, sans commandes tactiles.
+    var tvMode by remember { mutableStateOf(TvMode.load(context, BUBBLE_ID)) }
+    if (tvMode) TvModeEffect()
+    fun changeTvMode(enabled: Boolean) {
+        tvMode = enabled
+        TvMode.save(context, BUBBLE_ID, enabled)
+    }
     val game = rememberSaveable(saver = BubbleGameSaver) { BubbleGame() }
     var phase by rememberSaveable { mutableIntStateOf(BUBBLE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
@@ -306,10 +314,11 @@ internal fun BubbleShooterScreen(players: List<String>) {
 
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            showPad -> BubbleCard { GamepadSettings(BUBBLE_ID, BUBBLE_PAD_ACTIONS) { showPad = false } }
+            showPad -> BubbleCard(tvMode) { GamepadSettings(BUBBLE_ID, BUBBLE_PAD_ACTIONS) { showPad = false } }
             else -> when (phase) {
             BUBBLE_PHASE_PLAYING -> BubblePlayfield(
                 game = game,
+                tv = tvMode,
                 guide = guide,
                 paused = paused,
                 onPausedChange = { paused = it },
@@ -319,7 +328,7 @@ internal fun BubbleShooterScreen(players: List<String>) {
                     phase = BUBBLE_PHASE_OVER
                 }
             )
-            BUBBLE_PHASE_OVER -> BubbleCard {
+            BUBBLE_PHASE_OVER -> BubbleCard(tvMode) {
                 Text(
                     text = stringResource(R.string.bubble_over_title),
                     style = MaterialTheme.typography.titleLarge,
@@ -343,28 +352,32 @@ internal fun BubbleShooterScreen(players: List<String>) {
                     textAlign = TextAlign.Center
                 )
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.bubble_play_again))
                 }
                 OutlinedButton(onClick = { phase = BUBBLE_PHASE_READY }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.bubble_change_mode))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
             }
-            else -> BubbleCard {
+            else -> BubbleCard(tvMode) {
                 Text(
                     text = stringResource(R.string.bubble_ready_title, name),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Text(
-                    text = stringResource(R.string.bubble_ready_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                if (!tvMode) {
+                    Text(
+                        text = stringResource(R.string.bubble_ready_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 BubbleSetup(
                     modeIndex = modeIndex,
                     guide = guide,
@@ -378,9 +391,11 @@ internal fun BubbleShooterScreen(players: List<String>) {
                     }
                 )
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.bubble_go))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
@@ -458,16 +473,20 @@ private fun BubbleChoiceRow(labels: List<String>, selected: Int, onSelect: (Int)
 
 /** La carte des étapes hors partie : le titre du jeu, ses règles, puis [content]. */
 @Composable
-private fun BubbleCard(content: @Composable ColumnScope.() -> Unit) {
+private fun BubbleCard(tv: Boolean, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = cardSurface()),
+            modifier = if (tv) Modifier.widthIn(max = 560.dp).fillMaxWidth() else Modifier.fillMaxWidth()
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -499,6 +518,7 @@ private fun BubbleCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun BubblePlayfield(
     game: BubbleGame,
+    tv: Boolean,
     guide: Int,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
@@ -696,10 +716,23 @@ private fun BubblePlayfield(
 
     // La marge de la barre de navigation (boutons ou geste) garde les commandes du bas hors de ses touches.
     Column(
-        modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = if (tv) {
+            Modifier.fillMaxSize().background(TvBackground)
+        } else {
+            Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp)
+        },
+        verticalArrangement = Arrangement.spacedBy(if (tv) 0.dp else 8.dp)
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        // En mode TV : une bande de score fine, le terrain plein écran et pas de commandes tactiles (la manette suffit).
+        if (tv) TvHud(
+            primary = stringResource(R.string.bubble_score, score),
+            secondary = if (game.mode == BubbleMode.ZEN) {
+                stringResource(R.string.bubble_stats_zen, level)
+            } else {
+                stringResource(R.string.bubble_stats, level, untilDrop)
+            },
+            tertiary = stringResource(R.string.bubble_swap_count, swaps)
+        ) else Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -794,6 +827,7 @@ private fun BubblePlayfield(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(8.dp)
                         )
+                        if (tv) TvResumeHint()
                         Button(onClick = { onPausedChange(false) }) {
                             Text(stringResource(R.string.bubble_resume))
                         }
@@ -803,7 +837,7 @@ private fun BubblePlayfield(
         }
 
         // Les commandes : tourner la visée (en maintenant pour continuer), échanger les bulles, tirer.
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (!tv) Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             BubbleKey(
                 description = stringResource(R.string.bubble_left),
                 modifier = Modifier.weight(1f),

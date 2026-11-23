@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -123,6 +124,13 @@ private val TetrisGameSaver = listSaver<TetrisGame, Int>(
 internal fun TetrisScreen(players: List<String>) {
     val name = players.firstOrNull().orEmpty().ifEmpty { "1" }
     val context = LocalContext.current
+    // Le mode TV (voir [TvMode]) : jouer à la manette sur une télé, plein écran, sans commandes tactiles.
+    var tvMode by remember { mutableStateOf(TvMode.load(context, TETRIS_ID)) }
+    if (tvMode) TvModeEffect()
+    fun changeTvMode(enabled: Boolean) {
+        tvMode = enabled
+        TvMode.save(context, TETRIS_ID, enabled)
+    }
     val game = rememberSaveable(saver = TetrisGameSaver) { TetrisGame() }
     var phase by rememberSaveable { mutableIntStateOf(TETRIS_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
@@ -161,10 +169,11 @@ internal fun TetrisScreen(players: List<String>) {
     // Pluie de paillettes par-dessus l'écran quand un nouveau record est battu.
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            showPad -> TetrisCard { GamepadSettings(TETRIS_ID, TETRIS_PAD_ACTIONS) { showPad = false } }
+            showPad -> TetrisCard(tvMode) { GamepadSettings(TETRIS_ID, TETRIS_PAD_ACTIONS) { showPad = false } }
             else -> when (phase) {
             TETRIS_PHASE_PLAYING -> TetrisPlayfield(
                 game = game,
+                tv = tvMode,
                 paused = paused,
                 onPausedChange = { paused = it },
                 onOver = {
@@ -172,7 +181,7 @@ internal fun TetrisScreen(players: List<String>) {
                     phase = TETRIS_PHASE_OVER
                 }
             )
-            TETRIS_PHASE_OVER -> TetrisCard {
+            TETRIS_PHASE_OVER -> TetrisCard(tvMode) {
                 Text(
                     text = stringResource(R.string.tetris_over_title),
                     style = MaterialTheme.typography.titleLarge,
@@ -196,29 +205,35 @@ internal fun TetrisScreen(players: List<String>) {
                     textAlign = TextAlign.Center
                 )
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.tetris_play_again))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
             }
-            else -> TetrisCard {
+            else -> TetrisCard(tvMode) {
                 Text(
                     text = stringResource(R.string.tetris_ready_title, name),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Text(
-                    text = stringResource(R.string.tetris_ready_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                if (!tvMode) {
+                    Text(
+                        text = stringResource(R.string.tetris_ready_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 SoloRecordLine(record)
+                if (tvMode) TvStartHint()
                 Button(onClick = { startGame() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.tetris_go))
                 }
+                TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                 OutlinedButton(onClick = { showPad = true }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.gamepad_title))
                 }
@@ -229,18 +244,22 @@ internal fun TetrisScreen(players: List<String>) {
     }
 }
 
-/** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. */
+/** Le plateau des cartes de la séance : le titre du jeu, ses règles, puis [content]. En mode [tv], la carte reste étroite, au centre de l'écran large. */
 @Composable
-private fun TetrisCard(content: @Composable ColumnScope.() -> Unit) {
+private fun TetrisCard(tv: Boolean, content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = cardSurface()),
+            modifier = if (tv) Modifier.widthIn(max = 560.dp).fillMaxWidth() else Modifier.fillMaxWidth()
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -273,6 +292,7 @@ private fun TetrisCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun TetrisPlayfield(
     game: TetrisGame,
+    tv: Boolean,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
     onOver: () -> Unit
@@ -333,10 +353,18 @@ private fun TetrisPlayfield(
 
     // La marge de la barre de navigation (boutons ou geste) garde les commandes du bas hors de ses touches.
     Column(
-        modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = if (tv) {
+            Modifier.fillMaxSize().background(TvBackground)
+        } else {
+            Modifier.fillMaxSize().navigationBarsPadding().padding(12.dp)
+        },
+        verticalArrangement = Arrangement.spacedBy(if (tv) 0.dp else 8.dp)
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
+        // En mode TV : une bande de score fine, le terrain plein écran et pas de commandes tactiles (la manette suffit).
+        if (tv) TvHud(
+            primary = stringResource(R.string.tetris_score, score),
+            secondary = stringResource(R.string.tetris_stats, lines, level)
+        ) else Card(colors = CardDefaults.cardColors(containerColor = cardSurface()), modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -391,6 +419,7 @@ private fun TetrisPlayfield(
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(8.dp)
                             )
+                            if (tv) TvResumeHint()
                             Button(onClick = { onPausedChange(false) }) {
                                 Text(stringResource(R.string.tetris_resume))
                             }
@@ -418,7 +447,7 @@ private fun TetrisPlayfield(
             }
         }
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (!tv) Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TetrisKey(stringResource(R.string.tetris_left), TetrisGlyph.LEFT, Modifier.weight(1f), repeating = true) { act { moveLeft() } }
             TetrisKey(stringResource(R.string.tetris_right), TetrisGlyph.RIGHT, Modifier.weight(1f), repeating = true) { act { moveRight() } }
             TetrisKey(stringResource(R.string.tetris_soft_drop), TetrisGlyph.DOWN, Modifier.weight(1f), repeating = true) { act { softDrop() } }

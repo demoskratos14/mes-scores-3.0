@@ -199,6 +199,14 @@ private class PancakeShapes {
 internal fun PancakeScreen(players: List<String>) {
     val name = players.firstOrNull().orEmpty().ifEmpty { "1" }
     val context = LocalContext.current
+    // Le mode TV (voir [TvMode]) : jouer à la manette sur une télé, avec seulement l'écran du jeu, sur tout l'écran.
+    var tvMode by remember { mutableStateOf(TvMode.load(context, PANCAKE_ID)) }
+    // Le jeu se met déjà en paysage tout seul : le mode TV n'ajoute que les barres du système cachées.
+    if (tvMode) TvModeEffect(forceLandscape = false)
+    fun changeTvMode(enabled: Boolean) {
+        tvMode = enabled
+        TvMode.save(context, PANCAKE_ID, enabled)
+    }
     val game = rememberSaveable(saver = PancakeGameSaver) { PancakeGame() }
     var phase by rememberSaveable { mutableIntStateOf(PANCAKE_PHASE_READY) }
     var paused by rememberSaveable { mutableStateOf(false) }
@@ -316,140 +324,162 @@ internal fun PancakeScreen(players: List<String>) {
         true
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // La console remplit tout l'écran (hors zones système), sur fond noir, en gardant ses proportions.
-        BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
-            val ratio = CONSOLE_W / CONSOLE_H
-            val consoleWidth = minOf(maxWidth, maxHeight * ratio)
-            // Une unité du dessin de la console, en dp.
-            val unit = consoleWidth / CONSOLE_W
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(consoleWidth, consoleWidth / ratio)
-            ) {
-                Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = screenDescription }) {
-                    drawPancakeConsole(game, revision, shapes, background, console, pressed)
+    // Les messages (réglage de la manette, pause, fin de partie, accueil) : sur l'écran à cristaux liquides de la
+    // console, ou sur tout l'écran en mode TV.
+    val messages: @Composable (Modifier) -> Unit = { boxModifier ->
+        if (showPad || phase != PANCAKE_PHASE_PLAYING || paused) {
+            Box(modifier = boxModifier) {
+                when {
+                    showPad -> PancakeInfoCard { GamepadSettings(PANCAKE_ID, PANCAKE_PAD_ACTIONS) { showPad = false } }
+                    phase == PANCAKE_PHASE_PLAYING -> Column(
+                        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.pancake_paused_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                        if (tvMode) TvResumeHint()
+                        Button(onClick = { paused = false }) {
+                            Text(stringResource(R.string.pancake_resume))
+                        }
+                    }
+                    phase == PANCAKE_PHASE_OVER -> PancakeInfoCard {
+                        Text(
+                            text = stringResource(R.string.pancake_over_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(R.string.pancake_score, score),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = highlightContent(),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(highlightContainer())
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                        )
+                        SoloRecordLine(record)
+                        Text(
+                            text = stringResource(if (tvMode) R.string.tv_pancake_replay_hint else R.string.pancake_replay_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
+                        OutlinedButton(onClick = { showPad = true }) {
+                            Text(stringResource(R.string.gamepad_title))
+                        }
+                    }
+                    else -> PancakeInfoCard {
+                        Text(
+                            text = stringResource(R.string.pancake_ready_title, name),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = stringResource(if (tvMode) R.string.tv_pancake_ready_hint else R.string.pancake_ready_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        SoloRecordLine(record)
+                        TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
+                        OutlinedButton(onClick = { showPad = true }) {
+                            Text(stringResource(R.string.gamepad_title))
+                        }
+                    }
                 }
-                // Les deux côtés de la console : un appui déplace le serveur dès que le doigt se pose.
-                PancakeZone(
-                    description = stringResource(R.string.pancake_left),
-                    modifier = Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(TOUCH_ZONE),
-                    onPress = { down ->
-                        press(PRESS_LEFT, down)
-                        if (down) move(toLeft = true)
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (tvMode) {
+            // Mode TV : seul l'écran du jeu, sans la console ni ses boutons, sur tout l'écran (sur fond noir).
+            BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                val screenRatio = PancakeArt.WIDTH / PancakeArt.HEIGHT
+                val screenWidth = minOf(maxWidth, maxHeight * screenRatio)
+                Box(modifier = Modifier.align(Alignment.Center).size(screenWidth, screenWidth / screenRatio)) {
+                    Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = screenDescription }) {
+                        drawPancakeTvScreen(game, revision, shapes, background)
                     }
-                )
-                PancakeZone(
-                    description = stringResource(R.string.pancake_right),
-                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().fillMaxWidth(TOUCH_ZONE),
-                    onPress = { down ->
-                        press(PRESS_RIGHT, down)
-                        if (down) move(toLeft = false)
+                    messages(Modifier.fillMaxSize())
+                }
+            }
+        } else {
+            // La console remplit tout l'écran (hors zones système), sur fond noir, en gardant ses proportions.
+            BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding()) {
+                val ratio = CONSOLE_W / CONSOLE_H
+                val consoleWidth = minOf(maxWidth, maxHeight * ratio)
+                // Une unité du dessin de la console, en dp.
+                val unit = consoleWidth / CONSOLE_W
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(consoleWidth, consoleWidth / ratio)
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize().semantics { contentDescription = screenDescription }) {
+                        drawPancakeConsole(game, revision, shapes, background, console, pressed)
                     }
-                )
-                // Les trois boutons du bas : GAME A et GAME B lancent une partie, TIME la met en pause ou la reprend.
-                PancakeButtonZone(
-                    description = stringResource(R.string.pancake_button_a),
-                    centerX = BUTTON_A_X,
-                    unit = unit,
-                    onPress = { down ->
-                        press(PRESS_A, down)
-                        if (down && phase != PANCAKE_PHASE_PLAYING) startGame(hard = false)
-                    }
-                )
-                PancakeButtonZone(
-                    description = stringResource(R.string.pancake_button_b),
-                    centerX = BUTTON_B_X,
-                    unit = unit,
-                    onPress = { down ->
-                        press(PRESS_B, down)
-                        if (down && phase != PANCAKE_PHASE_PLAYING) startGame(hard = true)
-                    }
-                )
-                PancakeButtonZone(
-                    description = stringResource(R.string.pancake_button_time),
-                    centerX = BUTTON_TIME_X,
-                    unit = unit,
-                    onPress = { down ->
-                        press(PRESS_TIME, down)
-                        if (down && phase == PANCAKE_PHASE_PLAYING) paused = !paused
-                    }
-                )
-                // Les messages se posent sur l'écran à cristaux liquides, pas sur le reste de la console.
-                if (showPad || phase != PANCAKE_PHASE_PLAYING || paused) {
-                    Box(
-                        modifier = Modifier
+                    // Les deux côtés de la console : un appui déplace le serveur dès que le doigt se pose.
+                    PancakeZone(
+                        description = stringResource(R.string.pancake_left),
+                        modifier = Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(TOUCH_ZONE),
+                        onPress = { down ->
+                            press(PRESS_LEFT, down)
+                            if (down) move(toLeft = true)
+                        }
+                    )
+                    PancakeZone(
+                        description = stringResource(R.string.pancake_right),
+                        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().fillMaxWidth(TOUCH_ZONE),
+                        onPress = { down ->
+                            press(PRESS_RIGHT, down)
+                            if (down) move(toLeft = false)
+                        }
+                    )
+                    // Les trois boutons du bas : GAME A et GAME B lancent une partie, TIME la met en pause ou la reprend.
+                    PancakeButtonZone(
+                        description = stringResource(R.string.pancake_button_a),
+                        centerX = BUTTON_A_X,
+                        unit = unit,
+                        onPress = { down ->
+                            press(PRESS_A, down)
+                            if (down && phase != PANCAKE_PHASE_PLAYING) startGame(hard = false)
+                        }
+                    )
+                    PancakeButtonZone(
+                        description = stringResource(R.string.pancake_button_b),
+                        centerX = BUTTON_B_X,
+                        unit = unit,
+                        onPress = { down ->
+                            press(PRESS_B, down)
+                            if (down && phase != PANCAKE_PHASE_PLAYING) startGame(hard = true)
+                        }
+                    )
+                    PancakeButtonZone(
+                        description = stringResource(R.string.pancake_button_time),
+                        centerX = BUTTON_TIME_X,
+                        unit = unit,
+                        onPress = { down ->
+                            press(PRESS_TIME, down)
+                            if (down && phase == PANCAKE_PHASE_PLAYING) paused = !paused
+                        }
+                    )
+                    messages(
+                        Modifier
                             .align(Alignment.TopStart)
                             .offset(unit * SCREEN_X, unit * SCREEN_Y)
                             .size(unit * PancakeArt.WIDTH, unit * PancakeArt.HEIGHT)
-                    ) {
-                        when {
-                            showPad -> PancakeInfoCard { GamepadSettings(PANCAKE_ID, PANCAKE_PAD_ACTIONS) { showPad = false } }
-                            phase == PANCAKE_PHASE_PLAYING -> Column(
-                                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.pancake_paused_title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(8.dp)
-                                )
-                                Button(onClick = { paused = false }) {
-                                    Text(stringResource(R.string.pancake_resume))
-                                }
-                            }
-                            phase == PANCAKE_PHASE_OVER -> PancakeInfoCard {
-                                Text(
-                                    text = stringResource(R.string.pancake_over_title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = stringResource(R.string.pancake_score, score),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = highlightContent(),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(highlightContainer())
-                                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                                )
-                                SoloRecordLine(record)
-                                Text(
-                                    text = stringResource(R.string.pancake_replay_hint),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
-                                OutlinedButton(onClick = { showPad = true }) {
-                                    Text(stringResource(R.string.gamepad_title))
-                                }
-                            }
-                            else -> PancakeInfoCard {
-                                Text(
-                                    text = stringResource(R.string.pancake_ready_title, name),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = stringResource(R.string.pancake_ready_hint),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
-                                SoloRecordLine(record)
-                                OutlinedButton(onClick = { showPad = true }) {
-                                    Text(stringResource(R.string.gamepad_title))
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
@@ -659,4 +689,19 @@ private fun findPancakeLifecycleOwner(context: Context): LifecycleOwner? {
         current = current.baseContext
     }
     return null
+}
+
+/** L'écran de la console seul, sans la console ni ses boutons : le mode TV (voir [TvMode]) l'agrandit sur tout l'écran. */
+private fun DrawScope.drawPancakeTvScreen(
+    game: PancakeGame,
+    @Suppress("UNUSED_PARAMETER") revision: Int,
+    shapes: PancakeShapes,
+    background: ImageBitmap
+) {
+    val k = size.width / PancakeArt.WIDTH
+    clipRect(0f, 0f, size.width, size.height) {
+        withTransform({ scale(k, k, pivot = Offset.Zero) }) {
+            drawPancakeScreen(game, shapes, background)
+        }
+    }
 }

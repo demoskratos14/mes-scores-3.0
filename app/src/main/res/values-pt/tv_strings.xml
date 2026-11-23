@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Les textes du mode TV partagés par les jeux (voir TvMode). -->
+<resources>
+    <string name="tv_start_hint">Carrega em Start para jogar.</string>
+    <string name="tv_pause_hint">Start: pausa</string>
+    <string name="tv_resume_hint">Carrega em Start para retomar.</string>
+    <string name="tv_launch_hint">Carrega num botão para lançar a bola.</string>
+    <string name="tv_pancake_ready_hint">Carrega em A para começar, ou em B para ir diretamente para o nível superior. Start põe em pausa.</string>
+    <string name="tv_pancake_replay_hint">A para jogar de novo, B para jogar de novo no nível superior.</string>
+</resources>
