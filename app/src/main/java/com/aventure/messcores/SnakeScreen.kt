@@ -344,6 +344,7 @@ private fun SnakeTvStartHint() {
         color = highlightContent(),
         textAlign = TextAlign.Center
     )
+    TvBackHint()
 }
 
 /** La bande de score du mode TV : score, souris mangées et longueur sur une seule ligne fine, et le rappel de la touche Start. */
@@ -550,9 +551,9 @@ private fun SnakePlayfield(
                                 text = stringResource(R.string.snake_tv_resume_hint),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                textAlign = TextAlign.Center
                             )
+                            TvBackHint(onDark = true)
                         }
                         Button(onClick = { onPausedChange(false) }) {
                             Text(stringResource(R.string.snake_resume))

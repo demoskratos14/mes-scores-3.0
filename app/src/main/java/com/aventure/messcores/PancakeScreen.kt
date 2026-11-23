@@ -373,6 +373,7 @@ internal fun PancakeScreen(players: List<String>) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
+                        if (tvMode) TvBackHint()
                         TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                         OutlinedButton(onClick = { showPad = true }) {
                             Text(stringResource(R.string.gamepad_title))
@@ -391,6 +392,7 @@ internal fun PancakeScreen(players: List<String>) {
                             textAlign = TextAlign.Center
                         )
                         SoloRecordLine(record)
+                        if (tvMode) TvBackHint()
                         TvModeToggle(checked = tvMode, onChange = { changeTvMode(it) })
                         OutlinedButton(onClick = { showPad = true }) {
                             Text(stringResource(R.string.gamepad_title))

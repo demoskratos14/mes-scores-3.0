@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.res.Configuration
 import android.content.pm.ActivityInfo
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -85,7 +86,12 @@ internal fun TvModeEffect(forceLandscape: Boolean = true) {
         val controller = activity?.window?.let { WindowCompat.getInsetsController(it, view) }
         controller?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         controller?.hide(WindowInsetsCompat.Type.systemBars())
+        // La touche Select (« − ») de la manette revient en arrière, comme le bouton Retour de la télécommande : on n'a ainsi
+        // plus besoin de la télécommande pour quitter un jeu (voir [GamepadHub]).
+        val goBack: () -> Unit = { (activity as? ComponentActivity)?.onBackPressedDispatcher?.onBackPressed() }
+        GamepadHub.registerBack(goBack)
         onDispose {
+            GamepadHub.unregisterBack(goBack)
             controller?.show(WindowInsetsCompat.Type.systemBars())
             if (previous != null) activity?.requestedOrientation = previous
         }
@@ -162,7 +168,7 @@ internal fun TvHud(primary: String, secondary: String, tertiary: String? = null)
     }
 }
 
-/** Le rappel, en mode TV, que Start lance la partie (la manette n'a pas besoin de toucher l'écran). */
+/** Le rappel, en mode TV, que Start lance la partie (la manette n'a pas besoin de toucher l'écran), et que Select revient en arrière. */
 @Composable
 internal fun TvStartHint() {
     Text(
@@ -172,16 +178,32 @@ internal fun TvStartHint() {
         color = highlightContent(),
         textAlign = TextAlign.Center
     )
+    TvBackHint()
 }
 
-/** Le rappel, en mode TV, que Start reprend la partie : à mettre sous le titre de l'écran de pause (fond sombre). */
+/**
+ * Le rappel, en mode TV, que Select (« − ») revient au choix des jeux. [onDark] : pour un écran à fond sombre (la pause),
+ * où le texte est blanc.
+ */
+@Composable
+internal fun TvBackHint(onDark: Boolean = false) {
+    Text(
+        text = stringResource(R.string.tv_back_hint),
+        style = MaterialTheme.typography.bodyMedium,
+        color = if (onDark) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(bottom = if (onDark) 8.dp else 0.dp)
+    )
+}
+
+/** Le rappel, en mode TV, que Start reprend la partie et que Select revient en arrière : à mettre sous le titre de l'écran de pause (fond sombre). */
 @Composable
 internal fun TvResumeHint() {
     Text(
         text = stringResource(R.string.tv_resume_hint),
         style = MaterialTheme.typography.bodyMedium,
         color = Color.White,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(bottom = 8.dp)
+        textAlign = TextAlign.Center
     )
+    TvBackHint(onDark = true)
 }

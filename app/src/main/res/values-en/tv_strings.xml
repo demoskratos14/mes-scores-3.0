@@ -2,9 +2,12 @@
 <!-- Les textes du mode TV partagés par les jeux (voir TvMode). -->
 <resources>
     <string name="tv_start_hint">Press Start to play.</string>
-    <string name="tv_pause_hint">Start: pause</string>
+    <string name="tv_pause_hint">Start: pause · Select: back</string>
     <string name="tv_resume_hint">Press Start to resume.</string>
     <string name="tv_launch_hint">Press a button to launch the ball.</string>
     <string name="tv_pancake_ready_hint">Press A to begin, or B to jump straight to the higher level. Start pauses.</string>
     <string name="tv_pancake_replay_hint">A to play again, B to play again at the higher level.</string>
+    <string name="tv_back_hint">Select (−): back to the game list.</string>
+    <string name="gamepad_nintendo_swap">Nintendo controllers: swap A and B</string>
+    <string name="gamepad_nintendo_swap_hint">Android puts A at the bottom and B on the right, the opposite of Nintendo. When on, the app’s A and B buttons are the ones printed on the controller.</string>
 </resources>

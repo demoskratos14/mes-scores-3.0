@@ -2,9 +2,12 @@
 <!-- Les textes du mode TV partagés par les jeux (voir TvMode). -->
 <resources>
     <string name="tv_start_hint">Pulsa Start para jugar.</string>
-    <string name="tv_pause_hint">Start: pausa</string>
+    <string name="tv_pause_hint">Start: pausa · Select: volver</string>
     <string name="tv_resume_hint">Pulsa Start para reanudar.</string>
     <string name="tv_launch_hint">Pulsa un botón para lanzar la bola.</string>
     <string name="tv_pancake_ready_hint">Pulsa A para empezar, o B para ir directamente al nivel superior. Start pone en pausa.</string>
     <string name="tv_pancake_replay_hint">A para jugar de nuevo, B para jugar de nuevo en el nivel superior.</string>
+    <string name="tv_back_hint">Select (−): volver a la lista de juegos.</string>
+    <string name="gamepad_nintendo_swap">Mandos de Nintendo: intercambiar A y B</string>
+    <string name="gamepad_nintendo_swap_hint">Android coloca A abajo y B a la derecha, al revés que Nintendo. Activado, los botones A y B de la app son los que están impresos en el mando.</string>
 </resources>

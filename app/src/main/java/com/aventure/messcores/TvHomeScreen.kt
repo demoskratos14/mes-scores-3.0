@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,9 +32,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
@@ -62,6 +62,9 @@ private const val TV_COLUMNS = 6
 @Composable
 internal fun TvHomeScreen(games: List<GameRules>, onGameChosen: (GameRules) -> Unit) {
     val firstTile = remember { FocusRequester() }
+    // Le réglage « A et B des manettes Nintendo » doit être lu avant le premier appui (voir [padKeyCode]).
+    val context = LocalContext.current
+    LaunchedEffect(context) { GamepadHub.attach(context) }
     // La manette doit pouvoir jouer sans toucher à rien : la première vignette a la sélection dès l'ouverture.
     LaunchedEffect(games) { runCatching { firstTile.requestFocus() } }
 
@@ -128,7 +131,9 @@ private fun TvGameTile(
             .border(if (focused) 4.dp else 1.dp, if (focused) colors.primary else colors.outlineVariant, shape)
             // Valider avec le bouton A ou Start de la manette ; la touche Entrée et le centre de la croix passent par clickable.
             .onKeyEvent { event ->
-                if (event.type == KeyEventType.KeyUp && (event.key == Key.ButtonA || event.key == Key.ButtonStart)) {
+                // Le bouton est celui qui est écrit sur la manette (A et B échangés sur une manette Nintendo).
+                val code = padKeyCode(event.nativeKeyEvent)
+                if (event.type == KeyEventType.KeyUp && (code == KeyEvent.KEYCODE_BUTTON_A || code == KeyEvent.KEYCODE_BUTTON_START)) {
                     onClick()
                     true
                 } else {

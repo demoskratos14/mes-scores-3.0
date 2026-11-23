@@ -2,9 +2,12 @@
 <!-- Les textes du mode TV partagés par les jeux (voir TvMode). -->
 <resources>
     <string name="tv_start_hint">Premi Start per giocare.</string>
-    <string name="tv_pause_hint">Start: pausa</string>
+    <string name="tv_pause_hint">Start: pausa · Select: indietro</string>
     <string name="tv_resume_hint">Premi Start per riprendere.</string>
     <string name="tv_launch_hint">Premi un tasto per lanciare la palla.</string>
     <string name="tv_pancake_ready_hint">Premi A per iniziare, o B per passare subito al livello superiore. Start mette in pausa.</string>
     <string name="tv_pancake_replay_hint">A per rigiocare, B per rigiocare al livello superiore.</string>
+    <string name="tv_back_hint">Select (−): torna alla scelta dei giochi.</string>
+    <string name="gamepad_nintendo_swap">Controller Nintendo: scambia A e B</string>
+    <string name="gamepad_nintendo_swap_hint">Android mette A in basso e B a destra, al contrario di Nintendo. Se attivo, i tasti A e B dell’app sono quelli scritti sul controller.</string>
 </resources>

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -86,6 +87,32 @@ internal fun PadAction.plusButtons(vararg buttons: Int): PadAction =
 internal fun padStart(id: String = "pause", @StringRes label: Int = R.string.snake_pad_pause): PadAction =
     padButtons(id, label, KeyEvent.KEYCODE_BUTTON_START)
 
+/** L'identifiant constructeur de Nintendo (manette Switch Pro, Joy-Con). */
+private const val NINTENDO_VENDOR_ID = 0x057e
+
+/** Vrai si [device] est une manette Nintendo (Switch Pro, Joy-Con). */
+internal fun isNintendoPad(device: InputDevice?): Boolean {
+    if (device == null) return false
+    if (device.vendorId == NINTENDO_VENDOR_ID) return true
+    val name = device.name ?: return false
+    return name.contains("Nintendo", ignoreCase = true) || name.contains("Joy-Con", ignoreCase = true) ||
+        name.contains("Pro Controller", ignoreCase = true)
+}
+
+/**
+ * Le code du bouton pressé, tel qu'il est écrit sur la manette. Android nomme A et B d'après une manette Xbox (A en bas,
+ * B à droite) alors que sur une manette Nintendo A est à droite et B en bas : sur celle-ci, on échange donc A et B pour que
+ * le « A » de l'appli soit le bouton marqué A (sauf si le réglage [GamepadHub.swapNintendo] est éteint).
+ */
+internal fun padKeyCode(event: KeyEvent): Int {
+    if (!GamepadHub.swapNintendo || !isNintendoPad(event.device)) return event.keyCode
+    return when (event.keyCode) {
+        KeyEvent.KEYCODE_BUTTON_A -> KeyEvent.KEYCODE_BUTTON_B
+        KeyEvent.KEYCODE_BUTTON_B -> KeyEvent.KEYCODE_BUTTON_A
+        else -> event.keyCode
+    }
+}
+
 /**
  * Reçoit les événements de manette de l'Activity ([MainActivity] les lui transmet) et les transforme en appuis
  * ([PadInput]) pour l'écran qui écoute : seul le dernier écouteur enregistré les reçoit (par exemple le réglage des
@@ -142,6 +169,37 @@ internal object GamepadHub {
     var lastSignal by mutableStateOf("")
         private set
 
+    /** Sur une manette Nintendo, A et B sont échangés (voir [padKeyCode]) : vrai par défaut, réglable dans les réglages de manette. */
+    var swapNintendo by mutableStateOf(true)
+        private set
+    private var swapLoaded = false
+    private const val OPTIONS_PREFS = "gamepad_options"
+    private const val SWAP_KEY = "swap_nintendo_ab"
+
+    /** Lit le réglage gardé d'une séance à l'autre (une seule fois) ; appelé dès qu'un écran écoute la manette. */
+    fun attach(context: Context) {
+        if (swapLoaded) return
+        swapLoaded = true
+        swapNintendo = context.applicationContext.getSharedPreferences(OPTIONS_PREFS, Context.MODE_PRIVATE).getBoolean(SWAP_KEY, true)
+    }
+
+    fun setSwapNintendo(context: Context, enabled: Boolean) {
+        swapLoaded = true
+        swapNintendo = enabled
+        context.applicationContext.getSharedPreferences(OPTIONS_PREFS, Context.MODE_PRIVATE).edit { putBoolean(SWAP_KEY, enabled) }
+    }
+
+    /** Les actions « Retour » lancées par la touche Select (« − ») quand le jeu ne s'en sert pas ; la dernière enregistrée est utilisée (voir [TvModeEffect]). */
+    private val backActions = mutableListOf<() -> Unit>()
+
+    fun registerBack(action: () -> Unit) {
+        backActions.add(action)
+    }
+
+    fun unregisterBack(action: () -> Unit) {
+        backActions.remove(action)
+    }
+
     fun register(listener: (PadInput) -> Boolean) {
         listeners.add(listener)
     }
@@ -173,9 +231,12 @@ internal object GamepadHub {
     /** Un bouton de manette ou une touche de la croix. Renvoie vrai si l'événement a été utilisé. */
     fun onKey(event: KeyEvent): Boolean {
         if (listeners.isEmpty()) return false
-        val code = event.keyCode
+        // Le signal affiché dans les réglages est celui que la manette envoie vraiment ; l'appli, elle, travaille avec le
+        // bouton tel qu'il est écrit sur la manette (A et B échangés sur une manette Nintendo).
+        val rawCode = event.keyCode
+        val code = padKeyCode(event)
         if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
-            lastSignal = "${KeyEvent.keyCodeToString(code)} ($code), scan ${event.scanCode}, source 0x${Integer.toHexString(event.source)}"
+            lastSignal = "${KeyEvent.keyCodeToString(rawCode)} ($rawCode), scan ${event.scanCode}, source 0x${Integer.toHexString(event.source)}"
         }
         // Un Joy-Con seul n'annonce pas toujours « manette » ni les mêmes touches : on accepte tout bouton venant d'une
         // source manette/joystick/croix (quel que soit son code), et les boutons ou touches de croix connus de toute source.
@@ -191,7 +252,16 @@ internal object GamepadHub {
         return when (event.action) {
             KeyEvent.ACTION_DOWN -> {
                 if (event.repeatCount > 0) return id in consumedKeys
-                val used = listeners.last()(input)
+                var used = listeners.last()(input)
+                // Select (« − ») fait « Retour » quand le jeu ne s'en sert pas : en pleine partie cela met en pause, en pause
+                // ou sur une carte cela quitte le jeu (comme le bouton Retour de la télécommande).
+                if (!used && code == KeyEvent.KEYCODE_BUTTON_SELECT) {
+                    val back = backActions.lastOrNull()
+                    if (back != null) {
+                        back()
+                        used = true
+                    }
+                }
                 if (used) consumedKeys.add(id)
                 used
             }
@@ -277,7 +347,9 @@ internal object GamepadHub {
 internal fun GamepadListener(onRelease: ((PadInput) -> Unit)? = null, onInput: (PadInput) -> Boolean) {
     val current by rememberUpdatedState(onInput)
     val currentRelease by rememberUpdatedState(onRelease)
+    val context = LocalContext.current
     DisposableEffect(Unit) {
+        GamepadHub.attach(context)
         val listener: (PadInput) -> Boolean = { current(it) }
         val releaseListener: (PadInput) -> Unit = { currentRelease?.invoke(it) }
         GamepadHub.register(listener)
@@ -448,6 +520,23 @@ internal fun GamepadSettings(gameId: String, actions: List<PadAction>, onClose: 
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
     )
+    // Une manette Nintendo place A à droite et B en bas, à l'inverse d'Android : on échange les deux pour que le A et le B de
+    // l'appli soient ceux qui sont écrits sur la manette. Ce réglage sert à toutes les manettes Nintendo, pour tous les jeux.
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(stringResource(R.string.gamepad_nintendo_swap), style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = stringResource(R.string.gamepad_nintendo_swap_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(checked = GamepadHub.swapNintendo, onCheckedChange = { GamepadHub.setSwapNintendo(context, it) })
+    }
     actions.forEach { action ->
         val custom = remember(refresh) { GamepadBindings.custom(context, gameId, action.id) }
         val current = if (custom != null) {
