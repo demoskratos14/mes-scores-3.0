@@ -3391,7 +3391,11 @@
     <string name="td_tower_slow_stats">Rallenta i mostri, portata: %1$s</string>
     <string name="td_tower_heal_stats">Potenzia le torri vicine del %1$d %%</string>
     <string name="td_build_hint">Tocca una casella libera per costruire una torre.</string>
-    <string name="td_cost">%1$d monete</string>
+    <plurals name="td_cost">
+        <item quantity="one">%1$d moneta</item>
+        <item quantity="many">%1$d di monete</item>
+        <item quantity="other">%1$d monete</item>
+    </plurals>
     <string name="td_upgrade">Potenzia (%1$d)</string>
     <string name="td_upgrade_max">Livello massimo</string>
     <string name="td_sell">Vendi (+%1$d)</string>

@@ -58,6 +58,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -70,7 +72,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -505,7 +506,7 @@ private fun TdBuildButton(kind: TdTowerKind, gold: Int, modifier: Modifier, onCl
                 maxLines = 2
             )
             Text(
-                text = stringResource(R.string.td_cost, kind.cost),
+                text = pluralStringResource(R.plurals.td_cost, kind.cost, kind.cost),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -516,7 +517,7 @@ private fun TdBuildButton(kind: TdTowerKind, gold: Int, modifier: Modifier, onCl
 /** L'info d'une tour choisie, avec ses boutons Améliorer et Vendre. */
 @Composable
 private fun TdTowerPanel(game: TdGame, tower: TdTower, gold: Int, onUpgrade: () -> Unit, onSell: () -> Unit) {
-    val range = String.format(Locale.getDefault(), "%.1f", TowerDefense.rangeOf(tower.kind, tower.level))
+    val range = String.format(LocalLocale.current.platformLocale, "%.1f", TowerDefense.rangeOf(tower.kind, tower.level))
     Text(
         text = stringResource(R.string.td_tower_title, stringResource(tdTowerName(tower.kind)), tower.level),
         style = MaterialTheme.typography.titleSmall,

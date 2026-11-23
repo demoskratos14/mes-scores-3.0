@@ -3398,7 +3398,11 @@
     <string name="td_tower_slow_stats">Ralentit les monstres, portée : %1$s</string>
     <string name="td_tower_heal_stats">Renforce les tours voisines de %1$d %%</string>
     <string name="td_build_hint">Touche une case libre pour construire une tour.</string>
-    <string name="td_cost">%1$d pièces</string>
+    <plurals name="td_cost">
+        <item quantity="one">%1$d pièce</item>
+        <item quantity="many">%1$d de pièces</item>
+        <item quantity="other">%1$d pièces</item>
+    </plurals>
     <string name="td_upgrade">Améliorer (%1$d)</string>
     <string name="td_upgrade_max">Niveau maximum</string>
     <string name="td_sell">Vendre (+%1$d)</string>

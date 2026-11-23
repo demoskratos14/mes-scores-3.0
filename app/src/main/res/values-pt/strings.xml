@@ -3381,7 +3381,11 @@
     <string name="td_tower_slow_stats">Abranda os monstros, alcance: %1$s</string>
     <string name="td_tower_heal_stats">Reforça as torres vizinhas em %1$d %%</string>
     <string name="td_build_hint">Toca numa casa livre para construir uma torre.</string>
-    <string name="td_cost">%1$d moedas</string>
+    <plurals name="td_cost">
+        <item quantity="one">%1$d moeda</item>
+        <item quantity="many">%1$d de moedas</item>
+        <item quantity="other">%1$d moedas</item>
+    </plurals>
     <string name="td_upgrade">Melhorar (%1$d)</string>
     <string name="td_upgrade_max">Nível máximo</string>
     <string name="td_sell">Vender (+%1$d)</string>

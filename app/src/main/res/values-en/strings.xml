@@ -3349,7 +3349,10 @@
     <string name="td_tower_slow_stats">Slows monsters down, range: %1$s</string>
     <string name="td_tower_heal_stats">Boosts nearby towers by %1$d%%</string>
     <string name="td_build_hint">Tap an empty tile to build a tower.</string>
-    <string name="td_cost">%1$d coins</string>
+    <plurals name="td_cost">
+        <item quantity="one">%1$d coin</item>
+        <item quantity="other">%1$d coins</item>
+    </plurals>
     <string name="td_upgrade">Upgrade (%1$d)</string>
     <string name="td_upgrade_max">Maximum level</string>
     <string name="td_sell">Sell (+%1$d)</string>
