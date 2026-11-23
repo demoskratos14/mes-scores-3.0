@@ -3348,4 +3348,42 @@
     <string name="ww_say_fire">¡El edificio de %1$s se ha esfumado en llamas! Pierde su oficio y se convierte en un simple Vagabundo.</string>
     <string name="ww_say_fire_saved">Las llamas han ahuyentado a los hombres lobo: esta noche no atacan a nadie.</string>
     <string name="ww_info_vagabond">Tu edificio se ha quemado: has perdido tu oficio y ahora eres un simple Vagabundo, sin poder.</string>
+    <!-- Défense de tours -->
+    <string name="game_towerdefense">Defensa de torres</string>
+    <string name="rules_towerdefense_1_title">Objetivo</string>
+    <string name="rules_towerdefense_1_body">Impide que los monstruos del pantano lleguen a la bandera: salen de la cueva y siguen el camino. Cada monstruo que llega te cuesta una vida (cinco si es un jefe). Tienes 20 vidas y el mapa cambia en cada partida.</string>
+    <string name="rules_towerdefense_2_title">Las torres</string>
+    <string name="rules_towerdefense_2_body" formatted="false">Toca una casilla libre para construir. La torre de vigilancia de madera dispara rápido, la de ladrillo lanza bolas de fuego que también dañan a los monstruos cercanos, la torre de agua ralentiza a los monstruos y la torre verde no ataca: refuerza las torres que tiene alrededor. Toca una torre para mejorarla (4 niveles) o venderla (recuperas el 60 % de lo que gastaste).</string>
+    <string name="rules_towerdefense_3_title">Oleadas y puntos</string>
+    <string name="rules_towerdefense_3_body">Lanza cada oleada cuando estés listo: son cada vez más numerosas y variadas, con un jefe cada cinco oleadas. Cada monstruo derrotado da monedas y puntos, y terminar una oleada da una bonificación.</string>
+    <string name="rules_towerdefense_4_title">En la app</string>
+    <string name="rules_towerdefense_4_body">Juego en solitario: toca el tablero para elegir una casilla o una torre. La partida se pausa al salir de la app y se guarda tu mejor puntuación.</string>
+    <string name="td_ready_title">Le toca jugar a %1$s</string>
+    <string name="td_ready_hint">Construye torres a lo largo del camino para detener a los monstruos del pantano.</string>
+    <string name="td_go">¡Vamos!</string>
+    <string name="td_score">Puntos: %1$d</string>
+    <string name="td_stats">Oleada: %1$d, vidas: %2$d, monedas: %3$d</string>
+    <string name="td_over_title">Partida terminada</string>
+    <string name="td_over_stats">Oleadas superadas: %1$d</string>
+    <string name="td_play_again">Jugar de nuevo</string>
+    <string name="td_pause">Pausa</string>
+    <string name="td_paused_title">Partida en pausa</string>
+    <string name="td_resume">Reanudar</string>
+    <string name="td_next_wave">Lanzar la oleada %1$d</string>
+    <string name="td_wave_running">Oleada en curso…</string>
+    <string name="td_wave_clear">¡Oleada terminada!</string>
+    <string name="td_tower_wooden">Torre de vigilancia</string>
+    <string name="td_tower_brick">Torre de ladrillo</string>
+    <string name="td_tower_debuff">Torre de agua</string>
+    <string name="td_tower_heal">Torre verde</string>
+    <string name="td_tower_title">%1$s, nivel %2$d</string>
+    <string name="td_tower_stats">Daño: %1$d, alcance: %2$s</string>
+    <string name="td_tower_slow_stats">Ralentiza a los monstruos, alcance: %1$s</string>
+    <string name="td_tower_heal_stats">Refuerza las torres cercanas un %1$d %%</string>
+    <string name="td_build_hint">Toca una casilla libre para construir una torre.</string>
+    <string name="td_cost">%1$d monedas</string>
+    <string name="td_upgrade">Mejorar (%1$d)</string>
+    <string name="td_upgrade_max">Nivel máximo</string>
+    <string name="td_sell">Vender (+%1$d)</string>
+    <string name="td_board_desc">Tablero de juego: toca una casilla para construir o elegir una torre.</string>
 </resources>

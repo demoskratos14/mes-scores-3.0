@@ -3348,4 +3348,42 @@
     <string name="ww_say_fire">O edifício de %1$s foi pelos ares em chamas! Perde o ofício e torna-se um simples Vagabundo.</string>
     <string name="ww_say_fire_saved">As chamas afugentaram os lobisomens: esta noite não atacam ninguém.</string>
     <string name="ww_info_vagabond">O teu edifício ardeu: perdeste o ofício e és agora um simples Vagabundo, sem poder.</string>
+    <!-- Défense de tours -->
+    <string name="game_towerdefense">Defesa de torres</string>
+    <string name="rules_towerdefense_1_title">Objetivo</string>
+    <string name="rules_towerdefense_1_body">Impede os monstros do pântano de chegarem à bandeira: saem da gruta e seguem o caminho. Cada monstro que chega custa-te uma vida (cinco se for um chefe). Tens 20 vidas e o mapa muda em cada jogo.</string>
+    <string name="rules_towerdefense_2_title">As torres</string>
+    <string name="rules_towerdefense_2_body" formatted="false">Toca numa casa livre para construir. A torre de vigia de madeira dispara depressa, a de tijolo lança bolas de fogo que também ferem os monstros próximos, a torre de água abranda os monstros e a torre verde não ataca: reforça as torres à sua volta. Toca numa torre para a melhorar (4 níveis) ou vendê-la (recuperas 60 % do que gastaste).</string>
+    <string name="rules_towerdefense_3_title">Ondas e pontos</string>
+    <string name="rules_towerdefense_3_body">Lança cada onda quando estiveres pronto: são cada vez mais numerosas e variadas, com um chefe a cada cinco ondas. Cada monstro derrotado dá moedas e pontos, e terminar uma onda dá um bónus.</string>
+    <string name="rules_towerdefense_4_title">Na app</string>
+    <string name="rules_towerdefense_4_body">Jogo a solo: toca no tabuleiro para escolher uma casa ou uma torre. O jogo fica em pausa quando sais da app e a tua melhor pontuação é guardada.</string>
+    <string name="td_ready_title">É a vez de %1$s</string>
+    <string name="td_ready_hint">Constrói torres ao longo do caminho para travar os monstros do pântano.</string>
+    <string name="td_go">Vamos!</string>
+    <string name="td_score">Pontos: %1$d</string>
+    <string name="td_stats">Onda: %1$d, vidas: %2$d, moedas: %3$d</string>
+    <string name="td_over_title">Jogo terminado</string>
+    <string name="td_over_stats">Ondas superadas: %1$d</string>
+    <string name="td_play_again">Jogar de novo</string>
+    <string name="td_pause">Pausa</string>
+    <string name="td_paused_title">Jogo em pausa</string>
+    <string name="td_resume">Retomar</string>
+    <string name="td_next_wave">Lançar a onda %1$d</string>
+    <string name="td_wave_running">Onda em curso…</string>
+    <string name="td_wave_clear">Onda terminada!</string>
+    <string name="td_tower_wooden">Torre de vigia</string>
+    <string name="td_tower_brick">Torre de tijolo</string>
+    <string name="td_tower_debuff">Torre de água</string>
+    <string name="td_tower_heal">Torre verde</string>
+    <string name="td_tower_title">%1$s, nível %2$d</string>
+    <string name="td_tower_stats">Dano: %1$d, alcance: %2$s</string>
+    <string name="td_tower_slow_stats">Abranda os monstros, alcance: %1$s</string>
+    <string name="td_tower_heal_stats">Reforça as torres vizinhas em %1$d %%</string>
+    <string name="td_build_hint">Toca numa casa livre para construir uma torre.</string>
+    <string name="td_cost">%1$d moedas</string>
+    <string name="td_upgrade">Melhorar (%1$d)</string>
+    <string name="td_upgrade_max">Nível máximo</string>
+    <string name="td_sell">Vender (+%1$d)</string>
+    <string name="td_board_desc">Tabuleiro de jogo: toca numa casa para construir ou escolher uma torre.</string>
 </resources>

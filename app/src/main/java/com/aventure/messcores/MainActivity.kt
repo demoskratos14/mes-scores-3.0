@@ -134,6 +134,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     BREAKOUT_ID to "breakout",
     SHMUP_ID to "shmup",
     XONIX_ID to "xonix",
+    TOWER_DEFENSE_ID to "towerdefense",
     SNAKE_ID to "snake",
     BUBBLE_ID to "bubble",
     MINESWEEPER_ID to "minesweeper",
@@ -148,7 +149,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
 
 /** Écrans de jeux jouables (et l'accueil de l'appli pour télé) sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
+    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "towerdefense", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -626,6 +627,9 @@ fun ScoreApp(
             }
             composable("xonix") {
                 XonixScreen(players = pendingPlayerNames)
+            }
+            composable("towerdefense") {
+                TowerDefenseScreen(players = pendingPlayerNames)
             }
             composable("snake") {
                 SnakeScreen(players = pendingPlayerNames)

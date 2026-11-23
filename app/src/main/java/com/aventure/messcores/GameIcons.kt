@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
@@ -135,6 +135,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             ASTEROIDS_ID -> drawAsteroids()
             INVADERS_ID -> drawInvaders()
             XONIX_ID -> drawXonix()
+            TOWER_DEFENSE_ID -> drawTowerDefense()
             SNAKE_ID -> drawSnake()
             BUBBLE_ID -> drawBubbleShooter()
             MINESWEEPER_ID -> drawMinesweeper()
@@ -453,6 +454,35 @@ private fun DrawScope.drawXonix() {
     drawRect(Color.White, Offset(trailX - player / 2f, frame + band - player / 2f), Size(player, player))
     drawCircle(Color.White, s * 0.1f, Offset(s * 0.66f, s * 0.42f))
     drawCircle(Color(0xFFE53935), s * 0.075f, Offset(s * 0.66f, s * 0.42f))
+}
+
+private fun DrawScope.drawTowerDefense() {
+    paper(Color(0xFF5E8C3A))
+    val s = size.minDimension
+    // Un chemin de terre claire qui serpente, et une tour de pierre avec son cristal violet à côté.
+    val road = Color(0xFFA5C96B)
+    val w = s * 0.14f
+    val path = Path().apply {
+        moveTo(s * 0.18f, 0f)
+        lineTo(s * 0.18f, s * 0.3f)
+        lineTo(s * 0.82f, s * 0.3f)
+        lineTo(s * 0.82f, s * 0.7f)
+        lineTo(s * 0.4f, s * 0.7f)
+        lineTo(s * 0.4f, s)
+    }
+    drawPath(path, road, style = Stroke(width = w, join = StrokeJoin.Round))
+    val stone = Color(0xFF8A99A8)
+    drawRect(stone, Offset(s * 0.47f, s * 0.38f), Size(s * 0.2f, s * 0.24f))
+    drawRect(Color(0xFF5D6B78), Offset(s * 0.44f, s * 0.34f), Size(s * 0.26f, s * 0.07f))
+    val crystal = Path().apply {
+        moveTo(s * 0.57f, s * 0.14f)
+        lineTo(s * 0.64f, s * 0.26f)
+        lineTo(s * 0.57f, s * 0.34f)
+        lineTo(s * 0.5f, s * 0.26f)
+        close()
+    }
+    drawPath(crystal, Color(0xFFAB47BC))
+    drawCircle(Color(0xFFE53935), s * 0.05f, Offset(s * 0.18f, s * 0.3f))
 }
 
 private fun DrawScope.drawSnake() {

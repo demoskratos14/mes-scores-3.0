@@ -3316,4 +3316,42 @@
     <string name="ww_say_fire">%1$s’s building has gone up in smoke! They lose their job and become a plain Vagrant.</string>
     <string name="ww_say_fire_saved">The flames scared the werewolves away: they attack no one tonight.</string>
     <string name="ww_info_vagabond">Your building burned down: you lost your job and are now a plain Vagrant, with no power.</string>
+    <!-- Défense de tours -->
+    <string name="game_towerdefense">Tower Defense</string>
+    <string name="rules_towerdefense_1_title">Goal</string>
+    <string name="rules_towerdefense_1_body">Stop the swamp monsters from reaching the flag: they come out of the cave and follow the path. Each monster that gets through costs you a life (five for a chief). You have 20 lives, and the map changes every game.</string>
+    <string name="rules_towerdefense_2_title">Towers</string>
+    <string name="rules_towerdefense_2_body" formatted="false">Tap an empty tile to build. The wooden watchtower fires fast, the brick one throws fireballs that also hurt nearby monsters, the water tower slows monsters down, and the green tower does not attack: it boosts the towers around it. Tap a tower to upgrade it (4 levels) or sell it (you get back 60% of what you spent).</string>
+    <string name="rules_towerdefense_3_title">Waves and points</string>
+    <string name="rules_towerdefense_3_body">Start each wave when you are ready: they get bigger and more varied, with a chief every five waves. Every monster you beat earns coins and points, and finishing a wave gives a bonus.</string>
+    <string name="rules_towerdefense_4_title">In the app</string>
+    <string name="rules_towerdefense_4_body">Solo game: tap the board to pick a tile or a tower. The game pauses when you leave the app, and your best score is kept.</string>
+    <string name="td_ready_title">%1$s’s turn to play</string>
+    <string name="td_ready_hint">Build towers along the path to stop the swamp monsters.</string>
+    <string name="td_go">Let’s go!</string>
+    <string name="td_score">Score: %1$d</string>
+    <string name="td_stats">Wave: %1$d, lives: %2$d, coins: %3$d</string>
+    <string name="td_over_title">Game over</string>
+    <string name="td_over_stats">Waves cleared: %1$d</string>
+    <string name="td_play_again">Play again</string>
+    <string name="td_pause">Pause</string>
+    <string name="td_paused_title">Game paused</string>
+    <string name="td_resume">Resume</string>
+    <string name="td_next_wave">Start wave %1$d</string>
+    <string name="td_wave_running">Wave in progress…</string>
+    <string name="td_wave_clear">Wave cleared!</string>
+    <string name="td_tower_wooden">Watchtower</string>
+    <string name="td_tower_brick">Brick tower</string>
+    <string name="td_tower_debuff">Water tower</string>
+    <string name="td_tower_heal">Green tower</string>
+    <string name="td_tower_title">%1$s, level %2$d</string>
+    <string name="td_tower_stats">Damage: %1$d, range: %2$s</string>
+    <string name="td_tower_slow_stats">Slows monsters down, range: %1$s</string>
+    <string name="td_tower_heal_stats">Boosts nearby towers by %1$d%%</string>
+    <string name="td_build_hint">Tap an empty tile to build a tower.</string>
+    <string name="td_cost">%1$d coins</string>
+    <string name="td_upgrade">Upgrade (%1$d)</string>
+    <string name="td_upgrade_max">Maximum level</string>
+    <string name="td_sell">Sell (+%1$d)</string>
+    <string name="td_board_desc">Game board: tap a tile to build or pick a tower.</string>
 </resources>

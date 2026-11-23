@@ -3365,4 +3365,42 @@
     <string name="ww_say_fire">Le bâtiment de %1$s est parti en fumée ! Il perd son métier et devient simple Vagabond.</string>
     <string name="ww_say_fire_saved">Les flammes ont fait fuir les loups-garous : ils n’attaquent personne cette nuit.</string>
     <string name="ww_info_vagabond">Ton bâtiment a brûlé : tu as perdu ton métier et tu es devenu simple Vagabond, sans pouvoir.</string>
+    <!-- Défense de tours -->
+    <string name="game_towerdefense">Défense de tours</string>
+    <string name="rules_towerdefense_1_title">But du jeu</string>
+    <string name="rules_towerdefense_1_body">Empêche les monstres du marais d’atteindre le drapeau : ils sortent de la grotte et suivent le chemin. Chaque monstre qui arrive te fait perdre une vie (cinq pour un chef). Tu as 20 vies, et la carte change à chaque partie.</string>
+    <string name="rules_towerdefense_2_title">Les tours</string>
+    <string name="rules_towerdefense_2_body" formatted="false">Touche une case libre pour construire. La tour de guet en bois tire vite, celle en brique lance des boules de feu qui blessent aussi les monstres voisins, la tour d’eau ralentit les monstres et la tour verte n’attaque pas : elle renforce les tours autour d’elle. Touche une tour pour l’améliorer (4 niveaux) ou la vendre (tu récupères 60 % de ce que tu as dépensé).</string>
+    <string name="rules_towerdefense_3_title">Vagues et points</string>
+    <string name="rules_towerdefense_3_body">Lance chaque vague quand tu es prêt : elles sont de plus en plus nombreuses et variées, avec un chef toutes les cinq vagues. Chaque monstre vaincu rapporte des pièces et des points, et finir une vague donne un bonus.</string>
+    <string name="rules_towerdefense_4_title">Dans l’appli</string>
+    <string name="rules_towerdefense_4_body">Jeu en solo : touche le plateau pour choisir une case ou une tour. La partie se met en pause quand tu quittes l’appli, et ton meilleur score est gardé.</string>
+    <string name="td_ready_title">À %1$s de jouer</string>
+    <string name="td_ready_hint">Construis des tours le long du chemin pour arrêter les monstres du marais.</string>
+    <string name="td_go">C’est parti !</string>
+    <string name="td_score">Score : %1$d</string>
+    <string name="td_stats">Vague : %1$d, vies : %2$d, pièces : %3$d</string>
+    <string name="td_over_title">Partie terminée</string>
+    <string name="td_over_stats">Vagues terminées : %1$d</string>
+    <string name="td_play_again">Rejouer</string>
+    <string name="td_pause">Pause</string>
+    <string name="td_paused_title">Partie en pause</string>
+    <string name="td_resume">Reprendre</string>
+    <string name="td_next_wave">Lancer la vague %1$d</string>
+    <string name="td_wave_running">Vague en cours…</string>
+    <string name="td_wave_clear">Vague terminée !</string>
+    <string name="td_tower_wooden">Tour de guet</string>
+    <string name="td_tower_brick">Tour de brique</string>
+    <string name="td_tower_debuff">Tour d’eau</string>
+    <string name="td_tower_heal">Tour verte</string>
+    <string name="td_tower_title">%1$s, niveau %2$d</string>
+    <string name="td_tower_stats">Dégâts : %1$d, portée : %2$s</string>
+    <string name="td_tower_slow_stats">Ralentit les monstres, portée : %1$s</string>
+    <string name="td_tower_heal_stats">Renforce les tours voisines de %1$d %%</string>
+    <string name="td_build_hint">Touche une case libre pour construire une tour.</string>
+    <string name="td_cost">%1$d pièces</string>
+    <string name="td_upgrade">Améliorer (%1$d)</string>
+    <string name="td_upgrade_max">Niveau maximum</string>
+    <string name="td_sell">Vendre (+%1$d)</string>
+    <string name="td_board_desc">Plateau du jeu : touche une case pour construire ou choisir une tour.</string>
 </resources>

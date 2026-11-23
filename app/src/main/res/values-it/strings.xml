@@ -3358,4 +3358,42 @@
     <string name="ww_say_fire">L’edificio di %1$s è andato in fumo! Perde il mestiere e diventa un semplice Vagabondo.</string>
     <string name="ww_say_fire_saved">Le fiamme hanno messo in fuga i lupi mannari: stanotte non attaccano nessuno.</string>
     <string name="ww_info_vagabond">Il tuo edificio è bruciato: hai perso il mestiere e sei diventato un semplice Vagabondo, senza poteri.</string>
+    <!-- Défense de tours -->
+    <string name="game_towerdefense">Difesa delle torri</string>
+    <string name="rules_towerdefense_1_title">Obiettivo</string>
+    <string name="rules_towerdefense_1_body">Impedisci ai mostri della palude di raggiungere la bandiera: escono dalla grotta e seguono il sentiero. Ogni mostro che arriva ti costa una vita (cinque se è un capo). Hai 20 vite e la mappa cambia a ogni partita.</string>
+    <string name="rules_towerdefense_2_title">Le torri</string>
+    <string name="rules_towerdefense_2_body" formatted="false">Tocca una casella libera per costruire. La torre di guardia in legno spara veloce, quella in mattoni lancia palle di fuoco che feriscono anche i mostri vicini, la torre d’acqua rallenta i mostri e la torre verde non attacca: potenzia le torri intorno a sé. Tocca una torre per potenziarla (4 livelli) o venderla (recuperi il 60 % di quello che hai speso).</string>
+    <string name="rules_towerdefense_3_title">Ondate e punti</string>
+    <string name="rules_towerdefense_3_body">Lancia ogni ondata quando sei pronto: sono sempre più numerose e varie, con un capo ogni cinque ondate. Ogni mostro sconfitto dà monete e punti, e finire un’ondata dà un bonus.</string>
+    <string name="rules_towerdefense_4_title">Nell’app</string>
+    <string name="rules_towerdefense_4_body">Gioco in solitaria: tocca il tabellone per scegliere una casella o una torre. La partita va in pausa quando esci dall’app e il tuo punteggio migliore viene conservato.</string>
+    <string name="td_ready_title">Tocca a %1$s</string>
+    <string name="td_ready_hint">Costruisci torri lungo il sentiero per fermare i mostri della palude.</string>
+    <string name="td_go">Si parte!</string>
+    <string name="td_score">Punteggio: %1$d</string>
+    <string name="td_stats">Ondata: %1$d, vite: %2$d, monete: %3$d</string>
+    <string name="td_over_title">Partita finita</string>
+    <string name="td_over_stats">Ondate superate: %1$d</string>
+    <string name="td_play_again">Gioca ancora</string>
+    <string name="td_pause">Pausa</string>
+    <string name="td_paused_title">Partita in pausa</string>
+    <string name="td_resume">Riprendi</string>
+    <string name="td_next_wave">Lancia l’ondata %1$d</string>
+    <string name="td_wave_running">Ondata in corso…</string>
+    <string name="td_wave_clear">Ondata finita!</string>
+    <string name="td_tower_wooden">Torre di guardia</string>
+    <string name="td_tower_brick">Torre di mattoni</string>
+    <string name="td_tower_debuff">Torre d’acqua</string>
+    <string name="td_tower_heal">Torre verde</string>
+    <string name="td_tower_title">%1$s, livello %2$d</string>
+    <string name="td_tower_stats">Danno: %1$d, portata: %2$s</string>
+    <string name="td_tower_slow_stats">Rallenta i mostri, portata: %1$s</string>
+    <string name="td_tower_heal_stats">Potenzia le torri vicine del %1$d %%</string>
+    <string name="td_build_hint">Tocca una casella libera per costruire una torre.</string>
+    <string name="td_cost">%1$d monete</string>
+    <string name="td_upgrade">Potenzia (%1$d)</string>
+    <string name="td_upgrade_max">Livello massimo</string>
+    <string name="td_sell">Vendi (+%1$d)</string>
+    <string name="td_board_desc">Tabellone di gioco: tocca una casella per costruire o scegliere una torre.</string>
 </resources>
