@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
@@ -139,6 +139,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             SNAKE_ID -> drawSnake()
             BUBBLE_ID -> drawBubbleShooter()
             MINESWEEPER_ID -> drawMinesweeper()
+            SUDOKU_ID -> drawSudoku()
             PANCAKE_ID -> drawPancake()
             DRIVE_ID -> drawDrive()
             GOMOKU_ID -> drawGomoku()
@@ -570,6 +571,26 @@ private fun DrawScope.drawDrive() {
     // Le bandeau rouge et noir du bas, comme sur la console.
     drawRect(red, Offset(s * 0.1f, s * 0.86f), Size(s * 0.5f, s * 0.04f))
     drawRect(ink, Offset(s * 0.4f, s * 0.9f), Size(s * 0.5f, s * 0.03f))
+}
+
+private fun DrawScope.drawSudoku() {
+    paper(Color(0xFFFAFBFC))
+    val s = size.minDimension
+    val left = s * 0.12f
+    val side = s * 0.76f
+    val unit = side / 3f
+    val ink = Color(0xFF263238)
+    // Une grille de 3 × 3 blocs : traits fins entre les cases, plus épais autour.
+    for (k in 0..3) {
+        val width = if (k == 0 || k == 3) s * 0.04f else s * 0.025f
+        drawLine(ink, Offset(left + k * unit, left), Offset(left + k * unit, left + side), strokeWidth = width)
+        drawLine(ink, Offset(left, left + k * unit), Offset(left + side, left + k * unit), strokeWidth = width)
+    }
+    // Trois chiffres posés : deux petits traits « 1 » et un rond, en bleu.
+    val blue = Color(0xFF1565C0)
+    drawLine(blue, Offset(left + 0.5f * unit, left + 0.25f * unit), Offset(left + 0.5f * unit, left + 0.75f * unit), strokeWidth = s * 0.05f, cap = StrokeCap.Round)
+    drawCircle(blue, radius = unit * 0.22f, center = Offset(left + 1.5f * unit, left + 1.5f * unit), style = Stroke(width = s * 0.05f))
+    drawLine(blue, Offset(left + 2.5f * unit, left + 2.25f * unit), Offset(left + 2.5f * unit, left + 2.75f * unit), strokeWidth = s * 0.05f, cap = StrokeCap.Round)
 }
 
 private fun DrawScope.drawMinesweeper() {

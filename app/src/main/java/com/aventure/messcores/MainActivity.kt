@@ -138,6 +138,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     SNAKE_ID to "snake",
     BUBBLE_ID to "bubble",
     MINESWEEPER_ID to "minesweeper",
+    SUDOKU_ID to "sudoku",
     PANCAKE_ID to "pancake",
     DRIVE_ID to "drive",
     ASTEROIDS_ID to "asteroids",
@@ -149,7 +150,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
 
 /** Écrans de jeux jouables (et l'accueil de l'appli pour télé) sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "towerdefense", "snake", "bubble", "minesweeper", "pancake", "drive", "asteroids", "invaders",
+    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "towerdefense", "snake", "bubble", "minesweeper", "sudoku", "pancake", "drive", "asteroids", "invaders",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -639,6 +640,9 @@ fun ScoreApp(
             }
             composable("minesweeper") {
                 MinesweeperScreen(players = pendingPlayerNames)
+            }
+            composable("sudoku") {
+                SudokuScreen(players = pendingPlayerNames)
             }
             composable("pancake") {
                 PancakeScreen(players = pendingPlayerNames)
