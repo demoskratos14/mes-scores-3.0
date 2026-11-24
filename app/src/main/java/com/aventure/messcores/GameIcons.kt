@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, RUNNER_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, RUNNER_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
@@ -140,6 +140,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             BUBBLE_ID -> drawBubbleShooter()
             MARBLE_ID -> drawMarbleShooter()
             MINESWEEPER_ID -> drawMinesweeper()
+            MAHJONG_ID -> drawMahjong()
             SUDOKU_ID -> drawSudoku()
             PANCAKE_ID -> drawPancake()
             DRIVE_ID -> drawDrive()
@@ -647,6 +648,43 @@ private fun DrawScope.drawSudoku() {
     drawLine(blue, Offset(left + 0.5f * unit, left + 0.25f * unit), Offset(left + 0.5f * unit, left + 0.75f * unit), strokeWidth = s * 0.05f, cap = StrokeCap.Round)
     drawCircle(blue, radius = unit * 0.22f, center = Offset(left + 1.5f * unit, left + 1.5f * unit), style = Stroke(width = s * 0.05f))
     drawLine(blue, Offset(left + 2.5f * unit, left + 2.25f * unit), Offset(left + 2.5f * unit, left + 2.75f * unit), strokeWidth = s * 0.05f, cap = StrokeCap.Round)
+}
+
+private fun DrawScope.drawMahjong() {
+    paper(Color(0xFF1B5E3A))
+    val s = size.minDimension
+    val face = Color(0xFFF8F3E6)
+    val edge = Color(0xFF2F8F6B)
+    val tileW = s * 0.36f
+    val tileH = s * 0.48f
+    val thick = s * 0.04f
+    val corner = CornerRadius(tileW * 0.14f)
+    // Deux tuiles côte à côte, avec leur tranche en bas à droite.
+    fun tile(left: Float, top: Float) {
+        drawRoundRect(edge, Offset(left + thick, top + thick), Size(tileW, tileH), corner)
+        drawRoundRect(face, Offset(left, top), Size(tileW, tileH), corner)
+    }
+    val leftTile = Offset(s * 0.12f, s * 0.26f)
+    val rightTile = Offset(s * 0.52f, s * 0.26f)
+    tile(leftTile.x, leftTile.y)
+    tile(rightTile.x, rightTile.y)
+    // Sur la première : trois disques en diagonale.
+    val ring = tileW * 0.15f
+    val pips = listOf(
+        Offset(leftTile.x + tileW * 0.28f, leftTile.y + tileH * 0.22f) to Color(0xFF2E7D32),
+        Offset(leftTile.x + tileW * 0.5f, leftTile.y + tileH * 0.5f) to Color(0xFFD32F2F),
+        Offset(leftTile.x + tileW * 0.72f, leftTile.y + tileH * 0.78f) to Color(0xFF263238)
+    )
+    for ((center, color) in pips) {
+        drawCircle(color, ring, center, style = Stroke(width = ring * 0.4f))
+        drawCircle(color, ring * 0.4f, center)
+    }
+    // Sur la seconde : un dragon rouge, réduit à un cadre traversé d'un trait.
+    val red = Color(0xFFD32F2F)
+    val frameLeft = rightTile.x + tileW * 0.24f
+    val frameTop = rightTile.y + tileH * 0.24f
+    drawRect(red, Offset(frameLeft, frameTop), Size(tileW * 0.52f, tileH * 0.34f), style = Stroke(width = tileW * 0.08f))
+    drawLine(red, Offset(rightTile.x + tileW * 0.5f, rightTile.y + tileH * 0.16f), Offset(rightTile.x + tileW * 0.5f, rightTile.y + tileH * 0.84f), strokeWidth = tileW * 0.08f)
 }
 
 private fun DrawScope.drawMinesweeper() {

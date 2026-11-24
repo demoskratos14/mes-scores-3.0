@@ -490,6 +490,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Mahjong solitaire : écran à part (voir MahjongScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = MAHJONG_ID,
+        name = context.getString(R.string.game_mahjong),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Démineur : écran à part (voir MinesweeperScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = MINESWEEPER_ID,
