@@ -113,7 +113,7 @@ private val SkyHorizon = Color(0xFFD6E8FA)
 private val GroundColor = Color(0xFF5F8A49)
 
 /**
- * Ce que la Course charge une fois : les modèles 3D (assets/runner/*.glb) et les images du coureur (assets/runner/assassin_*.png).
+ * Ce que la Course charge une fois : les modèles 3D (fichiers .glb du dossier assets/runner) et les images du coureur (fichiers assassin_….png du même dossier).
  * Le chargement se fait hors du fil principal (voir [RunnerScreen]) ; un fichier absent est simplement ignoré.
  */
 internal object RunnerAssets {
