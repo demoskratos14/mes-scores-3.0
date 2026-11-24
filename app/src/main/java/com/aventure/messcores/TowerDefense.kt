@@ -1,6 +1,7 @@
 package com.aventure.messcores
 
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
@@ -70,10 +71,24 @@ internal class TdProjectile(
     val damage: Float,
     var lastX: Float,
     var lastY: Float
-)
+) {
+    /** Le cap du projectile, en degrés (0 : vers la droite, 90 : vers le bas), pour tourner l'image et l'éclat de l'impact. */
+    var angle: Float = Math.toDegrees(atan2((lastY - y).toDouble(), (lastX - x).toDouble())).toFloat()
+}
 
-/** Un éclat qui s'éteint vite à l'endroit d'un impact : pur décor pour l'écran. */
-internal class TdFlash(val x: Float, val y: Float, val kind: TdTowerKind, var ms: Float)
+/**
+ * Un effet qui s'éteint vite : l'impact d'un tir de la tour [kind] (tourné selon le cap [angle] du tir), ou, avec [death],
+ * le nuage d'un ennemi qui meurt. Pur décor pour l'écran : [ms] reste à jouer sur [total].
+ */
+internal class TdFlash(
+    val x: Float,
+    val y: Float,
+    val kind: TdTowerKind,
+    var ms: Float,
+    val total: Float,
+    val angle: Float = 0f,
+    val death: Boolean = false
+)
 
 /** Direction d'un ennemi à l'écran : l'ordre des lignes de marche dans les images (dos, face, gauche, droite). */
 internal object TdDir {
@@ -94,6 +109,9 @@ internal class TdMap private constructor(
     /** Par case : −1 (rien) ou le rang du décor dans l'image des décors. Une case avec décor est bloquée. */
     val decor: IntArray
 ) {
+    /** Le thème de la carte ([THEME_SWAMP] ou [THEME_SUMMER]) : il ne change que les images. Une graine donne toujours le même. */
+    val theme: Int = themeOf(seed)
+
     private val onPath = BooleanArray(COLS * ROWS).also { grid -> path.forEach { grid[it] = true } }
 
     val entryCol: Int get() = path.first() % COLS
@@ -137,7 +155,7 @@ internal class TdMap private constructor(
     /** Le rang (0 à 55) de la tuile du sol de la case dans l'image des tuiles. */
     fun tileIndex(row: Int, col: Int): Int {
         if (!isPath(row, col)) return TdTiles.SWAMP[(row + col) and 1]
-        return TdTiles.best(tileSignature(row, col))
+        return TdTiles.best(tileSignature(row, col), theme)
     }
 
     companion object {
@@ -149,8 +167,15 @@ internal class TdMap private constructor(
 
         /** Le nombre de décors de l'image des décors qui servent de décor posé au hasard (les autres sont l'entrée et la sortie). */
         const val SCENERY_COUNT = 12
+        /** L'entrée et la sortie : la grotte et le drapeau au marais, la tente et le château l'été. */
         const val DECOR_CAVE = 12
         const val DECOR_FLAG = 13
+
+        const val THEME_SWAMP = 0
+        const val THEME_SUMMER = 1
+
+        /** Le thème de la graine : un bit de son mélange, pour que les graines voisines ne se suivent pas. */
+        fun themeOf(seed: Int): Int = (seed * -1640531527) ushr 31
 
         fun generate(seed: Int): TdMap {
             val random = Random(seed)
@@ -203,15 +228,24 @@ internal object TdTiles {
         56, 136, 146, 0, 146, 34, 56, 10
     )
 
-    /** Les deux tuiles de marais unies, posées en alternance. */
+    /** Les mêmes signatures pour les tuiles d'été (terre sèche = chemin, herbe = fond). */
+    val SIGNATURES_SUMMER = intArrayOf(
+        255, 63, 447, 219, 16, 438, 507, 504, 510, 432, 506, 216, 446, 511, 251, 54,
+        191, 27, 416, 504, 200, 438, 511, 219, 38, 63, 11, 176, 184, 152, 178, 186,
+        154, 50, 58, 26, 144, 146, 18, 48, 56, 24, 0, 248, 440, 59, 62, 160,
+        56, 136, 146, 0, 146, 34, 56, 10
+    )
+
+    /** Les deux tuiles de fond unies (marais ou herbe), posées en alternance : les mêmes rangs dans les deux planches. */
     val SWAMP = intArrayOf(42, 51)
 
     /** La tuile dont la signature ressemble le plus à [signature] (le moins de points différents ; à égalité, la première). */
-    fun best(signature: Int): Int {
+    fun best(signature: Int, theme: Int = TdMap.THEME_SWAMP): Int {
+        val signatures = if (theme == TdMap.THEME_SUMMER) SIGNATURES_SUMMER else SIGNATURES
         var bestIndex = 0
         var bestScore = Int.MAX_VALUE
-        for (i in SIGNATURES.indices) {
-            val score = Integer.bitCount(SIGNATURES[i] xor signature)
+        for (i in signatures.indices) {
+            val score = Integer.bitCount(signatures[i] xor signature)
             if (score < bestScore) {
                 bestScore = score
                 bestIndex = i
@@ -227,7 +261,11 @@ internal object TowerDefense {
     const val MAX_LEVEL = 4
     const val SPAWN_MS = 900f
     const val DYING_MS = 500f
-    const val FLASH_MS = 260f
+    const val FLASH_MS = 450f
+    const val DEATH_FLASH_MS = 600f
+
+    /** Durée du flash noir quand un ennemi atteint la base. */
+    const val BASE_FLASH_MS = 500f
     const val PROJECTILE_SPEED = 9f
 
     /** Part de l'argent dépensé qu'on récupère en vendant une tour. */
@@ -294,6 +332,10 @@ internal class TdGame(random: Random = Random.Default, seed: Int = random.nextIn
     var waveClearMs = 0f
         private set
 
+    /** Temps restant du flash noir qui signale un ennemi arrivé à la base (0 : pas de flash), sur [TowerDefense.BASE_FLASH_MS]. */
+    var baseFlashMs = 0f
+        private set
+
     val towers = ArrayList<TdTower>()
     val enemies = ArrayList<TdEnemy>()
     val projectiles = ArrayList<TdProjectile>()
@@ -317,6 +359,7 @@ internal class TdGame(random: Random = Random.Default, seed: Int = random.nextIn
         score = 0
         waveActive = false
         waveClearMs = 0f
+        baseFlashMs = 0f
         towers.clear()
         enemies.clear()
         projectiles.clear()
@@ -423,6 +466,7 @@ internal class TdGame(random: Random = Random.Default, seed: Int = random.nextIn
         if (isOver) return
         val dt = ms.toFloat().coerceAtLeast(0f)
         if (waveClearMs > 0f) waveClearMs = max(0f, waveClearMs - dt)
+        if (baseFlashMs > 0f) baseFlashMs = max(0f, baseFlashMs - dt)
 
         // Les ennemis sortent un par un.
         if (queue.isNotEmpty()) {
@@ -451,6 +495,7 @@ internal class TdGame(random: Random = Random.Default, seed: Int = random.nextIn
             e.dist += e.kind.speed * e.slowFactor * dt / 1000f
             if (e.dist >= last) {
                 lives = max(0, lives - e.kind.livesLost)
+                baseFlashMs = TowerDefense.BASE_FLASH_MS
                 iterator.remove()
             }
         }
@@ -491,6 +536,7 @@ internal class TdGame(random: Random = Random.Default, seed: Int = random.nextIn
             val dx = p.lastX - p.x
             val dy = p.lastY - p.y
             val d = hypot(dx, dy)
+            if (d > 0.001f) p.angle = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
             val step = TowerDefense.PROJECTILE_SPEED * dt / 1000f
             if (d <= step) {
                 if (target != null) hit(p, target)
@@ -520,7 +566,7 @@ internal class TdGame(random: Random = Random.Default, seed: Int = random.nextIn
 
     private fun hit(p: TdProjectile, target: TdEnemy) {
         val kind = p.kind
-        flashes.add(TdFlash(p.lastX, p.lastY, kind, TowerDefense.FLASH_MS))
+        flashes.add(TdFlash(p.lastX, p.lastY, kind, TowerDefense.FLASH_MS, TowerDefense.FLASH_MS, p.angle))
         damage(target, p.damage)
         if (kind.splash > 0f) {
             for (e in enemies) {
@@ -540,6 +586,7 @@ internal class TdGame(random: Random = Random.Default, seed: Int = random.nextIn
         if (e.hp <= 0f) {
             e.hp = 0f
             e.dyingMs = 0f
+            flashes.add(TdFlash(enemyX(e), enemyY(e), TdTowerKind.WOODEN, TowerDefense.DEATH_FLASH_MS, TowerDefense.DEATH_FLASH_MS, death = true))
             gold += e.kind.reward
             score += TowerDefense.killPoints(e.kind)
         }

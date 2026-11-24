@@ -84,6 +84,9 @@ private const val TD_PHASE_OVER = 2 // la dernière vie est perdue : la partie e
 /** Plus long temps d'une image pris en compte : après un à-coup, les ennemis ne doivent pas sauter plusieurs cases d'un coup. */
 private const val TD_MAX_FRAME_MS = 100L
 
+/** Durée d'un pulse de la tour verte, du centre de la tour à la limite de son champ d'action. */
+private const val TD_PULSE_MS = 1600L
+
 // Les images : une planche par sorte d'image (voir res/drawable-nodpi/td_*.webp).
 private const val TD_TILE_PX = 64
 private const val TD_TILE_COLS = 8
@@ -93,6 +96,8 @@ private const val TD_TOWER_W = 96
 private const val TD_TOWER_H = 128
 private const val TD_FX_PX = 64
 private const val TD_FX_FRAMES = 8
+private const val TD_HIT_PX = 96
+private const val TD_HIT_FRAMES = 8
 private const val TD_ENEMY_FRAMES = 10
 private const val TD_ENEMY_DYING_FRAMES = 5
 
@@ -111,6 +116,11 @@ internal class TdSpriteSet(
     val towers: ImageBitmap?,
     val props: ImageBitmap?,
     val fx: ImageBitmap?,
+    /** Les tuiles et les décors du thème d'été (les autres sont ceux du marais). */
+    val tilesSummer: ImageBitmap?,
+    val propsSummer: ImageBitmap?,
+    /** Les effets d'impact des tirs et de mort des ennemis (voir [TD_HIT_PX]). */
+    val hit: ImageBitmap?,
     val enemies: Map<TdEnemyKind, ImageBitmap?>
 )
 
@@ -130,6 +140,9 @@ internal object TdSprites {
             towers = load(R.drawable.td_towers),
             props = load(R.drawable.td_props),
             fx = load(R.drawable.td_fx),
+            tilesSummer = load(R.drawable.td_tiles_summer),
+            propsSummer = load(R.drawable.td_props_summer),
+            hit = load(R.drawable.td_hit),
             enemies = mapOf(
                 TdEnemyKind.GOBLIN to load(R.drawable.td_enemy_goblin),
                 TdEnemyKind.GOBLINA to load(R.drawable.td_enemy_goblina),
@@ -584,7 +597,7 @@ private fun DrawScope.drawTdBoard(
             val x0 = (c * cell).roundToInt()
             val x1 = ((c + 1) * cell).roundToInt()
             val tile = tileIndexes[r * TdMap.COLS + c]
-            val tiles = sprites.tiles
+            val tiles = if (map.theme == TdMap.THEME_SUMMER) sprites.tilesSummer else sprites.tiles
             if (tiles != null) {
                 drawPiece(
                     tiles, (tile % TD_TILE_COLS) * TD_TILE_PX, (tile / TD_TILE_COLS) * TD_TILE_PX, TD_TILE_PX, TD_TILE_PX,
@@ -619,8 +632,21 @@ private fun DrawScope.drawTdBoard(
         )
     }
 
+    // Les tours vertes : deux ronds qui partent de la tour et grossissent jusqu'à la limite de son champ d'action en s'effaçant.
+    for (tower in game.towers) {
+        if (tower.kind != TdTowerKind.HEAL) continue
+        val center = Offset((tower.cell % TdMap.COLS + 0.5f) * cell, (tower.cell / TdMap.COLS + 0.5f) * cell)
+        val range = TdTowerKind.HEAL.range * cell
+        for (k in 0..1) {
+            val phase = (((clockMs + k * TD_PULSE_MS / 2) % TD_PULSE_MS).toFloat()) / TD_PULSE_MS
+            val fade = 1f - phase
+            drawCircle(Color(0xFF66BB6A).copy(alpha = 0.16f * fade), range * phase, center)
+            drawCircle(Color(0xFFA5D6A7).copy(alpha = 0.85f * fade), range * phase, center, style = Stroke(width = cell * 0.05f))
+        }
+    }
+
     // Les décors et les tours, rangée par rangée : ce qui est plus bas passe devant.
-    val props = sprites.props
+    val props = if (map.theme == TdMap.THEME_SUMMER) sprites.propsSummer else sprites.props
     val towerSheet = sprites.towers
     for (r in 0 until TdMap.ROWS) {
         for (c in 0 until TdMap.COLS) {
@@ -675,15 +701,42 @@ private fun DrawScope.drawTdBoard(
         }
     }
 
-    // Les éclats des impacts.
+    // Les impacts des tirs et les nuages de mort : une image de la planche des effets, selon l'avancement de l'effet.
+    val hit = sprites.hit
     for (f in game.flashes) {
-        val k = (f.ms / TowerDefense.FLASH_MS).coerceIn(0f, 1f)
-        val color = when (f.kind) {
-            TdTowerKind.WOODEN -> Color(0xFFFFB74D)
-            TdTowerKind.BRICK -> Color(0xFFFF7043)
-            else -> Color(0xFF4FC3F7)
+        val progress = (1f - f.ms / f.total).coerceIn(0f, 0.999f)
+        val cx = f.x * cell
+        val cy = f.y * cell
+        if (hit != null) {
+            val frame = (progress * TD_HIT_FRAMES).toInt()
+            val row = if (f.death) 3 else when (f.kind) {
+                TdTowerKind.WOODEN -> 0
+                TdTowerKind.BRICK -> 1
+                else -> 2
+            }
+            val side = if (f.death) cell * 1.0f else cell * 1.15f
+            // Les coups sont tournés dans le sens du tir ; le nuage de mort monte et s'efface.
+            val lift = if (f.death) -cell * 0.25f * progress else 0f
+            rotate(if (f.death) 0f else f.angle, Offset(cx, cy + lift)) {
+                drawPiece(
+                    hit, frame * TD_HIT_PX, row * TD_HIT_PX, TD_HIT_PX, TD_HIT_PX,
+                    cx - side / 2f, cy + lift - side / 2f, side, side
+                )
+            }
+        } else {
+            val color = when (f.kind) {
+                TdTowerKind.WOODEN -> Color(0xFFFFB74D)
+                TdTowerKind.BRICK -> Color(0xFFFF7043)
+                else -> Color(0xFF4FC3F7)
+            }
+            drawCircle(color.copy(alpha = 0.7f * (1f - progress)), cell * (0.2f + 0.5f * progress), Offset(cx, cy))
         }
-        drawCircle(color.copy(alpha = 0.7f * k), cell * (0.2f + 0.5f * (1f - k)), Offset(f.x * cell, f.y * cell))
+    }
+
+    // Un ennemi est arrivé à la base : un flash noir sur tout le plateau, qui s'éteint vite.
+    if (game.baseFlashMs > 0f) {
+        val k = (game.baseFlashMs / TowerDefense.BASE_FLASH_MS).coerceIn(0f, 1f)
+        drawRect(Color.Black.copy(alpha = 0.8f * k), Offset.Zero, size)
     }
 }
 

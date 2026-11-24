@@ -63,8 +63,76 @@ class TowerDefenseTest {
             if (map.isPath(r, c)) assertFalse("chemin sur du marais en ($r, $c)", tile in TdTiles.SWAMP)
             else assertTrue(tile in TdTiles.SWAMP)
         }
-        // Une case de chemin entourée de chemin a la tuile toute claire.
+        // Une case de chemin entourée de chemin a la tuile toute claire, dans les deux thèmes.
         assertEquals(511, TdTiles.SIGNATURES[TdTiles.best(511)])
+        assertEquals(511, TdTiles.SIGNATURES_SUMMER[TdTiles.best(511, TdMap.THEME_SUMMER)])
+        // Une case de fond n'a pas de chemin : l'une des deux tuiles unies.
+        assertEquals(0, TdTiles.SIGNATURES[TdTiles.SWAMP[0]])
+        assertEquals(0, TdTiles.SIGNATURES_SUMMER[TdTiles.SWAMP[1]])
+        assertEquals(56, TdTiles.SIGNATURES.size)
+        assertEquals(56, TdTiles.SIGNATURES_SUMMER.size)
+    }
+
+    @Test
+    fun lesDeuxThemesSontTiresSelonLaGraine() {
+        val themes = (0 until 300).map { TdMap.generate(it).theme }
+        assertTrue(themes.all { it == TdMap.THEME_SWAMP || it == TdMap.THEME_SUMMER })
+        assertTrue("les deux thèmes sortent", themes.count { it == TdMap.THEME_SWAMP } in 80..220)
+        assertEquals(TdMap.generate(42).theme, TdMap.generate(42).theme)
+        // Chaque thème donne des tuiles valides pour toutes ses cases.
+        for (seed in 0 until 40) {
+            val map = TdMap.generate(seed)
+            for (r in 0 until TdMap.ROWS) for (c in 0 until TdMap.COLS) assertTrue(map.tileIndex(r, c) in 0 until 56)
+        }
+    }
+
+    @Test
+    fun unEnnemiQuiArriveALaBaseFaitUnFlashNoir() {
+        val game = newGame()
+        assertEquals(0f, game.baseFlashMs, 0f)
+        game.startWave()
+        // Un ennemi tout près de la sortie.
+        val e = TdEnemy(77, TdEnemyKind.GOBLIN, 10f)
+        e.dist = (game.map.path.size - 1) - 0.01f
+        game.enemies.add(e)
+        game.tick(50)
+        assertEquals(TowerDefense.START_LIVES - 1, game.lives)
+        assertTrue(game.baseFlashMs > 0f)
+        // Le flash s'éteint.
+        repeat(20) { game.tick(50) }
+        assertEquals(0f, game.baseFlashMs, 0f)
+    }
+
+    @Test
+    fun uneMortEtUnImpactLaissentUnEffetPourLEcran() {
+        val game = newGame()
+        val tower = defend(game, TdTowerKind.WOODEN, TowerDefense.MAX_LEVEL)
+        val enemy = TdEnemy(5, TdEnemyKind.GOBLIN, 1f)
+        val tx = tower.cell % TdMap.COLS + 0.5f
+        val ty = tower.cell / TdMap.COLS + 0.5f
+        var bestDist = 0f
+        var best = Float.MAX_VALUE
+        var d = 0f
+        while (d < game.map.path.size - 1) {
+            enemy.dist = d
+            val dd = Math.hypot((game.enemyX(enemy) - tx).toDouble(), (game.enemyY(enemy) - ty).toDouble()).toFloat()
+            if (dd < best) { best = dd; bestDist = d }
+            d += 0.1f
+        }
+        enemy.dist = bestDist
+        game.enemies.add(enemy)
+        var sawImpact = false
+        var sawDeath = false
+        repeat(40) {
+            game.tick(30)
+            if (game.flashes.any { !it.death }) sawImpact = true
+            if (game.flashes.any { it.death }) sawDeath = true
+        }
+        assertTrue(sawImpact)
+        assertTrue(sawDeath)
+        // Les effets finissent par s'éteindre.
+        repeat(40) { game.tick(30) }
+        assertTrue(game.flashes.isEmpty())
     }
 
     @Test
