@@ -2402,6 +2402,24 @@
     <string name="drive_label_stock">COMMANDES PRÊTES</string>
     <string name="drive_order_ready">PRÊTE</string>
     <string name="drive_sign" translatable="false">DRIVE</string>
+    <string name="game_drink">Soif de Longpont</string>
+    <string name="rules_drink_1_title">But du jeu</string>
+    <string name="rules_drink_1_body">Le personnage du Drive a soif : bois le plus possible en deux minutes. Chaque appui sur A ou B est une gorgée d’un centilitre ; un verre de 25 cl se vide en 25 gorgées, puis un verre plein arrive tout seul. Ton score est la quantité bue, en centilitres : il faut donc marteler les boutons le plus vite possible.</string>
+    <string name="rules_drink_2_title">L’équilibre</string>
+    <string name="rules_drink_2_body">De temps en temps, le personnage se met à chanceler vers la gauche ou vers la droite, de plus en plus fort. Tant qu’il penche, il ne peut plus boire : appuie sur la flèche du côté opposé (il penche à droite, appuie sur la flèche de gauche) autant de fois qu’il le faut pour le redresser. Une flèche du mauvais côté le fait pencher davantage.</string>
+    <string name="rules_drink_3_title">Dans l’appli</string>
+    <string name="rules_drink_3_body">Jeu en solo, à l’horizontale, qui dure deux minutes. Plus la partie avance, plus il chancelle souvent et vite. Les flèches gauche et droite sont en bas à gauche, les boutons A et B en bas à droite (les deux servent à boire). Avec une manette ou en mode TV, la croix et les boutons A et B font la même chose ; Start met en pause, comme le bouton retour. Ton meilleur score est gardé.</string>
+    <string name="drink_ready_title">À %1$s de boire</string>
+    <string name="drink_ready_hint">Appuie sur A pour commencer. Martèle A ou B pour boire ; quand le personnage chancelle, appuie sur la flèche du côté opposé pour le redresser avant de reboire.</string>
+    <string name="drink_score">Quantité bue (cl) : %1$d</string>
+    <string name="drink_glasses_count">Verres vidés : %1$d</string>
+    <string name="drink_over_title">TEMPS ÉCOULÉ</string>
+    <string name="drink_over_summary">Verres vidés : %1$d · Équilibres rétablis : %2$d</string>
+    <string name="drink_replay_hint">Appuie sur A pour rejouer.</string>
+    <string name="drink_label_time">TEMPS</string>
+    <string name="drink_label_volume">BU (CL)</string>
+    <string name="drink_label_glasses">VERRES</string>
+    <string name="drink_sign" translatable="false">BAR</string>
     <string name="game_bubble">Bubble Shooter</string>
     <string name="rules_bubble_1_title">But du jeu</string>
     <string name="rules_bubble_1_body">Tire des bulles de couleur depuis le canon pour former des groupes d’au moins trois bulles de la même couleur : ils éclatent. Les bulles qui ne tiennent plus au plafond tombent aussi. Vide tout le tableau pour passer au niveau suivant.</string>
