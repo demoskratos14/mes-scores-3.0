@@ -2271,15 +2271,18 @@
     <string name="rules_sudoku_3_title">Anotar possibilidades</string>
     <string name="rules_sudoku_3_body">Mantenha o dedo numa casa vazia: a roda abre-se em modo de anotações. Cada dígito tocado é escrito bem pequeno na casa, no seu lugar (1 2 3 em cima, 4 5 6 no meio, 7 8 9 embaixo), para lembrar o que é possível sem confirmar. A roda continua aberta para anotar vários dígitos; toque num dígito já anotado para retirá-lo e toque fora da roda para fechá-la.</string>
     <string name="rules_sudoku_4_title">Níveis e pontuação</string>
-    <string name="rules_sudoku_4_body">Três níveis: fácil (38 dígitos dados), médio (32) e difícil (26). O app cria as grades ao acaso, sem conexão. Um dígito repetido numa linha, coluna ou bloco aparece em vermelho. Completar uma grade dá pontos conforme o nível, mais um bônus de rapidez. Um recorde é guardado para cada nível. O cronômetro pausa quando você sai do app.</string>
+    <string name="rules_sudoku_4_body">Quatro níveis: fácil (38 dígitos dados), médio (32), difícil (26) e especialista (o menor número possível de dígitos). O app cria as grades ao acaso, sem conexão, e todas se resolvem por lógica, sem nunca adivinhar. O nível depende das técnicas exigidas: deduções simples no fácil, um pouco mais no médio, pares de dígitos no difícil e técnicas avançadas no especialista (criar uma grade especialista pode levar alguns segundos). Um dígito repetido numa linha, coluna ou bloco aparece em vermelho. Completar uma grade dá pontos conforme o nível, mais um bônus de rapidez. Um recorde é guardado para cada nível. O cronômetro pausa quando você sai do app.</string>
     <string name="sudoku_ready_title">Vez de %1$s</string>
     <string name="sudoku_ready_hint">Escolha um nível: o app cria uma grade só para você, com uma única solução possível.</string>
     <string name="sudoku_level_easy">Fácil</string>
     <string name="sudoku_level_medium">Médio</string>
     <string name="sudoku_level_hard">Difícil</string>
+    <string name="sudoku_level_expert">Especialista</string>
     <string name="sudoku_level_detail" tools:ignore="PluralsCandidate">%1$s: %2$d dígitos dados</string>
+    <string name="sudoku_level_detail_expert">%1$s: técnicas avançadas</string>
     <string name="sudoku_go">Vamos lá!</string>
     <string name="sudoku_generating">Criando a grade…</string>
+    <string name="sudoku_generating_expert">Criando uma grade especialista, pode levar alguns segundos…</string>
     <string name="sudoku_time">Tempo: %1$s</string>
     <string name="sudoku_pause">Pausa</string>
     <string name="sudoku_paused_title">Partida em pausa</string>

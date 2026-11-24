@@ -29,13 +29,16 @@ class SudokuTest {
     @Test
     fun uneGrilleGenereeAUneSolutionUniqueEtValide() {
         for (level in SudokuLevel.entries) {
-            for (seed in 1..3) {
+            // L'expert cherche longtemps une grille assez difficile : un seul essai suffit ici.
+            for (seed in 1..(if (level == SudokuLevel.EXPERT) 1 else 3)) {
                 val puzzle = SudokuEngine.generate(level, Random(seed))
                 assertTrue(isValidSolution(puzzle.solution))
                 assertTrue(SudokuEngine.hasUniqueSolution(puzzle.grid))
                 for (i in 0 until 81) if (puzzle.grid[i] != 0) assertEquals(puzzle.solution[i], puzzle.grid[i])
                 val clues = puzzle.grid.count { it != 0 }
-                assertTrue("$level : $clues chiffres donnés", clues >= level.clues && clues <= level.clues + 6)
+                // L'expert retire tant qu'il peut : il garde à peu près 22 à 30 chiffres.
+                val most = if (level == SudokuLevel.EXPERT) 32 else level.clues + 6
+                assertTrue("$level : $clues chiffres donnés", clues >= level.clues && clues <= most)
             }
         }
     }
@@ -44,6 +47,71 @@ class SudokuTest {
     fun lesNiveauxDonnentMoinsDeChiffresQuandIlsMontent() {
         assertTrue(SudokuLevel.EASY.clues > SudokuLevel.MEDIUM.clues)
         assertTrue(SudokuLevel.MEDIUM.clues > SudokuLevel.HARD.clues)
+        assertTrue(SudokuLevel.HARD.clues > SudokuLevel.EXPERT.clues)
+        // Plus le niveau monte, plus il rapporte et plus il laisse de temps.
+        val levels = SudokuLevel.entries
+        for (k in 1 until levels.size) {
+            assertTrue(levels[k].basePoints > levels[k - 1].basePoints)
+            assertTrue(levels[k].parSeconds > levels[k - 1].parSeconds)
+        }
+    }
+
+    @Test
+    fun lesGrillesCorrespondentAuNiveauDemande() {
+        for (level in SudokuLevel.entries) {
+            val puzzle = SudokuEngine.generate(level, Random(2))
+            val rating = SudokuLogic.rate(puzzle.grid)
+            assertTrue("$level : la grille doit se résoudre par logique", rating.solved)
+            assertEquals("$level : techniques hors niveau (${rating.hardest})", 0, level.gap(rating))
+            assertTrue(rating.grid.contentEquals(puzzle.solution))
+        }
+    }
+
+    @Test
+    fun lExpertDemandeUneTechniqueAvancee() {
+        val rating = SudokuLogic.rate(SudokuEngine.generate(SudokuLevel.EXPERT, Random(8)).grid)
+        assertTrue(rating.solved)
+        assertTrue(rating.hardest >= SudokuLogic.TRIPLE)
+    }
+
+    @Test
+    fun leSolveurLogiqueNeSeTrompeJamais() {
+        // Même quand il n'arrive pas au bout, les chiffres qu'il a posés sont ceux de la solution.
+        repeat(25) { seed ->
+            val puzzle = SudokuEngine.carve(SudokuLevel.EXPERT, Random(seed))
+            val rating = SudokuLogic.rate(puzzle.grid)
+            for (i in 0 until 81) {
+                if (rating.grid[i] != 0) assertEquals(puzzle.solution[i], rating.grid[i])
+            }
+        }
+    }
+
+    @Test
+    fun leSolveurLogiqueNoteLesTechniques() {
+        val puzzle = SudokuEngine.generate(SudokuLevel.EASY, Random(4))
+        // Une grille déjà pleine ne demande aucune technique.
+        val full = SudokuLogic.rate(puzzle.solution)
+        assertTrue(full.solved)
+        assertEquals(0, full.hardest)
+        // Une grille vide ne donne aucune déduction : on ne devine pas.
+        val blank = SudokuLogic.rate(IntArray(81))
+        assertFalse(blank.solved)
+        assertEquals(0, blank.hardest)
+        // Une grille facile se résout avec les déductions les plus simples.
+        val easy = SudokuLogic.rate(puzzle.grid)
+        assertTrue(easy.solved)
+        assertTrue(easy.hardest in 1..SudokuLogic.HIDDEN_SINGLE)
+    }
+
+    @Test
+    fun leNiveauJugeUneNote() {
+        val grid = IntArray(81)
+        assertEquals(0, SudokuLevel.EXPERT.gap(SudokuRating(true, SudokuLogic.XY_WING, grid)))
+        assertTrue(SudokuLevel.EXPERT.gap(SudokuRating(true, SudokuLogic.NAKED_SINGLE, grid)) > 0)
+        assertTrue(SudokuLevel.HARD.gap(SudokuRating(true, SudokuLogic.XY_WING, grid)) > 0)
+        assertEquals(0, SudokuLevel.HARD.gap(SudokuRating(true, SudokuLogic.PAIR, grid)))
+        // Une grille qui obligerait à deviner est toujours pire qu'une grille mal classée.
+        assertTrue(SudokuLevel.HARD.gap(SudokuRating(false, 0, grid)) > SudokuLevel.HARD.gap(SudokuRating(true, SudokuLogic.SWORDFISH, grid)))
     }
 
     @Test

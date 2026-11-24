@@ -125,6 +125,7 @@ private fun SudokuLevel.labelRes(): Int = when (this) {
     SudokuLevel.EASY -> R.string.sudoku_level_easy
     SudokuLevel.MEDIUM -> R.string.sudoku_level_medium
     SudokuLevel.HARD -> R.string.sudoku_level_hard
+    SudokuLevel.EXPERT -> R.string.sudoku_level_expert
 }
 
 private fun formatSudokuTime(seconds: Int): String = "%d:%02d".format(seconds / 60, seconds % 60)
@@ -230,8 +231,13 @@ internal fun SudokuScreen(players: List<String>) {
                         ) {
                             RadioButton(selected = option == menuLevel, onClick = null)
                             Spacer(modifier = Modifier.width(12.dp))
+                            val label = stringResource(option.labelRes())
                             Text(
-                                text = stringResource(R.string.sudoku_level_detail, stringResource(option.labelRes()), option.clues),
+                                text = if (option == SudokuLevel.EXPERT) {
+                                    stringResource(R.string.sudoku_level_detail_expert, label)
+                                } else {
+                                    stringResource(R.string.sudoku_level_detail, label, option.clues)
+                                },
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -241,7 +247,10 @@ internal fun SudokuScreen(players: List<String>) {
                 if (generating) {
                     CircularProgressIndicator()
                     Text(
-                        text = stringResource(R.string.sudoku_generating),
+                        text = stringResource(
+                            if (menuLevel == SudokuLevel.EXPERT) R.string.sudoku_generating_expert else R.string.sudoku_generating
+                        ),
+                        textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

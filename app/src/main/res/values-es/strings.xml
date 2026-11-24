@@ -2271,15 +2271,18 @@
     <string name="rules_sudoku_3_title">Anotar posibilidades</string>
     <string name="rules_sudoku_3_body">Mantén pulsada una casilla vacía: la rueda se abre en modo notas. Cada dígito que toques se escribe muy pequeño en la casilla, en su sitio (1 2 3 arriba, 4 5 6 en medio, 7 8 9 abajo), para recordar lo que es posible sin darlo por válido. La rueda sigue abierta para anotar varios dígitos; toca un dígito ya anotado para quitarlo y toca fuera de la rueda para cerrarla.</string>
     <string name="rules_sudoku_4_title">Niveles y puntuación</string>
-    <string name="rules_sudoku_4_body">Tres niveles: fácil (38 dígitos dados), medio (32) y difícil (26). La app crea las cuadrículas al azar, sin conexión. Un dígito repetido en una fila, columna o bloque se muestra en rojo. Completar una cuadrícula da puntos según el nivel, más una bonificación por rapidez. Se guarda un récord por nivel. El cronómetro se pausa al salir de la app.</string>
+    <string name="rules_sudoku_4_body">Cuatro niveles: fácil (38 dígitos dados), medio (32), difícil (26) y experto (el menor número posible de dígitos). La app crea las cuadrículas al azar, sin conexión, y todas se resuelven por lógica, sin adivinar nunca. El nivel depende de las técnicas que piden: deducciones simples en fácil, algo más en medio, parejas de dígitos en difícil y técnicas avanzadas en experto (crear una cuadrícula experta puede tardar unos segundos). Un dígito repetido en una fila, columna o bloque se muestra en rojo. Completar una cuadrícula da puntos según el nivel, más una bonificación por rapidez. Se guarda un récord por nivel. El cronómetro se pausa al salir de la app.</string>
     <string name="sudoku_ready_title">Turno de %1$s</string>
     <string name="sudoku_ready_hint">Elige un nivel: la app crea una cuadrícula solo para ti, con una única solución posible.</string>
     <string name="sudoku_level_easy">Fácil</string>
     <string name="sudoku_level_medium">Medio</string>
     <string name="sudoku_level_hard">Difícil</string>
+    <string name="sudoku_level_expert">Experto</string>
     <string name="sudoku_level_detail" tools:ignore="PluralsCandidate">%1$s: %2$d dígitos dados</string>
+    <string name="sudoku_level_detail_expert">%1$s: técnicas avanzadas</string>
     <string name="sudoku_go">¡Vamos!</string>
     <string name="sudoku_generating">Creando la cuadrícula…</string>
+    <string name="sudoku_generating_expert">Creando una cuadrícula experta, puede tardar unos segundos…</string>
     <string name="sudoku_time">Tiempo: %1$s</string>
     <string name="sudoku_pause">Pausa</string>
     <string name="sudoku_paused_title">Partida en pausa</string>

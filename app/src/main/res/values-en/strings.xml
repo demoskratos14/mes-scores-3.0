@@ -2241,15 +2241,18 @@
     <string name="rules_sudoku_3_title">Noting possibilities</string>
     <string name="rules_sudoku_3_body">Press and hold an empty square: the wheel opens in notes mode. Each digit you tap is written very small in the square, in its own place (1 2 3 on top, 4 5 6 in the middle, 7 8 9 at the bottom), to remember what is possible without committing to it. The wheel stays open so you can note several digits; tap a noted digit to remove it, and tap outside the wheel to close it.</string>
     <string name="rules_sudoku_4_title">Levels and score</string>
-    <string name="rules_sudoku_4_body">Three levels: easy (38 digits given), medium (32) and hard (26). The app creates the grids at random, with no connection needed. A digit repeated in a row, column or block is shown in red. Finishing a grid earns points depending on the level, plus a speed bonus. A record is kept for each level. The timer pauses when you leave the app.</string>
+    <string name="rules_sudoku_4_body">Four levels: easy (38 digits given), medium (32), hard (26) and expert (as few digits as possible). The app creates the grids at random, with no connection needed, and every one can be solved by logic, without ever guessing. The level depends on the techniques a grid requires: simple deductions in easy, a bit more in medium, pairs of digits in hard, and advanced techniques in expert (creating an expert grid can take a few seconds). A digit repeated in a row, column or block is shown in red. Finishing a grid earns points depending on the level, plus a speed bonus. A record is kept for each level. The timer pauses when you leave the app.</string>
     <string name="sudoku_ready_title">%1$s, your turn</string>
     <string name="sudoku_ready_hint">Pick a level: the app creates a grid just for you, with a single possible solution.</string>
     <string name="sudoku_level_easy">Easy</string>
     <string name="sudoku_level_medium">Medium</string>
     <string name="sudoku_level_hard">Hard</string>
+    <string name="sudoku_level_expert">Expert</string>
     <string name="sudoku_level_detail" tools:ignore="PluralsCandidate">%1$s: %2$d digits given</string>
+    <string name="sudoku_level_detail_expert">%1$s: advanced techniques</string>
     <string name="sudoku_go">Let’s go!</string>
     <string name="sudoku_generating">Creating the grid…</string>
+    <string name="sudoku_generating_expert">Creating an expert grid, this may take a few seconds…</string>
     <string name="sudoku_time">Time: %1$s</string>
     <string name="sudoku_pause">Pause</string>
     <string name="sudoku_paused_title">Game paused</string>
