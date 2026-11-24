@@ -14,7 +14,13 @@ import kotlin.math.sqrt
  * Un maillage de triangles : [positions] et [normals] (x, y, z de chaque sommet à la suite) et [indices] (trois par
  * triangle, sens trigonométrique vu de l'extérieur, comme en glTF). Y est vers le haut.
  */
-internal class Mesh3D(val positions: FloatArray, val normals: FloatArray, val indices: IntArray) {
+internal class Mesh3D(
+    val positions: FloatArray,
+    val normals: FloatArray,
+    val indices: IntArray,
+    /** Couleur de chaque sommet (r, g, b de 0 à 1, comme [positions]), ou null : la matière de l'objet colore alors tout le maillage. */
+    val colors: FloatArray? = null
+) {
     val vertexCount: Int get() = positions.size / 3
     val triangleCount: Int get() = indices.size / 3
 
@@ -28,6 +34,7 @@ internal class Mesh3D(val positions: FloatArray, val normals: FloatArray, val in
 
     init {
         require(positions.size % 3 == 0 && normals.size == positions.size) { "positions et normales incohérentes" }
+        require(colors == null || colors.size == positions.size) { "couleurs et positions incohérentes" }
         require(indices.size % 3 == 0) { "le nombre d'indices doit être un multiple de 3" }
         require(indices.all { it in 0 until positions.size / 3 }) { "indice de sommet hors limites" }
         var x0 = Float.MAX_VALUE
@@ -97,6 +104,8 @@ internal object GlbParser {
         val positions = ArrayList<FloatArray>()
         val normals = ArrayList<FloatArray>()
         val indices = ArrayList<IntArray>()
+        // Couleurs par sommet (COLOR_0) de chaque primitive, ou null quand elle n'en a pas.
+        val colors = ArrayList<FloatArray?>()
         var vertexBase = 0
 
         fun build(): Mesh3D {
@@ -119,7 +128,17 @@ internal object GlbParser {
             for (a in normals) { a.copyInto(nrm, po); po += a.size }
             var io = 0
             for (a in indices) { a.copyInto(idx, io); io += a.size }
-            return Mesh3D(p, nrm, idx)
+            var col: FloatArray? = null
+            if (colors.any { it != null }) {
+                // Une primitive sans couleurs reste blanche : la matière de l'objet la colore seule.
+                col = FloatArray(p.size) { 1f }
+                var co = 0
+                for ((k, a) in positions.withIndex()) {
+                    colors[k]?.copyInto(col, co)
+                    co += a.size
+                }
+            }
+            return Mesh3D(p, nrm, idx, col)
         }
 
         fun sceneRoots(nodeCount: Int): List<Int> {
@@ -173,6 +192,9 @@ internal object GlbParser {
                 val nrm = (attrs["NORMAL"] as? Number)?.let { readFloats(it.toInt(), 3) }
                     ?.takeIf { it.size == pos.size } ?: smoothNormals(pos, idx)
                 transform(world, pos, nrm)
+                colors.add(
+                    (attrs["COLOR_0"] as? Number)?.let { readColors(it.toInt()) }?.takeIf { it.size == pos.size }
+                )
                 positions.add(pos)
                 normals.add(nrm)
                 indices.add(IntArray(idx.size) { idx[it] + vertexBase })
@@ -262,6 +284,19 @@ internal object GlbParser {
             val out = FloatArray(a.count * components)
             for (i in 0 until a.count) for (c in 0 until components) {
                 out[i * components + c] = bin.getFloat(a.offset + i * a.stride + c * 4)
+            }
+            return out
+        }
+
+        // COLOR_0 en r, g, b flottants (de 0 à 1) ; le quatrième composant éventuel (opacité) est ignoré.
+        fun readColors(accessorIndex: Int): FloatArray? {
+            val acc = list(root["accessors"]).getOrNull(accessorIndex) as? Map<*, *> ?: return null
+            if ((acc["componentType"] as? Number)?.toInt() != FLOAT) return null
+            val components = if (acc["type"] == "VEC4") 4 else 3
+            val a = access(accessorIndex, components, setOf(FLOAT))
+            val out = FloatArray(a.count * 3)
+            for (i in 0 until a.count) for (c in 0 until 3) {
+                out[i * 3 + c] = bin.getFloat(a.offset + i * a.stride + c * 4)
             }
             return out
         }

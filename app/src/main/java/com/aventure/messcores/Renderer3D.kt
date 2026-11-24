@@ -194,10 +194,16 @@ internal class Renderer3D {
     private var sny = FloatArray(0)
     private var snz = FloatArray(0)
 
+    // Couleur de chaque sommet × (1 / profondeur), pour les maillages qui en ont (voir Mesh3D.colors).
+    private var scr = FloatArray(0)
+    private var scg = FloatArray(0)
+    private var scb = FloatArray(0)
+
     private fun ensure(vertices: Int) {
         if (sx.size >= vertices) return
         sx = FloatArray(vertices); sy = FloatArray(vertices); siz = FloatArray(vertices)
         snx = FloatArray(vertices); sny = FloatArray(vertices); snz = FloatArray(vertices)
+        scr = FloatArray(vertices); scg = FloatArray(vertices); scb = FloatArray(vertices)
     }
 
     /** Dessine [scene] dans [frame] (fond transparent). */
@@ -285,6 +291,7 @@ internal class Renderer3D {
         val c20 = b * f - c * e; val c21 = c * d - a * f; val c22 = a * e - b * d
         val p = mesh.positions
         val n = mesh.normals
+        val vc = mesh.colors
         for (v in 0 until mesh.vertexCount) {
             val o = v * 3
             val x = p[o]; val y = p[o + 1]; val z = p[o + 2]
@@ -313,6 +320,7 @@ internal class Renderer3D {
             if (len > 1e-12f) { vx /= len; vy /= len; vz /= len }
             // On garde normale × (1 / profondeur), pour l'interpoler sans déformation de perspective.
             snx[v] = vx * iz; sny[v] = vy * iz; snz[v] = vz * iz
+            if (vc != null) { scr[v] = vc[o] * iz; scg[v] = vc[o + 1] * iz; scb[v] = vc[o + 2] * iz }
         }
     }
 
@@ -325,6 +333,7 @@ internal class Renderer3D {
         val table = mat.specularTable
         val bias = inst.depthBias
         val marble = mat.marble
+        val vertexColors = mesh.colors != null
         val pos = mesh.positions
         val tex = if (marble != null) FloatArray(3) else null
 
@@ -378,10 +387,35 @@ internal class Renderer3D {
                     }
                 }
             }
+            // Les trois poids barycentriques sont des fonctions affines de x : a + s · x. On en tire, pour chaque ligne, le segment
+            // où ils sont tous positifs, au lieu de parcourir toute la boîte du triangle (un long rail en diagonale en couvre peu).
+            val s0 = (y1 - y2) * invArea
+            val s1 = (y2 - y0) * invArea
+            val s2 = -(s0 + s1)
             for (py in minY..maxY) {
                 val fy = py + 0.5f
                 val row = py * w
-                for (px in minX..maxX) {
+                val a0 = (x1 * (y2 - fy) - x2 * (y1 - fy)) * invArea
+                val a1 = (x2 * (y0 - fy) - x0 * (y2 - fy)) * invArea
+                val a2 = 1f - a0 - a1
+                var lo = minX.toFloat()
+                var hi = maxX.toFloat()
+                var empty = false
+                for (k in 0 until 3) {
+                    val a = if (k == 0) a0 else if (k == 1) a1 else a2
+                    val sl = if (k == 0) s0 else if (k == 1) s1 else s2
+                    if (abs(sl) < 1e-9f) {
+                        if (a < -1e-4f) empty = true
+                    } else {
+                        // a + sl · fx ≥ 0 (avec une marge de deux pixels : le test de chaque pixel, plus bas, reste le juge).
+                        val edge = -a / sl - 0.5f
+                        if (sl > 0f) { if (edge - 2f > lo) lo = edge - 2f } else { if (edge + 2f < hi) hi = edge + 2f }
+                    }
+                }
+                if (empty || lo > hi) continue
+                val xStart = max(minX, floorInt(lo))
+                val xEnd = min(maxX, floorInt(hi) + 1)
+                for (px in xStart..xEnd) {
                     val fx = px + 0.5f
                     val w0 = ((x1 - fx) * (y2 - fy) - (x2 - fx) * (y1 - fy)) * invArea
                     val w1 = ((x2 - fx) * (y0 - fy) - (x0 - fx) * (y2 - fy)) * invArea
@@ -416,6 +450,12 @@ internal class Renderer3D {
                     var baseR = mat.r
                     var baseG = mat.g
                     var baseB = mat.b
+                    if (vertexColors) {
+                        // Couleur du sommet interpolée sans déformation de perspective, puis teintée par la matière.
+                        baseR *= (w0 * scr[i0] + w1 * scr[i1] + w2 * scr[i2]) / iz
+                        baseG *= (w0 * scg[i0] + w1 * scg[i1] + w2 * scg[i2]) / iz
+                        baseB *= (w0 * scb[i0] + w1 * scb[i1] + w2 * scb[i2]) / iz
+                    }
                     if (marble != null && tex != null) {
                         MarbleField.sample(
                             (w0 * tu0 + w1 * tu1 + w2 * tu2) / iz,

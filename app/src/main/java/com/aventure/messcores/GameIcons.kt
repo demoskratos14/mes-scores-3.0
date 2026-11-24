@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, RUNNER_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
@@ -144,6 +144,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             PANCAKE_ID -> drawPancake()
             DRIVE_ID -> drawDrive()
             DRINK_ID -> drawDrink()
+            RUNNER_ID -> drawRunnerIcon()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
             DRAUGHTS_ID -> drawDraughts()
@@ -573,6 +574,40 @@ private fun DrawScope.drawDrive() {
     // Le bandeau rouge et noir du bas, comme sur la console.
     drawRect(red, Offset(s * 0.1f, s * 0.86f), Size(s * 0.5f, s * 0.04f))
     drawRect(ink, Offset(s * 0.4f, s * 0.9f), Size(s * 0.5f, s * 0.03f))
+}
+
+private fun DrawScope.drawRunnerIcon() {
+    paper(Color(0xFF8FC1EE))
+    val s = size.minDimension
+    // Ligne d'horizon et plaine verte, puis une voie de chemin de fer qui fuit vers le fond.
+    drawRect(Color(0xFF5F8A49), topLeft = Offset(0f, s * 0.42f), size = Size(s, s * 0.58f))
+    val vanish = Offset(s * 0.5f, s * 0.42f)
+    val bed = Path().apply {
+        moveTo(vanish.x - s * 0.03f, vanish.y)
+        lineTo(vanish.x + s * 0.03f, vanish.y)
+        lineTo(s * 0.92f, s)
+        lineTo(s * 0.08f, s)
+        close()
+    }
+    drawPath(bed, Color(0xFF6B5240))
+    // Les traverses.
+    for (i in 1..5) {
+        val t = i / 6f
+        val y = s * 0.42f + (s * 0.58f) * t * t
+        val half = s * 0.03f + (s * 0.42f - s * 0.03f) * t * t
+        drawLine(Color(0xFF3E2E22), Offset(s * 0.5f - half, y), Offset(s * 0.5f + half, y), strokeWidth = s * 0.02f + s * 0.025f * t)
+    }
+    // Les deux rails.
+    drawLine(Color(0xFFD9D9D9), vanish + Offset(-s * 0.02f, 0f), Offset(s * 0.16f, s), strokeWidth = s * 0.03f)
+    drawLine(Color(0xFFD9D9D9), vanish + Offset(s * 0.02f, 0f), Offset(s * 0.84f, s), strokeWidth = s * 0.03f)
+    // Le coureur vu de dos : une grosse tête sombre, une ceinture orangée.
+    val cx = s * 0.5f
+    drawCircle(Color(0xFF26324A), s * 0.14f, Offset(cx, s * 0.58f))
+    drawRoundRect(Color(0xFF26324A), Offset(cx - s * 0.07f, s * 0.68f), Size(s * 0.14f, s * 0.14f), CornerRadius(s * 0.03f))
+    drawRect(Color(0xFFE08A3C), Offset(cx - s * 0.07f, s * 0.75f), Size(s * 0.14f, s * 0.025f))
+    // Des pièces d'or devant lui.
+    drawCircle(Color(0xFFFFC21F), s * 0.045f, Offset(cx - s * 0.2f, s * 0.62f))
+    drawCircle(Color(0xFFFFC21F), s * 0.04f, Offset(cx + s * 0.24f, s * 0.5f))
 }
 
 private fun DrawScope.drawDrink() {
