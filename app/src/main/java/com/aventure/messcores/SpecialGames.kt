@@ -460,6 +460,16 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Marble Shooter : écran à part (voir MarbleShooterScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = MARBLE_ID,
+        name = context.getString(R.string.game_marble),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Démineur : écran à part (voir MinesweeperScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = MINESWEEPER_ID,

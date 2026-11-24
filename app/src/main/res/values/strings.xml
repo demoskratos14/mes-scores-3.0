@@ -2452,6 +2452,24 @@
     <string name="bubble_change_mode">Changer de mode</string>
     <string name="rules_bubble_5_title">Modes et bulles spéciales</string>
     <string name="rules_bubble_5_body">Trois modes : Classique, Zen (le plafond ne descend jamais) et Défi du jour (le même tableau de départ pour tout le monde, avec un record par jour). Les premiers niveaux sont dessinés à la main. Les gros coups chargent une jauge : à partir du niveau 2, une bulle spéciale arrive alors dans le canon. La bombe fait éclater toutes ses voisines, l’arc-en-ciel prend la couleur qui forme le plus gros groupe, l’éclair vide toute la rangée où il se pose. Les échanges sont limités : tu en gagnes un à chaque tir qui fait partir des bulles (trois au plus). Le guide de visée se règle avant la partie : sans, court ou long.</string>
+    <string name="game_marble">Marble Shooter</string>
+    <string name="rules_marble_1_title">But du jeu</string>
+    <string name="rules_marble_1_body">Une chaîne de billes de couleur roule vers un trou. Tire des billes depuis le lanceur, au centre, pour former des groupes d’au moins trois billes de la même couleur : ils éclatent. Vide toute la chaîne pour passer au niveau suivant, avant qu’elle n’atteigne le trou.</string>
+    <string name="rules_marble_2_title">Viser et tirer</string>
+    <string name="rules_marble_2_body">Pose le doigt sur le plateau pour viser dans n’importe quelle direction, fais-le glisser pour régler l’angle, puis relève-le pour tirer. Tu peux aussi utiliser les flèches (garde le doigt posé pour continuer à tourner) et le bouton Tirer. Le trait en pointillés montre où la bille s’arrêtera. Touche la bille d’attente, à côté du lanceur, pour l’échanger avec celle du lanceur : les échanges sont illimités.</string>
+    <string name="rules_marble_3_title">Réactions en chaîne</string>
+    <string name="rules_marble_3_body">Une bille tirée s’insère dans la chaîne à l’endroit touché. Quand un groupe éclate, la chaîne se referme : si les deux billes qui se rejoignent ont la même couleur et forment un groupe d’au moins trois, il éclate à son tour. Chaque réaction compte plus que la précédente : ×2, ×3…</string>
+    <string name="rules_marble_4_title">Points et fin de partie</string>
+    <string name="rules_marble_4_body">Une bille éclatée rapporte 10 points, plus 10 par bille au-delà de trois dans le même groupe, le tout multiplié par le rang de la réaction. Vider la chaîne rapporte 500 points de bonus. À chaque niveau, la chaîne est plus longue, plus rapide et compte plus de couleurs (jusqu’à six). La partie est finie quand une bille tombe dans le trou. Jeu en solo : deux modes (Classique et Défi du jour, avec un record chacun), le meilleur score est gardé, et la partie se met en pause quand tu quittes l’appli.</string>
+    <string name="marble_ready_hint">Vise, relève le doigt pour tirer, et fais éclater les groupes de trois billes de la même couleur avant qu’elles n’atteignent le trou.</string>
+    <string name="marble_stats">Niveau : %1$d, billes restantes : %2$d</string>
+    <string name="marble_board_description" tools:ignore="PluralsCandidate">Plateau de jeu. Niveau %1$d, %2$d billes restantes. Bille du lanceur : %3$s. Bille suivante : %4$s.</string>
+    <string name="marble_cleared_title">Chaîne vidée ! Niveau %1$d</string>
+    <string name="marble_combo">Réaction en chaîne ×%1$d !</string>
+    <string name="marble_mode_classic_hint">Une carte et des billes différentes à chaque partie.</string>
+    <string name="marble_mode_daily_hint">La même carte et les mêmes billes pour tout le monde aujourd’hui, avec son propre record.</string>
+    <string name="marble_guide_off">Sans</string>
+    <string name="marble_guide_on">Avec</string>
     <string name="game_breakout">Casse-briques</string>
     <string name="rules_breakout_1_title">But du jeu</string>
     <string name="rules_breakout_1_body">Casser toutes les briques en faisant rebondir la balle avec la raquette, sans la laisser tomber. Quand il ne reste plus aucune brique, le niveau suivant commence : la balle va plus vite. Fais le plus gros score possible.</string>

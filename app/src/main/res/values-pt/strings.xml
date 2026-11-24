@@ -2435,6 +2435,24 @@
     <string name="bubble_change_mode">Mudar de modo</string>
     <string name="rules_bubble_5_title">Modos e bolas especiais</string>
     <string name="rules_bubble_5_body">Três modos: Clássico, Zen (o teto nunca desce) e Desafio do dia (o mesmo tabuleiro de partida para todos, com um recorde por dia). Os primeiros níveis são desenhados à mão. As grandes jogadas carregam um indicador: a partir do nível 2, chega então uma bola especial ao canhão. A bomba faz rebentar todas as vizinhas, o arco-íris toma a cor que forma o maior grupo e o relâmpago esvazia a fila inteira onde pousa. As trocas são limitadas: ganhas uma a cada disparo que faz sair bolas (três no máximo). O guia de mira define-se antes do jogo: sem, curto ou longo.</string>
+    <string name="game_marble">Marble Shooter</string>
+    <string name="rules_marble_1_title">Objetivo</string>
+    <string name="rules_marble_1_body">Uma corrente de bolas coloridas rola em direção a um buraco. Dispara bolas do lançador, ao centro, para formar grupos de pelo menos três bolas da mesma cor: elas rebentam. Esvazia toda a corrente para passares ao nível seguinte antes de ela chegar ao buraco.</string>
+    <string name="rules_marble_2_title">Apontar e disparar</string>
+    <string name="rules_marble_2_body">Põe o dedo no tabuleiro para apontar em qualquer direção, desliza para ajustar o ângulo e levanta-o para disparar. Também podes usar as setas (mantém o dedo premido para continuar a rodar) e o botão Disparar. A linha tracejada mostra onde a bola vai parar. Toca na bola de espera, ao lado do lançador, para a trocar pela do lançador: as trocas são ilimitadas.</string>
+    <string name="rules_marble_3_title">Reações em cadeia</string>
+    <string name="rules_marble_3_body">Uma bola disparada entra na corrente no ponto atingido. Quando um grupo rebenta, a corrente fecha-se: se as duas bolas que se juntam têm a mesma cor e formam um grupo de pelo menos três, esse grupo também rebenta. Cada reação vale mais do que a anterior: ×2, ×3…</string>
+    <string name="rules_marble_4_title">Pontos e fim do jogo</string>
+    <string name="rules_marble_4_body">Uma bola que rebenta vale 10 pontos, mais 10 por cada bola além da terceira no mesmo grupo, tudo multiplicado pela ordem da reação. Esvaziar a corrente dá 500 pontos extra. A cada nível a corrente é mais longa, mais rápida e tem mais cores (até seis). O jogo termina quando uma bola cai no buraco. Jogo a solo: dois modos (Clássico e Desafio do dia, cada um com o seu recorde), a melhor pontuação é guardada e o jogo fica em pausa quando sais da aplicação.</string>
+    <string name="marble_ready_hint">Aponta, levanta o dedo para disparar e faz rebentar grupos de três bolas da mesma cor antes de chegarem ao buraco.</string>
+    <string name="marble_stats">Nível: %1$d, bolas restantes: %2$d</string>
+    <string name="marble_board_description" tools:ignore="PluralsCandidate">Tabuleiro de jogo. Nível %1$d, restam %2$d bolas. Bola do lançador: %3$s. Bola seguinte: %4$s.</string>
+    <string name="marble_cleared_title">Corrente vazia! Nível %1$d</string>
+    <string name="marble_combo">Reação em cadeia ×%1$d!</string>
+    <string name="marble_mode_classic_hint">Um mapa e bolas diferentes em cada jogo.</string>
+    <string name="marble_mode_daily_hint">O mesmo mapa e as mesmas bolas para todos hoje, com o seu próprio recorde.</string>
+    <string name="marble_guide_off">Sem</string>
+    <string name="marble_guide_on">Com</string>
     <string name="game_breakout">Quebra-tijolos</string>
     <string name="rules_breakout_1_title">Objetivo</string>
     <string name="rules_breakout_1_body">Partir todos os tijolos fazendo a bola ressaltar na raquete, sem a deixar cair. Quando já não resta nenhum tijolo, começa o nível seguinte e a bola vai mais depressa. Faz a maior pontuação possível.</string>

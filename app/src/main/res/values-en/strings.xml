@@ -2405,6 +2405,24 @@
     <string name="bubble_change_mode">Change mode</string>
     <string name="rules_bubble_5_title">Modes and special bubbles</string>
     <string name="rules_bubble_5_body">Three modes: Classic, Zen (the ceiling never comes down) and Daily challenge (the same starting board for everyone, with one best score per day). The first levels are hand-drawn. Big shots charge a gauge: from level 2, a special bubble then arrives in the cannon. The bomb pops all its neighbours, the rainbow takes the colour that makes the biggest group, the lightning clears the whole row where it lands. Swaps are limited: you earn one with every shot that clears bubbles (three at most). The aiming guide is set before the game: none, short or long.</string>
+    <string name="game_marble">Marble Shooter</string>
+    <string name="rules_marble_1_title">Goal</string>
+    <string name="rules_marble_1_body">A chain of coloured marbles rolls towards a hole. Shoot marbles from the launcher in the middle to make groups of at least three marbles of the same colour: they pop. Clear the whole chain to move on to the next level before it reaches the hole.</string>
+    <string name="rules_marble_2_title">Aiming and shooting</string>
+    <string name="rules_marble_2_body">Put your finger on the board to aim in any direction, drag to adjust the angle, then lift it to shoot. You can also use the arrows (keep your finger down to keep turning) and the Fire button. The dotted line shows where the marble will stop. Touch the waiting marble, next to the launcher, to swap it with the one in the launcher: swaps are unlimited.</string>
+    <string name="rules_marble_3_title">Chain reactions</string>
+    <string name="rules_marble_3_body">A shot marble slots into the chain where it hits. When a group pops, the chain closes up: if the two marbles that meet have the same colour and make a group of at least three, it pops too. Each reaction is worth more than the last: ×2, ×3…</string>
+    <string name="rules_marble_4_title">Points and the end</string>
+    <string name="rules_marble_4_body">A popped marble is worth 10 points, plus 10 for each marble beyond three in the same group, all multiplied by the rank of the reaction. Clearing the chain gives 500 bonus points. At each level the chain is longer, faster and has more colours (up to six). The game ends when a marble falls into the hole. Solo game: two modes (Classic and Daily challenge, each with its own best score), your best score is kept, and the game pauses when you leave the app.</string>
+    <string name="marble_ready_hint">Aim, lift your finger to shoot, and pop groups of three marbles of the same colour before they reach the hole.</string>
+    <string name="marble_stats">Level: %1$d, marbles left: %2$d</string>
+    <string name="marble_board_description" tools:ignore="PluralsCandidate">Game board. Level %1$d, %2$d marbles left. Launcher marble: %3$s. Next marble: %4$s.</string>
+    <string name="marble_cleared_title">Chain cleared! Level %1$d</string>
+    <string name="marble_combo">Chain reaction ×%1$d!</string>
+    <string name="marble_mode_classic_hint">A different map and different marbles every game.</string>
+    <string name="marble_mode_daily_hint">The same map and the same marbles for everyone today, with its own best score.</string>
+    <string name="marble_guide_off">Off</string>
+    <string name="marble_guide_on">On</string>
     <string name="game_breakout">Breakout</string>
     <string name="rules_breakout_1_title">Goal</string>
     <string name="rules_breakout_1_body">Break every brick by bouncing the ball off the paddle, without letting it fall. When no brick is left, the next level starts and the ball goes faster. Aim for the highest score you can.</string>

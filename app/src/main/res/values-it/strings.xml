@@ -2445,6 +2445,24 @@
     <string name="bubble_change_mode">Cambia modalità</string>
     <string name="rules_bubble_5_title">Modalità e bolle speciali</string>
     <string name="rules_bubble_5_body">Tre modalità: Classica, Zen (il soffitto non scende mai) e Sfida del giorno (lo stesso campo di partenza per tutti, con un record al giorno). I primi livelli sono disegnati a mano. I grandi colpi caricano un indicatore: dal livello 2 arriva allora una bolla speciale nel cannone. La bomba fa scoppiare tutte le vicine, l’arcobaleno prende il colore che forma il gruppo più grande, il fulmine svuota l’intera fila dove si ferma. Gli scambi sono limitati: ne guadagni uno a ogni tiro che fa partire delle bolle (tre al massimo). La guida di mira si imposta prima della partita: senza, corta o lunga.</string>
+    <string name="game_marble">Marble Shooter</string>
+    <string name="rules_marble_1_title">Obiettivo</string>
+    <string name="rules_marble_1_body">Una catena di biglie colorate rotola verso un buco. Spara le biglie dal lanciatore, al centro, per formare gruppi di almeno tre biglie dello stesso colore: scoppiano. Svuota tutta la catena per passare al livello successivo prima che raggiunga il buco.</string>
+    <string name="rules_marble_2_title">Mirare e sparare</string>
+    <string name="rules_marble_2_body">Appoggia il dito sul campo per mirare in qualsiasi direzione, trascinalo per regolare l’angolo, poi sollevalo per sparare. Puoi anche usare le frecce (tieni il dito premuto per continuare a ruotare) e il pulsante Spara. La linea tratteggiata mostra dove si fermerà la biglia. Tocca la biglia in attesa, accanto al lanciatore, per scambiarla con quella del lanciatore: gli scambi sono illimitati.</string>
+    <string name="rules_marble_3_title">Reazioni a catena</string>
+    <string name="rules_marble_3_body">Una biglia sparata si inserisce nella catena nel punto colpito. Quando un gruppo scoppia, la catena si richiude: se le due biglie che si incontrano hanno lo stesso colore e formano un gruppo di almeno tre, scoppia anche questo. Ogni reazione vale più della precedente: ×2, ×3…</string>
+    <string name="rules_marble_4_title">Punti e fine della partita</string>
+    <string name="rules_marble_4_body">Una biglia scoppiata vale 10 punti, più 10 per ogni biglia oltre la terza nello stesso gruppo, il tutto moltiplicato per il numero della reazione. Svuotare la catena dà 500 punti di bonus. A ogni livello la catena è più lunga, più veloce e ha più colori (fino a sei). La partita finisce quando una biglia cade nel buco. Gioco in solitaria: due modalità (Classica e Sfida del giorno, ciascuna con il proprio record), il punteggio migliore viene conservato e la partita va in pausa quando esci dall’app.</string>
+    <string name="marble_ready_hint">Mira, solleva il dito per sparare e fai scoppiare i gruppi di tre biglie dello stesso colore prima che raggiungano il buco.</string>
+    <string name="marble_stats">Livello: %1$d, biglie rimaste: %2$d</string>
+    <string name="marble_board_description" tools:ignore="PluralsCandidate">Campo di gioco. Livello %1$d, %2$d biglie rimaste. Biglia del lanciatore: %3$s. Biglia successiva: %4$s.</string>
+    <string name="marble_cleared_title">Catena svuotata! Livello %1$d</string>
+    <string name="marble_combo">Reazione a catena ×%1$d!</string>
+    <string name="marble_mode_classic_hint">Una mappa e biglie diverse a ogni partita.</string>
+    <string name="marble_mode_daily_hint">Stessa mappa e stesse biglie per tutti oggi, con il proprio record.</string>
+    <string name="marble_guide_off">Senza</string>
+    <string name="marble_guide_on">Con</string>
     <string name="game_breakout">Rompimattoni</string>
     <string name="rules_breakout_1_title">Obiettivo</string>
     <string name="rules_breakout_1_body">Rompere tutti i mattoni facendo rimbalzare la palla con la racchetta, senza lasciarla cadere. Quando non resta nessun mattone, inizia il livello successivo e la palla va più veloce. Fai il punteggio più alto possibile.</string>

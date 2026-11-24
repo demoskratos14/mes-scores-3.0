@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MINESWEEPER_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
@@ -138,6 +138,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             TOWER_DEFENSE_ID -> drawTowerDefense()
             SNAKE_ID -> drawSnake()
             BUBBLE_ID -> drawBubbleShooter()
+            MARBLE_ID -> drawMarbleShooter()
             MINESWEEPER_ID -> drawMinesweeper()
             SUDOKU_ID -> drawSudoku()
             PANCAKE_ID -> drawPancake()
@@ -1029,4 +1030,34 @@ private fun DrawScope.drawDominos() {
     val five = four + one
     tile(-14f, s * 0.36f, three, four)
     tile(14f, s * 0.64f, one, five)
+}
+
+private fun DrawScope.drawMarbleShooter() {
+    paper(Color(0xFF2E4A2B))
+    val s = size.minDimension
+    val r = s * 0.06f
+    val colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5), Color(0xFF43A047), Color(0xFFFDD835), Color(0xFF8E24AA))
+    // Le chemin en lacet, et le trou au bout.
+    val road = Path().apply {
+        moveTo(s * 0.08f, s * 0.2f)
+        lineTo(s * 0.88f, s * 0.2f)
+        lineTo(s * 0.88f, s * 0.5f)
+        lineTo(s * 0.12f, s * 0.5f)
+        lineTo(s * 0.12f, s * 0.8f)
+    }
+    drawPath(road, Color(0xFFA5C96B), style = Stroke(width = s * 0.13f, join = StrokeJoin.Round))
+    drawCircle(Color(0xFF1A1A1A), s * 0.075f, Offset(s * 0.12f, s * 0.8f))
+    fun marble(x: Float, y: Float, color: Color) {
+        val center = Offset(s * x, s * y)
+        drawCircle(color, r, center)
+        drawCircle(Color.Black.copy(alpha = 0.35f), r, center, style = Stroke(r * 0.1f))
+        drawCircle(Color.White.copy(alpha = 0.55f), r * 0.2f, center - Offset(r * 0.35f, r * 0.35f))
+    }
+    // Une chaîne de billes qui roule sur le chemin.
+    for (i in 0 until 6) marble(0.14f + 0.13f * i, 0.2f, colors[i % colors.size])
+    for (i in 0 until 2) marble(0.88f, 0.28f + 0.1f * i, colors[(i + 1) % colors.size])
+    // Le lanceur, au centre, une bille prête à partir.
+    drawLine(Color(0xFF90A4AE), Offset(s * 0.5f, s * 0.35f), Offset(s * 0.6f, s * 0.27f), strokeWidth = s * 0.06f, cap = StrokeCap.Round)
+    drawCircle(Color(0xFF546E7A), s * 0.075f, Offset(s * 0.5f, s * 0.35f))
+    marble(0.5f, 0.35f, colors[3])
 }
