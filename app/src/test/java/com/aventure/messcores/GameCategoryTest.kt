@@ -74,7 +74,7 @@ class GameCategoryTest {
     fun lesJeuxSoloSontLesJeuxJouablesPourUnSeulJoueur() {
         val solo = builtIns.filter { it.isSoloGame() }.map { it.id }.toSet()
         assertEquals(
-            setOf(EMOJI_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, CIRCLES_ID, SIMON_ID, "builtin_yams", "builtin_shutbox"),
+            setOf(EMOJI_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, RUNNER_ID, CIRCLES_ID, SIMON_ID, "builtin_yams", "builtin_shutbox"),
             solo
         )
         // Le Yams et le Shut the box (minPlayers = 1, dés virtuels) se jouent aussi seul : ils sont dans « Jeux solo » ET dans « Jeux jouables ».
