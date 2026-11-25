@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, FISHCHASE_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, RUNNER_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, FISHCHASE_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, FISH_ID, RUNNER_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
@@ -146,6 +146,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             PANCAKE_ID -> drawPancake()
             DRIVE_ID -> drawDrive()
             DRINK_ID -> drawDrink()
+            FISH_ID -> drawFish()
             RUNNER_ID -> drawRunnerIcon()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
@@ -606,6 +607,32 @@ private fun DrawScope.drawDrive() {
     // Le bandeau rouge et noir du bas, comme sur la console.
     drawRect(red, Offset(s * 0.1f, s * 0.86f), Size(s * 0.5f, s * 0.04f))
     drawRect(ink, Offset(s * 0.4f, s * 0.9f), Size(s * 0.5f, s * 0.03f))
+}
+
+private fun DrawScope.drawFish() {
+    paper(Color(0xFFEAF4F7))
+    val s = size.minDimension
+    val ink = Color(0xFF14161A)
+    val blue = Color(0xFF2B6CB0)
+    val salmon = Color(0xFFE9806A)
+    // Un bac de glace, avec un poisson posé dessus : le corps, la queue, la nageoire et l'œil.
+    drawRoundRect(Color(0xFFDDEEF4), Offset(s * 0.1f, s * 0.58f), Size(s * 0.8f, s * 0.26f), CornerRadius(s * 0.05f))
+    drawRoundRect(ink, Offset(s * 0.1f, s * 0.58f), Size(s * 0.8f, s * 0.26f), CornerRadius(s * 0.05f), style = Stroke(width = s * 0.03f))
+    val tail = Path().apply {
+        moveTo(s * 0.3f, s * 0.42f)
+        lineTo(s * 0.14f, s * 0.28f)
+        lineTo(s * 0.18f, s * 0.42f)
+        lineTo(s * 0.14f, s * 0.56f)
+        close()
+    }
+    drawPath(tail, salmon)
+    drawPath(tail, ink, style = Stroke(width = s * 0.03f, join = StrokeJoin.Round))
+    drawOval(salmon, Offset(s * 0.26f, s * 0.28f), Size(s * 0.5f, s * 0.28f))
+    drawOval(ink, Offset(s * 0.26f, s * 0.28f), Size(s * 0.5f, s * 0.28f), style = Stroke(width = s * 0.035f))
+    drawCircle(Color.White, s * 0.04f, Offset(s * 0.65f, s * 0.38f))
+    drawCircle(ink, s * 0.02f, Offset(s * 0.66f, s * 0.38f))
+    // Le bandeau bleu du comptoir.
+    drawRect(blue, Offset(s * 0.1f, s * 0.88f), Size(s * 0.8f, s * 0.04f))
 }
 
 private fun DrawScope.drawRunnerIcon() {
