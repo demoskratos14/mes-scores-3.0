@@ -47,7 +47,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, RUNNER_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, FISHCHASE_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, RUNNER_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
@@ -134,6 +134,7 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             SHMUP_ID -> drawShmup()
             ASTEROIDS_ID -> drawAsteroids()
             INVADERS_ID -> drawInvaders()
+            FISHCHASE_ID -> drawFishChase()
             XONIX_ID -> drawXonix()
             TOWER_DEFENSE_ID -> drawTowerDefense()
             SNAKE_ID -> drawSnake()
@@ -435,6 +436,36 @@ private fun DrawScope.drawInvaders() {
         close()
     }
     drawPath(ship, Color(0xFFB7C7DB))
+}
+
+private fun DrawScope.drawFishChase() {
+    paper(Color(0xFF141A3C))
+    val s = size.minDimension
+    // Deux façades éclairées dans la nuit, le trottoir, un poisson orange et une mire rouge par-dessus.
+    drawRect(Color(0xFF4A2F3A), topLeft = Offset(s * 0.06f, s * 0.22f), size = Size(s * 0.4f, s * 0.58f))
+    drawRect(Color(0xFF2E3F6B), topLeft = Offset(s * 0.5f, s * 0.12f), size = Size(s * 0.44f, s * 0.68f))
+    for (row in 0..1) {
+        drawRect(Color(0xFFFFD27A), topLeft = Offset(s * 0.12f, s * (0.3f + row * 0.2f)), size = Size(s * 0.12f, s * 0.1f))
+        drawRect(Color(0xFFFFD27A), topLeft = Offset(s * 0.58f, s * (0.2f + row * 0.2f)), size = Size(s * 0.12f, s * 0.1f))
+    }
+    drawRect(Color(0xFF5B6078), topLeft = Offset(0f, s * 0.8f), size = Size(s, s * 0.2f))
+    drawCircle(Color(0xFFFF4081), s * 0.04f, Offset(s * 0.82f, s * 0.26f))
+    val fishBody = Offset(s * 0.42f, s * 0.58f)
+    val tail = Path().apply {
+        moveTo(fishBody.x - s * 0.1f, fishBody.y)
+        lineTo(fishBody.x - s * 0.22f, fishBody.y - s * 0.09f)
+        lineTo(fishBody.x - s * 0.22f, fishBody.y + s * 0.09f)
+        close()
+    }
+    drawPath(tail, Color(0xFFF57C00))
+    drawOval(Color(0xFFFF9800), topLeft = Offset(fishBody.x - s * 0.14f, fishBody.y - s * 0.075f), size = Size(s * 0.3f, s * 0.15f))
+    drawCircle(Color.White, s * 0.02f, Offset(fishBody.x + s * 0.07f, fishBody.y - s * 0.02f))
+    val aim = Offset(s * 0.7f, s * 0.5f)
+    drawCircle(Color(0xFFFF5252), s * 0.12f, aim, style = Stroke(width = s * 0.025f))
+    drawLine(Color(0xFFFF5252), Offset(aim.x - s * 0.18f, aim.y), Offset(aim.x - s * 0.06f, aim.y), strokeWidth = s * 0.025f)
+    drawLine(Color(0xFFFF5252), Offset(aim.x + s * 0.06f, aim.y), Offset(aim.x + s * 0.18f, aim.y), strokeWidth = s * 0.025f)
+    drawLine(Color(0xFFFF5252), Offset(aim.x, aim.y - s * 0.18f), Offset(aim.x, aim.y - s * 0.06f), strokeWidth = s * 0.025f)
+    drawLine(Color(0xFFFF5252), Offset(aim.x, aim.y + s * 0.06f), Offset(aim.x, aim.y + s * 0.18f), strokeWidth = s * 0.025f)
 }
 
 private fun DrawScope.drawXonix() {

@@ -147,6 +147,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     RUNNER_ID to "runner",
     ASTEROIDS_ID to "asteroids",
     INVADERS_ID to "invaders",
+    FISHCHASE_ID to "fishchase",
     DRAUGHTS_ID to "draughts",
     OTHELLO_ID to "othello",
     CHESS_ID to "chess"
@@ -154,7 +155,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
 
 /** Écrans de jeux jouables (et l'accueil de l'appli pour télé) sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "towerdefense", "snake", "bubble", "marble", "minesweeper", "mahjong", "sudoku", "pancake", "drive", "drink", "runner", "asteroids", "invaders",
+    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "towerdefense", "snake", "bubble", "marble", "minesweeper", "mahjong", "sudoku", "pancake", "drive", "drink", "runner", "asteroids", "invaders", "fishchase",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -671,6 +672,9 @@ fun ScoreApp(
             }
             composable("invaders") {
                 InvadersScreen(players = pendingPlayerNames)
+            }
+            composable("fishchase") {
+                FishChaseScreen(players = pendingPlayerNames)
             }
             composable("pfc") {
                 RockPaperScissorsScreen(

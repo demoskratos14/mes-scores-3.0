@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
  * d'Android, qui n'existe pas sur une télé.
  */
 internal val TV_GAME_IDS = listOf(
-    SNAKE_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, SHMUP_ID,
+    SNAKE_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, FISHCHASE_ID, SHMUP_ID,
     XONIX_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID
 )
 
