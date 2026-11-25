@@ -9,7 +9,7 @@ import kotlin.random.Random
 /** Identifiant du jeu « Poissonnerie » (remplir l'étalage, puis servir les clients) dans la liste des jeux. */
 const val FISH_ID = "builtin_fish"
 
-// Les quatre touches du jeu : la croix (gauche, droite) pour choisir un bac, les boutons A et B pour valider.
+// Les quatre touches du jeu : la croix (gauche, droite) pour choisir un poisson de l'étalage, les boutons A et B pour valider.
 internal const val FISH_LEFT = 0
 internal const val FISH_RIGHT = 1
 internal const val FISH_A = 2
@@ -36,7 +36,7 @@ internal const val FISH_VERDICT_LEFT = 5 // le client a perdu patience et s'en v
 
 /**
  * Poissonnerie, en deux temps. D'abord l'approvisionnement : des caisses de poisson arrivent sur un tapis, et il faut les ranger
- * dans le bon bac de l'étalage (flèches pour choisir le bac, A ou B pour poser la caisse). Ensuite le service : chaque client
+ * avec le bon poisson de l'étalage (flèches pour choisir le poisson, A ou B pour poser la caisse). Ensuite le service : chaque client
  * demande un poisson et un poids ; il faut prendre le bon poisson dans l'étalage, puis arrêter un curseur qui va et vient sur la
  * balance dans la zone du bon poids. Le service puise dans ce qu'on a rangé : un poisson qu'on n'a pas stocké ne sera jamais
  * demandé, et quand il n'y a plus rien à vendre la partie s'arrête. Le score additionne les deux parties.
@@ -57,7 +57,7 @@ internal object Fish {
     const val SERVICE_MS = 90_000f
 
     // ---------------------------------------------------------------- l'approvisionnement
-    /** Une caisse pèse un kilo ; un bac en tient quatre. */
+    /** Une caisse pèse un kilo ; l'étalage en garde quatre au plus par poisson. */
     const val CRATE_G = 1000
     const val BIN_CAP_G = 4000
 
@@ -151,7 +151,7 @@ internal class FishGame(private val random: Random = Random.Default) {
     /** Le stock de chaque poisson, en grammes. */
     val stock = IntArray(Fish.SPECIES)
 
-    /** Le bac choisi (0 à 5). */
+    /** Le poisson choisi sur l'étalage (0 à 5). */
     var cursor = 0
         private set
 
@@ -301,7 +301,7 @@ internal class FishGame(private val random: Random = Random.Default) {
     /** Le poids que la balance indique en ce moment, en grammes. */
     val currentWeightG: Int get() = (gaugePos * Fish.GAUGE_MAX_G).roundToInt()
 
-    /** Le niveau d'un bac : 0 (vide) à 1 (plein). */
+    /** Le niveau du stock d'un poisson : 0 (épuisé) à 1 (étalage plein pour ce poisson). */
     fun level(bin: Int): Float = stock[bin].toFloat() / Fish.BIN_CAP_G
 
     /** La caisse que le joueur peut ranger : la plus avancée sur le tapis, une fois entrée sur l'écran. */
@@ -405,7 +405,7 @@ internal class FishGame(private val random: Random = Random.Default) {
         }
     }
 
-    /** Le client perd patience : il s'en va sans rien acheter (le poisson déjà pris retourne dans son bac). */
+    /** Le client perd patience : il s'en va sans rien acheter (le poisson déjà pris retourne sur l'étalage). */
     private fun customerLeaves() {
         walkouts++
         streak = 0
@@ -487,7 +487,7 @@ internal class FishGame(private val random: Random = Random.Default) {
         cursor = (cursor + direction + Fish.SPECIES) % Fish.SPECIES
     }
 
-    /** Range la caisse la plus avancée dans le bac choisi : le bon poisson, dans un bac qui n'est pas plein. */
+    /** Range la caisse la plus avancée avec le poisson choisi : il faut que ce soit le même poisson, et qu'il en reste de la place. */
     private fun placeCrate() {
         val crate = head() ?: return
         if (crate.species != cursor) {
@@ -497,7 +497,7 @@ internal class FishGame(private val random: Random = Random.Default) {
             return
         }
         if (stock[cursor] + Fish.CRATE_G > Fish.BIN_CAP_G) {
-            // Bac plein : la caisse reste sur le tapis.
+            // Plus de place pour ce poisson : la caisse reste sur le tapis.
             blockedMs = Fish.BLOCKED_MS
             return
         }
@@ -509,7 +509,7 @@ internal class FishGame(private val random: Random = Random.Default) {
         placedBin = cursor
     }
 
-    /** Prend le poisson du bac choisi : s'il n'est pas le bon, le client perd patience ; sinon la pesée commence. */
+    /** Prend le poisson choisi sur l'étalage : s'il n'est pas le bon, le client perd patience ; sinon la pesée commence. */
     private fun takeFish() {
         if (stock[cursor] <= 0) {
             blockedMs = Fish.BLOCKED_MS
@@ -540,7 +540,7 @@ internal class FishGame(private val random: Random = Random.Default) {
             gap <= tolerance * Fish.OFF_RATIO -> FISH_VERDICT_OFF
             else -> FISH_VERDICT_MISS
         }
-        // Le poisson pesé est sorti du bac, que le client soit content ou non.
+        // Le poisson pesé quitte l'étalage, que le client soit content ou non.
         stock[customerSpecies] = max(0, stock[customerSpecies] - weighedG)
         var gained = when (verdict) {
             FISH_VERDICT_PERFECT -> Fish.POINTS_PERFECT

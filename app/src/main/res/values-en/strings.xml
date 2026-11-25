@@ -3545,13 +3545,13 @@
     <string name="rules_fish_1_title">Goal of the game</string>
     <string name="rules_fish_1_body">You run the fish shop. A game has two parts: first you fill the display (45 seconds), then you serve the customers (1 min 30). Your score adds up the points of both parts.</string>
     <string name="rules_fish_2_title">Filling the display</string>
-    <string name="rules_fish_2_body">One-kilo crates of fish arrive on the belt, from left to right. Pick a bin with the left and right arrows, then press A or B to put away the crate marked with a red arrow. The fish must match the bin, otherwise you lose points. A bin holds four crates at most, and a crate that falls off the end of the belt is lost.</string>
+    <string name="rules_fish_2_body">One-kilo crates of fish arrive on the belt, from left to right. Pick a fish on the display with the left and right arrows, then press A or B to put away the crate marked with a red arrow. The crate must hold the fish you picked, otherwise you lose points. The display holds four crates at most per fish, and a crate that falls off the end of the belt is lost.</string>
     <string name="rules_fish_3_title">Serving customers</string>
-    <string name="rules_fish_3_body">Each customer asks for a fish and a weight, shown in their speech bubble; their patience keeps running down. Pick the right bin with the arrows and press A or B to take the fish (a wrong fish costs points and patience). A cursor then sweeps back and forth on the scale: press A or B to stop it in the green zone of the right weight. Dark green: perfect; green: good; orange: close; outside: missed. The further the game goes, the faster the cursor and the narrower the zone.</string>
+    <string name="rules_fish_3_body">Each customer asks for a fish and a weight, shown in their speech bubble; their patience keeps running down. Pick the right fish on the display with the arrows and press A or B to take it (a wrong fish costs points and patience). A cursor then sweeps back and forth on the scale: press A or B to stop it in the green zone of the right weight. Dark green: perfect; green: good; orange: close; outside: missed. The further the game goes, the faster the cursor and the narrower the zone.</string>
     <string name="rules_fish_4_title">In the app</string>
     <string name="rules_fish_4_body">Solo game, in landscape. You can only serve the fish you have stocked: when there is nothing left to sell, the game ends. Points come from successful weighings, a speed bonus and a streak of successful weighings in a row. The left and right arrows are at the bottom left, the A and B buttons at the bottom right. With a gamepad or in TV mode, the d-pad and the A and B buttons do the same; Start pauses, like the back button. Your best score is kept.</string>
     <string name="fish_ready_title">%1$s’s fish shop</string>
-    <string name="fish_ready_hint">Press A to start. Put each crate in the right bin, then serve the customers: right fish, right weight.</string>
+    <string name="fish_ready_hint">Press A to start. Put each crate away with the right fish on the display, then serve the customers: right fish, right weight.</string>
     <string name="fish_score">Score: %1$d</string>
     <string name="fish_over_title">CLOSING TIME</string>
     <string name="fish_over_soldout">SOLD OUT!</string>

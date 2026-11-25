@@ -87,7 +87,7 @@ private const val FISH_PHASE_OVER = 2 // la partie est terminée (service fini, 
 
 /**
  * Les actions de Poissonnerie réglables à la manette : les flèches gauche et droite (croix ou stick, tenir répète le pas) pour
- * choisir le bac, les boutons A et B pour ranger une caisse, prendre un poisson ou arrêter la balance, et pause / reprise (Start).
+ * choisir le poisson, les boutons A et B pour ranger une caisse, prendre un poisson ou arrêter la balance, et pause / reprise (Start).
  */
 private val FISH_PAD_ACTIONS = listOf(
     padDirection("left", R.string.drive_dir_left, horizontal = true, sign = -1),
@@ -165,8 +165,8 @@ private fun heldArrow(pressed: Int): Int = when {
 
 /**
  * Poissonnerie en solo : le personnage du Drive tient une poissonnerie. D'abord il range les caisses qui arrivent sur le tapis dans
- * le bon bac de l'étalage (flèches pour choisir le bac, A ou B pour poser la caisse) ; ensuite il sert les clients : prendre le bon
- * poisson (A ou B sur le bac choisi), puis arrêter le curseur de la balance dans la zone du bon poids (A ou B). La console remplit
+ * le bon poisson de l'étalage (flèches pour choisir le poisson, A ou B pour poser la caisse) ; ensuite il sert les clients : prendre le bon
+ * poisson (A ou B sur le poisson choisi), puis arrêter le curseur de la balance dans la zone du bon poids (A ou B). La console remplit
  * l'écran en paysage ; le bouton retour et l'arrière-plan mettent la partie en pause ; le meilleur score est gardé d'une séance à
  * l'autre. [players] : le joueur dont le nom s'affiche au départ.
  */

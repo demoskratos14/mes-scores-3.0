@@ -27,10 +27,11 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
- * Les dessins de l'écran de Poissonnerie, dans le repère de l'écran (720 x 405), le même que celui de Drive : le décor qui ne
- * bouge pas (le mur carrelé, l'enseigne, l'étalage et ses six bacs) se dessine une fois avec [drawFishScene] ; tout ce qui bouge
- * (compteurs, tapis et caisses, poissons dans les bacs, poissonnier, client, balance) avec [drawFishLive]. Le poissonnier est le
- * personnage de Drive ([DriveSprites]).
+ * Les dessins de l'écran de Poissonnerie, dans le repère de l'écran (720 x 405), le même que celui de Drive. La scène se lit de
+ * haut en bas : le mur carrelé avec l'enseigne, le poissonnier derrière l'étalage (un lit de glace où les poissons sont posés,
+ * sans bacs, avec une étiquette par poisson), puis le sol au premier plan, où passe le tapis des caisses et où se tient le client.
+ * Le décor qui ne bouge pas (mur, enseigne, sol) se dessine une fois avec [drawFishScene] ; tout ce qui bouge (compteurs,
+ * poissonnier, étalage, tapis, client, balance) avec [drawFishLive]. Le poissonnier est le personnage de Drive ([DriveSprites]).
  */
 internal class FishLabels(
     val time: String,
@@ -61,35 +62,45 @@ private object FishLook {
     val GreenDark = Color(0xFF176B33)
     val Amber = Color(0xFFF0B429)
 
-    // Le tapis.
-    const val BELT_TOP = 150f
+    // Le mur finit ici ; le sol commence.
+    const val WALL_END = 250f
+
+    // L'étalage, au fond : un lit de glace (où chaque poisson occupe sa part de la largeur), sa face en inox et les étiquettes.
+    const val ICE_Y = 164f
+    const val ICE_H = 62f
+    const val FRONT_Y = 226f
+    const val FRONT_H = 36f
+    const val TAG_W = 100f
+    const val TAG_H = 22f
+    const val TAG_Y = 233f
+    const val GROUP_X0 = 18f
+    const val GROUP_STEP = 116f
+    const val GROUP_W = 104f
+
+    // Le tapis, au premier plan, devant l'étalage.
+    const val BELT_TOP = 350f
     const val BELT_H = 16f
-    const val CRATE_Y = 130f
+    const val CRATE_Y = 330f
 
-    // Les bacs de l'étalage.
-    const val BIN_X0 = 18f
-    const val BIN_STEP = 116f
-    const val BIN_W = 104f
-    const val BIN_Y = 270f
-    const val BIN_H = 70f
-    const val TRAY_Y = 262f
+    // Le poissonnier derrière l'étalage (ses jambes sont cachées) ; le client devant, sur le sol.
+    const val HERO_X = 360f
+    const val HERO_FEET = 200f
+    const val HERO_SCALE = 1.1f
+    const val CUSTOMER_X = 640f
+    const val CUSTOMER_FEET = 396f
 
-    // Le comptoir : les pieds du poissonnier et du client touchent le haut de l'étalage.
-    const val FEET_Y = TRAY_Y
-    const val HERO_X = 120f
-    const val HERO_SCALE = 1.6f
-    const val CUSTOMER_X = 600f
-
-    // La balance.
+    // La balance : un panneau sous les compteurs, au-dessus de l'étalage.
+    const val PANEL_Y = 86f
+    const val PANEL_H = 74f
     const val GAUGE_X0 = 60f
     const val GAUGE_X1 = 660f
-    const val GAUGE_Y = 168f
-    const val GAUGE_H = 28f
+    const val GAUGE_Y = 117f
+    const val GAUGE_H = 18f
 }
 
 private fun Color.fade(a: Float): Color = copy(alpha = alpha * a)
 
-private fun binCenterX(bin: Int): Float = FishLook.BIN_X0 + bin * FishLook.BIN_STEP + FishLook.BIN_W / 2f
+private fun groupCenterX(bin: Int): Float = FishLook.GROUP_X0 + bin * FishLook.GROUP_STEP + FishLook.GROUP_W / 2f
 
 /** Un texte centré (ou aligné) en ([x], [y]), de [px] pixels de l'écran de hauteur de police ; [align] : -1 à gauche, 0 centré, 1 à droite. */
 private fun DrawScope.fishWord(
@@ -208,47 +219,50 @@ private fun DrawScope.fishShape(species: Int, cx: Float, cy: Float, scale: Float
 
 // ------------------------------------------------------------------------------------------------------------ le décor
 
-/** Le décor de l'écran, qui ne change jamais : un mur carrelé, l'enseigne, et l'étalage avec ses six bacs et leurs noms. */
+/** Le décor de l'écran, qui ne change jamais : le mur carrelé, l'enseigne, et le sol carrelé du premier plan. */
 internal fun DrawScope.drawFishScene(labels: FishLabels, measurer: TextMeasurer) {
     val w = Fish.WIDTH
     val h = Fish.HEIGHT
     val ink = FishLook.Ink
     // Le mur carrelé.
     drawRect(
-        brush = Brush.verticalGradient(0f to Color(0xFFEAF4F7), 1f to Color(0xFFCFE3EA), startY = 0f, endY = FishLook.TRAY_Y),
-        size = Size(w, FishLook.TRAY_Y)
+        brush = Brush.verticalGradient(0f to Color(0xFFEAF4F7), 1f to Color(0xFFCFE3EA), startY = 0f, endY = FishLook.WALL_END),
+        size = Size(w, FishLook.WALL_END)
     )
     var x = 0f
     while (x < w) {
-        drawLine(ink.fade(0.07f), Offset(x, 0f), Offset(x, FishLook.TRAY_Y), strokeWidth = 1.5f)
+        drawLine(ink.fade(0.07f), Offset(x, 0f), Offset(x, FishLook.WALL_END), strokeWidth = 1.5f)
         x += 48f
     }
     var y = 0f
-    while (y < FishLook.TRAY_Y) {
+    while (y < FishLook.WALL_END) {
         drawLine(ink.fade(0.07f), Offset(0f, y), Offset(w, y), strokeWidth = 1.5f)
         y += 36f
     }
-
     // L'enseigne, au milieu du mur.
     drawRoundRect(Color.White, Offset(w / 2f - 80f, 10f), Size(160f, 42f), CornerRadius(8f))
     drawRoundRect(ink, Offset(w / 2f - 80f, 10f), Size(160f, 42f), CornerRadius(8f), style = Stroke(width = 3f))
     drawRect(FishLook.Blue, Offset(w / 2f - 80f, 44f), Size(160f, 4f))
     fishWord(measurer, labels.sign, w / 2f, 27f, 24f, FishLook.Blue, italic = true, spacing = 4f)
 
-    // L'étalage : le dessus en inox, les six bacs de glace, puis la face blanche avec le nom de chaque poisson.
-    drawRect(FishLook.Metal, Offset(0f, FishLook.TRAY_Y), Size(w, 84f))
-    drawRect(ink, Offset(0f, FishLook.TRAY_Y), Size(w, 3f))
-    for (bin in 0 until Fish.SPECIES) {
-        val left = FishLook.BIN_X0 + bin * FishLook.BIN_STEP
-        drawRoundRect(FishLook.Ice, Offset(left, FishLook.BIN_Y), Size(FishLook.BIN_W, FishLook.BIN_H), CornerRadius(8f))
-        drawRoundRect(ink, Offset(left, FishLook.BIN_Y), Size(FishLook.BIN_W, FishLook.BIN_H), CornerRadius(8f), style = Stroke(width = 2.5f))
+    // Le sol carrelé, au premier plan, avec une plinthe au pied du mur.
+    drawRect(
+        brush = Brush.verticalGradient(0f to Color(0xFFD9DEE0), 1f to Color(0xFFBFC7CB), startY = FishLook.WALL_END, endY = h),
+        topLeft = Offset(0f, FishLook.WALL_END),
+        size = Size(w, h - FishLook.WALL_END)
+    )
+    var fx = 0f
+    while (fx < w) {
+        drawLine(ink.fade(0.08f), Offset(fx, FishLook.WALL_END), Offset(fx, h), strokeWidth = 1.5f)
+        fx += 60f
     }
-    drawRect(FishLook.White, Offset(0f, 346f), Size(w, h - 346f))
-    drawRect(FishLook.Blue, Offset(0f, 346f), Size(w, 7f))
-    drawRect(ink, Offset(0f, 346f), Size(w, 2.5f))
-    for (bin in 0 until Fish.SPECIES) {
-        fishWord(measurer, labels.species.getOrElse(bin) { "" }, binCenterX(bin), 378f, 16f, ink)
+    var fy = FishLook.WALL_END + 30f
+    while (fy < h) {
+        drawLine(ink.fade(0.08f), Offset(0f, fy), Offset(w, fy), strokeWidth = 1.5f)
+        fy += 30f
     }
+    drawRect(Color(0xFF8E9AA0), Offset(0f, FishLook.WALL_END - 6f), Size(w, 6f))
+    drawRect(ink, Offset(0f, FishLook.WALL_END - 6f), Size(w, 2f))
 }
 
 // ------------------------------------------------------------------------------------------------------------ ce qui bouge
@@ -300,62 +314,108 @@ private fun DrawScope.drawCrate(cx: Float, cy: Float, species: Int) {
     drawRoundRect(ink, Offset(cx - 31f, cy - 20f), Size(62f, 40f), CornerRadius(4f), style = Stroke(width = 2.4f))
 }
 
-/** Les poissons rangés dans chaque bac (un par kilo), le bac choisi cerné de rouge, les bacs vides grisés pendant le service. */
-private fun DrawScope.bins(game: FishGame) {
+/**
+ * L'étalage, au fond : un lit de glace sur lequel les poissons sont posés (un par kilo en stock, quatre au plus), sa face en inox
+ * et une étiquette par poisson. Le poisson choisi est repéré par une flèche rouge, une lueur sur la glace et son étiquette rouge ;
+ * la lueur est verte quand une caisse vient d'y être rangée. Pendant le service, l'étiquette d'un poisson épuisé se grise.
+ */
+private fun DrawScope.display(game: FishGame, labels: FishLabels, measurer: TextMeasurer) {
+    val ink = FishLook.Ink
+    val w = Fish.WIDTH
     val inService = game.stage != FISH_STAGE_STOCK
+    val pulse = 0.5f + 0.5f * sin(game.clockMs / 140f)
+    // Le rebord en inox derrière la glace, puis le lit de glace parsemé de glaçons.
+    drawRect(FishLook.Metal, Offset(0f, FishLook.ICE_Y - 10f), Size(w, 12f))
+    drawRect(ink, Offset(0f, FishLook.ICE_Y - 10f), Size(w, 2.5f))
+    drawRect(FishLook.Ice, Offset(0f, FishLook.ICE_Y), Size(w, FishLook.ICE_H))
+    for (k in 0 until 70) {
+        val gx = (k * 53 % 706) + 7f
+        val gy = FishLook.ICE_Y + 4f + (k * 29 % 54)
+        if (k % 3 == 0) {
+            drawRoundRect(Color.White.fade(0.8f), Offset(gx, gy), Size(9f, 7f), CornerRadius(2f))
+        } else {
+            drawCircle(Color.White.fade(0.7f), 2f, Offset(gx, gy))
+        }
+    }
     for (bin in 0 until Fish.SPECIES) {
-        val left = FishLook.BIN_X0 + bin * FishLook.BIN_STEP
+        val cx = groupCenterX(bin)
+        val selected = !game.over && bin == game.cursor
+        val flash = game.placedBin == bin && game.placeMs > 0f
+        // Une lueur sous le poisson choisi (rouge), ou sous celui où une caisse vient d'être rangée (verte).
+        if (flash) {
+            drawRoundRect(
+                FishLook.Green.fade(0.35f * game.placeMs / Fish.PLACE_MS),
+                Offset(cx - FishLook.GROUP_W / 2f, FishLook.ICE_Y),
+                Size(FishLook.GROUP_W, FishLook.ICE_H),
+                CornerRadius(10f)
+            )
+        }
+        if (selected) {
+            drawRoundRect(
+                FishLook.Red.fade(0.10f + 0.12f * pulse),
+                Offset(cx - FishLook.GROUP_W / 2f, FishLook.ICE_Y),
+                Size(FishLook.GROUP_W, FishLook.ICE_H),
+                CornerRadius(10f)
+            )
+        }
+        // Les poissons posés sur la glace, un par kilo.
         val kilos = min(4, ceil(game.stock[bin] / 1000f).toInt())
         for (n in 0 until kilos) {
             val col = n % 2
             val row = n / 2
-            fishShape(bin, left + 30f + col * 42f, FishLook.BIN_Y + 22f + row * 28f, 0.55f)
-        }
-        if (inService && game.stock[bin] <= 0) {
-            drawRoundRect(Color(0xFF8A949A).fade(0.55f), Offset(left, FishLook.BIN_Y), Size(FishLook.BIN_W, FishLook.BIN_H), CornerRadius(8f))
-        }
-        if (game.placedBin == bin && game.placeMs > 0f) {
-            val u = game.placeMs / Fish.PLACE_MS
-            drawRoundRect(
-                FishLook.Green.fade(u),
-                Offset(left - 3f, FishLook.BIN_Y - 3f),
-                Size(FishLook.BIN_W + 6f, FishLook.BIN_H + 6f),
-                CornerRadius(10f),
-                style = Stroke(width = 5f)
-            )
+            fishShape(bin, cx - 22f + col * 44f + row * 8f, FishLook.ICE_Y + 18f + row * 28f, 0.55f)
         }
     }
+    // La face en inox de l'étalage et, dessus, les étiquettes.
+    drawRect(FishLook.Metal, Offset(0f, FishLook.FRONT_Y), Size(w, FishLook.FRONT_H))
+    drawRect(Color.White.fade(0.35f), Offset(0f, FishLook.FRONT_Y), Size(w, 5f))
+    drawRect(ink, Offset(0f, FishLook.FRONT_Y), Size(w, 2.5f))
+    drawRect(ink, Offset(0f, FishLook.FRONT_Y + FishLook.FRONT_H - 2.5f), Size(w, 2.5f))
+    for (bin in 0 until Fish.SPECIES) {
+        val cx = groupCenterX(bin)
+        val selected = !game.over && bin == game.cursor
+        val flash = game.placedBin == bin && game.placeMs > 0f
+        val empty = inService && game.stock[bin] <= 0
+        val fill = when {
+            selected -> FishLook.Red
+            flash -> FishLook.Green
+            empty -> Color(0xFFB4BCC0)
+            else -> Color.White
+        }
+        val textColor = when {
+            selected || flash -> Color.White
+            empty -> ink.fade(0.45f)
+            else -> ink
+        }
+        val tagLeft = cx - FishLook.TAG_W / 2f
+        drawRoundRect(fill, Offset(tagLeft, FishLook.TAG_Y), Size(FishLook.TAG_W, FishLook.TAG_H), CornerRadius(5f))
+        drawRoundRect(ink, Offset(tagLeft, FishLook.TAG_Y), Size(FishLook.TAG_W, FishLook.TAG_H), CornerRadius(5f), style = Stroke(width = 2f))
+        fishWord(measurer, labels.species.getOrElse(bin) { "" }, cx, FishLook.TAG_Y + FishLook.TAG_H / 2f, 14f, textColor)
+    }
     if (game.over) return
-    val left = FishLook.BIN_X0 + game.cursor * FishLook.BIN_STEP
-    val pulse = 0.7f + 0.3f * sin(game.clockMs / 140f)
-    drawRoundRect(
-        FishLook.Red.fade(pulse),
-        Offset(left - 4f, FishLook.BIN_Y - 4f),
-        Size(FishLook.BIN_W + 8f, FishLook.BIN_H + 8f),
-        CornerRadius(11f),
-        style = Stroke(width = 5f)
-    )
-    val cx = binCenterX(game.cursor)
+    // La flèche rouge au-dessus du poisson choisi.
+    val cx = groupCenterX(game.cursor)
+    val bob = sin(game.clockMs / 140f) * 2f
     val arrow = Path()
-    arrow.moveTo(cx, FishLook.TRAY_Y - 2f)
-    arrow.lineTo(cx - 10f, FishLook.TRAY_Y - 16f)
-    arrow.lineTo(cx + 10f, FishLook.TRAY_Y - 16f)
+    arrow.moveTo(cx, FishLook.ICE_Y - 14f + bob)
+    arrow.lineTo(cx - 10f, FishLook.ICE_Y - 30f + bob)
+    arrow.lineTo(cx + 10f, FishLook.ICE_Y - 30f + bob)
     arrow.close()
     drawPath(arrow, FishLook.Red)
-    drawPath(arrow, FishLook.Ink, style = Stroke(width = 2f, join = StrokeJoin.Round))
+    drawPath(arrow, ink, style = Stroke(width = 2f, join = StrokeJoin.Round))
 }
 
-/** Le poissonnier (le personnage de Drive, de face) derrière l'étalage : il saute de joie quand la pesée est réussie. */
+/** Le poissonnier (le personnage de Drive, de face) derrière l'étalage, qui lui cache les jambes : il saute de joie quand la pesée est réussie. */
 private fun DrawScope.fishmonger(game: FishGame, sprites: DriveSprites) {
     val image = sprites.front ?: return
     val w = (image.width * FishLook.HERO_SCALE).roundToInt()
     val h = (image.height * FishLook.HERO_SCALE).roundToInt()
-    val happy = game.step == FISH_STEP_RESULT && (game.verdict == FISH_VERDICT_PERFECT || game.verdict == FISH_VERDICT_GOOD)
+    val happy = game.step == FISH_STEP_RESULT && game.stage == FISH_STAGE_SERVICE &&
+        (game.verdict == FISH_VERDICT_PERFECT || game.verdict == FISH_VERDICT_GOOD)
     val hop = if (happy) abs(sin(game.resultMs / 110f)) * 8f else 0f
     val shake = if (game.blockedMs > 0f) sin(game.clockMs / 25f) * 3f else 0f
     val cx = FishLook.HERO_X + shake
-    val top = FishLook.FEET_Y - h - hop
-    drawOval(Color.Black.copy(alpha = 0.2f), Offset(cx - w * 0.6f, FishLook.FEET_Y - 7f), Size(w * 1.2f, 12f))
+    val top = FishLook.HERO_FEET - h - hop
     drawImage(
         image,
         srcOffset = IntOffset.Zero,
@@ -366,14 +426,13 @@ private fun DrawScope.fishmonger(game: FishGame, sprites: DriveSprites) {
     )
 }
 
-/** Un client debout au comptoir en [x] ; [mood] : 1 content, -1 mécontent, 0 neutre. */
-private fun DrawScope.customer(look: Int, x: Float, mood: Int) {
+/** Un client debout sur le sol en [x], les pieds en [feet] ; [mood] : 1 content, -1 mécontent, 0 neutre. */
+private fun DrawScope.customer(look: Int, x: Float, feet: Float, mood: Int) {
     val ink = FishLook.Ink
     val coats = intArrayOf(0xFF4A7BB7.toInt(), 0xFF9B4F8E.toInt(), 0xFFB9783A.toInt(), 0xFF4F9A6B.toInt())
     val hairs = intArrayOf(0xFF3A2A1E.toInt(), 0xFFD9B04A.toInt(), 0xFF8A8A8A.toInt(), 0xFF1E1E22.toInt())
     val coat = Color(coats[look.coerceIn(0, 3)])
     val hair = Color(hairs[look.coerceIn(0, 3)])
-    val feet = FishLook.FEET_Y
     drawOval(Color.Black.copy(alpha = 0.2f), Offset(x - 30f, feet - 7f), Size(60f, 12f))
     // Les jambes, le buste et les bras.
     drawRoundRect(Color(0xFF30343C), Offset(x - 16f, feet - 28f), Size(12f, 28f), CornerRadius(3f))
@@ -404,21 +463,27 @@ private fun DrawScope.customer(look: Int, x: Float, mood: Int) {
     }
 }
 
-/** La bulle du client : le poisson, son nom, le poids demandé, et la barre de patience qui se vide. */
+/** La bulle du client, à gauche de lui : le poisson, son nom, le poids demandé, et la barre de patience qui se vide. */
 private fun DrawScope.orderBubble(game: FishGame, labels: FishLabels, measurer: TextMeasurer, alpha: Float) {
     val ink = FishLook.Ink
-    val left = 498f
-    val top = 66f
-    val bubble = Path()
-    bubble.moveTo(FishLook.CUSTOMER_X - 10f, top + 64f)
-    bubble.lineTo(FishLook.CUSTOMER_X, top + 76f)
-    bubble.lineTo(FishLook.CUSTOMER_X + 10f, top + 64f)
-    bubble.close()
+    val left = 392f
+    val top = 282f
+    val right = left + 204f
+    // La queue de la bulle pointe vers la tête du client : pleine pour le fond, ouverte pour le trait.
+    val tailFill = Path()
+    tailFill.moveTo(right - 2f, top + 18f)
+    tailFill.lineTo(right + 18f, top + 30f)
+    tailFill.lineTo(right - 2f, top + 42f)
+    tailFill.close()
+    val tailLine = Path()
+    tailLine.moveTo(right, top + 18f)
+    tailLine.lineTo(right + 18f, top + 30f)
+    tailLine.lineTo(right, top + 42f)
     drawRoundRect(Color.White.fade(alpha), Offset(left, top), Size(204f, 66f), CornerRadius(12f))
-    drawPath(bubble, Color.White.fade(alpha))
+    drawPath(tailFill, Color.White.fade(alpha))
     drawRoundRect(ink.fade(alpha), Offset(left, top), Size(204f, 66f), CornerRadius(12f), style = Stroke(width = 3f))
-    drawLine(Color.White.fade(alpha), Offset(FishLook.CUSTOMER_X - 9f, top + 65f), Offset(FishLook.CUSTOMER_X + 9f, top + 65f), strokeWidth = 4f)
-    drawPath(bubble, ink.fade(alpha), style = Stroke(width = 3f, join = StrokeJoin.Round))
+    drawLine(Color.White.fade(alpha), Offset(right, top + 19.5f), Offset(right, top + 40.5f), strokeWidth = 4f)
+    drawPath(tailLine, ink.fade(alpha), style = Stroke(width = 3f, join = StrokeJoin.Round))
     fishShape(game.customerSpecies, left + 36f, top + 28f, 0.6f)
     fishWord(measurer, labels.species.getOrElse(game.customerSpecies) { "" }, left + 72f, top + 18f, 15f, ink.fade(0.7f * alpha), align = -1)
     fishWord(measurer, "${game.wantG} ${labels.gram}", left + 72f, top + 40f, 24f, ink.fade(alpha), align = -1)
@@ -429,7 +494,10 @@ private fun DrawScope.orderBubble(game: FishGame, labels: FishLabels, measurer: 
     drawRoundRect(bar.fade(alpha), Offset(left + 12f, top + 55f), Size(180f * share, 6f), CornerRadius(3f))
 }
 
-/** La balance : la zone du bon poids (parfait, bon, limite), les graduations, le curseur qui va et vient et le poids qu'il indique. */
+/**
+ * La balance, dans un panneau sous les compteurs : ce qui est demandé, le poids que le curseur indique, la piste avec la zone du
+ * bon poids (parfait, bon, limite), les graduations et le curseur qui va et vient.
+ */
 private fun DrawScope.gauge(game: FishGame, labels: FishLabels, measurer: TextMeasurer) {
     val ink = FishLook.Ink
     val x0 = FishLook.GAUGE_X0
@@ -437,16 +505,18 @@ private fun DrawScope.gauge(game: FishGame, labels: FishLabels, measurer: TextMe
     val y = FishLook.GAUGE_Y
     val gh = FishLook.GAUGE_H
     val perG = (x1 - x0) / Fish.GAUGE_MAX_G
+    val top = FishLook.PANEL_Y
     // Le panneau.
-    drawRoundRect(Color.White.fade(0.96f), Offset(30f, 74f), Size(660f, 166f), CornerRadius(14f))
-    drawRoundRect(ink, Offset(30f, 74f), Size(660f, 166f), CornerRadius(14f), style = Stroke(width = 3f))
+    drawRoundRect(Color.White.fade(0.96f), Offset(30f, top), Size(660f, FishLook.PANEL_H), CornerRadius(12f))
+    drawRoundRect(ink, Offset(30f, top), Size(660f, FishLook.PANEL_H), CornerRadius(12f), style = Stroke(width = 3f))
     // Ce qui est demandé, à gauche ; le poids indiqué par le curseur, à droite.
-    fishShape(game.customerSpecies, 76f, 108f, 0.7f)
-    fishWord(measurer, labels.species.getOrElse(game.customerSpecies) { "" }, 116f, 98f, 15f, ink.fade(0.7f), align = -1)
-    fishWord(measurer, "${game.wantG} ${labels.gram}", 116f, 122f, 24f, FishLook.GreenDark, align = -1)
-    fishWord(measurer, "${game.currentWeightG} ${labels.gram}", 662f, 112f, 34f, ink, align = 1)
+    val headY = top + 15f
+    fishShape(game.customerSpecies, 66f, headY, 0.45f)
+    fishWord(measurer, labels.species.getOrElse(game.customerSpecies) { "" }, 96f, headY, 14f, ink.fade(0.7f), align = -1)
+    fishWord(measurer, "${game.wantG} ${labels.gram}", 210f, headY, 20f, FishLook.GreenDark, align = -1)
+    fishWord(measurer, "${game.currentWeightG} ${labels.gram}", 662f, headY, 22f, ink, align = 1)
     // La piste et les trois zones, de la plus large à la plus étroite.
-    drawRoundRect(Color(0xFFD4DADD), Offset(x0, y), Size(x1 - x0, gh), CornerRadius(6f))
+    drawRoundRect(Color(0xFFD4DADD), Offset(x0, y), Size(x1 - x0, gh), CornerRadius(5f))
     val tolerance = game.toleranceG
     fun zone(ratio: Float, color: Color) {
         val from = (game.wantG - tolerance * ratio).coerceAtLeast(0f)
@@ -456,22 +526,21 @@ private fun DrawScope.gauge(game: FishGame, labels: FishLabels, measurer: TextMe
     zone(Fish.OFF_RATIO, FishLook.Amber.fade(0.55f))
     zone(1f, FishLook.Green)
     zone(Fish.PERFECT_RATIO, FishLook.GreenDark)
-    drawRoundRect(ink, Offset(x0, y), Size(x1 - x0, gh), CornerRadius(6f), style = Stroke(width = 2.4f))
+    drawRoundRect(ink, Offset(x0, y), Size(x1 - x0, gh), CornerRadius(5f), style = Stroke(width = 2.4f))
     // Les graduations : un trait tous les 250 g, un nombre tous les 500 g.
     for (g in 0..Fish.GAUGE_MAX_G step 250) {
         val gx = x0 + g * perG
-        drawLine(ink, Offset(gx, y + gh), Offset(gx, y + gh + if (g % 500 == 0) 10f else 6f), strokeWidth = 2f)
-        if (g % 500 == 0) fishWord(measurer, g.toString(), gx, y + gh + 22f, 14f, ink.fade(0.7f))
+        drawLine(ink, Offset(gx, y + gh), Offset(gx, y + gh + if (g % 500 == 0) 8f else 5f), strokeWidth = 2f)
+        if (g % 500 == 0) fishWord(measurer, g.toString(), gx, y + gh + 17f, 12f, ink.fade(0.7f))
     }
     // Le curseur.
     val cx = x0 + game.gaugePos * (x1 - x0)
-    val stopped = game.step == FISH_STEP_RESULT
-    val color = if (stopped) ink else FishLook.Red
-    drawLine(color, Offset(cx, y - 14f), Offset(cx, y + gh + 6f), strokeWidth = 4f, cap = StrokeCap.Round)
+    val color = if (game.step == FISH_STEP_RESULT) ink else FishLook.Red
+    drawLine(color, Offset(cx, y - 8f), Offset(cx, y + gh + 5f), strokeWidth = 4f, cap = StrokeCap.Round)
     val head = Path()
-    head.moveTo(cx, y - 2f)
-    head.lineTo(cx - 9f, y - 18f)
-    head.lineTo(cx + 9f, y - 18f)
+    head.moveTo(cx, y - 1f)
+    head.lineTo(cx - 7f, y - 10f)
+    head.lineTo(cx + 7f, y - 10f)
     head.close()
     drawPath(head, color)
 }
@@ -482,27 +551,28 @@ internal fun DrawScope.drawFishLive(game: FishGame, sprites: DriveSprites, label
     // Les compteurs : le temps à gauche, le score à droite, le titre de l'étape sous l'enseigne.
     val urgent = !game.over && game.stage != FISH_STAGE_OPENING && game.stageLeftMs <= 10_000f
     hud(measurer, labels, game, urgent)
-    val title = if (game.stage == FISH_STAGE_STOCK) labels.stageStock else labels.stageService
     if (!game.over && game.stage != FISH_STAGE_OPENING) {
+        val title = if (game.stage == FISH_STAGE_STOCK) labels.stageStock else labels.stageService
         fishWord(measurer, title, Fish.WIDTH / 2f, 66f, 14f, ink.fade(0.6f))
     }
 
+    // Du fond vers l'avant : le poissonnier, l'étalage, puis ce qui est sur le sol (tapis, client) et la balance.
+    fishmonger(game, sprites)
+    display(game, labels, measurer)
     when (game.stage) {
         FISH_STAGE_STOCK -> belt(game)
-        FISH_STAGE_SERVICE -> serviceScene(game, sprites, labels, measurer)
+        FISH_STAGE_SERVICE -> serviceFront(game, labels, measurer)
         FISH_STAGE_OPENING -> {
-            fishmonger(game, sprites)
             val pulse = 1f + 0.06f * sin(game.clockMs / 110f)
-            fishWord(measurer, labels.opening, Fish.WIDTH / 2f + 60f, 150f, 40f * pulse, FishLook.Blue, italic = true, spacing = 3f)
+            fishWord(measurer, labels.opening, Fish.WIDTH / 2f, 310f, 40f * pulse, FishLook.Blue, italic = true, spacing = 3f)
         }
-        else -> fishmonger(game, sprites)
+        else -> {}
     }
-    bins(game)
 
     val shade = min(0.25f, game.blockedMs / Fish.BLOCKED_MS * 0.25f)
     if (shade > 0f) {
         drawRect(FishLook.Red.fade(shade), size = Size(Fish.WIDTH, Fish.HEIGHT))
-        fishWord(measurer, labels.no, Fish.WIDTH / 2f, 200f, 44f, FishLook.Red, italic = true)
+        fishWord(measurer, labels.no, Fish.WIDTH / 2f, 124f, 44f, FishLook.Red, italic = true)
     }
 }
 
@@ -516,9 +586,8 @@ private fun DrawScope.hud(measurer: TextMeasurer, labels: FishLabels, game: Fish
     fishWord(measurer, game.score.toString(), Fish.WIDTH - 16f, 62f, 46f, ink, align = 1)
 }
 
-/** Le service : le poissonnier, le client avec sa bulle, puis la balance et le verdict de la pesée. */
-private fun DrawScope.serviceScene(game: FishGame, sprites: DriveSprites, labels: FishLabels, measurer: TextMeasurer) {
-    fishmonger(game, sprites)
+/** Le service : le client sur le sol avec sa bulle, la balance au-dessus de l'étalage, le verdict et les points à gauche du client. */
+private fun DrawScope.serviceFront(game: FishGame, labels: FishLabels, measurer: TextMeasurer) {
     if (game.customerSpecies < 0) return
     val arrive = (game.arriveMs / Fish.ARRIVE_MS).coerceIn(0f, 1f)
     val resulting = game.step == FISH_STEP_RESULT
@@ -527,23 +596,21 @@ private fun DrawScope.serviceScene(game: FishGame, sprites: DriveSprites, labels
         game.verdict == FISH_VERDICT_PERFECT || game.verdict == FISH_VERDICT_GOOD -> 1
         else -> -1
     }
-    customer(game.customerLook, FishLook.CUSTOMER_X + arrive * 170f, mood)
+    customer(game.customerLook, FishLook.CUSTOMER_X + arrive * 170f, FishLook.CUSTOMER_FEET, mood)
     orderBubble(game, labels, measurer, 1f - arrive)
     val weighed = game.step == FISH_STEP_WEIGH ||
         (resulting && game.verdict >= FISH_VERDICT_PERFECT && game.verdict <= FISH_VERDICT_MISS)
     if (weighed) gauge(game, labels, measurer)
     if (resulting) {
-        // Le verdict et les points gagnés, au milieu de l'écran.
         val good = game.verdict == FISH_VERDICT_PERFECT || game.verdict == FISH_VERDICT_GOOD
         val color = when {
             good -> FishLook.GreenDark
             game.verdict == FISH_VERDICT_OFF -> Color(0xFFB87708)
             else -> FishLook.Red
         }
-        val y = if (weighed) 108f else 170f
         val rise = (1f - game.resultMs / Fish.RESULT_MS) * 8f
-        fishWord(measurer, labels.verdicts.getOrElse(game.verdict) { "" }, Fish.WIDTH / 2f, y - rise, 32f, color, italic = true)
+        fishWord(measurer, labels.verdicts.getOrElse(game.verdict) { "" }, 196f, 318f - rise, 32f, color, italic = true)
         val points = game.lastPoints
-        fishWord(measurer, if (points >= 0) "+$points" else points.toString(), Fish.WIDTH / 2f, y + 30f - rise, 24f, color)
+        fishWord(measurer, if (points >= 0) "+$points" else points.toString(), 196f, 352f - rise, 24f, color)
     }
 }
