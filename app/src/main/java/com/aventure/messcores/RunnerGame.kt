@@ -12,6 +12,9 @@ internal const val RUNNER_ID = "builtin_runner"
 internal enum class RunnerKind {
     COIN, GEM, HEART, STAR, MAGNET, SHIELD,
 
+    /** L'éclair : super-vitesse, invincible aux obstacles, et les virages se prennent tout seuls. */
+    BOOST,
+
     /** Rocher au sol : on le saute. */
     LOW,
 
@@ -19,7 +22,10 @@ internal enum class RunnerKind {
     TALL,
 
     /** Portique à hauteur de tête : on se baisse (on glisse) pour passer dessous. */
-    BAR
+    BAR;
+
+    /** Vrai pour ce qu'on ramasse (pièces et bonus), faux pour les obstacles. */
+    val isPickup: Boolean get() = ordinal <= BOOST.ordinal
 }
 
 /** Un objet posé sur la voie, à la distance [z] du départ (en mètres), sur la voie [lane] (-1, 0 ou 1). */
@@ -35,12 +41,18 @@ internal class RunnerThing(
     /** Demi-profondeur (le long de la voie) utilisée pour les contacts. */
     val halfDepth: Float,
     /** Hauteur où le modèle est posé : le centre d'un objet à ramasser, le bas d'un obstacle. */
-    val y: Float,
+    var y: Float,
     /** Hauteur du haut de l'obstacle : on passe dessus si le coureur est plus haut. */
     val top: Float
 ) {
     /** Ramassé (objet) ou déjà heurté (obstacle) : ne compte plus. */
     var taken: Boolean = false
+
+    /** Position latérale réelle (en mètres) : égale à celle de la voie, sauf pour une pièce que l'aimant fait glisser vers le coureur. */
+    var x: Float = lane * Runner.LANE_W
+
+    /** Obstacle défoncé par le coureur en super-vitesse : on ne le dessine plus. */
+    var smashed: Boolean = false
 }
 
 /** Un modèle d'obstacle et ses dimensions. */
@@ -83,16 +95,22 @@ internal object Runner {
 
     /** Au plus cet écart latéral entre le coureur et un objet pour le ramasser, ou pour heurter un obstacle. */
     const val PICK_REACH = 0.6f
-    const val MAGNET_REACH = 2.6f
     const val HIT_REACH = 0.8f
 
     const val COIN_POINTS = 5
     const val GEM_POINTS = 25
     const val GEM_COINS = 5
-    const val MAX_LIVES = 3
+    const val START_LIVES = 3
+    const val MAX_LIVES = 5
 
-    const val STAR_S = 10f
-    const val MAGNET_S = 8f
+    /** Super-vitesse : vitesse ajoutée, temps pour l'atteindre, et temps d'invulnérabilité laissé après elle. */
+    const val BOOST_SPEED = 14f
+    const val BOOST_RAMP_S = 0.6f
+    const val BOOST_GRACE_S = 1.2f
+
+    /** Vitesse à laquelle l'aimant fait glisser une pièce de côté, et monter ou descendre, vers le coureur (mètres par seconde). */
+    const val PULL_SPEED = 22f
+    const val PULL_RISE = 9f
     const val INVULN_AFTER_HIT_S = 2f
     const val INVULN_AFTER_SHIELD_S = 1.2f
 
@@ -147,7 +165,8 @@ internal object Runner {
         RunnerKind.GEM -> "item_gem" to 0.095f
         RunnerKind.HEART -> "item_heart" to 0.095f
         RunnerKind.STAR -> "item_star" to 0.095f
-        RunnerKind.MAGNET -> "item_lightning" to 0.1f
+        RunnerKind.MAGNET -> "item_orb" to 0.045f
+        RunnerKind.BOOST -> "item_lightning" to 0.1f
         RunnerKind.SHIELD -> "item_shield" to 0.1f
         else -> "item_coin" to 0.085f
     }
@@ -161,7 +180,7 @@ internal object Runner {
     /** Tous les modèles 3D à charger (noms sans extension, dans assets/runner). */
     fun allModels(): List<String> =
         (DECOR_MODELS + LOW.map { it.model } + TALL.map { it.model } + BAR.model +
-            RunnerKind.entries.filter { it.ordinal <= RunnerKind.SHIELD.ordinal }.map { pickupModel(it).first }).distinct()
+            RunnerKind.entries.filter { it.isPickup }.map { pickupModel(it).first }).distinct()
 
     /** Vitesse à la distance [dist] : elle augmente tout le long de la partie, jusqu'au maximum. */
     fun speedAt(dist: Float): Float = min(MAX_SPEED, START_SPEED + dist * SPEED_PER_M)
@@ -255,14 +274,18 @@ internal class RunnerPath {
 /**
  * La Course : un coureur qui avance sans cesse sur trois voies. On change de voie, on saute par-dessus les rochers, on se baisse
  * sous les portiques et on évite les wagons. Aux virages à angle droit, il faut glisser dans le bon sens juste avant le coin,
- * sinon on s'écrase contre le mur. On ramasse des pièces et des bonus (bouclier, étoile = points doublés, éclair = aimant à
- * pièces, cœur = une vie de plus). La partie s'arrête au premier choc sans vie ni bouclier. La vitesse et la difficulté
- * montent tout le long de la partie.
+ * sinon on s'écrase contre le mur. On ramasse des pièces et des bonus (bouclier, étoile = points doublés, orbe bleue = aimant, éclair = super-vitesse : invincible, et les virages se prennent seuls, cœur = une vie de plus).
+ * La partie s'arrête au premier choc sans vie ni bouclier. La vitesse et la difficulté montent tout le long de la partie. Les
+ * niveaux d'amélioration ([levels]) allongent les bonus et étendent l'aimant.
  *
  * Toute la logique est ici, sans rien d'Android : l'écran (RunnerScreen) lit l'état et le dessine. [seed] fixe la voie générée
  * (utile aux tests).
  */
-internal class RunnerGame(seed: Long = Random.nextLong()) {
+internal class RunnerGame(
+    seed: Long = Random.nextLong(),
+    startLevels: RunnerLevels = RunnerLevels(),
+    startLives: Int = Runner.START_LIVES
+) {
     private val rnd = Random(seed)
 
     /** Distance parcourue. */
@@ -284,14 +307,36 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
     private var slideLeft = 0f
     private var slideQueued = false
 
-    var lives = 1
+    var lives = startLives
         private set
+
+    /** Les niveaux d'amélioration, achetés avec les pièces de cette partie (ils repartent de zéro à la partie suivante). */
+    var levels = startLevels
+        private set
+    private var spent = 0
+
+    /** Les pièces attrapées qu'il reste à dépenser (le score, lui, compte toutes les pièces attrapées). */
+    val purse: Int get() = coins - spent
+
+    /** Achète le niveau suivant de [upgrade] avec les pièces de la partie : faux s'il est au maximum ou si les pièces manquent. */
+    fun buy(upgrade: RunnerUpgrade): Boolean {
+        val cost = RunnerShop.cost(levels.of(upgrade)) ?: return false
+        if (cost > purse) return false
+        spent += cost
+        levels = levels.withLevel(upgrade, levels.of(upgrade) + 1)
+        return true
+    }
     var shield = false
         private set
     var starLeft = 0f
         private set
     var magnetLeft = 0f
         private set
+
+    /** Temps restant de la super-vitesse (éclair). */
+    var boostLeft = 0f
+        private set
+    private var boostBlend = 0f
     var invuln = 0f
         private set
 
@@ -408,7 +453,8 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
 
     private fun step(dt: Float) {
         clock += dt
-        speed = Runner.speedAt(dist)
+        boostBlend = if (boostLeft > 0f) min(1f, boostBlend + dt / Runner.BOOST_RAMP_S) else max(0f, boostBlend - dt / Runner.BOOST_RAMP_S)
+        speed = Runner.speedAt(dist) + Runner.BOOST_SPEED * boostBlend
         val dd = speed * dt
         dist += dd
         scoreD += dd * multiplier()
@@ -435,6 +481,11 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
         if (magnetLeft > 0f) magnetLeft = max(0f, magnetLeft - dt)
         if (invuln > 0f) invuln = max(0f, invuln - dt)
         if (hurtLeft > 0f) hurtLeft = max(0f, hurtLeft - dt)
+        if (boostLeft > 0f) {
+            boostLeft = max(0f, boostLeft - dt)
+            // À la fin, on est encore protégé un instant : on peut se trouver au milieu d'un obstacle.
+            if (boostLeft == 0f) invuln = max(invuln, Runner.BOOST_GRACE_S)
+        }
         if (turnVisual != 0f) {
             val spin = Runner.TURN_ANIM_DEG_S * dt
             turnVisual = if (abs(turnVisual) <= spin) 0f else turnVisual - (if (turnVisual > 0f) spin else -spin)
@@ -442,7 +493,7 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
 
         generateAhead()
         cornerCheck()
-        if (!isOver) collide()
+        if (!isOver) collide(dt)
         // Ce qui est loin derrière ne sert plus.
         var drop = 0
         while (drop < things.size && things[drop].z < dist - 10f) drop++
@@ -456,7 +507,7 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
         val c = nextCornerZ ?: return
         if (dist < c) return
         val dir = nextCornerDir
-        val ok = turnQueued == dir
+        val ok = boostLeft > 0f || turnQueued == dir
         turnQueued = 0
         if (!ok && crashNow()) return
         // Sans vie ni bouclier perdu, on repart quand même dans le bon sens.
@@ -465,31 +516,46 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
         turnVisual = -dir * 90f
     }
 
-    private fun collide() {
+    private fun collide(dt: Float) {
         val magnet = magnetLeft > 0f
+        val reachLat = RunnerShop.magnetLateral(levels.magnet)
+        val reachAhead = RunnerShop.magnetAhead(levels.magnet)
+        val ghost = boostLeft > 0f
         for (t in things) {
             if (t.taken) continue
-            val pickup = t.kind.ordinal <= RunnerKind.SHIELD.ordinal
-            val pulled = magnet && (t.kind == RunnerKind.COIN || t.kind == RunnerKind.GEM)
-            val window = t.halfDepth + Runner.PLAYER_HALF_DEPTH + if (pulled) 2.5f else 0f
-            if (abs(t.z - dist) > window) continue
-            val side = abs(x - t.lane * Runner.LANE_W)
-            if (pickup) {
-                if (side > (if (pulled) Runner.MAGNET_REACH else Runner.PICK_REACH)) continue
-                if (!pulled && abs(y + 0.5f - t.y) > 0.9f) continue
+            val rel = t.z - dist
+            if (t.kind.isPickup) {
+                // L'aimant fait glisser les pièces vers le coureur, de loin ; elles sont ramassées quand elles arrivent sur lui.
+                if (magnet && (t.kind == RunnerKind.COIN || t.kind == RunnerKind.GEM) && rel < reachAhead && rel > -1f && abs(t.x - x) <= reachLat) {
+                    pull(t, dt)
+                }
+                if (abs(rel) > t.halfDepth + Runner.PLAYER_HALF_DEPTH) continue
+                if (abs(x - t.x) > Runner.PICK_REACH) continue
+                if (abs(y + 0.5f - t.y) > 0.9f) continue
                 take(t)
             } else {
-                if (side > Runner.HIT_REACH) continue
+                if (abs(rel) > t.halfDepth + Runner.PLAYER_HALF_DEPTH) continue
+                if (abs(x - t.x) > Runner.HIT_REACH) continue
                 val hit = when (t.kind) {
                     RunnerKind.BAR -> top > Runner.BAR_BOTTOM && y < Runner.BAR_TOP
                     else -> y < t.top
                 }
                 if (hit) {
                     t.taken = true
-                    crashNow()
+                    // En super-vitesse, on traverse tout : l'obstacle vole en éclats.
+                    if (ghost) t.smashed = true else crashNow()
                 }
             }
         }
+    }
+
+    private fun pull(t: RunnerThing, dt: Float) {
+        val dx = x - t.x
+        val sx = Runner.PULL_SPEED * dt
+        t.x += if (abs(dx) <= sx) dx else if (dx > 0f) sx else -sx
+        val dy = y + 0.5f - t.y
+        val sy = Runner.PULL_RISE * dt
+        t.y += if (abs(dy) <= sy) dy else if (dy > 0f) sy else -sy
     }
 
     private fun take(t: RunnerThing) {
@@ -505,8 +571,9 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
                 scoreD += Runner.GEM_POINTS * multiplier()
             }
             RunnerKind.HEART -> lives = min(Runner.MAX_LIVES, lives + 1)
-            RunnerKind.STAR -> starLeft = Runner.STAR_S
-            RunnerKind.MAGNET -> magnetLeft = Runner.MAGNET_S
+            RunnerKind.STAR -> starLeft = RunnerShop.starSeconds(levels.star).toFloat()
+            RunnerKind.MAGNET -> magnetLeft = RunnerShop.magnetSeconds(levels.magnet).toFloat()
+            RunnerKind.BOOST -> boostLeft = RunnerShop.boostSeconds(levels.boost).toFloat()
             RunnerKind.SHIELD -> shield = true
             else -> Unit
         }
@@ -515,7 +582,7 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
     /** Un choc : le bouclier ou une vie de réserve l'absorbe, sinon c'est fini. Renvoie vrai si la partie est finie. */
     private fun crashNow(): Boolean {
         // Juste après un choc, on traverse les obstacles suivants sans rien perdre.
-        if (invuln > 0f) return false
+        if (invuln > 0f || boostLeft > 0f) return false
         hits++
         when {
             shield -> {
@@ -637,11 +704,12 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
         }
         // Un bonus au milieu de la ligne de pièces, de temps en temps.
         if (rnd.nextFloat() < 0.22f) {
-            val kind = when (rnd.nextInt(10)) {
+            val kind = when (rnd.nextInt(12)) {
                 0, 1 -> RunnerKind.HEART
                 2, 3, 4 -> RunnerKind.SHIELD
                 5, 6 -> RunnerKind.STAR
                 7, 8 -> RunnerKind.MAGNET
+                9, 10 -> RunnerKind.BOOST
                 else -> RunnerKind.GEM
             }
             pickup(kind, coinLane, z + gap / 2f, Runner.COIN_GROUND_Y + 0.1f)

@@ -183,6 +183,10 @@ internal fun RunnerScreen(players: List<String>) {
     var paused by remember { mutableStateOf(false) }
     // Vrai pendant que le réglage de la manette est affiché à la place de l'écran d'accueil ou de fin.
     var showPad by remember { mutableStateOf(false) }
+    // Vrai pendant que le menu des améliorations est affiché.
+    var showShop by remember { mutableStateOf(false) }
+    // Change à chaque achat : le menu des améliorations se refait.
+    var shopRevision by remember { mutableIntStateOf(0) }
     val record = rememberSoloRecord(RUNNER_ID)
     // Les modèles et les images se chargent une fois, hors du fil principal.
     val ready by produceState(initialValue = RunnerAssets.isReady, context) {
@@ -200,7 +204,9 @@ internal fun RunnerScreen(players: List<String>) {
         onDispose { lifecycleOwner?.lifecycle?.removeObserver(observer) }
     }
     // Le bouton retour met la partie en pause plutôt que de la quitter par mégarde.
-    BackHandler(enabled = phase == RUNNER_PHASE_PLAYING && !paused) { paused = true }
+    BackHandler(enabled = phase == RUNNER_PHASE_PLAYING && !paused && !showShop) { paused = true }
+    // Dans le menu des améliorations, retour revient à la pause.
+    BackHandler(enabled = showShop) { showShop = false }
 
     fun startGame() {
         record.clearNew()
@@ -219,7 +225,7 @@ internal fun RunnerScreen(players: List<String>) {
             "left" -> { if (playing) game.moveLeft(); phase == RUNNER_PHASE_PLAYING }
             "right" -> { if (playing) game.moveRight(); phase == RUNNER_PHASE_PLAYING }
             "pause" -> {
-                if (phase == RUNNER_PHASE_PLAYING) paused = !paused else if (ready) startGame()
+                if (phase == RUNNER_PHASE_PLAYING) { if (!showShop) paused = !paused } else if (ready && !showShop) startGame()
                 true
             }
             else -> false
@@ -229,6 +235,16 @@ internal fun RunnerScreen(players: List<String>) {
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             showPad -> RunnerCard { GamepadSettings(RUNNER_ID, RUNNER_PAD_ACTIONS) { showPad = false } }
+            showShop -> RunnerCard {
+                // Relire la révision ici refait le menu à chaque achat.
+                @Suppress("UNUSED_VARIABLE") val revision = shopRevision
+                RunnerShopContent(
+                    purse = game.purse,
+                    levels = game.levels,
+                    onBuy = { upgrade -> if (game.buy(upgrade)) shopRevision++ },
+                    onBack = { showShop = false }
+                )
+            }
             !ready -> RunnerCard {
                 Text(
                     text = stringResource(R.string.runner_loading),
@@ -240,6 +256,7 @@ internal fun RunnerScreen(players: List<String>) {
                 game = game,
                 paused = paused,
                 onPausedChange = { paused = it },
+                onShop = { showShop = true },
                 onOver = {
                     record.submit(game.score)
                     phase = RUNNER_PHASE_OVER
@@ -351,6 +368,7 @@ private fun RunnerPlayfield(
     game: RunnerGame,
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit,
+    onShop: () -> Unit,
     onOver: () -> Unit
 ) {
     KeepScreenOn()
@@ -361,9 +379,11 @@ private fun RunnerPlayfield(
     var coins by remember(game) { mutableIntStateOf(0) }
     var meters by remember(game) { mutableIntStateOf(0) }
     var lives by remember(game) { mutableIntStateOf(game.lives) }
+    var purse by remember(game) { mutableIntStateOf(game.purse) }
     var shield by remember(game) { mutableStateOf(false) }
     var star by remember(game) { mutableStateOf(false) }
     var magnet by remember(game) { mutableStateOf(false) }
+    var boost by remember(game) { mutableStateOf(false) }
     // Temps écoulé depuis le choc fatal, en millisecondes (anime la chute).
     var deathMs by remember(game) { mutableFloatStateOf(0f) }
     var renderScale by remember(game) { mutableFloatStateOf(SCALE_START) }
@@ -376,9 +396,11 @@ private fun RunnerPlayfield(
         coins = game.coins
         meters = game.dist.toInt()
         lives = game.lives
+        purse = game.purse
         shield = game.shield
         star = game.starLeft > 0f
         magnet = game.magnetLeft > 0f
+        boost = game.boostLeft > 0f
     }
 
     LaunchedEffect(game, paused) {
@@ -386,12 +408,18 @@ private fun RunnerPlayfield(
         var last = withFrameNanos { it }
         var slow = 0
         var fast = 0
+        val livesAtStart = game.lives
         while (!game.isOver) {
             val now = withFrameNanos { it }
             val elapsed = ((now - last) / 1_000_000L).coerceIn(0L, MAX_FRAME_MS)
             last = now
             game.tick(elapsed)
             sync()
+            // Une vie perdue (sans que ce soit la dernière) met la partie en pause : on reprend, ou on dépense ses pièces.
+            if (game.lives < livesAtStart && !game.isOver) {
+                onPausedChange(true)
+                return@LaunchedEffect
+            }
             // Résolution adaptative : le rendu 3D est calculé par le processeur, on baisse la résolution si l'image tarde.
             if (elapsed > 40L) { slow++; fast = 0 } else if (elapsed < 22L) { fast++; slow = 0 } else { slow = 0; fast = 0 }
             if (slow >= 15 && renderScale > SCALE_MIN) {
@@ -440,7 +468,8 @@ private fun RunnerPlayfield(
                     val bonuses = listOfNotNull(
                         if (shield) stringResource(R.string.runner_bonus_shield) else null,
                         if (star) stringResource(R.string.runner_bonus_star) else null,
-                        if (magnet) stringResource(R.string.runner_bonus_magnet) else null
+                        if (magnet) stringResource(R.string.runner_bonus_magnet) else null,
+                        if (boost) stringResource(R.string.runner_bonus_boost) else null
                     )
                     if (bonuses.isNotEmpty()) {
                         Text(
@@ -537,12 +566,121 @@ private fun RunnerPlayfield(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(8.dp)
                     )
+                    Text(
+                        text = stringResource(R.string.runner_lives, lives),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.runner_wallet, purse),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(4.dp)
+                    )
                     Button(onClick = { onPausedChange(false) }) {
                         Text(stringResource(R.string.runner_resume))
+                    }
+                    OutlinedButton(onClick = onShop) {
+                        Text(stringResource(R.string.runner_shop))
                     }
                 }
             }
         }
+    }
+}
+
+/** Le menu des améliorations : pour chaque bonus, son niveau, ce qu'il apporte, et le bouton pour acheter le niveau suivant. */
+@Composable
+private fun RunnerShopContent(
+    purse: Int,
+    levels: RunnerLevels,
+    onBuy: (RunnerUpgrade) -> Unit,
+    onBack: () -> Unit
+) {
+    Text(
+        text = stringResource(R.string.runner_shop),
+        style = MaterialTheme.typography.titleLarge,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.semantics { heading() }
+    )
+    Text(
+        text = stringResource(R.string.runner_wallet, purse),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = highlightContent(),
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(highlightContainer())
+            .padding(10.dp)
+    )
+    for (upgrade in RunnerUpgrade.entries) {
+        val level = levels.of(upgrade)
+        val cost = RunnerShop.cost(level)
+        val seconds = RunnerShop.seconds(upgrade, level)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = stringResource(
+                    when (upgrade) {
+                        RunnerUpgrade.MAGNET -> R.string.runner_bonus_magnet
+                        RunnerUpgrade.BOOST -> R.string.runner_bonus_boost
+                        RunnerUpgrade.STAR -> R.string.runner_bonus_star
+                    }
+                ),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = if (cost == null) {
+                    stringResource(R.string.runner_level_max)
+                } else {
+                    stringResource(R.string.runner_level, level, RunnerShop.MAX_LEVEL)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = when (upgrade) {
+                    RunnerUpgrade.MAGNET -> stringResource(
+                        R.string.runner_up_magnet_desc, seconds, RunnerShop.magnetAhead(level).roundToInt()
+                    )
+                    RunnerUpgrade.BOOST -> stringResource(R.string.runner_up_boost_desc, seconds)
+                    RunnerUpgrade.STAR -> stringResource(R.string.runner_up_star_desc, seconds)
+                },
+                style = MaterialTheme.typography.bodyMedium
+            )
+            if (upgrade == RunnerUpgrade.MAGNET) {
+                Text(
+                    text = stringResource(R.string.runner_up_magnet_all, RunnerShop.ALL_LANES_LEVEL),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (cost != null) {
+                Text(
+                    text = stringResource(R.string.runner_up_next, RunnerShop.seconds(upgrade, level + 1)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Button(onClick = { onBuy(upgrade) }, enabled = cost <= purse, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.runner_buy, cost))
+                }
+            }
+        }
+    }
+    OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.runner_back))
     }
 }
 
@@ -606,6 +744,17 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRunnerSprite(ga
     }
     if (game.magnetLeft > 0f) {
         drawCircle(Color(0xFF9C6BFF), radius = heightPx * 0.78f, center = centre, style = Stroke(width = 2f))
+    }
+    if (game.boostLeft > 0f) {
+        // Super-vitesse : une aura orange et des traînées de vitesse.
+        val flame = Color(0xFFFF9A1F)
+        drawCircle(flame.copy(alpha = 0.22f), radius = heightPx * 0.85f, center = centre)
+        drawCircle(flame, radius = heightPx * 0.85f, center = centre, style = Stroke(width = 3f))
+        for (i in -2..2) {
+            val lineX = centre.x + i * heightPx * 0.24f
+            val from = centre.y + heightPx * 0.2f
+            drawLine(flame.copy(alpha = 0.6f), Offset(lineX, from), Offset(lineX, from + heightPx * (0.45f + 0.12f * ((i + 2) % 3))), strokeWidth = 3f)
+        }
     }
 }
 

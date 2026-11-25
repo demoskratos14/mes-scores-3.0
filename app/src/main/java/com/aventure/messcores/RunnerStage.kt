@@ -181,10 +181,11 @@ internal class RunnerStage(private val meshOf: (String) -> Mesh3D?) {
         for (t in game.things) {
             val rel = t.z - d
             if (rel > VIEW_M || rel < -6f) continue
-            val isPickup = t.kind.ordinal <= RunnerKind.SHIELD.ordinal
+            val isPickup = t.kind.isPickup
             if (t.taken && isPickup) continue
+            if (t.smashed) continue
             val s = path.segmentAt(t.z)
-            val lat = t.lane * Runner.LANE_W
+            val lat = t.x
             if (isPickup) {
                 val bob = 0.07f * sin((game.clock * 3f + t.z).toDouble()).toFloat()
                 put(t.model, s, t.z, lat, t.y + bob, spin + t.z * 40f, t.scale, center = 2, glossy = true)

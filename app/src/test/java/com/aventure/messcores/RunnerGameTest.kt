@@ -11,7 +11,7 @@ class RunnerGameTest {
 
     /** Une partie dont la voie est vidée : on y pose soi-même ce qu'on veut tester, loin devant. */
     private fun emptyGame(): RunnerGame {
-        val game = RunnerGame(seed = 1L)
+        val game = RunnerGame(seed = 1L, startLives = 1)
         game.things.clear()
         return game
     }
@@ -259,7 +259,7 @@ class RunnerGameTest {
     }
 
     private fun gameAtFirstCorner(): RunnerGame {
-        val game = RunnerGame(seed = 2L)
+        val game = RunnerGame(seed = 2L, startLives = 1)
         game.things.clear()
         return game
     }
@@ -321,6 +321,136 @@ class RunnerGameTest {
         assertFalse(game.isOver)
         assertEquals(1, game.seg)
         assertFalse(game.shield)
+    }
+
+    // --- L'éclair, l'aimant et les améliorations ---
+
+    @Test
+    fun lEclairRendInvincibleEtDefonceLesObstacles() {
+        val game = emptyGame()
+        game.things.add(pickup(RunnerKind.BOOST, 0, 5f))
+        val wagon = obstacle(RunnerKind.TALL, 0, 40f)
+        val gate = obstacle(RunnerKind.BAR, 0, 60f)
+        game.things.add(wagon)
+        game.things.add(gate)
+        var fastest = 0f
+        runPast(game, 80f) { g -> fastest = maxOf(fastest, g.speed) }
+        assertFalse(game.isOver)
+        assertTrue(wagon.smashed && gate.smashed)
+        assertEquals(0, game.hits)
+        assertTrue("super-vitesse : ${fastest}", fastest > Runner.speedAt(game.dist) + Runner.BOOST_SPEED * 0.8f)
+    }
+
+    @Test
+    fun lEclairPrendLesVirageTouteSeul() {
+        val game = RunnerGame(2L, RunnerLevels(boost = RunnerShop.MAX_LEVEL))
+        game.things.clear()
+        game.things.add(pickup(RunnerKind.BOOST, 0, 20f))
+        val corner = game.nextCornerZ!!
+        runPast(game, corner + 1f)
+        assertFalse(game.isOver)
+        assertEquals(1, game.turnsTaken)
+    }
+
+    @Test
+    fun apresLEclairOnResteProtegeUnMoment() {
+        val game = emptyGame()
+        game.things.add(pickup(RunnerKind.BOOST, 0, 5f))
+        var protectedAtEnd = false
+        var seenBoost = false
+        runPast(game, 400f) { g ->
+            if (g.boostLeft > 0f) seenBoost = true
+            if (seenBoost && g.boostLeft == 0f && g.invuln > 0f) protectedAtEnd = true
+        }
+        assertTrue(seenBoost)
+        assertTrue(protectedAtEnd)
+    }
+
+    private fun farLaneCoinCaught(magnetLevel: Int): Pair<Boolean, Float> {
+        val game = RunnerGame(1L, RunnerLevels(magnet = magnetLevel))
+        game.things.clear()
+        game.moveLeft()
+        game.things.add(pickup(RunnerKind.MAGNET, -1, 5f))
+        val coin = pickup(RunnerKind.COIN, 1, 14f)
+        game.things.add(coin)
+        var slid = 1.25f
+        runPast(game, 15f) { slid = minOf(slid, coin.x) }
+        return coin.taken to slid
+    }
+
+    @Test
+    fun lAimantAttireLesPiecesDeToutesLesVoiesSeulementAuNiveauVoulu() {
+        val (low, lowSlid) = farLaneCoinCaught(0)
+        assertFalse(low)
+        assertEquals(1.25f, lowSlid, 0f)
+        val (high, highSlid) = farLaneCoinCaught(RunnerShop.ALL_LANES_LEVEL)
+        assertTrue(high)
+        assertTrue("la pièce doit glisser vers le coureur", highSlid < 0f)
+    }
+
+    @Test
+    fun lesNiveauxAllongentLesBonus() {
+        for (u in RunnerUpgrade.entries) {
+            for (l in 1..RunnerShop.MAX_LEVEL) assertTrue(RunnerShop.seconds(u, l) > RunnerShop.seconds(u, l - 1))
+        }
+        val star = RunnerGame(1L, RunnerLevels(star = 2)).apply { things.clear(); things.add(pickup(RunnerKind.STAR, 0, 2f)) }
+        runPast(star, 4f)
+        assertTrue(star.starLeft > RunnerShop.starSeconds(0).toFloat())
+        assertTrue(RunnerShop.magnetAhead(3) > RunnerShop.magnetAhead(0))
+    }
+
+    private fun gameWithCoins(n: Int): RunnerGame {
+        val game = emptyGame()
+        // Des diamants (5 pièces chacun) alignés devant le coureur.
+        for (i in 0 until n / Runner.GEM_COINS) game.things.add(pickup(RunnerKind.GEM, 0, 5f + i * 1.2f))
+        runPast(game, 5f + n / Runner.GEM_COINS * 1.2f + 2f) { g ->
+            g.things.removeAll { it.kind.ordinal >= RunnerKind.LOW.ordinal }
+            if (g.turnIsOpen) {
+                if (g.nextCornerDir < 0) g.moveLeft() else g.moveRight()
+            }
+        }
+        return game
+    }
+
+    @Test
+    fun uneAmeliorationSAchetAvecLesPiecesDeLaPartieSansToucherAuScore() {
+        val game = gameWithCoins(150)
+        assertEquals(150, game.coins)
+        val score = game.score
+        assertEquals(150, game.purse)
+        assertTrue(game.buy(RunnerUpgrade.MAGNET))
+        assertEquals(1, game.levels.magnet)
+        assertEquals(0, game.purse)
+        // Les pièces attrapées et le score ne baissent pas quand on dépense.
+        assertEquals(150, game.coins)
+        assertEquals(score, game.score)
+        assertFalse(game.buy(RunnerUpgrade.MAGNET))
+        assertEquals(1, game.levels.magnet)
+    }
+
+    @Test
+    fun onNeDepassePasLeNiveauMaximum() {
+        val game = gameWithCoins(5000)
+        repeat(RunnerShop.MAX_LEVEL) { assertTrue(game.buy(RunnerUpgrade.BOOST)) }
+        assertFalse(game.buy(RunnerUpgrade.BOOST))
+        assertEquals(RunnerShop.MAX_LEVEL, game.levels.boost)
+    }
+
+    @Test
+    fun lesAmeliorationsAchetesSeSententSurLesBonusSuivants() {
+        val game = gameWithCoins(150)
+        game.buy(RunnerUpgrade.STAR)
+        game.things.add(pickup(RunnerKind.STAR, 0, game.dist + 4f))
+        runPast(game, game.dist + 6f)
+        assertTrue(game.starLeft > RunnerShop.starSeconds(0).toFloat())
+    }
+
+    @Test
+    fun uneNouvellePartieRepartDeZeroAvecTroisVies() {
+        val game = RunnerGame(9L)
+        assertEquals(Runner.START_LIVES, game.lives)
+        assertEquals(RunnerLevels(), game.levels)
+        assertEquals(0, game.purse)
     }
 
     // --- Les obstacles ---
