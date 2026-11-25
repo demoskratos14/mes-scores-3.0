@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rules_marble_5_title">Bolas especiais</string>
+    <string name="rules_marble_5_body">Quando fazes rebentar bolas, um indicador enche-se: é o anel dourado à volta da bola de espera. Quando está cheio, chega ao lançador uma bola especial. A bomba (a partir do nível 2) faz rebentar todas as bolas à volta do ponto atingido. O arco-íris (a partir do nível 3) toma a cor que forma o maior grupo com as vizinhas. O relâmpago (a partir do nível 4) faz rebentar todas as bolas da cor atingida, ao longo de todo o caminho. As bolas que fazem rebentar dão pontos e podem desencadear uma reação em cadeia. O caminho entra por um bordo do tabuleiro e o buraco pode estar em qualquer lado: muda a cada nível.</string>
+</resources>

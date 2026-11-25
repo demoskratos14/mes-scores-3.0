@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rules_marble_5_title">Canicas especiales</string>
+    <string name="rules_marble_5_body">Al hacer explotar canicas se llena un indicador: es el anillo dorado alrededor de la canica de espera. Cuando está lleno, llega una canica especial al lanzador. La bomba (desde el nivel 2) hace explotar todas las canicas alrededor del punto alcanzado. El arcoíris (desde el nivel 3) toma el color que forma el grupo más grande con sus vecinas. El rayo (desde el nivel 4) hace explotar todas las canicas del color alcanzado, en todo el camino. Las canicas que hacen explotar dan puntos y pueden desencadenar una reacción en cadena. El camino entra por un borde del tablero y el agujero puede estar en cualquier sitio: cambia en cada nivel.</string>
+</resources>

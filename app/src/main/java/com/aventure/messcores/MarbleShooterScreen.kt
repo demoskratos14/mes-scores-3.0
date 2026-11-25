@@ -135,6 +135,7 @@ private const val MARBLE_NEXT_TOUCH = 0.8f
 // Les animations d'une bille qui éclate : un anneau qui s'élargit et des étincelles.
 private const val MARBLE_RING_LIFE_MS = 280f
 private const val MARBLE_SPARK_LIFE_MS = 450f
+private const val MARBLE_BURST_LIFE_MS = 450f
 private const val MARBLE_SPARKS_PER_MARBLE = 4
 private const val MARBLE_MAX_SPARKS = 80
 
@@ -145,7 +146,9 @@ private class MarbleParticle(
     val vx: Float,
     var vy: Float,
     val color: Int,
-    val life: Float
+    val life: Float,
+    /** Vrai pour le repère d'une bombe ou d'un éclair : un grand anneau qui s'élargit sur toute la zone touchée. */
+    val big: Boolean = false
 ) {
     var age = 0f
 }
@@ -180,7 +183,19 @@ private val MarbleColors = listOf(
     Color(0xFFFB8C00) // orange
 )
 
-private fun marbleBase(index: Int): Color = MarbleColors[index.coerceAtLeast(0) % MarbleColors.size]
+/** Les couleurs de l'arc-en-ciel, dans l'ordre, la première répétée à la fin pour que le tour se referme. */
+private val MarbleRainbowColors = listOf(
+    Color(0xFFE53935), Color(0xFFFB8C00), Color(0xFFFDD835), Color(0xFF43A047),
+    Color(0xFF1E88E5), Color(0xFF8E24AA), Color(0xFFE53935)
+)
+
+/** La couleur d'une bille de numéro [index] : une des six couleurs, ou celle qui représente une bille spéciale (anneaux, étincelles, guide). */
+private fun marbleBase(index: Int): Color = when (index) {
+    Marble.BOMB -> Color(0xFFFF7043)
+    Marble.RAINBOW -> Color.White
+    Marble.LIGHTNING -> Color(0xFFFFEB3B)
+    else -> MarbleColors[index.coerceAtLeast(0) % MarbleColors.size]
+}
 
 /** Le nom d'une bille de numéro [kind] pour les lecteurs d'écran. */
 @StringRes
@@ -190,7 +205,10 @@ private fun marbleKindName(kind: Int): Int = when (kind) {
     2 -> R.string.bubble_kind_2
     3 -> R.string.bubble_kind_3
     4 -> R.string.bubble_kind_4
-    else -> R.string.bubble_kind_5
+    5 -> R.string.bubble_kind_5
+    Marble.BOMB -> R.string.bubble_kind_6
+    Marble.RAINBOW -> R.string.bubble_kind_7
+    else -> R.string.bubble_kind_8
 }
 
 /**
@@ -554,6 +572,11 @@ private fun MarblePlayfield(
     fun spawnEffects(effects: List<MarbleEffect>) {
         var sparks = 0
         for (e in effects) {
+            if (Marble.isSpecial(e.color)) {
+                // Le repère d'une bombe ou d'un éclair : un grand anneau, sans bille à faire disparaître.
+                particles.add(MarbleParticle(true, e.x, e.y, 0f, 0f, e.color, MARBLE_BURST_LIFE_MS, big = true))
+                continue
+            }
             particles.add(MarbleParticle(true, e.x, e.y, 0f, 0f, e.color, MARBLE_RING_LIFE_MS))
             for (i in 0 until MARBLE_SPARKS_PER_MARBLE) {
                 if (sparks >= MARBLE_MAX_SPARKS) break
@@ -944,7 +967,7 @@ private fun MarbleChevron(pointsLeft: Boolean) {
 
 /** Retient les numéros de tuiles du sol de la carte en cours : on ne les recalcule que quand la carte change. */
 private class MarbleTileCache {
-    var map: TdMap? = null
+    var map: MarbleMap? = null
     var tiles = IntArray(0)
 }
 
@@ -1043,9 +1066,11 @@ private fun DrawScope.drawMarbleBoard(
     // Les billes de la chaîne.
     val radius = cell * Marble.RADIUS * 0.96f
     for (i in game.marbleCount - 1 downTo 0) {
+        val x = game.marbleX(i)
         val y = game.marbleY(i)
-        if (y < -Marble.RADIUS) continue
-        drawMarble(Offset(game.marbleX(i) * cell, y * cell), radius, game.marbleColor(i), colorBlind)
+        // Une bille encore dehors (elle arrive par un bord) ne se dessine pas, sauf quand elle commence à entrer.
+        if (x < -Marble.RADIUS || x > TdMap.COLS + Marble.RADIUS || y < -Marble.RADIUS || y > TdMap.ROWS + Marble.RADIUS) continue
+        drawMarble(Offset(x * cell, y * cell), radius, game.marbleColor(i), colorBlind)
     }
 
     // Les animations : la bille rétrécit pendant qu'un anneau s'élargit, et des étincelles partent.
@@ -1053,7 +1078,17 @@ private fun DrawScope.drawMarbleBoard(
         val t = (p.age / p.life).coerceIn(0f, 1f)
         val position = Offset(p.x * cell, p.y * cell)
         val base = marbleBase(p.color)
-        if (p.ring) {
+        if (p.big) {
+            // La bombe : l'explosion s'élargit jusqu'à son rayon ; l'éclair : un éclat plus large encore.
+            val reach = if (p.color == Marble.LIGHTNING) 1.8f else Marble.BOMB_RADIUS
+            drawCircle(color = base.copy(alpha = 0.45f * (1f - t)), radius = cell * reach * (0.3f + 0.7f * t), center = position)
+            drawCircle(
+                color = Color.White.copy(alpha = 1f - t),
+                radius = cell * reach * (0.3f + 0.7f * t),
+                center = position,
+                style = Stroke(width = cell * 0.08f * (1f - t) + 1f)
+            )
+        } else if (p.ring) {
             if (t < 0.5f) drawMarble(position, radius * (1f - 2f * t), p.color, colorBlind)
             drawCircle(
                 color = lerp(base, Color.White, 0.4f).copy(alpha = 1f - t),
@@ -1112,12 +1147,30 @@ private fun DrawScope.drawMarbleBoard(
             style = Stroke(width = cell * 0.05f)
         )
         drawMarble(nextCenter, cell * MARBLE_NEXT_RADIUS, game.next, colorBlind)
+        // La jauge des billes spéciales : un arc qui se remplit autour de la bille suivante, doré quand une bille spéciale arrive.
+        val progress = game.specialProgress
+        if (progress > 0f) {
+            val ring = cell * MARBLE_NEXT_RADIUS * 1.3f
+            drawArc(
+                color = Color(0xFFFFD54F),
+                startAngle = -90f,
+                sweepAngle = 360f * progress,
+                useCenter = false,
+                topLeft = nextCenter - Offset(ring, ring),
+                size = Size(ring * 2f, ring * 2f),
+                style = Stroke(width = cell * 0.07f, cap = StrokeCap.Round)
+            )
+        }
     }
 }
 
 /** Une bille : une sphère brillante cernée d'un trait sombre, avec sa lettre en mode daltonien. */
 private fun DrawScope.drawMarble(center: Offset, radius: Float, index: Int, colorBlind: Boolean) {
     if (radius <= 0f) return
+    if (Marble.isSpecial(index)) {
+        drawSpecialMarble(center, radius, index)
+        return
+    }
     val base = marbleBase(index)
     drawCircle(
         brush = Brush.radialGradient(
@@ -1140,6 +1193,57 @@ private fun DrawScope.drawMarble(center: Offset, radius: Float, index: Int, colo
         paint.textSize = radius * 1.1f
         val letter = ('A' + index).toString()
         drawContext.canvas.nativeCanvas.drawText(letter, center.x, center.y - (paint.ascent() + paint.descent()) / 2f, paint)
+    }
+}
+
+/**
+ * Une bille spéciale : la bombe (sombre, avec sa mèche allumée), l'arc-en-ciel (tous les tons en tour) ou l'éclair (jaune, avec
+ * son trait). Elles ne portent pas de lettre : leur forme suffit à les reconnaître, même sans les couleurs.
+ */
+private fun DrawScope.drawSpecialMarble(center: Offset, radius: Float, kind: Int) {
+    val base = marbleBase(kind)
+    val fill = when (kind) {
+        Marble.RAINBOW -> Brush.sweepGradient(colors = MarbleRainbowColors, center = center)
+        Marble.BOMB -> Brush.radialGradient(
+            colors = listOf(Color(0xFF78909C), Color(0xFF263238), Color(0xFF000000)),
+            center = center - Offset(radius * 0.35f, radius * 0.35f),
+            radius = radius * 1.6f
+        )
+        else -> Brush.radialGradient(
+            colors = listOf(Color.White, base, lerp(base, Color.Black, 0.3f)),
+            center = center - Offset(radius * 0.35f, radius * 0.35f),
+            radius = radius * 1.6f
+        )
+    }
+    drawCircle(brush = fill, radius = radius, center = center)
+    drawCircle(
+        color = Color.Black.copy(alpha = 0.55f),
+        radius = radius,
+        center = center,
+        style = Stroke(width = radius * 0.08f)
+    )
+    when (kind) {
+        Marble.BOMB -> {
+            // La mèche, et sa flamme.
+            val from = center + Offset(radius * 0.45f, -radius * 0.55f)
+            val to = center + Offset(radius * 0.75f, -radius * 0.95f)
+            drawLine(Color(0xFFBCAAA4), from, to, strokeWidth = radius * 0.14f, cap = StrokeCap.Round)
+            drawCircle(Color(0xFFFFB300), radius * 0.2f, to)
+            drawCircle(Color.White.copy(alpha = 0.35f), radius * 0.16f, center - Offset(radius * 0.38f, radius * 0.38f))
+        }
+        Marble.LIGHTNING -> {
+            val bolt = Path().apply {
+                moveTo(center.x + radius * 0.15f, center.y - radius * 0.75f)
+                lineTo(center.x - radius * 0.4f, center.y + radius * 0.1f)
+                lineTo(center.x - radius * 0.02f, center.y + radius * 0.1f)
+                lineTo(center.x - radius * 0.2f, center.y + radius * 0.75f)
+                lineTo(center.x + radius * 0.4f, center.y - radius * 0.15f)
+                lineTo(center.x + radius * 0.02f, center.y - radius * 0.15f)
+                close()
+            }
+            drawPath(bolt, Color(0xFF263238))
+        }
+        else -> drawCircle(Color.White.copy(alpha = 0.5f), radius * 0.16f, center - Offset(radius * 0.38f, radius * 0.38f))
     }
 }
 

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rules_marble_5_title">Biglie speciali</string>
+    <string name="rules_marble_5_body">Quando fai scoppiare delle biglie si riempie un indicatore: è l’anello dorato intorno alla biglia in attesa. Quando è pieno, al lanciatore arriva una biglia speciale. La bomba (dal livello 2) fa scoppiare tutte le biglie intorno al punto colpito. L’arcobaleno (dal livello 3) prende il colore che forma il gruppo più grande con le sue vicine. Il fulmine (dal livello 4) fa scoppiare tutte le biglie del colore colpito, lungo tutto il percorso. Le biglie che fanno scoppiare danno punti e possono innescare una reazione a catena. Il percorso entra da un bordo del campo e il buco può trovarsi ovunque: cambia a ogni livello.</string>
+</resources>

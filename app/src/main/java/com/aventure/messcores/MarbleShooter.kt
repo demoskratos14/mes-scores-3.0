@@ -1,5 +1,6 @@
 package com.aventure.messcores
 
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -35,6 +36,20 @@ internal object Marble {
     /** Nombre de couleurs possibles, au total. */
     const val PALETTE = 6
 
+    /** Les billes spéciales : la bombe fait éclater les billes autour de l'endroit touché, l'arc-en-ciel prend la couleur qui fait le plus gros groupe, l'éclair fait éclater toutes les billes de la couleur touchée. */
+    const val BOMB = 6
+    const val RAINBOW = 7
+    const val LIGHTNING = 8
+
+    /** Nombre de numéros possibles pour une bille du lanceur : les couleurs et les billes spéciales. */
+    const val KINDS = 9
+
+    /** « Charge » à atteindre pour qu'une bille spéciale arrive : chaque bille éclatée en donne 1. */
+    const val SPECIAL_THRESHOLD = 18
+
+    /** Rayon de l'explosion d'une bombe, en cases : deux billes de chaque côté de la bille touchée. */
+    const val BOMB_RADIUS = 1.2f
+
     const val DIAMETER = 0.55f
     const val RADIUS = DIAMETER / 2f
 
@@ -59,7 +74,10 @@ internal object Marble {
     /** Distance entre deux centres en dessous de laquelle une bille tirée touche une bille de la chaîne (un peu moins qu'un diamètre : on pardonne). */
     const val HIT_DISTANCE = DIAMETER * 0.9f
 
-    /** Vitesse de la queue de chaîne quand elle rattrape un trou, et vitesse à laquelle une bille insérée repousse celles qui la précèdent. */
+    /** Vitesse à laquelle le train de devant recule vers la queue quand un groupe a éclaté (voir [MarbleGame]). */
+    const val RETREAT_SPEED = 5f
+
+    /** Vitesse d'une bille sortie seule de l'entrée (la queue avait éclaté) qui fonce rejoindre la chaîne, et vitesse à laquelle une bille insérée repousse celles qui la précèdent. */
     const val CATCH_UP_SPEED = 6f
     const val SQUEEZE_SPEED = 5f
 
@@ -71,7 +89,7 @@ internal object Marble {
     const val TOUCH = 0.02f
 
     /** Une nouvelle bille se colle à la queue si elle y tient à moins de [SPAWN_SNAP] près ; sinon elle sort seule de l'entrée. */
-    const val SPAWN_SNAP = 0.1f
+    const val SPAWN_SNAP = 0.15f
 
     /** Le nombre de couleurs du niveau [level] : 4 au début, 6 à partir du niveau 5. */
     fun colorsFor(level: Int): Int = (3 + (level.coerceAtLeast(1) + 1) / 2).coerceAtMost(PALETTE)
@@ -82,6 +100,17 @@ internal object Marble {
     /** La vitesse de la chaîne au niveau [level], en unités par seconde. */
     fun speedFor(level: Int): Float = (0.55f + 0.05f * (level.coerceAtLeast(1) - 1)).coerceAtMost(1.3f)
 
+    /** Les billes spéciales qui peuvent arriver au niveau [level] : la bombe dès le 2, l'arc-en-ciel dès le 3, l'éclair dès le 4. */
+    fun unlockedSpecials(level: Int): List<Int> = when {
+        level >= 4 -> listOf(BOMB, RAINBOW, LIGHTNING)
+        level >= 3 -> listOf(BOMB, RAINBOW)
+        level >= 2 -> listOf(BOMB)
+        else -> emptyList()
+    }
+
+    /** Vrai si le numéro [kind] est celui d'une bille spéciale. */
+    fun isSpecial(kind: Int): Boolean = kind >= PALETTE
+
     fun dailySeed(year: Int, month: Int, day: Int): Int = year * 10000 + month * 100 + day
 
     /**
@@ -91,6 +120,233 @@ internal object Marble {
      */
     fun chainPoints(count: Int, chain: Int): Int =
         (count * POP_POINTS + max(0, count - MIN_RUN) * RUN_BONUS) * max(1, chain)
+}
+
+/**
+ * La carte d'un niveau : un chemin sur la grille du tower defense ([COLS] × [ROWS] cases, une case = une unité), et des décors.
+ * Le chemin entre par un bord du terrain (de là, la chaîne arrive du dehors) et finit n'importe où, au trou. Il ne se croise ni
+ * ne se frôle : deux cases du chemin qui ne se suivent pas ne se touchent jamais par un côté, il reste donc toujours une case
+ * libre entre deux morceaux. Le lanceur est au centre, sur la case ([SHOOTER_ROW], [SHOOTER_COL]), que le chemin évite avec ses
+ * voisines. La carte ne dépend que de la graine.
+ */
+internal class MarbleMap private constructor(
+    val seed: Int,
+    /** Les cases du chemin, de l'entrée au trou (numéro = rangée × [COLS] + colonne). */
+    val path: IntArray,
+    /** Par case : -1 (rien) ou le rang du décor dans l'image des décors. Une case avec décor est bloquée. */
+    val decor: IntArray,
+    /** Le pas de la case d'entrée vers l'extérieur du terrain : c'est par là que la chaîne arrive. */
+    val entryDx: Int,
+    val entryDy: Int
+) {
+    /** Le thème de la carte (marais ou été, voir [TdMap.theme]) : il ne change que les images. Une graine donne toujours le même. */
+    val theme: Int = TdMap.themeOf(seed)
+
+    private val onPath = BooleanArray(COLS * ROWS).also { grid -> path.forEach { grid[it] = true } }
+
+    val entryRow: Int get() = path.first() / COLS
+    val entryCol: Int get() = path.first() % COLS
+    val holeRow: Int get() = path.last() / COLS
+    val holeCol: Int get() = path.last() % COLS
+
+    fun isPath(row: Int, col: Int): Boolean = row in 0 until ROWS && col in 0 until COLS && onPath[row * COLS + col]
+
+    /** Vrai si on peut y poser un décor ou un lanceur : ni chemin ni décor. */
+    fun isBuildable(row: Int, col: Int): Boolean =
+        row in 0 until ROWS && col in 0 until COLS && !onPath[row * COLS + col] && decor[row * COLS + col] < 0
+
+    /** Comme [isPath], mais le chemin se prolonge d'une case hors du terrain, à l'entrée. */
+    private fun pathLike(row: Int, col: Int): Boolean {
+        if (row in 0 until ROWS && col in 0 until COLS) return onPath[row * COLS + col]
+        return row == entryRow + entryDy && col == entryCol + entryDx
+    }
+
+    /** La signature de la tuile à poser sur la case (voir [TdMap.tileSignature]) : neuf bits, à 1 pour la terre claire du chemin. */
+    fun tileSignature(row: Int, col: Int): Int {
+        if (!isPath(row, col)) return 0
+        val up = pathLike(row - 1, col)
+        val down = pathLike(row + 1, col)
+        val left = pathLike(row, col - 1)
+        val right = pathLike(row, col + 1)
+        val bits = booleanArrayOf(
+            up && left && pathLike(row - 1, col - 1), up, up && right && pathLike(row - 1, col + 1),
+            left, true, right,
+            down && left && pathLike(row + 1, col - 1), down, down && right && pathLike(row + 1, col + 1)
+        )
+        var sig = 0
+        for (k in bits.indices) if (bits[k]) sig = sig or (1 shl k)
+        return sig
+    }
+
+    /** Le rang de la tuile du sol de la case dans l'image des tuiles du tower defense. */
+    fun tileIndex(row: Int, col: Int): Int {
+        if (!isPath(row, col)) return TdTiles.SWAMP[(row + col) and 1]
+        return TdTiles.best(tileSignature(row, col), theme)
+    }
+
+    companion object {
+        const val COLS = TdMap.COLS
+        const val ROWS = TdMap.ROWS
+
+        /** La case du lanceur, au centre du terrain. */
+        const val SHOOTER_ROW = 7
+        const val SHOOTER_COL = 4
+
+        /** Nombre de cases du chemin : tiré au hasard entre les deux. */
+        const val MIN_CELLS = 30
+        const val MAX_CELLS = 50
+
+        private const val ATTEMPTS = 40
+        private const val NODE_BUDGET = 3000
+        private const val STRAIGHT_PERCENT = 65
+        private const val SCENERY_PERCENT = 14
+
+        // Haut, droite, bas, gauche.
+        private val DR = intArrayOf(-1, 0, 1, 0)
+        private val DC = intArrayOf(0, 1, 0, -1)
+
+        /** Vrai pour la case du lanceur et ses huit voisines : le chemin n'y passe jamais. */
+        fun isReserved(row: Int, col: Int): Boolean = abs(row - SHOOTER_ROW) <= 1 && abs(col - SHOOTER_COL) <= 1
+
+        fun generate(seed: Int): MarbleMap {
+            val random = Random(seed)
+            var cells: IntArray? = null
+            var attempt = 0
+            while (cells == null && attempt < ATTEMPTS) {
+                cells = walk(random)
+                attempt++
+            }
+            // Le chemin tracé à la main ne sert que si le hasard n'a rien donné, ce qui n'arrive en pratique jamais.
+            return build(seed, cells ?: serpentine(random.nextBoolean()), random)
+        }
+
+        /** Un chemin tracé au hasard en partant d'un bord, ou `null` si l'essai s'est perdu dans une impasse. */
+        private fun walk(random: Random): IntArray? {
+            val starts = ArrayList<Int>()
+            for (row in 0 until ROWS) {
+                for (col in 0 until COLS) {
+                    val edge = row == 0 || row == ROWS - 1 || col == 0 || col == COLS - 1
+                    if (edge && !isReserved(row, col)) starts.add(row * COLS + col)
+                }
+            }
+            val target = MIN_CELLS + random.nextInt(MAX_CELLS - MIN_CELLS + 1)
+            val path = IntArray(target)
+            val onPath = BooleanArray(COLS * ROWS)
+            // À chaque case posée, les directions à essayer dans l'ordre, et la prochaine à essayer.
+            val order = Array(target) { IntArray(4) }
+            val next = IntArray(target)
+            path[0] = starts[random.nextInt(starts.size)]
+            onPath[path[0]] = true
+            order[0] = shuffledDirections(random)
+            var depth = 0
+            var budget = NODE_BUDGET
+            while (depth < target - 1 && budget-- > 0) {
+                if (next[depth] >= 4) {
+                    // Plus rien à essayer ici : on reprend la case d'avant.
+                    onPath[path[depth]] = false
+                    if (depth == 0) return null
+                    depth--
+                    continue
+                }
+                val dir = order[depth][next[depth]++]
+                val from = path[depth]
+                val row = from / COLS + DR[dir]
+                val col = from % COLS + DC[dir]
+                if (!canStep(row, col, from, onPath)) continue
+                depth++
+                path[depth] = row * COLS + col
+                onPath[path[depth]] = true
+                order[depth] = directionsFor(dir, random)
+                next[depth] = 0
+            }
+            return if (depth == target - 1) path else null
+        }
+
+        /** On peut aller en ([row], [col]) depuis [from] : c'est libre, hors du lanceur, et ça ne touche aucune autre case du chemin que [from]. */
+        private fun canStep(row: Int, col: Int, from: Int, onPath: BooleanArray): Boolean {
+            if (row !in 0 until ROWS || col !in 0 until COLS || isReserved(row, col)) return false
+            if (onPath[row * COLS + col]) return false
+            for (d in 0 until 4) {
+                val r = row + DR[d]
+                val c = col + DC[d]
+                if (r !in 0 until ROWS || c !in 0 until COLS) continue
+                val neighbor = r * COLS + c
+                if (neighbor != from && onPath[neighbor]) return false
+            }
+            return true
+        }
+
+        private fun shuffledDirections(random: Random): IntArray {
+            val dirs = intArrayOf(0, 1, 2, 3)
+            for (i in 3 downTo 1) {
+                val j = random.nextInt(i + 1)
+                val keep = dirs[i]
+                dirs[i] = dirs[j]
+                dirs[j] = keep
+            }
+            return dirs
+        }
+
+        /** Les directions à essayer après avoir avancé dans la direction [last] : le plus souvent tout droit d'abord, pour de longues lignes. */
+        private fun directionsFor(last: Int, random: Random): IntArray {
+            val dirs = shuffledDirections(random)
+            if (random.nextInt(100) >= STRAIGHT_PERCENT) return dirs
+            return intArrayOf(last) + dirs.filter { it != last }
+        }
+
+        /** Un chemin en lacets, sûr, qui évite le centre : trois rangées en haut, le long du bord droit, puis deux rangées en bas. */
+        private fun serpentine(mirror: Boolean): IntArray {
+            val cells = ArrayList<Int>()
+            fun add(row: Int, col: Int) = cells.add(row * COLS + if (mirror) COLS - 1 - col else col)
+            for (col in 0 until COLS) add(0, col)
+            add(1, COLS - 1)
+            for (col in COLS - 1 downTo 0) add(2, col)
+            add(3, 0)
+            for (col in 0 until COLS) add(4, col)
+            for (row in 5..9) add(row, COLS - 1)
+            for (col in COLS - 1 downTo 0) add(10, col)
+            add(11, 0)
+            for (col in 0 until COLS) add(12, col)
+            return cells.toIntArray()
+        }
+
+        private fun build(seed: Int, path: IntArray, random: Random): MarbleMap {
+            val onPath = BooleanArray(COLS * ROWS).also { grid -> path.forEach { grid[it] = true } }
+            val first = path.first()
+            // Les côtés par où la case d'entrée donne sur l'extérieur : en coin, il y en a deux, on en tire un.
+            val outward = ArrayList<Pair<Int, Int>>()
+            if (first / COLS == 0) outward.add(0 to -1)
+            if (first / COLS == ROWS - 1) outward.add(0 to 1)
+            if (first % COLS == 0) outward.add(-1 to 0)
+            if (first % COLS == COLS - 1) outward.add(1 to 0)
+            val (dx, dy) = outward[random.nextInt(outward.size)]
+            val decor = IntArray(COLS * ROWS) { -1 }
+            // Un repère à côté de l'entrée : la première case libre autour d'elle.
+            for (d in 0 until 4) {
+                val r = first / COLS + DR[d]
+                val c = first % COLS + DC[d]
+                if (r !in 0 until ROWS || c !in 0 until COLS || onPath[r * COLS + c] || isReserved(r, c)) continue
+                decor[r * COLS + c] = TdMap.DECOR_CAVE
+                break
+            }
+            // Des décors au hasard, jamais collés au chemin ni au lanceur.
+            for (row in 0 until ROWS) {
+                for (col in 0 until COLS) {
+                    val cell = row * COLS + col
+                    if (onPath[cell] || decor[cell] >= 0 || isReserved(row, col)) continue
+                    val nearPath = (-1..1).any { dr ->
+                        (-1..1).any { dc ->
+                            val r = row + dr
+                            val c = col + dc
+                            r in 0 until ROWS && c in 0 until COLS && onPath[r * COLS + c]
+                        }
+                    }
+                    if (!nearPath && random.nextInt(100) < SCENERY_PERCENT) decor[cell] = random.nextInt(TdMap.SCENERY_COUNT)
+                }
+            }
+            return MarbleMap(seed, path, decor, dx, dy)
+        }
+    }
 }
 
 /**
@@ -156,25 +412,29 @@ internal class MarblePath(private val xs: FloatArray, private val ys: FloatArray
 
     companion object {
         /**
-         * Le chemin de la carte du tower defense [map] : du bord haut du terrain (le départ est [Marble.ENTRY_LEAD] unités avant
-         * la première case) jusqu'au centre de la dernière case, où se trouve le trou.
+         * Le chemin de la carte [map] : le départ est [Marble.ENTRY_LEAD] unités avant la case d'entrée, hors du terrain (dans le
+         * sens de [MarbleMap.entryDx], [MarbleMap.entryDy]), puis le chemin passe par le centre de chaque case jusqu'au trou, au
+         * centre de la dernière.
          */
-        fun fromTdMap(map: TdMap): MarblePath {
+        fun fromMap(map: MarbleMap): MarblePath {
             val n = map.path.size
             val xs = FloatArray(n + 1)
             val ys = FloatArray(n + 1)
-            xs[0] = map.path[0] % TdMap.COLS + 0.5f
-            ys[0] = 0.5f - Marble.ENTRY_LEAD
+            xs[0] = map.entryCol + 0.5f + map.entryDx * Marble.ENTRY_LEAD
+            ys[0] = map.entryRow + 0.5f + map.entryDy * Marble.ENTRY_LEAD
             for (i in 0 until n) {
-                xs[i + 1] = map.path[i] % TdMap.COLS + 0.5f
-                ys[i + 1] = map.path[i] / TdMap.COLS + 0.5f
+                xs[i + 1] = map.path[i] % MarbleMap.COLS + 0.5f
+                ys[i + 1] = map.path[i] / MarbleMap.COLS + 0.5f
             }
             return MarblePath(xs, ys)
         }
     }
 }
 
-/** Une bille qui vient d'éclater, pour que l'écran l'anime : où elle était (en unités du terrain) et sa couleur. */
+/**
+ * Une bille qui vient d'éclater, pour que l'écran l'anime : où elle était (en unités du terrain) et sa couleur. Quand une bombe
+ * ou un éclair a fait éclater des billes, un dernier repère de couleur [Marble.BOMB] ou [Marble.LIGHTNING] marque l'endroit touché.
+ */
 internal class MarbleEffect(val x: Float, val y: Float, val color: Int)
 
 /**
@@ -184,10 +444,12 @@ internal class MarbleEffect(val x: Float, val y: Float, val color: Int)
  * même couleur (ou plus) éclate. Si la chaîne atteint le trou, la partie est perdue ; si toutes les billes éclatent, le
  * niveau est gagné (la chaîne suivante est plus longue, plus rapide et a plus de couleurs).
  *
- * La chaîne est poussée par sa queue : seule la dernière série de billes collées avance (à la vitesse de la chaîne, ou très
- * vite pour rattraper un trou) ; les séries qui la précèdent attendent. Quand deux séries se rejoignent et que les deux billes
- * du joint ont la même couleur, le groupe formé éclate si elles sont au moins trois : c'est la réaction en chaîne, qui multiplie
- * les points ([Marble.chainPoints]).
+ * La chaîne est poussée par sa queue : seule la dernière série de billes collées avance, à la vitesse du niveau. Quand un groupe
+ * éclate, tout le train de devant (toutes les billes entre le trou et la brèche) recule ensemble, vite, jusqu'à toucher la queue.
+ * Quand deux séries se rejoignent ainsi et que les deux billes du joint ont la même couleur, le groupe formé éclate si elles sont
+ * au moins trois, et le train de devant recule de nouveau : c'est la réaction en chaîne, qui multiplie les points
+ * ([Marble.chainPoints]). Une seule exception : si la queue entière a éclaté, les billes qui sortent ensuite de l'entrée foncent
+ * vers l'avant rejoindre la chaîne, qui les attend.
  *
  * Les billes sont rangées de la tête (la plus proche du trou, indice 0) à la queue.
  */
@@ -196,6 +458,9 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     private class Item(var s: Float, val color: Int) {
         var x = 0f
         var y = 0f
+
+        /** Vrai pour une bille sortie seule de l'entrée, loin de la chaîne : elle fonce l'attraper au lieu d'attendre qu'on la rejoigne. */
+        var rush = false
     }
 
     private class Flight(var x: Float, var y: Float, val dx: Float, val dy: Float, val color: Int)
@@ -211,8 +476,8 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     /** La graine de la carte du niveau en cours. */
     private var mapSeed = 0
 
-    /** La carte du tower defense dont vient le chemin (pour dessiner le sol et les décors). */
-    lateinit var map: TdMap
+    /** La carte du niveau (pour dessiner le sol et les décors). */
+    lateinit var map: MarbleMap
         private set
 
     lateinit var path: MarblePath
@@ -241,6 +506,9 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     var supply = 0
         private set
 
+    /** Les billes éclatées chargent une jauge : quand elle est pleine, une bille spéciale arrive au lanceur. */
+    private var specialCharge = 0
+
     /** Rang de la réaction en chaîne en cours (0 : aucun groupe n'a éclaté depuis le dernier tir). */
     private var comboChain = 0
 
@@ -265,6 +533,10 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     }
 
     val isFlying: Boolean get() = flight != null
+
+    /** Où en est la jauge des billes spéciales : 0 à vide, 1 quand la prochaine est prête (0 tant qu'aucune n'est débloquée). */
+    val specialProgress: Float
+        get() = if (Marble.unlockedSpecials(level).isEmpty()) 0f else (specialCharge.toFloat() / Marble.SPECIAL_THRESHOLD).coerceIn(0f, 1f)
 
     /** Position et couleur de la bille en vol (au lanceur quand aucune ne vole). */
     val flightX: Float get() = flight?.x ?: shooterX
@@ -296,6 +568,7 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         isOver = false
         comboChain = 0
         lastChain = 0
+        specialCharge = 0
         lastEffects = emptyList()
         beginLevel()
         current = randomPlayableColor()
@@ -315,28 +588,11 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     }
 
     private fun buildMap(seed: Int) {
-        val built = TdMap.generate(seed)
+        val built = MarbleMap.generate(seed)
         map = built
-        path = MarblePath.fromTdMap(built)
-        // Le lanceur : la case libre la plus proche du centre du terrain.
-        var best = Float.MAX_VALUE
-        var bx = TdMap.COLS / 2f
-        var by = TdMap.ROWS / 2f
-        for (row in 0 until TdMap.ROWS) {
-            for (col in 0 until TdMap.COLS) {
-                if (!built.isBuildable(row, col)) continue
-                val dx = col + 0.5f - TdMap.COLS / 2f
-                val dy = row + 0.5f - TdMap.ROWS / 2f
-                val d = dx * dx + dy * dy
-                if (d < best) {
-                    best = d
-                    bx = col + 0.5f
-                    by = row + 0.5f
-                }
-            }
-        }
-        shooterX = bx
-        shooterY = by
+        path = MarblePath.fromMap(built)
+        shooterX = MarbleMap.SHOOTER_COL + 0.5f
+        shooterY = MarbleMap.SHOOTER_ROW + 0.5f
     }
 
     private fun nextLevel() {
@@ -372,8 +628,8 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     private fun ensurePlayable() {
         val present = presentColors()
         if (present.isEmpty()) return
-        if (current !in present) current = present[random.nextInt(present.size)]
-        if (next !in present) next = present[random.nextInt(present.size)]
+        if (!Marble.isSpecial(current) && current !in present) current = present[random.nextInt(present.size)]
+        if (!Marble.isSpecial(next) && next !in present) next = present[random.nextInt(present.size)]
     }
 
     /**
@@ -413,8 +669,18 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         if (isOver || flight != null) return false
         flight = Flight(shooterX, shooterY, cos(angle), sin(angle), current)
         current = next
-        next = randomPlayableColor()
+        next = nextQueueMarble()
         return true
+    }
+
+    /** La prochaine bille du lanceur : une bille spéciale si la jauge est pleine (et que la bille du lanceur n'en est pas une), sinon une couleur. */
+    private fun nextQueueMarble(): Int {
+        val unlocked = Marble.unlockedSpecials(level)
+        if (unlocked.isNotEmpty() && specialCharge >= Marble.SPECIAL_THRESHOLD && !Marble.isSpecial(current)) {
+            specialCharge -= Marble.SPECIAL_THRESHOLD
+            return unlocked[random.nextInt(unlocked.size)]
+        }
+        return randomPlayableColor()
     }
 
     /** Le guide de visée : le lanceur, puis l'endroit où la bille s'arrêterait (contre une bille, ou en sortant du terrain). */
@@ -432,6 +698,12 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         return listOf(shooterX to shooterY, x to y)
     }
 
+    /** Une bille qui n'est pas encore entrée sur le terrain ne peut pas être touchée. */
+    private fun isVisible(m: Item): Boolean = m.x >= 0f && m.x <= MarbleMap.COLS && m.y >= 0f && m.y <= MarbleMap.ROWS
+
+    /** Vrai si la bille d'indice [i] est sur le terrain (sinon elle arrive encore du dehors). */
+    fun isMarbleVisible(i: Int): Boolean = isVisible(items[i])
+
     private fun outOfField(x: Float, y: Float): Boolean =
         x < -1f || x > TdMap.COLS + 1f || y < -1f || y > TdMap.ROWS + 1f
 
@@ -441,7 +713,7 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         var bestD2 = Marble.HIT_DISTANCE * Marble.HIT_DISTANCE
         for (i in items.indices) {
             val m = items[i]
-            if (m.y < 0f) continue
+            if (!isVisible(m)) continue
             val dx = x - m.x
             val dy = y - m.y
             val d2 = dx * dx + dy * dy
@@ -492,10 +764,29 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         }
     }
 
-    /** La bille tirée touche la bille [k] : elle s'insère de son côté de la chaîne, et un groupe éclate peut-être. */
+    /**
+     * La bille tirée touche la bille [k]. Une couleur s'insère de son côté de la chaîne, et un groupe éclate peut-être ; une bombe
+     * fait éclater les billes autour de la bille touchée, un éclair toutes les billes de sa couleur, un arc-en-ciel s'insère en
+     * prenant la couleur qui fait le plus gros groupe.
+     */
     private fun land(f: Flight, k: Int) {
         flight = null
         shotCount++
+        comboChain = 0
+        lastChain = 0
+        val popped = when (f.color) {
+            Marble.BOMB -> explode(k)
+            Marble.LIGHTNING -> strike(k)
+            else -> insert(f, k)
+        }
+        if (popped > 0) {
+            comboChain = 1
+            ensurePlayable()
+        }
+    }
+
+    /** Insère la bille tirée [f] contre la bille [k] et renvoie le nombre de billes parties. */
+    private fun insert(f: Flight, k: Int): Int {
         val m = items[k]
         // Du côté du trou de la bille touchée ? Alors elle s'insère devant elle, sinon derrière.
         val ahead = (f.x - m.x) * path.dirX(m.s) + (f.y - m.y) * path.dirY(m.s) > 0f
@@ -503,15 +794,69 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         var s = if (ahead) m.s + Marble.DIAMETER else m.s - Marble.DIAMETER
         // Pas de place derrière : la bille prend celle de la voisine de derrière, et les billes de devant seront repoussées.
         if (index < items.size) s = max(s, items[index].s + Marble.DIAMETER)
-        val item = Item(s, f.color)
+        val color = if (f.color == Marble.RAINBOW) rainbowColor(index) else f.color
+        val item = Item(s, color)
         sync(item)
         items.add(index, item)
-        comboChain = 0
-        lastChain = 0
-        if (collapseAround(index, 1) > 0) {
-            comboChain = 1
-            ensurePlayable()
+        return collapseAround(index, 1)
+    }
+
+    /** La bombe : fait éclater toutes les billes à moins de [Marble.BOMB_RADIUS] de la bille [k]. Renvoie combien sont parties. */
+    private fun explode(k: Int): Int {
+        val cx = items[k].x
+        val cy = items[k].y
+        val limit = Marble.BOMB_RADIUS * Marble.BOMB_RADIUS
+        val hit = items.indices.filter { i ->
+            val dx = items[i].x - cx
+            val dy = items[i].y - cy
+            dx * dx + dy * dy <= limit
         }
+        return removeSet(hit, 1, MarbleEffect(cx, cy, Marble.BOMB))
+    }
+
+    /** L'éclair : fait éclater toutes les billes de la couleur de la bille [k], sur tout le chemin. Renvoie combien sont parties. */
+    private fun strike(k: Int): Int {
+        val color = items[k].color
+        return removeSet(items.indices.filter { items[it].color == color }, 1, MarbleEffect(items[k].x, items[k].y, Marble.LIGHTNING))
+    }
+
+    /**
+     * L'arc-en-ciel qui va s'insérer à l'indice [index] : la couleur d'une des deux billes voisines qui fait le plus gros groupe
+     * (la plus petite si deux font pareil) ; sans voisine, une couleur du chemin au hasard.
+     */
+    private fun rainbowColor(index: Int): Int {
+        val candidates = sortedSetOf<Int>()
+        if (index - 1 >= 0) candidates.add(items[index - 1].color)
+        if (index < items.size) candidates.add(items[index].color)
+        if (candidates.isEmpty()) return randomPlayableColor()
+        var best = candidates.first()
+        var bestSize = -1
+        for (candidate in candidates) {
+            val size = runIfInserted(index, candidate)
+            if (size > bestSize) {
+                best = candidate
+                bestSize = size
+            }
+        }
+        return best
+    }
+
+    /** La taille qu'aurait le groupe d'une bille de couleur [color] insérée à l'indice [index], billes collées seulement. */
+    private fun runIfInserted(index: Int, color: Int): Int {
+        var size = 1
+        var j = index - 1
+        while (j >= 0 && items[j].color == color) {
+            size++
+            if (j == 0 || !touching(j - 1)) break
+            j--
+        }
+        var i = index
+        while (i < items.size && items[i].color == color) {
+            size++
+            if (i == items.size - 1 || !touching(i)) break
+            i++
+        }
+        return size
     }
 
     private fun touching(i: Int): Boolean = items[i].s - items[i + 1].s <= Marble.DIAMETER + Marble.TOUCH
@@ -533,38 +878,82 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         for (i in lo..hi) effects.add(MarbleEffect(items[i].x, items[i].y, items[i].color))
         items.subList(lo, hi + 1).clear()
         score += Marble.chainPoints(count, chain)
+        specialCharge += count
         lastEffects = effects
         lastChain = chain
         popCount++
         return count
     }
 
-    /** Début de la dernière série de billes collées (la queue de la chaîne, que rien ne sépare de la dernière bille). */
-    private fun rearStart(): Int {
-        var a = items.size - 1
-        while (a > 0 && touching(a - 1)) a--
-        return a
+    /**
+     * Retire les billes d'indices [indices] (rangés du plus petit au plus grand), qui ne se touchent pas forcément, et note leur
+     * éclatement suivi de [marker] (le repère de la bombe ou de l'éclair, que l'écran dessine en grand). Renvoie leur nombre.
+     */
+    private fun removeSet(indices: List<Int>, chain: Int, marker: MarbleEffect): Int {
+        val effects = ArrayList<MarbleEffect>(indices.size + 1)
+        for (i in indices) effects.add(MarbleEffect(items[i].x, items[i].y, items[i].color))
+        effects.add(marker)
+        for (i in indices.indices.reversed()) items.removeAt(indices[i])
+        score += Marble.chainPoints(indices.size, chain)
+        specialCharge += indices.size
+        lastEffects = effects
+        lastChain = chain
+        popCount++
+        return indices.size
     }
 
+    /**
+     * La chaîne est faite de séries de billes collées. La dernière (la queue, poussée par l'entrée) avance à la vitesse du niveau ;
+     * chaque série qui en est séparée par un trou recule, à [Marble.RETREAT_SPEED] : tout le train de devant recule donc d'un bloc,
+     * et se colle à la série de derrière en la touchant. Seule exception : une bille sortie seule de l'entrée ([Item.rush]) fonce
+     * vers la chaîne, qui l'attend. Deux séries qui se rejoignent sont recollées, et leur joint peut faire éclater un groupe.
+     */
     private fun stepChain(dt: Float) {
         if (items.isEmpty()) return
-        val a = rearStart()
-        val gap = if (a > 0) items[a - 1].s - items[a].s - Marble.DIAMETER else 0f
-        val speed = when {
-            a > 0 -> Marble.CATCH_UP_SPEED
-            items[0].s < Marble.RUSH_UNTIL -> Marble.RUSH_SPEED
-            else -> Marble.speedFor(level)
+        val starts = ArrayList<Int>()
+        starts.add(0)
+        for (i in 1 until items.size) if (!touching(i - 1)) starts.add(i)
+        val count = starts.size
+        // L'écart de chaque série avec celle de devant, avant le pas : on repère celles qui viennent de se joindre.
+        val oldGap = FloatArray(count)
+        for (k in 1 until count) oldGap[k] = items[starts[k] - 1].s - items[starts[k]].s - Marble.DIAMETER
+        val velocity = FloatArray(count)
+        for (k in 0 until count) {
+            val head = items[starts[k]]
+            // Rien devant elle : elle n'a personne à rattraper.
+            if (k == 0) head.rush = false
+            velocity[k] = when {
+                head.rush -> Marble.CATCH_UP_SPEED
+                k == count - 1 -> if (count == 1 && head.s < Marble.RUSH_UNTIL) Marble.RUSH_SPEED else Marble.speedFor(level)
+                items[starts[k + 1]].rush -> 0f
+                else -> -Marble.RETREAT_SPEED
+            }
         }
-        var move = speed * dt
-        var joined = false
-        if (a > 0 && move >= gap) {
-            move = max(gap, 0f)
-            joined = true
+        val joins = ArrayList<Int>()
+        var aheadTail = 0f
+        for (k in 0 until count) {
+            val first = starts[k]
+            val last = if (k + 1 < count) starts[k + 1] - 1 else items.size - 1
+            var move = velocity[k] * dt
+            if (move < 0f) {
+                // Elle recule : au plus jusqu'à toucher la série de derrière (là où elle était avant ce pas).
+                val room = if (k + 1 < count) max(items[last].s - items[last + 1].s - Marble.DIAMETER, 0f) else 0f
+                move = max(move, -room)
+            } else if (k > 0) {
+                // Elle avance : au plus jusqu'à toucher la série de devant (là où elle est maintenant).
+                move = min(move, max(aheadTail - Marble.DIAMETER - items[first].s, 0f))
+            }
+            for (i in first..last) items[i].s += move
+            if (k > 0 && oldGap[k] > Marble.TOUCH && aheadTail - items[first].s - Marble.DIAMETER <= Marble.TOUCH) {
+                items[first].rush = false
+                joins.add(first - 1)
+            }
+            aheadTail = items[last].s
         }
-        for (i in a until items.size) items[i].s += move
         squeeze(dt)
         syncAll()
-        if (joined) junction(a - 1)
+        // De l'arrière vers l'avant : un groupe qui éclate ne décale pas les indices de ceux de devant.
+        for (i in joins.indices.reversed()) junction(joins[i])
     }
 
     /** Les billes qui se chevauchent (une bille vient de s'insérer) : celles de devant sont repoussées vers le trou. */
@@ -580,7 +969,7 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     /** Deux séries viennent de se rejoindre entre [i] et [i] + 1 : si les billes du joint ont la même couleur, le groupe éclate à partir de trois. */
     private fun junction(i: Int) {
         if (i < 0 || i + 1 >= items.size) return
-        if (items[i].color != items[i + 1].color) return
+        if (items[i].color != items[i + 1].color || !touching(i)) return
         if (collapseAround(i, comboChain + 1) > 0) {
             comboChain++
             ensurePlayable()
@@ -590,13 +979,20 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     /** Fait sortir de l'entrée les billes qui restent, une par une, quand la place se libère. */
     private fun spawn() {
         while (supply > 0 && (items.isEmpty() || items[items.size - 1].s >= Marble.DIAMETER)) {
+            var alone = false
             val s = if (items.isEmpty()) {
                 0f
             } else {
                 val room = items[items.size - 1].s - Marble.DIAMETER
-                if (room <= Marble.SPAWN_SNAP) room else 0f
+                if (room <= Marble.SPAWN_SNAP) {
+                    room
+                } else {
+                    alone = true
+                    0f
+                }
             }
             val item = Item(s, nextSpawnColor())
+            item.rush = alone
             sync(item)
             items.add(item)
             supply--
@@ -633,6 +1029,24 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         }
     }
 
+    /** Pose des billes à des distances quelconques : des paires (distance, couleur), de la tête à la queue, trous compris. */
+    internal fun setChain(marbles: List<Pair<Float, Int>>) {
+        items.clear()
+        for ((s, c) in marbles) {
+            val item = Item(s, c)
+            sync(item)
+            items.add(item)
+        }
+    }
+
+    internal fun setLevel(value: Int) {
+        level = value
+    }
+
+    internal fun setSpecialCharge(charge: Int) {
+        specialCharge = charge
+    }
+
     internal fun setSupply(count: Int) {
         supply = count
     }
@@ -647,8 +1061,8 @@ internal class MarbleGame(private val random: Random = Random.Default) {
     /**
      * L'état de la partie en une liste d'entiers, pour la garder quand l'écran tourne (voir [restore]) : version, niveau, score,
      * rang de la réaction, graine de la carte, mode, graine du jour, billes à sortir, bille du lanceur, bille suivante, fin,
-     * deux dernières couleurs sorties, la bille en vol s'il y en a une (un drapeau, sa position, sa direction, sa couleur), le
-     * nombre de billes, puis chaque bille (sa distance sur le chemin, sa couleur).
+     * deux dernières couleurs sorties, la bille en vol s'il y en a une (un drapeau, sa position, sa direction, sa couleur), la
+     * jauge des billes spéciales, le nombre de billes, puis chaque bille (sa distance sur le chemin, sa couleur plus 16 si elle fonce rejoindre la chaîne).
      */
     fun save(): List<Int> = buildList {
         add(SAVE_VERSION)
@@ -671,17 +1085,20 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         add((f?.dx ?: 0f).toBits())
         add((f?.dy ?: 0f).toBits())
         add(f?.color ?: 0)
+        add(specialCharge)
         add(items.size)
         for (item in items) {
             add(item.s.toBits())
-            add(item.color)
+            add(item.color + if (item.rush) RUSH_BIT else 0)
         }
     }
 
     companion object {
-        private const val SAVE_VERSION = 1
-        private const val SAVE_HEADER = 20
+        private const val SAVE_VERSION = 3
+        private const val RUSH_BIT = 16
+        private const val SAVE_HEADER = 21
         private const val MAX_SAVED = 200
+        private const val MAX_CHARGE = 100_000
         private const val MAX_PREVIEW_STEPS = 400
         private const val MAX_ELAPSED_MS = 500L
         private const val STEP = 0.02f
@@ -689,13 +1106,13 @@ internal class MarbleGame(private val random: Random = Random.Default) {
         /** Rebâtit une partie depuis [data] (voir [save]), ou renvoie `null` si ces données ne sont pas celles d'une partie. */
         fun restore(data: List<Int>, random: Random = Random.Default): MarbleGame? {
             if (data.size < SAVE_HEADER || data[0] != SAVE_VERSION) return null
-            val n = data[19]
+            val n = data[20]
             if (n < 0 || n > MAX_SAVED || data.size != SAVE_HEADER + 2 * n) return null
             val valid = data[1] >= 1 && data[2] >= 0 && data[3] >= 0 &&
                 data[5] in MarbleMode.values().indices && data[7] in 0..Marble.countFor(data[1]) &&
-                data[8] in 0 until Marble.PALETTE && data[9] in 0 until Marble.PALETTE && data[10] in 0..1 &&
+                data[8] in 0 until Marble.KINDS && data[9] in 0 until Marble.KINDS && data[10] in 0..1 &&
                 data[11] in -1 until Marble.PALETTE && data[12] in -1 until Marble.PALETTE &&
-                data[13] in 0..1 && data[18] in 0 until Marble.PALETTE
+                data[13] in 0..1 && data[18] in 0 until Marble.KINDS && data[19] in 0..MAX_CHARGE
             if (!valid) return null
             var flight: Flight? = null
             if (data[13] == 1) {
@@ -709,15 +1126,19 @@ internal class MarbleGame(private val random: Random = Random.Default) {
                 flight = Flight(x, y, dx, dy, data[18])
             }
             val colors = IntArray(n)
+            val rushes = BooleanArray(n)
             val positions = FloatArray(n)
             for (i in 0 until n) {
                 val s = Float.fromBits(data[SAVE_HEADER + 2 * i])
-                val color = data[SAVE_HEADER + 2 * i + 1]
+                val raw = data[SAVE_HEADER + 2 * i + 1]
+                val color = raw and (RUSH_BIT - 1)
+                if (raw < 0 || raw >= 2 * RUSH_BIT) return null
                 if (s.isNaN() || s.isInfinite() || s < -10f || s > 1000f) return null
                 if (color !in 0 until Marble.PALETTE) return null
                 if (i > 0 && s > positions[i - 1]) return null
                 positions[i] = s
                 colors[i] = color
+                rushes[i] = (raw and RUSH_BIT) != 0
             }
             val game = MarbleGame(random)
             game.mode = MarbleMode.fromIndex(data[5])
@@ -733,10 +1154,12 @@ internal class MarbleGame(private val random: Random = Random.Default) {
             game.isOver = data[10] == 1
             game.recent1 = data[11]
             game.recent2 = data[12]
+            game.specialCharge = data[19]
             game.flight = flight
             game.items.clear()
             for (i in 0 until n) {
                 val item = Item(positions[i], colors[i])
+                item.rush = rushes[i]
                 game.sync(item)
                 game.items.add(item)
             }

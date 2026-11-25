@@ -55,24 +55,122 @@ class MarbleShooterTest {
         }
     }
 
-    // --- Le chemin ---
+    // --- La carte et le chemin ---
+
+    @Test
+    fun leCheminNeSeCroiseNiNeSeFrole() {
+        for (seed in 0 until 300) {
+            val map = MarbleMap.generate(seed)
+            val cells = map.path.toList()
+            assertEquals("graine $seed : cases en double", cells.size, cells.toSet().size)
+            assertTrue("graine $seed : longueur ${cells.size}", cells.size in MarbleMap.MIN_CELLS..53)
+            for (i in cells.indices) {
+                val row = cells[i] / MarbleMap.COLS
+                val col = cells[i] % MarbleMap.COLS
+                assertTrue(row in 0 until MarbleMap.ROWS && col in 0 until MarbleMap.COLS)
+                assertFalse("graine $seed : le chemin passe sur le lanceur", MarbleMap.isReserved(row, col))
+                if (i > 0) {
+                    val dr = row - cells[i - 1] / MarbleMap.COLS
+                    val dc = col - cells[i - 1] % MarbleMap.COLS
+                    assertEquals("graine $seed : deux cases qui se suivent se touchent", 1, kotlin.math.abs(dr) + kotlin.math.abs(dc))
+                }
+                // Deux cases qui ne se suivent pas ne se touchent jamais par un côté.
+                for (j in cells.indices) {
+                    if (kotlin.math.abs(i - j) <= 1) continue
+                    val other = cells[j]
+                    val side = kotlin.math.abs(row - other / MarbleMap.COLS) + kotlin.math.abs(col - other % MarbleMap.COLS)
+                    assertTrue("graine $seed : cases $i et $j collées", side > 1)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun leCheminEntreParUnBordEtFinitNImporteOu() {
+        val holes = HashSet<Int>()
+        var holeNotOnBottomRow = false
+        for (seed in 0 until 100) {
+            val map = MarbleMap.generate(seed)
+            val row = map.entryRow
+            val col = map.entryCol
+            assertTrue("graine $seed : l'entrée n'est pas sur un bord", row == 0 || row == MarbleMap.ROWS - 1 || col == 0 || col == MarbleMap.COLS - 1)
+            // La case d'avant l'entrée est hors du terrain.
+            val outRow = row + map.entryDy
+            val outCol = col + map.entryDx
+            assertTrue("graine $seed : l'entrée ne donne pas sur l'extérieur", outRow !in 0 until MarbleMap.ROWS || outCol !in 0 until MarbleMap.COLS)
+            assertEquals(1, kotlin.math.abs(map.entryDx) + kotlin.math.abs(map.entryDy))
+            holes.add(map.path.last())
+            if (map.holeRow != MarbleMap.ROWS - 1) holeNotOnBottomRow = true
+        }
+        assertTrue("trous : ${holes.size}", holes.size >= 20)
+        assertTrue(holeNotOnBottomRow)
+    }
+
+    @Test
+    fun laCarteNeDependQueDeLaGraine() {
+        val a = MarbleMap.generate(42)
+        val b = MarbleMap.generate(42)
+        assertEquals(a.path.toList(), b.path.toList())
+        assertEquals(a.decor.toList(), b.decor.toList())
+        assertEquals(a.entryDx, b.entryDx)
+        assertEquals(a.entryDy, b.entryDy)
+        assertFalse(a.path.toList() == MarbleMap.generate(43).path.toList())
+    }
+
+    @Test
+    fun lesDecorsNeTouchentNiLeCheminNiLeLanceur() {
+        for (seed in 0 until 100) {
+            val map = MarbleMap.generate(seed)
+            for (row in 0 until MarbleMap.ROWS) {
+                for (col in 0 until MarbleMap.COLS) {
+                    if (map.decor[row * MarbleMap.COLS + col] < 0) continue
+                    assertFalse("graine $seed : décor sur le chemin", map.isPath(row, col))
+                    assertFalse("graine $seed : décor sur le lanceur", MarbleMap.isReserved(row, col))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun leSolDeLaCarteALaBonneTuile() {
+        val map = MarbleMap.generate(7)
+        for (row in 0 until MarbleMap.ROWS) {
+            for (col in 0 until MarbleMap.COLS) {
+                val tile = map.tileIndex(row, col)
+                assertTrue(tile in 0 until TdTiles.SIGNATURES.size)
+                if (!map.isPath(row, col)) assertTrue(tile in TdTiles.SWAMP.toList())
+            }
+        }
+    }
+
+    @Test
+    fun leThemeDeLaCarteSuitSaGraineCommeAuTowerDefense() {
+        val themes = HashSet<Int>()
+        for (seed in 0 until 100) {
+            val map = MarbleMap.generate(seed)
+            assertEquals(TdMap.themeOf(seed), map.theme)
+            themes.add(map.theme)
+        }
+        assertEquals(setOf(TdMap.THEME_SWAMP, TdMap.THEME_SUMMER), themes)
+    }
 
     @Test
     fun leCheminDUneCarteCommenceHorsDuTerrainEtFinitAuTrou() {
         for (seed in 0 until 100) {
-            val map = TdMap.generate(seed)
-            val path = MarblePath.fromTdMap(map)
-            assertTrue(path.y(0f) < 0f)
-            val last = map.path.last()
-            assertEquals(last % TdMap.COLS + 0.5f, path.holeX, 1e-4f)
-            assertEquals(last / TdMap.COLS + 0.5f, path.holeY, 1e-4f)
+            val map = MarbleMap.generate(seed)
+            val path = MarblePath.fromMap(map)
+            val x = path.x(0f)
+            val y = path.y(0f)
+            assertTrue("graine $seed : départ ($x, $y) dans le terrain", x < 0f || x > MarbleMap.COLS || y < 0f || y > MarbleMap.ROWS)
+            assertEquals(map.holeCol + 0.5f, path.holeX, 1e-4f)
+            assertEquals(map.holeRow + 0.5f, path.holeY, 1e-4f)
             assertEquals(Marble.ENTRY_LEAD + map.path.size - 1, path.length, 1e-3f)
         }
     }
 
     @Test
     fun leCheminSeParcourtSansSaut() {
-        val path = MarblePath.fromTdMap(TdMap.generate(7))
+        val path = MarblePath.fromMap(MarbleMap.generate(7))
         var s = 0.1f
         while (s <= path.length) {
             val dx = path.x(s) - path.x(s - 0.1f)
@@ -84,7 +182,7 @@ class MarbleShooterTest {
 
     @Test
     fun laDirectionDuCheminEstUnVecteurUnitaire() {
-        val path = MarblePath.fromTdMap(TdMap.generate(3))
+        val path = MarblePath.fromMap(MarbleMap.generate(3))
         var s = 0f
         while (s <= path.length) {
             val dx = path.dirX(s)
@@ -95,19 +193,30 @@ class MarbleShooterTest {
     }
 
     @Test
-    fun leLanceurEstSurUneCaseLibreLoinDuChemin() {
+    fun leLanceurEstAuCentreLoinDuChemin() {
         for (seed in 0 until 50) {
             val g = MarbleGame(Random(seed))
-            assertTrue(g.shooterX in 0f..TdMap.COLS.toFloat())
-            assertTrue(g.shooterY in 0f..TdMap.ROWS.toFloat())
+            assertEquals(MarbleMap.SHOOTER_COL + 0.5f, g.shooterX, 1e-4f)
+            assertEquals(MarbleMap.SHOOTER_ROW + 0.5f, g.shooterY, 1e-4f)
             var s = 0f
             while (s <= g.path.length) {
                 val dx = g.shooterX - g.path.x(s)
                 val dy = g.shooterY - g.path.y(s)
-                assertTrue("graine $seed : lanceur sur le chemin", sqrt(dx * dx + dy * dy) >= 0.9f)
+                assertTrue("graine $seed : lanceur trop près du chemin", sqrt(dx * dx + dy * dy) >= 1.4f)
                 s += 0.1f
             }
         }
+    }
+
+    @Test
+    fun uneBilleQuiArriveDuDehorsNePeutPasEtreTouchee() {
+        // Le chemin vient de la gauche, hors du terrain : les billes à x < 0 sont invisibles.
+        val g = MarbleGame(Random(1))
+        g.loadField(MarblePath(floatArrayOf(-4f, 10f), floatArrayOf(3f, 3f)), 4f, 4.5f)
+        g.setSupply(0)
+        g.setChain(listOf(8.0f to 0, 7.45f to 1, 1.0f to 2, 0.45f to 3))
+        assertTrue(g.isMarbleVisible(0))
+        assertFalse(g.isMarbleVisible(3))
     }
 
     // --- Réglages ---
@@ -340,8 +449,11 @@ class MarbleShooterTest {
         assertEquals(listOf(3, 1, 1, 1, 3), colors(g))
         assertEquals(Marble.chainPoints(3, 1), g.score)
         assertEquals(1, g.popCount)
-        assertTrue("la série de tête attend : ${g.marbleS(0)}", g.marbleS(0) < 6.5f + 0.2f)
-        run(g, 3_000)
+        // La série de devant recule vers la queue, qui avance.
+        val head = g.marbleS(0)
+        run(g, 100)
+        assertTrue("la tête doit reculer : $head puis ${g.marbleS(0)}", g.marbleS(0) < head)
+        run(g, 2_900)
         assertEquals(listOf(3, 3), colors(g))
         assertEquals(Marble.chainPoints(3, 1) + Marble.chainPoints(3, 2), g.score)
         assertEquals(2, g.popCount)
@@ -412,6 +524,222 @@ class MarbleShooterTest {
         assertFalse(g.isFlying)
     }
 
+
+    // --- Le recul du train de devant ---
+
+    @Test
+    fun apresUnTrouLaTeteRecuePendantQueLaQueueAvance() {
+        val g = MarbleGame(Random(1))
+        g.loadField(line(), 4f, 4.5f)
+        g.setSupply(0)
+        g.setChain(listOf(8.0f to 3, 7.45f to 4, 5.0f to 1, 4.45f to 2))
+        run(g, 100)
+        assertTrue("la tête recule : ${g.marbleS(0)}", g.marbleS(0) < 8.0f - 0.3f)
+        assertTrue("la queue avance : ${g.marbleS(3)}", g.marbleS(3) > 4.45f)
+        // Le train de devant recule d'un bloc : ses billes restent collées.
+        assertEquals(Marble.DIAMETER, g.marbleS(0) - g.marbleS(1), 0.01f)
+        run(g, 1_500)
+        assertEquals(listOf(3, 4, 1, 2), colors(g))
+        assertSpaced(g)
+        for (i in 0 until g.marbleCount - 1) assertTrue(g.marbleS(i) - g.marbleS(i + 1) <= Marble.DIAMETER + 0.03f)
+    }
+
+    @Test
+    fun uneReactionEnChaineFaitReculerToutLeTrainDeDevant() {
+        // Quatre billes isolées en tête, puis deux 1, deux 2, un 1 et deux billes de queue : le tir de 2 fait éclater les 2,
+        // les 1 se rejoignent et éclatent à leur tour, et les quatre billes de tête reculent d'un bloc.
+        val g = fieldGame(listOf(3, 4, 3, 4, 1, 1, 2, 2, 1, 4, 3), sOf(7) - 0.1f)
+        g.setQueue(2, 2)
+        assertTrue(g.shoot(up))
+        landShot(g)
+        assertEquals(1, g.popCount)
+        val start = g.marbleS(0)
+        run(g, 100)
+        assertTrue("la tête recule : $start puis ${g.marbleS(0)}", g.marbleS(0) < start)
+        var guard = 0
+        while (g.popCount < 2 && guard++ < 200) g.tick(20)
+        assertEquals(2, g.popCount)
+        assertEquals(2, g.lastChain)
+        val atChain = g.marbleS(0)
+        run(g, 150)
+        assertTrue("tout le train recule encore : $atChain puis ${g.marbleS(0)}", g.marbleS(0) < atChain - 0.1f)
+        for (i in 0 until 3) {
+            val gap = g.marbleS(i) - g.marbleS(i + 1)
+            assertTrue("écart $gap", gap >= Marble.DIAMETER - 0.01f && gap <= Marble.DIAMETER + 0.03f)
+        }
+        run(g, 2_500)
+        assertEquals(listOf(3, 4, 3, 4, 4, 3), colors(g))
+        assertEquals(Marble.chainPoints(3, 1) + Marble.chainPoints(3, 2), g.score)
+        assertSpaced(g)
+    }
+
+    @Test
+    fun uneBilleSortieSeuleFonceRejoindreLaChaineQuiLAttend() {
+        val g = MarbleGame(Random(1))
+        g.loadField(line(), 4f, 4.5f)
+        g.setChain(listOf(6.0f to 3, 5.45f to 4))
+        g.setSupply(1)
+        g.tick(20)
+        // La queue avait éclaté : la nouvelle bille sort seule de l'entrée.
+        assertEquals(3, g.marbleCount)
+        assertEquals(0f, g.marbleS(2), 0.2f)
+        val head = g.marbleS(0)
+        run(g, 500)
+        // La chaîne attend la bille qui arrive : sa tête ne recule pas et n'avance pas.
+        assertEquals(head, g.marbleS(0), 1e-4f)
+        assertTrue("la bille avance : ${g.marbleS(2)}", g.marbleS(2) > 1f)
+        run(g, 1_000)
+        assertEquals(3, g.marbleCount)
+        assertSpaced(g)
+        assertTrue("la chaîne repart : ${g.marbleS(0)}", g.marbleS(0) >= head && g.marbleS(0) < head + 0.5f)
+        for (i in 0 until g.marbleCount - 1) assertTrue(g.marbleS(i) - g.marbleS(i + 1) <= Marble.DIAMETER + 0.03f)
+    }
+
+    @Test
+    fun laSauvegardeGardeLaBilleQuiFonceRejoindreLaChaine() {
+        val g = MarbleGame(Random(1))
+        g.loadField(line(), 4f, 4.5f)
+        g.setChain(listOf(6.0f to 3, 5.45f to 4))
+        g.setSupply(1)
+        g.tick(20)
+        val r = MarbleGame.restore(g.save(), Random(2))!!
+        run(g, 300)
+        run(r, 300)
+        assertEquals(g.marbleCount, r.marbleCount)
+        for (i in 0 until g.marbleCount) assertEquals(g.marbleS(i), r.marbleS(i), 1e-4f)
+    }
+
+
+    // --- Les billes spéciales ---
+
+    /** La bille d'indice [i] d'une chaîne de [fieldGame] se trouve à sOf(i) : on tire dessus depuis le côté de derrière. */
+    private fun shootAt(g: MarbleGame, special: Int) {
+        g.setQueue(special, 1)
+        assertTrue(g.shoot(up))
+        landShot(g)
+    }
+
+    @Test
+    fun uneBombeFaitEclaterLesBillesAutourDeLaBilleTouchee() {
+        val g = fieldGame(listOf(0, 1, 2, 3, 4, 5, 0, 1, 2), sOf(4) - 0.1f)
+        shootAt(g, Marble.BOMB)
+        // Deux billes de chaque côté de la bille touchée (à moins de 1,2) : cinq billes, la bombe ne reste pas dans la chaîne.
+        assertEquals(listOf(0, 1, 1, 2), colors(g))
+        assertEquals(Marble.chainPoints(5, 1), g.score)
+        assertEquals(1, g.popCount)
+        assertEquals(5 + 1, g.lastEffects.size)
+        assertEquals(Marble.BOMB, g.lastEffects.last().color)
+        assertEquals(1, g.lastChain)
+    }
+
+    @Test
+    fun uneBombeSurUneSeuleBilleLaFaitEclater() {
+        val g = fieldGame(listOf(0), 6.4f)
+        shootAt(g, Marble.BOMB)
+        // La chaîne est vidée : le niveau est gagné et le suivant commence.
+        assertEquals(0, g.marbleCount)
+        assertEquals(2, g.level)
+        assertEquals(Marble.chainPoints(1, 1) + Marble.LEVEL_BONUS, g.score)
+    }
+
+    @Test
+    fun unEclairFaitEclaterToutesLesBillesDeLaCouleurTouchee() {
+        val g = fieldGame(listOf(2, 1, 2, 3, 2, 0, 2), sOf(2) - 0.1f)
+        shootAt(g, Marble.LIGHTNING)
+        assertEquals(listOf(1, 3, 0), colors(g))
+        assertEquals(Marble.chainPoints(4, 1), g.score)
+        assertEquals(4 + 1, g.lastEffects.size)
+        assertEquals(Marble.LIGHTNING, g.lastEffects.last().color)
+    }
+
+    @Test
+    fun unArcEnCielPrendLaCouleurQuiFaitLePlusGrosGroupe() {
+        // Entre le 3 (devant) et les deux 4 (derrière) : le groupe de 4 est le plus gros, il éclate.
+        val g = fieldGame(listOf(0, 3, 4, 4, 1), sOf(2) + 0.1f)
+        shootAt(g, Marble.RAINBOW)
+        assertEquals(listOf(0, 3, 1), colors(g))
+        assertEquals(Marble.chainPoints(3, 1), g.score)
+    }
+
+    @Test
+    fun unArcEnCielQuiNeFaitPasDeGroupeS_insereCommeUneCouleur() {
+        val g = fieldGame(listOf(0, 1, 2, 3), sOf(1) - 0.1f)
+        shootAt(g, Marble.RAINBOW)
+        assertEquals(5, g.marbleCount)
+        assertTrue(colors(g).all { it in 0 until Marble.PALETTE })
+        assertEquals(0, g.score)
+    }
+
+    @Test
+    fun uneBilleSpecialeNeResteJamaisDansLaChaine() {
+        for (special in listOf(Marble.BOMB, Marble.RAINBOW, Marble.LIGHTNING)) {
+            val g = fieldGame(listOf(0, 1, 2, 3, 4, 5), sOf(2) - 0.1f)
+            shootAt(g, special)
+            assertTrue("spéciale $special", colors(g).all { it in 0 until Marble.PALETTE })
+        }
+    }
+
+    @Test
+    fun lesBillesQuiEclatentChargentLaJaugeEtUneBilleSpecialeArrive() {
+        val g = fieldGame(listOf(3, 1, 2, 2, 0, 4, 3), sOf(3) - 0.1f)
+        g.setLevel(2)
+        assertEquals(0f, g.specialProgress, 1e-6f)
+        g.setSpecialCharge(Marble.SPECIAL_THRESHOLD - 3)
+        g.setQueue(2, 2)
+        assertTrue(g.shoot(up))
+        // Un groupe de trois va éclater : la jauge est pleine au moment où la suivante passe au lanceur.
+        landShot(g)
+        assertEquals(1f, g.specialProgress, 1e-6f)
+        g.setQueue(5, 5)
+        g.setSpecialCharge(Marble.SPECIAL_THRESHOLD)
+        assertTrue(g.shoot(up))
+        assertEquals(Marble.BOMB, g.next)
+        assertEquals(0f, g.specialProgress, 1e-6f)
+    }
+
+    @Test
+    fun auNiveauUnAucuneBilleSpecialeNArrive() {
+        val g = fieldGame(listOf(3, 1, 2, 0, 4), sOf(2) - 0.1f)
+        g.setSpecialCharge(Marble.SPECIAL_THRESHOLD * 3)
+        assertEquals(0f, g.specialProgress, 1e-6f)
+        g.setQueue(0, 1)
+        assertTrue(g.shoot(up))
+        assertTrue(g.next in 0 until Marble.PALETTE)
+    }
+
+    @Test
+    fun lesBillesSpecialesSeDebloquentNiveauApresNiveau() {
+        assertEquals(emptyList<Int>(), Marble.unlockedSpecials(1))
+        assertEquals(listOf(Marble.BOMB), Marble.unlockedSpecials(2))
+        assertEquals(listOf(Marble.BOMB, Marble.RAINBOW), Marble.unlockedSpecials(3))
+        assertEquals(listOf(Marble.BOMB, Marble.RAINBOW, Marble.LIGHTNING), Marble.unlockedSpecials(4))
+        assertTrue(Marble.isSpecial(Marble.BOMB))
+        assertFalse(Marble.isSpecial(Marble.PALETTE - 1))
+    }
+
+    @Test
+    fun uneBilleSpecialeDuLanceurNEstPasRemplaceeQuandSaCouleurDisparait() {
+        val g = fieldGame(listOf(3, 1, 2, 2, 0, 4, 3), sOf(3) - 0.1f)
+        g.setQueue(2, Marble.BOMB)
+        assertTrue(g.shoot(up))
+        landShot(g)
+        // La bille d'attente passée au lanceur est une bombe : elle reste une bombe, même si sa « couleur » n'est plus sur le chemin.
+        assertEquals(Marble.BOMB, g.current)
+    }
+
+    @Test
+    fun laSauvegardeGardeLaJaugeEtLesBillesSpeciales() {
+        val g = fieldGame(listOf(3, 1, 2, 0, 4), sOf(2) - 0.1f)
+        g.setLevel(3)
+        g.setSpecialCharge(7)
+        g.setQueue(Marble.RAINBOW, Marble.BOMB)
+        val r = MarbleGame.restore(g.save(), Random(2))!!
+        assertEquals(Marble.RAINBOW, r.current)
+        assertEquals(Marble.BOMB, r.next)
+        assertEquals(g.specialProgress, r.specialProgress, 1e-6f)
+        assertEquals(3, r.level)
+    }
+
     // --- La sauvegarde ---
 
     @Test
@@ -454,9 +782,11 @@ class MarbleShooterTest {
         assertNull(MarbleGame.restore(data.toMutableList().also { it[0] = 99 }))
         // La bille du lanceur n'est pas une couleur.
         assertNull(MarbleGame.restore(data.toMutableList().also { it[8] = 42 }))
-        // La couleur de la première bille (juste après l'en-tête de 20 entiers et sa distance) n'est pas une couleur.
-        assertNull(MarbleGame.restore(data.toMutableList().also { it[21] = 99 }))
+        // La couleur de la première bille (juste après l'en-tête de 21 entiers et sa distance) n'est pas une couleur.
+        assertNull(MarbleGame.restore(data.toMutableList().also { it[22] = 99 }))
+        // La jauge des billes spéciales est négative.
+        assertNull(MarbleGame.restore(data.toMutableList().also { it[19] = -1 }))
         // Le nombre de billes annoncé n'est pas celui qui suit.
-        assertNull(MarbleGame.restore(data.toMutableList().also { it[19] = it[19] + 1 }))
+        assertNull(MarbleGame.restore(data.toMutableList().also { it[20] = it[20] + 1 }))
     }
 }

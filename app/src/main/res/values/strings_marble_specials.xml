@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rules_marble_5_title">Billes spéciales</string>
+    <string name="rules_marble_5_body">Quand tu fais éclater des billes, une jauge se remplit : c’est l’anneau doré autour de la bille d’attente. Quand elle est pleine, une bille spéciale arrive au lanceur. La bombe (dès le niveau 2) fait éclater toutes les billes autour de l’endroit touché. L’arc-en-ciel (dès le niveau 3) prend la couleur qui fait le plus gros groupe avec ses voisines. L’éclair (dès le niveau 4) fait éclater toutes les billes de la couleur touchée, sur tout le chemin. Les billes qu’elles font partir rapportent des points et peuvent déclencher une réaction en chaîne. Le chemin entre par un bord du terrain et le trou peut se trouver n’importe où : il change à chaque niveau.</string>
+</resources>
