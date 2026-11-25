@@ -5,7 +5,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
 
-/** Identifiant du jeu « Soif de Longpont » (boire le plus possible en deux minutes) dans la liste des jeux. */
+/** Identifiant du jeu « La descente » (boire le plus possible en deux minutes) dans la liste des jeux. */
 const val DRINK_ID = "builtin_drink"
 
 // Les quatre touches du jeu : la croix (gauche, droite) pour rétablir l'équilibre, les boutons A et B pour boire.
@@ -15,10 +15,12 @@ internal const val DRINK_A = 2
 internal const val DRINK_B = 3
 
 /**
- * Soif de Longpont : le personnage du Drive doit boire le plus possible en deux minutes. Chaque appui sur A ou B est une gorgée
+ * La descente : le personnage du Drive doit boire le plus possible en deux minutes. Chaque appui sur A ou B est une gorgée
  * (1 cl) ; un verre de 25 cl se vide en 25 gorgées, puis un verre plein arrive tout seul. De temps en temps, le personnage se met à
  * chanceler d'un côté ou de l'autre, de plus en plus fort : tant qu'il n'a pas retrouvé son équilibre avec la flèche du côté
- * opposé, il ne peut plus boire. Appuyer sur la mauvaise flèche le fait pencher davantage. Plus la partie avance, plus il chancelle
+ * opposé, il ne peut plus boire. Appuyer sur la mauvaise flèche le fait pencher davantage. S'il penche à fond sans avoir été rattrapé, il
+ * tombe : il reste à terre un moment, sans pouvoir rien faire. De temps en temps, l'envie le prend : il va à l'urinoir, d'un côté
+ * de l'écran, et il faut marteler A ou B pour qu'il se soulage, avant qu'il ne revienne. Plus la partie avance, plus il chancelle
  * souvent et vite. Le score est la quantité bue, en centilitres.
  *
  * Tout ce fichier est du Kotlin pur (sans Android) pour pouvoir être testé : voir [DrinkGame].
@@ -68,10 +70,45 @@ internal object Drink {
 
     /** Le jeu se termine par un message ; ce temps passé, la touche A relance une partie. */
     const val RESTART_DELAY_MS = 900f
+
+    /** Le temps passé par terre après une chute (millisecondes). */
+    const val FALL_MS = 2200f
+
+    // L'urinoir : les étapes de l'envie pressante.
+    /** Pas d'envie. */
+    const val PEE_NONE = 0
+
+    /** L'envie se fait sentir : un avertissement, mais il peut encore boire. */
+    const val PEE_URGE = 1
+
+    /** Il marche vers l'urinoir. */
+    const val PEE_GOING = 2
+
+    /** Il est devant l'urinoir : il faut marteler A ou B. */
+    const val PEE_RELIEF = 3
+
+    /** Il revient à sa place. */
+    const val PEE_BACK = 4
+
+    /** Le temps de l'avertissement, puis de chaque trajet entre sa place et l'urinoir (millisecondes). */
+    const val URGE_MS = 1800f
+    const val WALK_MS = 1000f
+
+    /** Le nombre d'appuis sur A ou B pour se soulager. */
+    const val PEE_PRESSES = 30
+
+    /** Le délai avant la première envie, puis entre la fin d'une envie et la suivante (min et max, en millisecondes). */
+    const val PEE_FIRST_MIN = 20_000f
+    const val PEE_FIRST_MAX = 30_000f
+    const val PEE_GAP_MIN = 20_000f
+    const val PEE_GAP_MAX = 32_000f
+
+    /** La distance entre le centre de l'écran et l'urinoir (le personnage s'arrête un peu avant), en pixels de l'écran. */
+    const val URINAL_DISTANCE = 280f
 }
 
 /**
- * Une partie de Soif de Longpont. [tick] fait avancer le temps, [press] reçoit les touches ([DRINK_LEFT] à [DRINK_B]).
+ * Une partie de La descente. [tick] fait avancer le temps, [press] reçoit les touches ([DRINK_LEFT] à [DRINK_B]).
  */
 internal class DrinkGame(private val random: Random = Random.Default) {
     /** La quantité bue, en centilitres : c'est le score. */
@@ -115,7 +152,36 @@ internal class DrinkGame(private val random: Random = Random.Default) {
     var blockedMs = 0f
         private set
 
+    /** Le nombre de chutes. */
+    var falls = 0
+        private set
+
+    /** Temps qu'il lui reste à passer par terre (0 : debout). Quand il est par terre, [lean] vaut -1 ou 1 (le côté où il est tombé). */
+    var fallMs = 0f
+        private set
+
+    /** Le nombre de fois où il est allé à l'urinoir. */
+    var pees = 0
+        private set
+
+    /** L'étape de l'envie pressante ([Drink.PEE_NONE] à [Drink.PEE_BACK]). */
+    var peePhase = Drink.PEE_NONE
+        private set
+
+    /** Le temps qu'il reste à l'étape en cours (avertissement et trajets). */
+    var peeMs = 0f
+        private set
+
+    /** Les appuis déjà donnés devant l'urinoir. */
+    var peeProgress = 0
+        private set
+
+    /** Le côté de l'urinoir : -1 à gauche, 1 à droite. */
+    var peeSide = 1
+        private set
+
     private var wobbleInMs = 0f
+    private var peeInMs = 0f
 
     init {
         reset()
@@ -135,7 +201,15 @@ internal class DrinkGame(private val random: Random = Random.Default) {
         sipMs = 0f
         refillMs = 0f
         blockedMs = 0f
+        falls = 0
+        fallMs = 0f
+        pees = 0
+        peePhase = Drink.PEE_NONE
+        peeMs = 0f
+        peeProgress = 0
+        peeSide = 1
         wobbleInMs = between(Drink.FIRST_GAP_MIN, Drink.FIRST_GAP_MAX)
+        peeInMs = between(Drink.PEE_FIRST_MIN, Drink.PEE_FIRST_MAX)
     }
 
     // ---------------------------------------------------------------- difficulté
@@ -153,8 +227,26 @@ internal class DrinkGame(private val random: Random = Random.Default) {
 
     // ---------------------------------------------------------------- état
 
-    /** Vrai quand le personnage chancelle : il ne peut pas boire avant d'avoir retrouvé son équilibre. */
+    /** Vrai quand le personnage chancelle (ou qu'il est tombé) : il ne peut pas boire avant d'avoir retrouvé son équilibre. */
     val unsteady: Boolean get() = lean != 0f
+
+    /** Vrai quand il est par terre. */
+    val fallen: Boolean get() = fallMs > 0f
+
+    /** Vrai quand il est occupé avec l'urinoir (en route, devant ou au retour) : il ne boit plus. */
+    val busy: Boolean get() = peePhase >= Drink.PEE_GOING
+
+    /** Sa place entre son bar (0) et l'urinoir (1), pour le dessin. */
+    val walk: Float
+        get() = when (peePhase) {
+            Drink.PEE_GOING -> 1f - (peeMs / Drink.WALK_MS).coerceIn(0f, 1f)
+            Drink.PEE_RELIEF -> 1f
+            Drink.PEE_BACK -> (peeMs / Drink.WALK_MS).coerceIn(0f, 1f)
+            else -> 0f
+        }
+
+    /** Le soulagement, de 0 à 1, pour la jauge. */
+    val relief: Float get() = (peeProgress.toFloat() / Drink.PEE_PRESSES).coerceIn(0f, 1f)
 
     /** Le niveau du verre en cours : 1 plein, 0 vide. */
     val level: Float get() = 1f - gulpsInGlass.toFloat() / Drink.GLASS_GULPS
@@ -179,17 +271,69 @@ internal class DrinkGame(private val random: Random = Random.Default) {
         if (timeLeftMs <= 0f) {
             timeLeftMs = 0f
             lean = 0f
+            fallMs = 0f
+            peePhase = Drink.PEE_NONE
             over = true
             overMs = 0f
+            return
+        }
+        if (fallen) {
+            fallMs -= dt
+            if (fallMs <= 0f) {
+                // Il se relève, d'aplomb.
+                fallMs = 0f
+                lean = 0f
+                wobbleInMs = nextGap()
+            }
+            return
+        }
+        if (peePhase != Drink.PEE_NONE) {
+            tickPee(dt)
             return
         }
         if (unsteady) {
             val direction = if (lean > 0f) 1f else -1f
             val grown = min(1f, abs(lean) + lerp(Drink.GROWTH_START, Drink.GROWTH_END) * dt / 1000f)
             lean = direction * grown
+            if (grown >= 1f) {
+                // Penché à fond sans avoir été rattrapé : il tombe.
+                falls++
+                fallMs = Drink.FALL_MS
+            }
         } else {
+            peeInMs -= dt
             wobbleInMs -= dt
-            if (wobbleInMs <= 0f) startWobble()
+            if (peeInMs <= 0f) {
+                peePhase = Drink.PEE_URGE
+                peeMs = Drink.URGE_MS
+                peeSide = if (random.nextBoolean()) 1 else -1
+            } else if (wobbleInMs <= 0f) {
+                startWobble()
+            }
+        }
+    }
+
+    /** Fait avancer l'envie pressante : l'avertissement, le trajet aller, l'attente du soulagement, le trajet retour. */
+    private fun tickPee(dt: Float) {
+        if (peePhase == Drink.PEE_RELIEF) return
+        peeMs -= dt
+        if (peeMs > 0f) return
+        when (peePhase) {
+            Drink.PEE_URGE -> {
+                peePhase = Drink.PEE_GOING
+                peeMs = Drink.WALK_MS
+            }
+            Drink.PEE_GOING -> {
+                peePhase = Drink.PEE_RELIEF
+                peeMs = 0f
+                peeProgress = 0
+            }
+            Drink.PEE_BACK -> {
+                peePhase = Drink.PEE_NONE
+                peeMs = 0f
+                peeInMs = between(Drink.PEE_GAP_MIN, Drink.PEE_GAP_MAX)
+                wobbleInMs = max(wobbleInMs, between(Drink.FIRST_GAP_MIN * 0.5f, Drink.FIRST_GAP_MAX * 0.5f))
+            }
         }
     }
 
@@ -204,9 +348,20 @@ internal class DrinkGame(private val random: Random = Random.Default) {
     fun press(key: Int) {
         if (over) return
         when (key) {
-            DRINK_A, DRINK_B -> drink()
+            DRINK_A, DRINK_B -> if (busy) relieve() else drink()
             DRINK_LEFT -> steer(-1)
             DRINK_RIGHT -> steer(1)
+        }
+    }
+
+    /** Un appui sur A ou B devant l'urinoir : le soulagement avance ; une fois complet, il rentre à sa place. */
+    private fun relieve() {
+        if (peePhase != Drink.PEE_RELIEF) return
+        peeProgress++
+        if (peeProgress >= Drink.PEE_PRESSES) {
+            pees++
+            peePhase = Drink.PEE_BACK
+            peeMs = Drink.WALK_MS
         }
     }
 
@@ -227,7 +382,7 @@ internal class DrinkGame(private val random: Random = Random.Default) {
 
     /** Un appui sur la flèche de [direction] (-1 gauche, 1 droite) : la bonne redresse, la mauvaise fait pencher davantage. */
     private fun steer(direction: Int) {
-        if (!unsteady) return
+        if (!unsteady || fallen) return
         val leansRight = lean > 0f
         // Pencher à droite se corrige vers la gauche, et inversement.
         val correcting = (direction < 0) == leansRight
@@ -256,6 +411,7 @@ internal class DrinkGame(private val random: Random = Random.Default) {
         put(SAVE_VERSION)
         put(cl); put(glasses); put(gulpsInGlass); put(recoveries); put(lean); put(timeLeftMs)
         put(over); put(overMs); put(clockMs); put(sipMs); put(refillMs); put(blockedMs); put(wobbleInMs)
+        put(falls); put(fallMs); put(pees); put(peePhase); put(peeMs); put(peeProgress); put(peeSide); put(peeInMs)
         return out
     }
 
@@ -269,10 +425,12 @@ internal class DrinkGame(private val random: Random = Random.Default) {
         cl = int(); glasses = int(); gulpsInGlass = int().coerceIn(0, Drink.GLASS_GULPS - 1)
         recoveries = int(); lean = float().coerceIn(-1f, 1f); timeLeftMs = float()
         over = flag(); overMs = float(); clockMs = float(); sipMs = float(); refillMs = float(); blockedMs = float(); wobbleInMs = float()
+        falls = int(); fallMs = float(); pees = int(); peePhase = int().coerceIn(Drink.PEE_NONE, Drink.PEE_BACK)
+        peeMs = float(); peeProgress = int().coerceIn(0, Drink.PEE_PRESSES - 1); peeSide = if (int() < 0) -1 else 1; peeInMs = float()
     }
 
     companion object {
-        private const val SAVE_VERSION = 1
+        private const val SAVE_VERSION = 2
 
         /** Retrouve une partie sauvegardée par [save] ; une partie neuve si la liste ne convient pas. */
         fun restore(values: List<Double>): DrinkGame {

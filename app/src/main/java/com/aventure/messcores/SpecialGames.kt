@@ -460,7 +460,7 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
-    // Soif de Longpont : écran à part (voir DrinkScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    // La descente : écran à part (voir DrinkScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = DRINK_ID,
         name = context.getString(R.string.game_drink),

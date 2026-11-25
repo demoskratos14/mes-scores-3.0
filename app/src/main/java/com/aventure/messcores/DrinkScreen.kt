@@ -86,7 +86,7 @@ private const val DRINK_PHASE_PLAYING = 1 // la partie tourne
 private const val DRINK_PHASE_OVER = 2 // les deux minutes sont écoulées
 
 /**
- * Les actions de Soif de Longpont réglables à la manette : les flèches gauche et droite (croix ou stick, tenir répète le pas) pour
+ * Les actions de La descente réglables à la manette : les flèches gauche et droite (croix ou stick, tenir répète le pas) pour
  * rétablir l'équilibre, les boutons A et B pour boire, et pause / reprise (Start).
  */
 private val DRINK_PAD_ACTIONS = listOf(
@@ -164,7 +164,7 @@ private fun heldArrow(pressed: Int): Int = when {
 }
 
 /**
- * Soif de Longpont en solo : le personnage du Drive doit boire le plus possible en deux minutes. A ou B donne une gorgée (il faut
+ * La descente en solo : le personnage du Drive doit boire le plus possible en deux minutes. A ou B donne une gorgée (il faut
  * les marteler) ; de temps en temps il se met à chanceler à gauche ou à droite, et la flèche du côté opposé le redresse : tant qu'il
  * penche, il ne peut plus boire. La console remplit l'écran en paysage ; le bouton retour et l'arrière-plan mettent la partie en
  * pause ; le meilleur score (en centilitres) est gardé d'une séance à l'autre. [players] : le joueur dont le nom s'affiche au départ.
@@ -191,6 +191,8 @@ internal fun DrinkScreen(players: List<String>) {
     var cl by remember { mutableIntStateOf(game.cl) }
     var glasses by remember { mutableIntStateOf(game.glasses) }
     var recoveries by remember { mutableIntStateOf(game.recoveries) }
+    var falls by remember { mutableIntStateOf(game.falls) }
+    var pees by remember { mutableIntStateOf(game.pees) }
     // Les boutons de la console actuellement enfoncés (un bit chacun, voir PRESS_LEFT et les suivants).
     var pressed by remember { mutableIntStateOf(0) }
     // Vrai pendant que le réglage de la manette est affiché sur l'écran de la console.
@@ -232,6 +234,8 @@ internal fun DrinkScreen(players: List<String>) {
         cl = game.cl
         glasses = game.glasses
         recoveries = game.recoveries
+        falls = game.falls
+        pees = game.pees
     }
 
     fun press(bit: Int, down: Boolean) {
@@ -360,7 +364,7 @@ internal fun DrinkScreen(players: List<String>) {
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = stringResource(R.string.drink_over_summary, glasses, recoveries),
+                            text = stringResource(R.string.drink_over_summary, glasses, recoveries, falls, pees),
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center
                         )

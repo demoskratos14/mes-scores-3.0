@@ -21,13 +21,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
- * Les dessins de l'écran de Soif de Longpont, dans le repère de l'écran (720 x 405), le même que celui de Drive : le décor qui ne
+ * Les dessins de l'écran de La descente, dans le repère de l'écran (720 x 405), le même que celui de Drive : le décor qui ne
  * bouge pas (le bar, ses étagères, ses pompes) se dessine une fois avec [drawDrinkScene] ; tout ce qui bouge (compteurs, personnage,
  * verre) avec [drawDrinkLive]. Le personnage est celui de Drive : de face quand il boit, de profil (vers la droite ou vers la
  * gauche) quand il chancelle ([DriveSprites]).
@@ -233,29 +234,53 @@ private fun DrawScope.mug(cx: Float, cy: Float, tilt: Float, mugScale: Float, le
 
 private fun lerp(from: Float, to: Float, t: Float): Float = from + (to - from) * t
 
-/** Le personnage et son verre : de face quand il est d'aplomb, de profil et penché quand il chancelle. */
+/** Le personnage et son verre : de face quand il est d'aplomb, de profil et penché quand il chancelle, couché quand il est tombé. */
 private fun DrawScope.drinkHero(game: DrinkGame, sprites: DriveSprites) {
     val lean = game.lean
     val steady = lean == 0f
-    val image = (if (steady) sprites.front else if (lean > 0f) sprites.right else sprites.left) ?: return
+    val fallen = game.fallen
+    val busy = game.busy
+    val side = game.peeSide.toFloat()
+    // Le sens de sa marche vers l'urinoir (puis de son retour) : il est de profil.
+    val walkDirection = when (game.peePhase) {
+        Drink.PEE_GOING, Drink.PEE_RELIEF -> side
+        Drink.PEE_BACK -> -side
+        else -> 0f
+    }
+    val image = when {
+        busy -> if (walkDirection > 0f) sprites.right else sprites.left
+        steady -> sprites.front
+        lean > 0f -> sprites.right
+        else -> sprites.left
+    } ?: return
     val w = (image.width * DrinkLook.HERO_SCALE).roundToInt()
     val h = (image.height * DrinkLook.HERO_SCALE).roundToInt()
     val feetY = DrinkLook.FEET_Y
-    val cx = Drink.WIDTH / 2f + lean * DrinkLook.LEAN_SHIFT
+    val cx = Drink.WIDTH / 2f + lean * DrinkLook.LEAN_SHIFT + side * game.walk * Drink.URINAL_DISTANCE
     val top = feetY - h
     val clock = game.clockMs
+    val walking = game.peePhase == Drink.PEE_GOING || game.peePhase == Drink.PEE_BACK
 
-    // L'ombre sous ses pieds.
-    drawOval(Color.Black.copy(alpha = 0.22f), Offset(cx - w * 0.6f, feetY - 7f), Size(w * 1.2f, 14f))
+    // L'ombre sous ses pieds (plus longue quand il est couché).
+    val shadowWidth = if (fallen) h * 0.95f else w * 1.2f
+    val shadowCenter = if (fallen) cx + lean * h * 0.4f else cx
+    drawOval(Color.Black.copy(alpha = 0.22f), Offset(shadowCenter - shadowWidth / 2f, feetY - 7f), Size(shadowWidth, 14f))
 
-    // Le corps oscille doucement ; quand il chancelle il penche et tremble.
+    // Le corps oscille doucement ; quand il chancelle il penche et tremble ; par terre, il est couché (il tombe vite, se relève vite).
     val angle = when {
         game.over -> 0f
+        fallen -> {
+            val down = min(1f, (Drink.FALL_MS - game.fallMs) / 260f)
+            val up = min(1f, game.fallMs / 360f)
+            lean * 90f * min(down, up)
+        }
+        busy -> if (walking) sin(clock / 110f) * 2f else 0f
         steady -> sin(clock / 420f) * 1.2f
         else -> lean * DrinkLook.LEAN_DEGREES + sin(clock / 55f) * abs(lean) * 3f
     }
-    val shake = if (game.blockedMs > 0f) sin(clock / 25f) * 3f else 0f
-    withTransform({ rotate(angle, Offset(cx, feetY)) }) {
+    val bob = if (walking) -abs(sin(clock / 110f)) * 6f else 0f
+    val shake = if (game.blockedMs > 0f && !fallen) sin(clock / 25f) * 3f else 0f
+    withTransform({ translate(0f, bob); rotate(angle, Offset(cx, feetY)) }) {
         drawImage(
             image,
             srcOffset = IntOffset.Zero,
@@ -264,7 +289,7 @@ private fun DrawScope.drinkHero(game: DrinkGame, sprites: DriveSprites) {
             dstSize = IntSize(w, h),
             filterQuality = FilterQuality.None
         )
-        if (steady) {
+        if (steady && !busy) {
             // Il tient son verre de la main droite ; chaque gorgée le lève à la bouche, le verre penché.
             val t = if (game.over) 0f else (game.sipMs / Drink.SIP_MS).coerceIn(0f, 1f)
             val mugX = lerp(cx + 34f, cx + 22f, t) + shake
@@ -279,19 +304,102 @@ private fun DrawScope.drinkHero(game: DrinkGame, sprites: DriveSprites) {
                 drawCircle(DrinkLook.Foam.fade(u), 22f + (1f - u) * 34f, Offset(mugX, mugY), style = Stroke(width = 3f))
             }
         } else {
-            // De profil : le verre au bout du bras ballant, qui se renverse à mesure qu'il penche.
-            val direction = if (lean > 0f) 1f else -1f
+            // De profil : le verre au bout du bras ballant, qui se renverse à mesure qu'il penche (ou qu'il marche).
+            val direction = if (busy) walkDirection else if (lean > 0f) 1f else -1f
+            val tilt = if (busy) direction * 8f else direction * (20f + abs(lean) * 30f)
             val mugX = cx + direction * 16f + shake
             val mugY = top + 122f
-            mug(mugX, mugY, direction * (20f + abs(lean) * 30f), 0.9f, game.level, clock)
+            mug(mugX, mugY, tilt, 0.9f, game.level, clock)
         }
     }
+    if (fallen && !game.over) {
+        // Des étoiles tournent autour de sa tête.
+        val headX = cx + lean * h * 0.92f
+        val headY = feetY - 36f
+        for (k in 0 until 3) {
+            val a = clock / 260f + k * 2.094f
+            drawCircle(DrinkLook.Beer, 5f, Offset(headX + cos(a) * 34f, headY - 22f + sin(a) * 10f))
+            drawCircle(DrinkLook.Ink, 5f, Offset(headX + cos(a) * 34f, headY - 22f + sin(a) * 10f), style = Stroke(width = 1.6f))
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------------------------ l'urinoir
+
+/** Le côté de l'écran où se trouve l'urinoir : un pan de mur carrelé, avec sa cuvette en porcelaine. */
+private fun DrawScope.drinkUrinal(game: DrinkGame) {
+    val side = game.peeSide.toFloat()
+    val w = Drink.WIDTH
+    val panelW = 74f
+    val left = if (side > 0f) w - panelW else 0f
+    val top = 150f
+    val tile = Color(0xFFCFE4EC)
+    drawRect(tile, Offset(left, top), Size(panelW, Drink.HEIGHT - top))
+    var tx = left
+    while (tx <= left + panelW) {
+        drawLine(DrinkLook.Ink.fade(0.25f), Offset(tx, top), Offset(tx, Drink.HEIGHT), strokeWidth = 1.4f)
+        tx += 18.5f
+    }
+    var ty = top
+    while (ty <= Drink.HEIGHT) {
+        drawLine(DrinkLook.Ink.fade(0.25f), Offset(left, ty), Offset(left + panelW, ty), strokeWidth = 1.4f)
+        ty += 20f
+    }
+    // Le bord du pan de mur, côté salle.
+    val edge = if (side > 0f) left else left + panelW
+    drawLine(DrinkLook.Ink, Offset(edge, top), Offset(edge, Drink.HEIGHT), strokeWidth = 3f)
+    // La cuvette, contre le mur du fond : un tuyau, la porcelaine, la bonde.
+    val bowlX = if (side > 0f) w - 20f else 20f
+    val bowlTop = Drink.HEIGHT - 128f
+    drawRect(DrinkLook.Ink.fade(0.55f), Offset(bowlX - 3f, top + 6f), Size(6f, bowlTop - top - 6f))
+    val bowl = Path()
+    bowl.moveTo(bowlX - side * 20f, bowlTop)
+    bowl.lineTo(bowlX + side * 20f, bowlTop - 8f)
+    bowl.lineTo(bowlX + side * 20f, bowlTop + 62f)
+    bowl.quadraticTo(bowlX - side * 6f, bowlTop + 74f, bowlX - side * 22f, bowlTop + 50f)
+    bowl.close()
+    drawPath(bowl, DrinkLook.PaperLight)
+    drawPath(bowl, DrinkLook.Ink, style = Stroke(width = 2.8f, join = StrokeJoin.Round))
+    drawOval(DrinkLook.Ink.fade(0.35f), Offset(bowlX - 10f, bowlTop + 22f), Size(20f, 22f))
+}
+
+/** Le filet et la jauge de soulagement (A ou B à marteler) devant l'urinoir. */
+private fun DrawScope.drinkRelief(game: DrinkGame) {
+    val side = game.peeSide.toFloat()
+    val feetY = DrinkLook.FEET_Y
+    val handX = Drink.WIDTH / 2f + side * Drink.URINAL_DISTANCE
+    if (game.peeProgress > 0) {
+        // Un petit jet jaune de la main à la cuvette, qui coule en tremblant.
+        val bowlX = if (side > 0f) Drink.WIDTH - 20f else 20f
+        val y0 = feetY - 108f
+        val flow = sin(game.clockMs / 50f) * 2f
+        val stream = Path()
+        stream.moveTo(handX + side * 36f, y0)
+        stream.quadraticTo((handX + bowlX) / 2f + side * 4f, y0 - 6f + flow, bowlX - side * 6f, y0 + 40f)
+        drawPath(stream, DrinkLook.Beer, style = Stroke(width = 4f, cap = StrokeCap.Round))
+    }
+    // La jauge au milieu de l'écran, avec la touche à marteler (A puis B) au-dessus.
+    val barW = 200f
+    val barH = 18f
+    val x = Drink.WIDTH / 2f - barW / 2f
+    val y = 224f
+    drawRoundRect(DrinkLook.PaperLight, Offset(x, y), Size(barW, barH), CornerRadius(8f))
+    if (game.relief > 0f) drawRoundRect(DrinkLook.Beer, Offset(x, y), Size(barW * game.relief, barH), CornerRadius(8f))
+    drawRoundRect(DrinkLook.Ink, Offset(x, y), Size(barW, barH), CornerRadius(8f), style = Stroke(width = 3f))
+    val glyph = if (((game.clockMs / 160f).toInt() % 2) == 0) GLYPH_A else GLYPH_B
+    driveGlyph(glyph, Drink.WIDTH / 2f, y - 26f, 34f, DrinkLook.Red)
+}
+
+/** Le signe d'une envie pressante, avant le départ : un point d'exclamation qui clignote au-dessus du personnage. */
+private fun DrawScope.drinkUrge(game: DrinkGame) {
+    val pulse = 0.6f + 0.4f * sin(game.clockMs / 90f)
+    driveGlyph(GLYPH_BANG, Drink.WIDTH / 2f, DrinkLook.FEET_Y - 208f - 22f, 34f, DrinkLook.Beer.fade(pulse))
 }
 
 /** Les flèches qui montrent de quel côté il faut appuyer pour redresser le personnage, plus grandes quand il penche davantage. */
 private fun DrawScope.balanceHint(game: DrinkGame) {
     val lean = game.lean
-    if (lean == 0f || game.over) return
+    if (lean == 0f || game.over || game.fallen) return
     // Pencher à droite se corrige avec la flèche de gauche, et inversement.
     val direction = if (lean > 0f) -1f else 1f
     val pulse = 0.6f + 0.4f * sin(game.clockMs / 90f)
@@ -329,8 +437,13 @@ internal fun DrawScope.drawDrinkLive(game: DrinkGame, sprites: DriveSprites, lab
     drinkWord(measurer, labels.glasses, Drink.WIDTH - 16f, 108f, 14f, ink.fade(0.6f), align = 1)
     drinkWord(measurer, game.glasses.toString(), Drink.WIDTH - 16f, 142f, 34f, ink, align = 1)
 
+    if (game.peePhase != Drink.PEE_NONE && !game.over) drinkUrinal(game)
     drinkHero(game, sprites)
     balanceHint(game)
+    if (!game.over) {
+        if (game.peePhase == Drink.PEE_URGE) drinkUrge(game)
+        if (game.peePhase == Drink.PEE_RELIEF) drinkRelief(game)
+    }
     val shade = min(0.25f, game.blockedMs / Drink.BLOCKED_MS * 0.25f)
     if (shade > 0f) drawRect(DrinkLook.Red.fade(shade), size = Size(Drink.WIDTH, Drink.HEIGHT))
 }
