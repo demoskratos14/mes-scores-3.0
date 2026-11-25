@@ -3549,7 +3549,7 @@
     <string name="runner_up_boost_desc">Dura %1$d s: avanzas a toda velocidad, nada puede golpearte y las curvas se toman solas.</string>
     <string name="runner_up_star_desc">Dura %1$d s: los puntos se duplican.</string>
     <string name="runner_up_next">Siguiente nivel: %1$d s</string>
-    <string name="game_fishchase">Persecución de peces</string>
+    <string name="game_fishchase">Keihō dai-176-jō</string>
     <string name="rules_fishchase_1_title">Objetivo</string>
     <string name="rules_fishchase_1_body">Un hombre corre detrás de una mujer por una calle de noche. ¡Impide que la alcance lanzándole peces! Si el hombre llega hasta ella, la partida termina.</string>
     <string name="rules_fishchase_2_title">La mira</string>
@@ -3574,6 +3574,7 @@
     <string name="fishchase_field">Terreno: una calle de noche donde un hombre corre detrás de una mujer, con la mira en movimiento. El botón de lanzar está debajo del terreno.</string>
     <string name="fishchase_level_banner">Nivel %1$d</string>
     <string name="fishchase_fire">Lanzar un pez</string>
+    <string name="fishchase_caught">¡Alcanzada!</string>
     <string name="game_fish">Pescadería</string>
     <string name="rules_fish_1_title">Objetivo del juego</string>
     <string name="rules_fish_1_body">Llevas la pescadería. Una partida tiene dos partes: primero llenas el mostrador (45 segundos) y después atiendes a los clientes (1 min 30). Tu puntuación suma los puntos de las dos partes.</string>

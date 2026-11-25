@@ -3559,7 +3559,7 @@
     <string name="runner_up_boost_desc">Dura %1$d s: corri velocissimo, niente può colpirti e le curve si fanno da sole.</string>
     <string name="runner_up_star_desc">Dura %1$d s: i punti sono raddoppiati.</string>
     <string name="runner_up_next">Livello successivo: %1$d s</string>
-    <string name="game_fishchase">Inseguimento di pesci</string>
+    <string name="game_fishchase">Keihō dai-176-jō</string>
     <string name="rules_fishchase_1_title">Obiettivo</string>
     <string name="rules_fishchase_1_body">Un uomo corre dietro a una donna in una strada di notte. Impediscigli di raggiungerla lanciandogli dei pesci! Se l’uomo arriva da lei, la partita è persa.</string>
     <string name="rules_fishchase_2_title">Il mirino</string>
@@ -3584,6 +3584,7 @@
     <string name="fishchase_field">Campo: una strada di notte dove un uomo corre dietro a una donna, con il mirino in movimento. Il pulsante di lancio è sotto il campo.</string>
     <string name="fishchase_level_banner">Livello %1$d</string>
     <string name="fishchase_fire">Lancia un pesce</string>
+    <string name="fishchase_caught">Raggiunta!</string>
     <string name="game_fish">Pescheria</string>
     <string name="rules_fish_1_title">Scopo del gioco</string>
     <string name="rules_fish_1_body">Gestisci la pescheria. Una partita si gioca in due tempi: prima riempi il banco (45 secondi), poi servi i clienti (1 min 30). Il punteggio somma i punti delle due parti.</string>

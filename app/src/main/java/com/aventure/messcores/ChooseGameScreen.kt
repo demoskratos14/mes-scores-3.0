@@ -4,6 +4,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.res.stringResource
 import android.content.Context
+import android.os.SystemClock
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,6 +54,9 @@ import androidx.compose.ui.semantics.Role
 
 /** Jeux pour lesquels le seuil de fin de partie (500/1000 points) est ajustable ici. */
 private val LONG_GAME_TOGGLE_IDS = setOf("builtin_belote", "builtin_rami")
+
+/** Le temps le plus long entre deux touchers pour que ce soit un double toucher sur un jeu (qui l'ouvre), en millisecondes. */
+private const val DOUBLE_TAP_MS = 450L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +91,35 @@ fun ChooseGameScreen(
     // Résultat du dernier import de jeux partagés (hors erreur, qui passe par errorMessage).
     var infoMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    // Le dernier toucher sur un jeu (son id et son heure) : deux touchers rapprochés sur le même jeu l'ouvrent.
+    var lastTapId by remember { mutableStateOf("") }
+    var lastTapAt by remember { mutableLongStateOf(0L) }
+
+    // Vrai si ce toucher suit de près un autre toucher sur le même élément (un double toucher) ; il ne compte alors qu'une fois.
+    fun isDoubleTap(id: String): Boolean {
+        val now = SystemClock.uptimeMillis()
+        val isDouble = id == lastTapId && now - lastTapAt <= DOUBLE_TAP_MS
+        lastTapId = if (isDouble) "" else id
+        lastTapAt = if (isDouble) 0L else now
+        return isDouble
+    }
+
+    // Ouvre le jeu choisi : ce que fait le bouton Continuer, et un double toucher sur le jeu.
+    fun confirmChoice(chosen: GameRules) {
+        errorMessage = if (roomOnly) null else playerCountError(context, chosen, playerCount)
+        if (errorMessage != null) return
+        val finalRules = when {
+            chosen.id == "builtin_generic" -> chosen.copy(scoreMode = genericMode)
+            chosen.id in LONG_GAME_TOGGLE_IDS -> chosen.copy(
+                endCondition = EndCondition(
+                    type = EndConditionType.SCORE_THRESHOLD,
+                    scoreThreshold = if (longGame) 1000 else 500
+                )
+            )
+            else -> chosen
+        }
+        onGameChosen(finalRules)
+    }
 
     // Sélecteur de fichier d'Android (aucune permission) : on choisit le fichier d'un jeu partagé.
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -145,16 +179,26 @@ fun ChooseGameScreen(
                                     games = inCategory,
                                     selectedId = selected.id,
                                     onSelect = { game ->
+                                        val doubleTap = isDoubleTap(game.id)
                                         selectedId = game.id
                                         errorMessage = null
                                         expandedCategory = null
+                                        if (doubleTap) confirmChoice(game)
                                     }
                                 )
                             } else {
                             val isOpen = expandedCategory == category
                             ExposedDropdownMenuBox(
                                 expanded = isOpen,
-                                onExpandedChange = { expandedCategory = if (it) category else null }
+                                onExpandedChange = {
+                                    // Deux touchers rapprochés sur le champ du jeu déjà choisi : on l'ouvre.
+                                    if (isDoubleTap("field:" + category.name) && selected.category() == category) {
+                                        expandedCategory = null
+                                        confirmChoice(selected)
+                                    } else {
+                                        expandedCategory = if (it) category else null
+                                    }
+                                }
                             ) {
                                 OutlinedTextField(
                                     value = if (selected.category() == category) selected.name else "",
@@ -167,7 +211,11 @@ fun ChooseGameScreen(
                                 )
                                 ExposedDropdownMenu(
                                     expanded = isOpen,
-                                    onDismissRequest = { expandedCategory = null }
+                                    onDismissRequest = {
+                                        // Le second toucher peut aussi arriver ici (menu ouvert par le premier) : même chose.
+                                        expandedCategory = null
+                                        if (isDoubleTap("field:" + category.name) && selected.category() == category) confirmChoice(selected)
+                                    }
                                 ) {
                                     inCategory.forEach { game ->
                                         DropdownMenuItem(
@@ -302,21 +350,7 @@ fun ChooseGameScreen(
                 }
 
                 Button(
-                    onClick = {
-                        errorMessage = if (roomOnly) null else playerCountError(context, selected, playerCount)
-                        if (errorMessage != null) return@Button
-                        val finalRules = when {
-                            selected.id == "builtin_generic" -> selected.copy(scoreMode = genericMode)
-                            selected.id in LONG_GAME_TOGGLE_IDS -> selected.copy(
-                                endCondition = EndCondition(
-                                    type = EndConditionType.SCORE_THRESHOLD,
-                                    scoreThreshold = if (longGame) 1000 else 500
-                                )
-                            )
-                            else -> selected
-                        }
-                        onGameChosen(finalRules)
-                    },
+                    onClick = { confirmChoice(selected) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.common_continue))

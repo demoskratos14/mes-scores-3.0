@@ -3507,7 +3507,7 @@
     <string name="runner_shop">Upgrades</string>
     <string name="runner_wallet">Coins to spend: %1$d</string>
     <string name="runner_back">Back</string>
-    <string name="runner_buy">Buy: %1$d coins</string>
+    <string name="runner_buy">Buy (coins): %1$d</string>
     <string name="runner_level">Level %1$d / %2$d</string>
     <string name="runner_level_max">Maximum level</string>
     <string name="runner_bonus_boost">Super speed</string>
@@ -3516,7 +3516,7 @@
     <string name="runner_up_boost_desc">Lasts %1$d s: you race ahead, nothing can hit you and corners are taken for you.</string>
     <string name="runner_up_star_desc">Lasts %1$d s: points are doubled.</string>
     <string name="runner_up_next">Next level: %1$d s</string>
-    <string name="game_fishchase">Fish Chase</string>
+    <string name="game_fishchase">Keihō dai-176-jō</string>
     <string name="rules_fishchase_1_title">Goal</string>
     <string name="rules_fishchase_1_body">A man is running after a woman down a street at night. Stop him from catching her by throwing fish at him! If he reaches her, the game is over.</string>
     <string name="rules_fishchase_2_title">The crosshair</string>
@@ -3541,6 +3541,7 @@
     <string name="fishchase_field">Field: a street at night where a man runs after a woman, with the moving crosshair. The throw button is below the field.</string>
     <string name="fishchase_level_banner">Level %1$d</string>
     <string name="fishchase_fire">Throw a fish</string>
+    <string name="fishchase_caught">Caught!</string>
     <string name="game_fish">Fishmonger</string>
     <string name="rules_fish_1_title">Goal of the game</string>
     <string name="rules_fish_1_body">You run the fish shop. A game has two parts: first you fill the display (45 seconds), then you serve the customers (1 min 30). Your score adds up the points of both parts.</string>

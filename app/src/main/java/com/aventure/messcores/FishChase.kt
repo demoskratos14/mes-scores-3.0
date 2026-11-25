@@ -41,6 +41,9 @@ internal object FishChase {
     const val STUN_MS = 650
     const val HITS_PER_LEVEL = 4
     const val LEVEL_BANNER_MS = 1400
+
+    /** La durée de la courte scène de fin : la femme s'arrête, l'homme l'a rattrapée. */
+    const val ENDING_MS = 1600
     const val BASE_POINTS = 100
     const val COMBO_BONUS = 20
 
@@ -121,6 +124,10 @@ internal class FishChaseGame {
     var cooldownMs = 0
         private set
 
+    /** Le temps écoulé depuis que la femme a été rattrapée (voir [tickEnding]). */
+    var endingMs = 0
+        private set
+
     /** Le temps restant d'affichage de l'annonce du niveau. */
     var bannerMs = 0
         private set
@@ -157,6 +164,7 @@ internal class FishChaseGame {
         stunMs = 0
         cooldownMs = 0
         bannerMs = 0
+        endingMs = 0
         scrollPx = 0f
         shots = 0
         lastShotHit = false
@@ -236,6 +244,11 @@ internal class FishChaseGame {
             manX = FishChase.CATCH_X
             isOver = true
         }
+    }
+
+    /** Fait avancer la scène de fin (la partie est finie : plus rien d'autre ne bouge) de [elapsedMs] millisecondes. */
+    fun tickEnding(elapsedMs: Long) {
+        if (isOver && elapsedMs > 0L) endingMs += elapsedMs.toInt()
     }
 
     private fun resolve(f: FlyingFish) {

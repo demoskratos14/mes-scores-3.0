@@ -48,6 +48,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -60,6 +61,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -74,7 +76,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 // Les étapes de la séance.
 private const val FISHCHASE_PHASE_READY = 0 // on attend que le joueur lance la partie
@@ -117,6 +121,10 @@ internal object FishChaseSprites {
     const val WOMAN_FRAMES = 27
     const val WOMAN_CELL_W = 200
     const val WOMAN_CELL_H = 256
+
+    /** Les images où ils se tiennent debout (jambes droites), pour la scène de fin. */
+    const val MAN_STAND_FRAME = 12
+    const val WOMAN_STAND_FRAME = 15
 
     private var backdropBitmap: ImageBitmap? = null
     private var manBitmap: ImageBitmap? = null
@@ -347,6 +355,7 @@ private fun FishChasePlayfield(
     var level by remember { mutableIntStateOf(game.level) }
     var hits by remember { mutableIntStateOf(game.hits) }
     var banner by remember { mutableStateOf(game.bannerMs > 0) }
+    var caught by remember { mutableStateOf(game.isOver) }
     val finished by rememberUpdatedState(onOver)
 
     fun sync() {
@@ -355,6 +364,7 @@ private fun FishChasePlayfield(
         level = game.level
         hits = game.hits
         banner = game.bannerMs > 0
+        caught = game.isOver
     }
 
     // La manette : A, B, R ou ZR lancent un poisson, Start met en pause ou reprend.
@@ -375,6 +385,14 @@ private fun FishChasePlayfield(
             val elapsed = ((now - last) / 1_000_000L).coerceIn(0L, FISHCHASE_MAX_FRAME_MS)
             last = now
             game.tick(elapsed)
+            sync()
+        }
+        // La scène de fin : la femme s'arrête et l'homme est derrière elle, un court instant avant l'écran de fin.
+        while (game.endingMs < FishChase.ENDING_MS) {
+            val now = withFrameNanos { it }
+            val elapsed = ((now - last) / 1_000_000L).coerceIn(0L, FISHCHASE_MAX_FRAME_MS)
+            last = now
+            game.tickEnding(elapsed)
             sync()
         }
         finished()
@@ -432,7 +450,28 @@ private fun FishChasePlayfield(
                         detectTapGestures(onTap = { if (!paused) game.fire() })
                     }
             ) {
-                Canvas(modifier = Modifier.fillMaxSize()) { drawFishChaseField(game, revision, backdrop, manSheet, womanSheet) }
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    // À la capture, tout le terrain tremble un instant, de moins en moins fort.
+                    val shake = if (game.isOver) {
+                        val left = 1f - (game.endingMs.toFloat() / FishChase.ENDING_MS).coerceIn(0f, 1f)
+                        sin(game.endingMs / 22f) * 0.22f * (size.width / FishChase.WIDTH) * left
+                    } else 0f
+                    translate(left = shake) { drawFishChaseField(game, revision, backdrop, manSheet, womanSheet) }
+                }
+                if (caught) {
+                    Text(
+                        text = stringResource(R.string.fishchase_caught),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xCCB71C1C))
+                            .padding(horizontal = 24.dp, vertical = 12.dp)
+                    )
+                }
                 if (banner && !paused) {
                     Text(
                         text = stringResource(R.string.fishchase_level_banner, level),
@@ -509,7 +548,7 @@ private fun DrawScope.drawFishChaseField(
     }
 
     // La femme court toujours au même endroit, à vingt images par seconde.
-    val womanFrame = ((game.clockMs * 20L) / 1000L).toInt() % FishChaseSprites.WOMAN_FRAMES
+    val womanFrame = if (game.isOver) FishChaseSprites.WOMAN_STAND_FRAME else ((game.clockMs * 20L) / 1000L).toInt() % FishChaseSprites.WOMAN_FRAMES
     drawShadow(FishChase.WOMAN_X * u, FishChase.GROUND_Y * u, FishChase.WOMAN_HEIGHT * u * 0.5f, u)
     if (womanSheet != null) {
         drawSheetFrame(
@@ -527,7 +566,7 @@ private fun DrawScope.drawFishChaseField(
     }
 
     // L'homme garde son animation de marche (quinze images par seconde) ; étourdi, il devient rouge et se penche en arrière.
-    val manFrame = ((game.clockMs * 15L) / 1000L).toInt() % FishChaseSprites.MAN_FRAMES
+    val manFrame = if (game.isOver) FishChaseSprites.MAN_STAND_FRAME else ((game.clockMs * 15L) / 1000L).toInt() % FishChaseSprites.MAN_FRAMES
     drawShadow(game.manX * u, FishChase.GROUND_Y * u, FishChase.MAN_HEIGHT * u * 0.4f, u)
     if (manSheet != null) {
         val stunned = game.stunMs > 0
@@ -546,6 +585,16 @@ private fun DrawScope.drawFishChaseField(
         )
     } else {
         drawRect(Color(0xFF1E88E5), topLeft = Offset((game.manX - 0.7f) * u, FishChase.MAN_TOP * u), size = Size(1.4f * u, FishChase.MAN_HEIGHT * u))
+    }
+
+    if (game.isOver) {
+        // Un point d'exclamation au-dessus de la femme, qui s'est arrêtée.
+        val markX = FishChase.WOMAN_X * u
+        val markTop = (FishChase.GROUND_Y - FishChase.WOMAN_HEIGHT - 0.95f) * u
+        drawRoundRect(Color(0xFFFF5252), Offset(markX - 0.12f * u, markTop), Size(0.24f * u, 0.6f * u), CornerRadius(0.12f * u))
+        drawCircle(Color(0xFFFF5252), 0.14f * u, Offset(markX, markTop + 0.82f * u))
+        // Un voile rouge qui clignote.
+        drawRect(Color(0xFFFF1744).copy(alpha = 0.28f * abs(sin(game.endingMs / 110f))))
     }
 
     for (spark in game.sparks) {

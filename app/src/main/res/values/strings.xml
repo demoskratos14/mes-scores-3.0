@@ -3567,7 +3567,7 @@
     <string name="runner_up_boost_desc">Dure %1$d s : tu fonces, rien ne peut te toucher et les virages se prennent tout seuls.</string>
     <string name="runner_up_star_desc">Dure %1$d s : les points sont doublés.</string>
     <string name="runner_up_next">Niveau suivant : %1$d s</string>
-    <string name="game_fishchase">Poursuite aux poissons</string>
+    <string name="game_fishchase">Keihō dai-176-jō</string>
     <string name="rules_fishchase_1_title">But du jeu</string>
     <string name="rules_fishchase_1_body">Un homme court derrière une femme dans une rue de nuit. Empêche-le de la rattraper en lui lançant des poissons ! Si l’homme arrive jusqu’à elle, la partie est perdue.</string>
     <string name="rules_fishchase_2_title">La mire</string>
@@ -3592,6 +3592,7 @@
     <string name="fishchase_field">Terrain : une rue de nuit où un homme court derrière une femme, avec la mire qui se déplace. Le bouton de tir est sous le terrain.</string>
     <string name="fishchase_level_banner">Niveau %1$d</string>
     <string name="fishchase_fire">Lancer un poisson</string>
+    <string name="fishchase_caught">Rattrapée !</string>
     <string name="game_fish">Poissonnerie</string>
     <string name="rules_fish_1_title">But du jeu</string>
     <string name="rules_fish_1_body">Tu tiens la poissonnerie. Une partie se joue en deux temps : d’abord tu remplis l’étalage (45 secondes), puis tu sers les clients (1 min 30). Ton score additionne les points des deux parties.</string>
