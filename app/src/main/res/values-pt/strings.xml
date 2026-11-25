@@ -3512,13 +3512,13 @@
     <string name="rules_runner_1_title">Objetivo</string>
     <string name="rules_runner_1_body">Corre o mais longe possível pelos carris sem nunca parar. O corredor vai acelerando aos poucos. Evita os obstáculos e apanha o máximo de moedas. A partida termina ao primeiro choque, a menos que ainda tenhas uma vida de reserva ou um escudo.</string>
     <string name="rules_runner_2_title">Comandos</string>
-    <string name="rules_runner_2_body">Desliza o dedo para a esquerda ou para a direita para mudar de via, para cima (ou toca no ecrã) para saltar e para baixo para te baixares. No ar, deslizar para baixo faz-te cair mais depressa. Com um comando, a cruz direcional ou o manípulo fazem o mesmo.</string>
+    <string name="rules_runner_2_body">Desliza o dedo para a esquerda ou para a direita para mudar de via, para cima (ou toca no ecrã) para saltar e para baixo para te baixares. No ar, deslizar para baixo faz-te cair mais depressa. Nas curvas em ângulo reto, desliza no sentido da seta mesmo antes da esquina para virar; senão, bates contra o muro. Com um comando, a cruz direcional ou o manípulo fazem o mesmo.</string>
     <string name="rules_runner_3_title">Obstáculos</string>
-    <string name="rules_runner_3_body">As caixas, as bagagens e os animais pequenos saltam-se. As barras passam-se baixando-te. As carruagens e as locomotivas são demasiado altas: muda de via. Saltar um obstáculo baixo também te deixa apanhar as moedas no ar.</string>
+    <string name="rules_runner_3_body">Há três obstáculos. As pilhas de carvão saltam-se. Os pórticos passam-se baixando-te. As carruagens são demasiado altas: muda de via. Saltar uma pilha de carvão também te deixa apanhar as moedas no ar.</string>
     <string name="rules_runner_4_title">Moedas e bónus</string>
     <string name="rules_runner_4_body">Uma moeda vale 5 pontos e uma gema 25 pontos e 5 moedas. O escudo absorve um choque, a estrela duplica os pontos durante 10 segundos, o raio atrai as moedas das outras vias durante 8 segundos e o coração dá mais uma vida (3 no máximo). A tua melhor pontuação é guardada.</string>
     <string name="runner_ready_title">Vez de %1$s jogar</string>
-    <string name="runner_ready_hint">Muda de via, salta e baixa-te para evitar os obstáculos do caminho de ferro. Apanha moedas e bónus.</string>
+    <string name="runner_ready_hint">Muda de via, salta e baixa-te para evitar os obstáculos do caminho de ferro, e vira nas curvas. Apanha moedas e bónus.</string>
     <string name="runner_go">Vamos!</string>
     <string name="runner_loading">A carregar…</string>
     <string name="runner_score">Pontos: %1$d</string>

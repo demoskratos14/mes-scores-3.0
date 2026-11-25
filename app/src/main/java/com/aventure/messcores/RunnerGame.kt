@@ -12,13 +12,13 @@ internal const val RUNNER_ID = "builtin_runner"
 internal enum class RunnerKind {
     COIN, GEM, HEART, STAR, MAGNET, SHIELD,
 
-    /** Obstacle bas : on le saute. */
+    /** Rocher au sol : on le saute. */
     LOW,
 
-    /** Obstacle haut (un wagon) : impossible à sauter, il faut changer de voie. */
+    /** Wagon : impossible à sauter, il faut changer de voie. */
     TALL,
 
-    /** Barre à hauteur de poitrine : on se baisse (on glisse) pour passer dessous. */
+    /** Portique à hauteur de tête : on se baisse (on glisse) pour passer dessous. */
     BAR
 }
 
@@ -51,9 +51,13 @@ internal object Runner {
     /** Écart entre deux voies (la voie du milieu est en 0). */
     const val LANE_W = 1.25f
 
+    /** La vitesse part de START_SPEED et grimpe sans cesse (SPEED_PER_M par mètre parcouru) jusqu'à MAX_SPEED. */
     const val START_SPEED = 8f
-    const val MAX_SPEED = 17f
-    const val SPEED_PER_M = 0.011f
+    const val MAX_SPEED = 28f
+    const val SPEED_PER_M = 0.0125f
+
+    /** Distance à laquelle la difficulté (rangées plus serrées, motifs plus durs, virages plus fréquents) est au maximum. */
+    const val HARD_AT_M = 1800f
 
     /** Vitesse du coureur d'une voie à l'autre. */
     const val LATERAL_SPEED = 9f
@@ -69,12 +73,12 @@ internal object Runner {
     const val SLIDE_H = 0.45f
     const val PLAYER_HALF_DEPTH = 0.25f
 
-    /** La barre à passer en glissant : elle est entre ces deux hauteurs. */
-    const val BAR_BOTTOM = 0.62f
-    const val BAR_TOP = 1.12f
+    /** Le portique à passer en glissant : il barre tout ce qui est entre ces deux hauteurs (on ne peut pas non plus le sauter). */
+    const val BAR_BOTTOM = 0.72f
+    const val BAR_TOP = 2.31f
 
     /** Distance d'avance à laquelle la voie est générée, et distance libre au départ. */
-    const val AHEAD_M = 100f
+    const val AHEAD_M = 110f
     const val FREE_START_M = 45f
 
     /** Au plus cet écart latéral entre le coureur et un objet pour le ramasser, ou pour heurter un obstacle. */
@@ -95,26 +99,47 @@ internal object Runner {
     /** Écart minimal entre deux rangées d'obstacles. */
     const val MIN_GAP_M = 18f
 
-    /** Hauteur du centre d'une pièce posée au sol, et en l'air (au-dessus d'un obstacle bas). */
+    /** Temps de réaction laissé entre deux rangées : de GAP_S_EASY au début à GAP_S_HARD à la difficulté maximale. */
+    const val GAP_S_EASY = 2.3f
+    const val GAP_S_HARD = 1.3f
+
+    /** Hauteur du centre d'une pièce posée au sol, et en l'air (au-dessus d'un rocher). */
     const val COIN_GROUND_Y = 0.6f
     const val COIN_AIR_Y = 1.45f
 
-    val LOW = listOf(
-        RunnerProp("rail_crate_stack", 1.0f, 0f, 0.5f, 0.95f),
-        RunnerProp("rail_luggage_stack", 1.0f, 0f, 0.5f, 1.0f),
-        RunnerProp("rail_mail_bags", 1.3f, 0f, 0.5f, 0.8f),
-        RunnerProp("rail_coal_pile", 0.8f, 0f, 0.55f, 0.8f),
-        RunnerProp("rail_cat", 2.2f, 0f, 0.35f, 0.85f),
-        RunnerProp("rail_milk_churn", 1.4f, 0f, 0.3f, 1.05f)
-    )
+    // --- La voie ferrée et ses virages ---
 
-    val TALL = listOf(
-        RunnerProp("rail_carriage", 0.75f, 90f, 1.48f, 99f),
-        RunnerProp("rail_locomotive", 0.75f, 90f, 1.28f, 99f)
-    )
+    /** Longueur d'une unité de voie (un petit tronçon) : tout le tracé est un nombre entier d'unités. */
+    const val UNIT = 1.6f
 
-    /** La barre : une rambarde posée à hauteur de poitrine, d'une voie de large. */
-    val BAR = RunnerProp("rail_fence_rail", 0.47f, 0f, 0.25f, BAR_TOP)
+    /** Demi-largeur de la voie : le carré du virage fait cette largeur de côté. */
+    const val JUNCTION_HALF = 1.6f
+
+    /** Début virtuel du premier tronçon : la voie existe déjà derrière le coureur au départ. */
+    const val TRACK_START = -9.6f - JUNCTION_HALF
+
+    /** Distance entre le départ et le premier virage, en unités de voie. */
+    const val FIRST_CORNER_UNITS = 100
+
+    /** Pas d'obstacle ni de pièce de décor dans cette zone autour d'un virage (avant, après). */
+    const val CORNER_CLEAR_BEFORE = 20f
+    const val CORNER_CLEAR_AFTER = 20f
+
+    /** Pour tourner, il faut glisser dans le bon sens dans cette distance avant le virage au plus (selon la vitesse). */
+    const val TURN_WINDOW_MIN = 9f
+    const val TURN_WINDOW_S = 0.8f
+
+    /** Vitesse de rotation du monde après un virage, en degrés par seconde. */
+    const val TURN_ANIM_DEG_S = 320f
+
+    /** Le rocher : un tas de charbon, bas, qu'on saute. */
+    val LOW = listOf(RunnerProp("rail_coal_pile", 0.8f, 0f, 0.55f, 0.82f))
+
+    /** Le wagon, trop haut pour être sauté : il faut changer de voie. */
+    val TALL = listOf(RunnerProp("rail_carriage", 0.75f, 90f, 1.48f, 99f))
+
+    /** Le portique, d'une voie de large, à passer en se baissant. */
+    val BAR = RunnerProp("rail_gate", 1f, 0f, 0.3f, BAR_TOP)
 
     /** Les modèles des objets à ramasser : nom, échelle. */
     fun pickupModel(kind: RunnerKind): Pair<String, Float> = when (kind) {
@@ -127,7 +152,7 @@ internal object Runner {
         else -> "item_coin" to 0.085f
     }
 
-    /** Le décor de la gare (voir RunnerStage) : les modèles du décor, les obstacles, la barre et les objets à ramasser. */
+    /** Le décor de la gare (voir RunnerStage). */
     private val DECOR_MODELS = listOf(
         "rail_track_straight", "rail_track_short", "rail_platform_straight", "rail_tree_round", "rail_bush",
         "rail_telegraph_pole", "rail_station_lamp", "rail_station_building"
@@ -138,14 +163,101 @@ internal object Runner {
         (DECOR_MODELS + LOW.map { it.model } + TALL.map { it.model } + BAR.model +
             RunnerKind.entries.filter { it.ordinal <= RunnerKind.SHIELD.ordinal }.map { pickupModel(it).first }).distinct()
 
-    /** Vitesse à la distance [dist]. */
+    /** Vitesse à la distance [dist] : elle augmente tout le long de la partie, jusqu'au maximum. */
     fun speedAt(dist: Float): Float = min(MAX_SPEED, START_SPEED + dist * SPEED_PER_M)
+
+    /** Difficulté de 0 (le départ) à 1 (à partir de [HARD_AT_M]). */
+    fun hardAt(dist: Float): Float = min(1f, max(0f, dist / HARD_AT_M))
 }
 
 /**
- * La Course : un coureur qui avance sans cesse sur trois voies (ligne droite). On change de voie, on saute par-dessus les
- * obstacles bas, on se baisse sous les barres et on évite les wagons. On ramasse des pièces et des bonus (bouclier, étoile
- * = points doublés, éclair = aimant à pièces, cœur = une vie de plus). La partie s'arrête au premier choc sans vie ni bouclier.
+ * Le tracé de la voie : une ligne droite coupée de virages à angle droit. Le tronçon 0 part du début, chaque virage ouvre le
+ * tronçon suivant. Tout est mesuré le long du tracé (la distance parcourue) ; cette classe donne la position réelle, dans le
+ * plan, d'un point du tracé (pour dessiner). Cap 0 : vers -Z ; chaque quart de tour à droite (+1) ou à gauche (-1) change de cap.
+ */
+internal class RunnerPath {
+    /** Distance du début de chaque tronçon (celle du virage qui l'ouvre). */
+    private val starts = ArrayList<Float>()
+    private val turns = ArrayList<Int>()
+    private val quarters = ArrayList<Int>()
+    private val ox = ArrayList<Double>()
+    private val oz = ArrayList<Double>()
+
+    init {
+        starts.add(Runner.TRACK_START)
+        turns.add(0)
+        quarters.add(0)
+        ox.add(0.0)
+        oz.add(0.0)
+    }
+
+    /** Nombre de tronçons (le premier plus un par virage). */
+    val size: Int get() = starts.size
+
+    /** Début du tronçon [i] : la distance du virage qui l'ouvre. */
+    fun start(i: Int): Float = starts[i]
+
+    /** Sens du virage qui ouvre le tronçon [i] : -1 gauche, 1 droite (0 pour le premier tronçon). */
+    fun turn(i: Int): Int = turns[i]
+
+    /** Cap du tronçon [i], en quarts de tour. */
+    fun quarter(i: Int): Int = quarters[i]
+
+    val lastStart: Float get() = starts.last()
+
+    /** Ajoute un virage [units] unités de voie après le dernier, dans le sens [dir]. */
+    fun addCorner(units: Int, dir: Int) {
+        val i = starts.size - 1
+        val s = starts[i] + units * Runner.UNIT
+        val f = floatArrayOf(0f, 0f)
+        forward(quarters[i], f)
+        val len = (s - starts[i]).toDouble()
+        ox.add(ox[i] + len * f[0])
+        oz.add(oz[i] + len * f[1])
+        starts.add(s)
+        turns.add(dir)
+        quarters.add(quarters[i] + dir)
+    }
+
+    /** Le tronçon qui contient la distance [s]. */
+    fun segmentAt(s: Float): Int {
+        var i = starts.size - 1
+        while (i > 0 && starts[i] > s) i--
+        return i
+    }
+
+    /**
+     * Position dans le plan (x dans out[0], z dans out[1]) du point à la distance [s] du tronçon [seg], décalé de [lateral] vers
+     * la droite. Le tronçon est prolongé tout droit au besoin (le carré d'un virage dépasse le virage de la demi-voie).
+     */
+    fun position(seg: Int, s: Float, lateral: Float, out: DoubleArray) {
+        val q = Math.floorMod(quarters[seg], 4)
+        val d = (s - starts[seg]).toDouble()
+        out[0] = ox[seg] + d * FWD_X[q] + lateral * RIGHT_X[q]
+        out[1] = oz[seg] + d * FWD_Z[q] + lateral * RIGHT_Z[q]
+    }
+
+    private fun forward(quarter: Int, out: FloatArray) {
+        val q = Math.floorMod(quarter, 4)
+        out[0] = FWD_X[q].toFloat()
+        out[1] = FWD_Z[q].toFloat()
+    }
+
+    companion object {
+        // Pour un cap de 0, 1, 2, 3 quarts de tour : la direction d'avance et la droite (dans le plan x, z).
+        val FWD_X = doubleArrayOf(0.0, 1.0, 0.0, -1.0)
+        val FWD_Z = doubleArrayOf(-1.0, 0.0, 1.0, 0.0)
+        val RIGHT_X = doubleArrayOf(1.0, 0.0, -1.0, 0.0)
+        val RIGHT_Z = doubleArrayOf(0.0, 1.0, 0.0, -1.0)
+    }
+}
+
+/**
+ * La Course : un coureur qui avance sans cesse sur trois voies. On change de voie, on saute par-dessus les rochers, on se baisse
+ * sous les portiques et on évite les wagons. Aux virages à angle droit, il faut glisser dans le bon sens juste avant le coin,
+ * sinon on s'écrase contre le mur. On ramasse des pièces et des bonus (bouclier, étoile = points doublés, éclair = aimant à
+ * pièces, cœur = une vie de plus). La partie s'arrête au premier choc sans vie ni bouclier. La vitesse et la difficulté
+ * montent tout le long de la partie.
  *
  * Toute la logique est ici, sans rien d'Android : l'écran (RunnerScreen) lit l'état et le dessine. [seed] fixe la voie générée
  * (utile aux tests).
@@ -207,20 +319,61 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
     val things = ArrayList<RunnerThing>()
     private var nextRowZ = Runner.FREE_START_M
 
+    /** Le tracé de la voie (ses virages sont générés loin devant le coureur). */
+    val path = RunnerPath()
+
+    /** Le tronçon du tracé où se trouve le coureur, et le nombre de virages pris. */
+    var seg = 0
+        private set
+    var turnsTaken = 0
+        private set
+
+    /** Sens du virage demandé (-1, 0, 1) : il se fait à l'arrivée au coin. */
+    private var turnQueued = 0
+
+    /**
+     * Rotation restante du monde à l'écran, en degrés : après un virage, elle part de ±90 et revient à 0, ce qui fait tourner
+     * la vue sur le nouveau cap au lieu de la faire sauter.
+     */
+    var turnVisual = 0f
+        private set
+
     val isSliding: Boolean get() = slideLeft > 0f && y <= 0f
     val isAirborne: Boolean get() = y > 0f
     val top: Float get() = y + if (isSliding) Runner.SLIDE_H else Runner.STAND_H
+
+    /** Distance du prochain virage non pris, ou null s'il n'y en a pas devant. */
+    val nextCornerZ: Float? get() = if (seg + 1 < path.size) path.start(seg + 1) else null
+
+    /** Sens (-1 gauche, 1 droite) du prochain virage non pris, ou 0. */
+    val nextCornerDir: Int get() = if (seg + 1 < path.size) path.turn(seg + 1) else 0
+
+    /** Distance, avant le prochain virage, à partir de laquelle un geste de côté compte comme un virage. */
+    val turnWindow: Float get() = min(Runner.CORNER_CLEAR_BEFORE - 2f, max(Runner.TURN_WINDOW_MIN, speed * Runner.TURN_WINDOW_S))
+
+    /** Vrai quand le prochain virage est assez près pour qu'un geste de côté le prenne. */
+    val turnIsOpen: Boolean
+        get() {
+            val c = nextCornerZ ?: return false
+            return c - dist <= turnWindow
+        }
 
     init {
         generateAhead()
     }
 
-    fun moveLeft() {
-        if (!isOver) lane = max(-1, lane - 1)
-    }
+    fun moveLeft() = sideways(-1)
 
-    fun moveRight() {
-        if (!isOver) lane = min(1, lane + 1)
+    fun moveRight() = sideways(1)
+
+    /** Un geste de côté : s'il est dans le sens du virage tout proche, il le prend ; sinon il change de voie. */
+    private fun sideways(dir: Int) {
+        if (isOver) return
+        if (turnIsOpen && nextCornerDir == dir) {
+            turnQueued = dir
+            return
+        }
+        lane = max(-1, min(1, lane + dir))
     }
 
     fun jump() {
@@ -282,9 +435,14 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
         if (magnetLeft > 0f) magnetLeft = max(0f, magnetLeft - dt)
         if (invuln > 0f) invuln = max(0f, invuln - dt)
         if (hurtLeft > 0f) hurtLeft = max(0f, hurtLeft - dt)
+        if (turnVisual != 0f) {
+            val spin = Runner.TURN_ANIM_DEG_S * dt
+            turnVisual = if (abs(turnVisual) <= spin) 0f else turnVisual - (if (turnVisual > 0f) spin else -spin)
+        }
 
         generateAhead()
-        collide()
+        cornerCheck()
+        if (!isOver) collide()
         // Ce qui est loin derrière ne sert plus.
         var drop = 0
         while (drop < things.size && things[drop].z < dist - 10f) drop++
@@ -292,6 +450,20 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
     }
 
     private fun multiplier(): Double = if (starLeft > 0f) 2.0 else 1.0
+
+    /** Arrivé au coin : on tourne si le geste a été fait dans le bon sens, sinon on s'écrase contre le mur. */
+    private fun cornerCheck() {
+        val c = nextCornerZ ?: return
+        if (dist < c) return
+        val dir = nextCornerDir
+        val ok = turnQueued == dir
+        turnQueued = 0
+        if (!ok && crashNow()) return
+        // Sans vie ni bouclier perdu, on repart quand même dans le bon sens.
+        seg++
+        turnsTaken++
+        turnVisual = -dir * 90f
+    }
 
     private fun collide() {
         val magnet = magnetLeft > 0f
@@ -312,7 +484,10 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
                     RunnerKind.BAR -> top > Runner.BAR_BOTTOM && y < Runner.BAR_TOP
                     else -> y < t.top
                 }
-                if (hit) crash(t)
+                if (hit) {
+                    t.taken = true
+                    crashNow()
+                }
             }
         }
     }
@@ -337,10 +512,10 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
         }
     }
 
-    private fun crash(t: RunnerThing) {
-        t.taken = true
+    /** Un choc : le bouclier ou une vie de réserve l'absorbe, sinon c'est fini. Renvoie vrai si la partie est finie. */
+    private fun crashNow(): Boolean {
         // Juste après un choc, on traverse les obstacles suivants sans rien perdre.
-        if (invuln > 0f) return
+        if (invuln > 0f) return false
         hits++
         when {
             shield -> {
@@ -354,10 +529,45 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
             }
             else -> isOver = true
         }
+        return isOver
     }
 
+    // --- Génération de la voie ---
+
     private fun generateAhead() {
-        while (nextRowZ < dist + Runner.AHEAD_M) addRow(nextRowZ)
+        val limit = dist + Runner.AHEAD_M
+        // Les virages sont décidés loin devant, avant les rangées d'obstacles qui doivent les éviter.
+        while (path.lastStart < limit + 60f) addCorner()
+        while (nextRowZ < limit) {
+            val skipTo = cornerZoneEnd(nextRowZ)
+            if (skipTo != null) {
+                nextRowZ = skipTo
+                continue
+            }
+            addRow(nextRowZ)
+        }
+    }
+
+    private fun addCorner() {
+        val hard = Runner.hardAt(path.lastStart)
+        val units = if (path.size == 1) {
+            Runner.FIRST_CORNER_UNITS
+        } else {
+            // De 88 à 232 m au début, de 60 à 130 m à la difficulté maximale.
+            val lo = (55 - 18 * hard).toInt()
+            val hi = (145 - 64 * hard).toInt()
+            lo + rnd.nextInt(hi - lo + 1)
+        }
+        path.addCorner(units, if (rnd.nextBoolean()) 1 else -1)
+    }
+
+    /** Si [z] est dans la zone d'un virage où l'on ne pose rien, la distance où elle finit. */
+    private fun cornerZoneEnd(z: Float): Float? {
+        for (i in 1 until path.size) {
+            val c = path.start(i)
+            if (z > c - Runner.CORNER_CLEAR_BEFORE && z < c + Runner.CORNER_CLEAR_AFTER) return c + Runner.CORNER_CLEAR_AFTER
+        }
+        return null
     }
 
     private fun thing(kind: RunnerKind, lane: Int, z: Float, p: RunnerProp, y: Float = 0f) {
@@ -368,37 +578,53 @@ internal class RunnerGame(seed: Long = Random.nextLong()) {
 
     private fun tall(lane: Int, z: Float) = thing(RunnerKind.TALL, lane, z, Runner.TALL[rnd.nextInt(Runner.TALL.size)])
 
-    private fun bar(lane: Int, z: Float) = thing(RunnerKind.BAR, lane, z, Runner.BAR, Runner.BAR_BOTTOM)
+    private fun bar(lane: Int, z: Float) = thing(RunnerKind.BAR, lane, z, Runner.BAR, 0f)
 
     private fun pickup(kind: RunnerKind, lane: Int, z: Float, y: Float) {
+        if (cornerZoneEnd(z) != null) return
         val (model, scale) = Runner.pickupModel(kind)
         things.add(RunnerThing(kind, lane, z, model, scale, 0f, 0.4f, y, 0f))
     }
 
+    /** Les sept motifs de rangée : le début n'en connaît que trois simples, les autres arrivent avec la difficulté. */
+    private fun pickPattern(hard: Float): Int {
+        val w = floatArrayOf(
+            0.9f - 0.45f * hard, // 0 : un rocher
+            0.7f, // 1 : un wagon
+            if (dist > 120f) 0.45f else 0f, // 2 : des portiques sur les trois voies
+            0.9f * hard, // 3 : deux wagons côte à côte
+            0.5f * hard, // 4 : des rochers sur les trois voies
+            0.7f * hard, // 5 : un wagon et un rocher
+            0.5f * hard // 6 : deux rochers
+        )
+        var r = rnd.nextFloat() * w.sum()
+        for (i in w.indices) {
+            if (r < w[i]) return i
+            r -= w[i]
+        }
+        return 0
+    }
+
     /** Une rangée d'obstacles en [z], puis des pièces (et parfois un bonus) jusqu'à la rangée suivante. */
     private fun addRow(z: Float) {
-        val hard = min(1f, dist / 1500f)
-        val gap = max(Runner.MIN_GAP_M, speed * 2.1f) + rnd.nextFloat() * 6f
+        val hard = Runner.hardAt(dist)
+        val gapSeconds = Runner.GAP_S_EASY + (Runner.GAP_S_HARD - Runner.GAP_S_EASY) * hard
+        val gap = max(Runner.MIN_GAP_M, speed * gapSeconds) + rnd.nextFloat() * 6f
         val busy = BooleanArray(3) // voie (-1, 0, 1 → 0, 1, 2) occupée par un obstacle de cette rangée
         fun mark(l: Int) { busy[l + 1] = true }
         val lane = rnd.nextInt(3) - 1
         val other = ((lane + 1 + 1 + rnd.nextInt(2)) % 3) - 1 // l'une des deux autres voies
         var airCoinsLane: Int? = null
-        val r = rnd.nextFloat()
-        when {
-            r < 0.30f -> {
-                low(lane, z); mark(lane)
-                if (hard > 0.4f && rnd.nextFloat() < hard) { low(other, z); mark(other) } else airCoinsLane = lane
-            }
-            r < 0.55f -> {
-                tall(lane, z); mark(lane)
-                if (hard > 0.5f && rnd.nextFloat() < hard) { low(other, z); mark(other) }
-            }
-            r < 0.70f -> for (l in -1..1) { bar(l, z); mark(l) }
-            r < 0.85f -> for (l in -1..1) if (l != lane) { tall(l, z); mark(l) }
-            else -> for (l in -1..1) { low(l, z); mark(l) }
+        when (pickPattern(hard)) {
+            0 -> { low(lane, z); mark(lane); airCoinsLane = lane }
+            1 -> { tall(lane, z); mark(lane) }
+            2 -> for (l in -1..1) { bar(l, z); mark(l) }
+            3 -> for (l in -1..1) if (l != lane) { tall(l, z); mark(l) }
+            4 -> for (l in -1..1) { low(l, z); mark(l) }
+            5 -> { tall(lane, z); mark(lane); low(other, z); mark(other) }
+            else -> { low(lane, z); mark(lane); low(other, z); mark(other) }
         }
-        // Des pièces en l'air au-dessus d'un obstacle bas isolé : elles récompensent le saut.
+        // Des pièces en l'air au-dessus d'un rocher isolé : elles récompensent le saut.
         airCoinsLane?.let { l ->
             for (k in -1..1) pickup(RunnerKind.COIN, l, z + k * 1.7f, Runner.COIN_AIR_Y)
         }

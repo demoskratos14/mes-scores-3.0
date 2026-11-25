@@ -3522,13 +3522,13 @@
     <string name="rules_runner_1_title">Obiettivo</string>
     <string name="rules_runner_1_body">Corri il più lontano possibile lungo i binari senza mai fermarti. Il corridore accelera a poco a poco. Evita gli ostacoli e raccogli più monete che puoi. La partita finisce al primo scontro, a meno che tu abbia ancora una vita di riserva o uno scudo.</string>
     <string name="rules_runner_2_title">Comandi</string>
-    <string name="rules_runner_2_body">Scorri il dito a sinistra o a destra per cambiare corsia, verso l’alto (o tocca lo schermo) per saltare, verso il basso per abbassarti. In aria, scorrere verso il basso ti fa ricadere più in fretta. Con un gamepad, la croce direzionale o lo stick fanno lo stesso.</string>
+    <string name="rules_runner_2_body">Scorri il dito a sinistra o a destra per cambiare corsia, verso l’alto (o tocca lo schermo) per saltare, verso il basso per abbassarti. In aria, scorrere verso il basso ti fa ricadere più in fretta. Alle curve ad angolo retto, scorri nella direzione della freccia poco prima dell’angolo per girare, altrimenti ti schianti contro il muro. Con un gamepad, la croce direzionale o lo stick fanno lo stesso.</string>
     <string name="rules_runner_3_title">Ostacoli</string>
-    <string name="rules_runner_3_body">Le casse, i bagagli e i piccoli animali si saltano. Le sbarre si superano abbassandoti. I vagoni e le locomotive sono troppo alti: cambia corsia. Saltare un ostacolo basso ti fa anche prendere le monete in aria.</string>
+    <string name="rules_runner_3_body">Ci sono tre ostacoli. I mucchi di carbone si saltano. I portali si superano abbassandoti. I vagoni sono troppo alti: cambia corsia. Saltare un mucchio di carbone ti fa anche prendere le monete in aria.</string>
     <string name="rules_runner_4_title">Monete e bonus</string>
     <string name="rules_runner_4_body">Una moneta vale 5 punti, una gemma 25 punti e 5 monete. Lo scudo assorbe uno scontro, la stella raddoppia i punti per 10 secondi, il fulmine attira le monete delle altre corsie per 8 secondi e il cuore dà una vita in più (3 al massimo). Il tuo punteggio migliore viene conservato.</string>
     <string name="runner_ready_title">Tocca a %1$s</string>
-    <string name="runner_ready_hint">Cambia corsia, salta e abbassati per evitare gli ostacoli della ferrovia. Raccogli monete e bonus.</string>
+    <string name="runner_ready_hint">Cambia corsia, salta e abbassati per evitare gli ostacoli della ferrovia, e gira alle curve. Raccogli monete e bonus.</string>
     <string name="runner_go">Si parte!</string>
     <string name="runner_loading">Caricamento…</string>
     <string name="runner_score">Punti: %1$d</string>

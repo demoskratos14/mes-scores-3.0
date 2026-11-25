@@ -162,6 +162,167 @@ class RunnerGameTest {
         assertEquals(Runner.MAX_SPEED, Runner.speedAt(100_000f), 0f)
     }
 
+    @Test
+    fun laVitesseEtLaDifficulteMontentToutLeLongDeLaPartie() {
+        var last = 0f
+        for (d in 0..3000 step 100) {
+            assertTrue(Runner.speedAt(d.toFloat()) >= last)
+            last = Runner.speedAt(d.toFloat())
+        }
+        assertTrue(Runner.speedAt(1000f) > Runner.speedAt(0f) * 1.5f)
+        assertEquals(0f, Runner.hardAt(0f), 0f)
+        assertEquals(1f, Runner.hardAt(100_000f), 0f)
+        // Les rangées se resserrent : en temps de réaction, et donc plus encore en mètres au début qu'à la fin ramené à la vitesse.
+        fun meanGapSeconds(from: Float, to: Float): Float {
+            val gaps = ArrayList<Float>()
+            for (seed in 1L..20L) {
+                val zs = ArrayList<Float>()
+                val g = RunnerGame(seed)
+                // On lit les rangées générées loin devant en faisant avancer la partie (le bot s'en occupe).
+                val bot = Bot(g)
+                var guard = 0
+                while (!g.isOver && g.dist < to && guard++ < 400_000) {
+                    bot.act()
+                    g.tick(16)
+                    for (t in g.things) if (t.kind.ordinal >= RunnerKind.LOW.ordinal && t.z in from..to && t.z !in zs) zs.add(t.z)
+                }
+                val rows = zs.sorted().fold(ArrayList<Float>()) { acc, z -> if (acc.isEmpty() || z - acc.last() > 1f) acc.add(z); acc }
+                for (i in 1 until rows.size) gaps.add((rows[i] - rows[i - 1]) / Runner.speedAt(rows[i]))
+            }
+            return gaps.average().toFloat()
+        }
+        assertTrue(meanGapSeconds(1800f, 2600f) < meanGapSeconds(60f, 700f))
+    }
+
+    @Test
+    fun ilNYAQueTroisSortesDObstacles() {
+        val models = HashSet<String>()
+        val kinds = HashSet<RunnerKind>()
+        for (seed in 1L..30L) {
+            val game = RunnerGame(seed)
+            val bot = Bot(game)
+            var guard = 0
+            while (!game.isOver && game.dist < 2000f && guard++ < 200_000) {
+                bot.act()
+                game.tick(16)
+                for (t in game.things) if (t.kind.ordinal >= RunnerKind.LOW.ordinal) {
+                    models.add(t.model)
+                    kinds.add(t.kind)
+                }
+            }
+        }
+        assertEquals(setOf("rail_coal_pile", "rail_carriage", "rail_gate"), models)
+        assertEquals(setOf(RunnerKind.LOW, RunnerKind.TALL, RunnerKind.BAR), kinds)
+    }
+
+    // --- Les virages ---
+
+    @Test
+    fun leTraceSeRaccordeEnChaqueVirage() {
+        val game = RunnerGame(5L)
+        val path = game.path
+        assertTrue(path.size > 2)
+        val a = DoubleArray(2)
+        val b = DoubleArray(2)
+        for (i in 1 until path.size) {
+            path.position(i - 1, path.start(i), 0f, a)
+            path.position(i, path.start(i), 0f, b)
+            assertEquals(a[0], b[0], 1e-6)
+            assertEquals(a[1], b[1], 1e-6)
+            assertEquals(Math.floorMod(path.quarter(i - 1) + path.turn(i), 4), Math.floorMod(path.quarter(i), 4))
+            assertTrue(path.turn(i) == 1 || path.turn(i) == -1)
+        }
+        assertEquals(148.8f, path.start(1), 0.01f)
+    }
+
+    @Test
+    fun lesVirageSontAssezEcartesEtRienNEstPoseAutour() {
+        for (seed in 1L..20L) {
+            val game = RunnerGame(seed)
+            val bot = Bot(game)
+            var guard = 0
+            while (!game.isOver && game.dist < 2500f && guard++ < 400_000) {
+                bot.act()
+                game.tick(16)
+            }
+            val path = game.path
+            for (i in 2 until path.size) assertTrue(path.start(i) - path.start(i - 1) >= 55f * Runner.UNIT * 0.6f)
+            for (i in 1 until path.size) {
+                for (t in game.things) {
+                    assertFalse(
+                        "objet dans la zone d'un virage (graine $seed)",
+                        t.z > path.start(i) - Runner.CORNER_CLEAR_BEFORE + 0.01f && t.z < path.start(i) + Runner.CORNER_CLEAR_AFTER - 0.01f
+                    )
+                }
+            }
+        }
+    }
+
+    private fun gameAtFirstCorner(): RunnerGame {
+        val game = RunnerGame(seed = 2L)
+        game.things.clear()
+        return game
+    }
+
+    @Test
+    fun unGesteDansLeSensDuVirageLePrendEtLaVueTourne() {
+        val game = gameAtFirstCorner()
+        val corner = game.nextCornerZ!!
+        val dir = game.nextCornerDir
+        runPast(game, corner - 5f)
+        assertTrue(game.turnIsOpen)
+        if (dir < 0) game.moveLeft() else game.moveRight()
+        runPast(game, corner + 0.5f)
+        assertFalse(game.isOver)
+        assertEquals(1, game.turnsTaken)
+        assertEquals(1, game.seg)
+        assertTrue(Math.abs(game.turnVisual) > 1f)
+        runPast(game, corner + 40f)
+        assertEquals(0f, game.turnVisual, 0f)
+    }
+
+    @Test
+    fun sansGesteOnSEcraseContreLeMur() {
+        val game = gameAtFirstCorner()
+        runPast(game, game.nextCornerZ!! + 2f)
+        assertTrue(game.isOver)
+    }
+
+    @Test
+    fun unGesteDansLeMauvaisSensNeTournePas() {
+        val game = gameAtFirstCorner()
+        val corner = game.nextCornerZ!!
+        val wrong = -game.nextCornerDir
+        runPast(game, corner - 5f)
+        if (wrong < 0) game.moveLeft() else game.moveRight()
+        runPast(game, corner + 2f)
+        assertTrue(game.isOver)
+    }
+
+    @Test
+    fun unGesteTropTotChangeJusteDeVoie() {
+        val game = gameAtFirstCorner()
+        val dir = game.nextCornerDir
+        runPast(game, 20f)
+        assertFalse(game.turnIsOpen)
+        if (dir < 0) game.moveLeft() else game.moveRight()
+        assertEquals(dir, game.lane)
+        runPast(game, game.nextCornerZ!! + 2f)
+        assertTrue(game.isOver)
+    }
+
+    @Test
+    fun avecUneVieDeReserveOnRepartDansLeBonSensApresUnVirageRate() {
+        val game = gameAtFirstCorner()
+        game.things.add(pickup(RunnerKind.SHIELD, 0, 8f))
+        runPast(game, 12f)
+        assertTrue(game.shield)
+        runPast(game, game.nextCornerZ!! + 2f)
+        assertFalse(game.isOver)
+        assertEquals(1, game.seg)
+        assertFalse(game.shield)
+    }
+
     // --- Les obstacles ---
 
     @Test
@@ -354,6 +515,9 @@ class RunnerGameTest {
     /** Un joueur attentif : évite les wagons, saute les obstacles bas, se baisse sous les barres. */
     private class Bot(private val g: RunnerGame) {
         fun act() {
+            if (g.turnIsOpen) {
+                if (g.nextCornerDir < 0) g.moveLeft() else g.moveRight()
+            }
             val ahead = g.things.filter { it.z + 2.2f > g.dist && it.z < g.dist + 40f && it.kind.ordinal >= RunnerKind.LOW.ordinal && !it.taken }
             if (ahead.isEmpty()) return
             val z0 = ahead.minOf { it.z }

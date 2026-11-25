@@ -3530,13 +3530,13 @@
     <string name="rules_runner_1_title">But du jeu</string>
     <string name="rules_runner_1_body">Cours le plus loin possible sur les rails, sans jamais t’arrêter. Le coureur accélère peu à peu. Évite les obstacles et ramasse un maximum de pièces. La partie s’arrête au premier choc, sauf si tu as encore une vie en réserve ou un bouclier.</string>
     <string name="rules_runner_2_title">Les commandes</string>
-    <string name="rules_runner_2_body">Glisse le doigt à gauche ou à droite pour changer de voie, vers le haut (ou touche l’écran) pour sauter, vers le bas pour te baisser. En l’air, glisser vers le bas te fait retomber plus vite. À la manette, la croix ou le stick font de même.</string>
+    <string name="rules_runner_2_body">Glisse le doigt à gauche ou à droite pour changer de voie, vers le haut (ou touche l’écran) pour sauter, vers le bas pour te baisser. En l’air, glisser vers le bas te fait retomber plus vite. Aux virages à angle droit, glisse dans le sens de la flèche juste avant le coin pour tourner, sinon tu t’écrases contre le mur. À la manette, la croix ou le stick font de même.</string>
     <string name="rules_runner_3_title">Les obstacles</string>
-    <string name="rules_runner_3_body">Les caisses, les bagages et les petits animaux se sautent. Les barres se passent en te baissant. Les wagons et les locomotives sont trop hauts : change de voie. Sauter par-dessus un obstacle bas te fait aussi attraper les pièces en l’air.</string>
+    <string name="rules_runner_3_body">Il y a trois obstacles. Les tas de charbon se sautent. Les portiques se passent en te baissant. Les wagons sont trop hauts : change de voie. Sauter par-dessus un tas de charbon te fait aussi attraper les pièces en l’air.</string>
     <string name="rules_runner_4_title">Pièces et bonus</string>
     <string name="rules_runner_4_body">Une pièce vaut 5 points, un diamant 25 points et 5 pièces. Le bouclier absorbe un choc, l’étoile double les points pendant 10 secondes, l’éclair attire les pièces des autres voies pendant 8 secondes et le cœur donne une vie de plus (3 au maximum). Ton meilleur score est gardé.</string>
     <string name="runner_ready_title">À %1$s de jouer</string>
-    <string name="runner_ready_hint">Change de voie, saute et baisse-toi pour éviter les obstacles du chemin de fer. Ramasse les pièces et les bonus.</string>
+    <string name="runner_ready_hint">Change de voie, saute et baisse-toi pour éviter les obstacles du chemin de fer, et tourne aux virages. Ramasse les pièces et les bonus.</string>
     <string name="runner_go">C’est parti !</string>
     <string name="runner_loading">Chargement…</string>
     <string name="runner_score">Score : %1$d</string>

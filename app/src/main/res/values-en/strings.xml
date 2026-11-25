@@ -3479,13 +3479,13 @@
     <string name="rules_runner_1_title">Goal</string>
     <string name="rules_runner_1_body">Run as far as you can along the tracks without ever stopping. The runner gradually speeds up. Dodge obstacles and collect as many coins as you can. The run ends at the first crash, unless you still have a spare life or a shield.</string>
     <string name="rules_runner_2_title">Controls</string>
-    <string name="rules_runner_2_body">Swipe left or right to change lane, swipe up (or tap the screen) to jump, swipe down to duck. In the air, swiping down drops you faster. With a gamepad, the d-pad or stick does the same.</string>
+    <string name="rules_runner_2_body">Swipe left or right to change lane, swipe up (or tap the screen) to jump, swipe down to duck. In the air, swiping down drops you faster. At right-angle turns, swipe in the direction of the arrow just before the corner to turn, otherwise you crash into the wall. With a gamepad, the d-pad or stick does the same.</string>
     <string name="rules_runner_3_title">Obstacles</string>
-    <string name="rules_runner_3_body">Crates, luggage and small animals are jumped over. Bars are passed by ducking. Wagons and locomotives are too tall: change lane. Jumping over a low obstacle also lets you catch the coins in the air.</string>
+    <string name="rules_runner_3_body">There are three obstacles. Coal piles are jumped over. Gates are passed by ducking. Wagons are too tall: change lane. Jumping over a coal pile also lets you catch the coins in the air.</string>
     <string name="rules_runner_4_title">Coins and bonuses</string>
     <string name="rules_runner_4_body">A coin is worth 5 points, a gem 25 points and 5 coins. The shield absorbs one crash, the star doubles points for 10 seconds, the lightning bolt pulls in coins from other lanes for 8 seconds and the heart gives an extra life (3 at most). Your best score is kept.</string>
     <string name="runner_ready_title">%1$s’s turn to play</string>
-    <string name="runner_ready_hint">Switch lanes, jump and duck to avoid the obstacles on the railway. Collect coins and bonuses.</string>
+    <string name="runner_ready_hint">Switch lanes, jump and duck to avoid the obstacles on the railway, and turn at the corners. Collect coins and bonuses.</string>
     <string name="runner_go">Let’s go!</string>
     <string name="runner_loading">Loading…</string>
     <string name="runner_score">Score: %1$d</string>
