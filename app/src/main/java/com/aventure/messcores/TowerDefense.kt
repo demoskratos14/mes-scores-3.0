@@ -78,7 +78,7 @@ internal class TdProjectile(
 
 /**
  * Un effet qui s'éteint vite : l'impact d'un tir de la tour [kind] (tourné selon le cap [angle] du tir), ou, avec [death],
- * le nuage d'un ennemi qui meurt. Pur décor pour l'écran : [ms] reste à jouer sur [total].
+ * le nuage d'un ennemi qui meurt, ou, avec [radius], l'anneau de fumée qui marque la zone d'une explosion. Pur décor pour l'écran : [ms] reste à jouer sur [total].
  */
 internal class TdFlash(
     val x: Float,
@@ -87,7 +87,9 @@ internal class TdFlash(
     var ms: Float,
     val total: Float,
     val angle: Float = 0f,
-    val death: Boolean = false
+    val death: Boolean = false,
+    /** Plus que 0 : l'anneau de fumée d'une explosion, de ce rayon en cases (celui de la zone de dégâts). */
+    val radius: Float = 0f
 )
 
 /** Direction d'un ennemi à l'écran : l'ordre des lignes de marche dans les images (dos, face, gauche, droite). */
@@ -270,6 +272,9 @@ internal object TowerDefense {
 
     /** Part de l'argent dépensé qu'on récupère en vendant une tour. */
     const val SELL_PERCENT = 60
+
+    /** Part des dégâts du tir que reçoivent les ennemis de la zone d'une explosion autres que la cible (elle, reçoit tout). */
+    const val SPLASH_FACTOR = 0.6f
 
     /** Plafond du renfort d'une tour par les tours vertes autour d'elle. */
     const val MAX_BOOST = 1f
@@ -569,9 +574,11 @@ internal class TdGame(random: Random = Random.Default, seed: Int = random.nextIn
         flashes.add(TdFlash(p.lastX, p.lastY, kind, TowerDefense.FLASH_MS, TowerDefense.FLASH_MS, p.angle))
         damage(target, p.damage)
         if (kind.splash > 0f) {
+            // L'anneau de fumée a exactement le rayon de la zone : on voit qui est touché.
+            flashes.add(TdFlash(p.lastX, p.lastY, kind, TowerDefense.DEATH_FLASH_MS, TowerDefense.DEATH_FLASH_MS, radius = kind.splash))
             for (e in enemies) {
                 if (e === target || !e.alive) continue
-                if (hypot(enemyX(e) - p.lastX, enemyY(e) - p.lastY) <= kind.splash) damage(e, p.damage * 0.6f)
+                if (hypot(enemyX(e) - p.lastX, enemyY(e) - p.lastY) <= kind.splash) damage(e, p.damage * TowerDefense.SPLASH_FACTOR)
             }
         }
         if (kind.slowMs > 0f && target.alive) {

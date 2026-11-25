@@ -357,6 +357,38 @@ class TowerDefenseTest {
     }
 
     @Test
+    fun lExplosionDeLaBriqueMarqueSaZoneParUnAnneauDeFumee() {
+        val game = newGame()
+        val tower = defend(game, TdTowerKind.BRICK)
+        val tx = tower.cell % TdMap.COLS + 0.5f
+        val ty = tower.cell / TdMap.COLS + 0.5f
+        val enemy = TdEnemy(1, TdEnemyKind.THUG, 1000f)
+        var bestDist = 0f
+        var best = Float.MAX_VALUE
+        var d = 0f
+        while (d < game.map.path.size - 1) {
+            enemy.dist = d
+            val dd = Math.hypot((game.enemyX(enemy) - tx).toDouble(), (game.enemyY(enemy) - ty).toDouble()).toFloat()
+            if (dd < best) { best = dd; bestDist = d }
+            d += 0.1f
+        }
+        enemy.dist = bestDist
+        game.enemies.add(enemy)
+        var ring: TdFlash? = null
+        repeat(80) {
+            game.tick(30)
+            if (ring == null) ring = game.flashes.firstOrNull { it.radius > 0f }
+        }
+        assertNotNull(ring)
+        assertEquals(TdTowerKind.BRICK.splash, ring!!.radius, 0f)
+        // Les autres tours n'ont pas de zone, donc pas d'anneau.
+        val other = newGame()
+        val wood = defend(other, TdTowerKind.WOODEN)
+        assertEquals(0f, TdTowerKind.WOODEN.splash, 0f)
+        assertNotNull(wood)
+    }
+
+    @Test
     fun uneVagueNEstPasFinieTantQuUnEnnemiEstEnVie() {
         val game = newGame()
         game.startWave()

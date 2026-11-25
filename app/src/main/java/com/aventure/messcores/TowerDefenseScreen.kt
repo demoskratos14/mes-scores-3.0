@@ -707,7 +707,14 @@ private fun DrawScope.drawTdBoard(
         val progress = (1f - f.ms / f.total).coerceIn(0f, 0.999f)
         val cx = f.x * cell
         val cy = f.y * cell
-        if (hit != null) {
+        if (hit != null && f.radius > 0f) {
+            // L'anneau de fumée d'une explosion : son diamètre est celui de la zone de dégâts (la dernière image le remplit).
+            val side = f.radius * 2f * cell
+            drawPiece(
+                hit, (progress * TD_HIT_FRAMES).toInt() * TD_HIT_PX, 4 * TD_HIT_PX, TD_HIT_PX, TD_HIT_PX,
+                cx - side / 2f, cy - side / 2f, side, side, alpha = 0.9f
+            )
+        } else if (hit != null) {
             val frame = (progress * TD_HIT_FRAMES).toInt()
             val row = if (f.death) 3 else when (f.kind) {
                 TdTowerKind.WOODEN -> 0
