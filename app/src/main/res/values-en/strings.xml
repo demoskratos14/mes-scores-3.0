@@ -3594,7 +3594,7 @@
     <string name="acc_over_title">END OF THE DAY</string>
     <string name="acc_over_summary">Sums: %1$d · Invoices: %2$d · Chains: %3$d</string>
     <string name="acc_over_bonus">Bonus time earned!</string>
-    <string name="acc_over_nobonus">You needed %1$d points to earn the bonus time.</string>
+    <string name="acc_over_nobonus" tools:ignore="PluralsCandidate">You needed %1$d points to earn the bonus time.</string>
     <string name="acc_replay_hint">Press A to play again.</string>
     <string name="acc_label_time">TIME</string>
     <string name="acc_label_score">SCORE</string>
