@@ -32,8 +32,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
@@ -85,7 +86,9 @@ private fun homeColumns(screenWidthDp: Int): Int = when {
 @Composable
 internal fun TvHomeScreen(games: List<GameRules>, onGameChosen: (GameRules) -> Unit) {
     val firstTile = remember { FocusRequester() }
-    val columns = homeColumns(LocalConfiguration.current.screenWidthDp)
+    // Largeur réelle de la fenêtre (en px) convertie en dp : plus fiable que Configuration.screenWidthDp.
+    val windowWidthDp = with(LocalDensity.current) { LocalWindowInfo.current.containerSize.width.toDp().value.toInt() }
+    val columns = homeColumns(windowWidthDp)
     // Le réglage « A et B des manettes Nintendo » doit être lu avant le premier appui (voir [padKeyCode]).
     val context = LocalContext.current
     LaunchedEffect(context) { GamepadHub.attach(context) }
