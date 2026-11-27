@@ -3699,6 +3699,53 @@
     <string name="cashier_pop_perfect">PERFETTO!</string>
     <string name="cashier_pop_left">ANDATO!</string>
 
+    <string name="game_fresh">Reparto freschi</string>
+    <string name="rules_fresh_1_title">Obiettivo del gioco</string>
+    <string name="rules_fresh_1_body">Gestisci il reparto freschi di un supermercato. Ogni confezione ha una data di scadenza, mostrata da un contatore: il numero di secondi che le restano (verde, poi arancione, poi rosso con un «!» quando manca poco, e una croce quando è scaduta). Sistema le confezioni, ritira quelle che stanno per scadere prima che un cliente le prenda, e vendi più che puoi. La giornata dura 2 min 30. Tre errori gravi e sei licenziato.</string>
+    <string name="rules_fresh_2_title">Sistemare le confezioni</string>
+    <string name="rules_fresh_2_body">Con le frecce sinistra e destra, spostati lungo il reparto: il carrello è tutto a sinistra, poi vengono le cinque colonne (yogurt, prosciutto, formaggio, insalata, pollo), poi lo sportello del frigo. Al carrello, A o B prende la confezione in cima (e la rimette a posto se ne tieni già una). Nella colonna del suo prodotto, A sistema la confezione in fondo (in alto) e B la sistema davanti (in basso): i clienti prendono prima la confezione davanti, quindi quella che scade per prima deve stare davanti. Una colonna contiene al massimo tre confezioni; una confezione messa nella colonna sbagliata fa perdere punti. Alcune consegne arrivano con scadenza ravvicinata: queste vanno davanti.</string>
+    <string name="rules_fresh_3_title">Ritirare o scontare</string>
+    <string name="rules_fresh_3_body" formatted="false">A mani libere, davanti a una colonna, un indicatore segna la confezione bersaglio: prima una scaduta, altrimenti quella che scade per prima. A la ritira: ritirare una confezione scaduta dà punti, ma buttarne una ancora buona ne fa perdere tanti di più quanta più vita le restava. B la sconta (−30 %): il prossimo cliente della colonna la prenderà per prima, anche se è in fondo, ma rende meno. Non si può scontare una confezione scaduta.</string>
+    <string name="rules_fresh_4_title">Clienti, sportello e controllo</string>
+    <string name="rules_fresh_4_body">I clienti chiedono un prodotto (mostrato nel loro fumetto) e prendono la confezione scontata oppure, se non c’è, quella davanti. Colonna vuota: il cliente se ne va e perdi punti. Confezione scaduta venduta: errore grave. A volte lo sportello del frigo resta aperto: i contatori del banco girano tre volte più veloci; vai davanti allo sportello e premi A o B per chiuderlo prima che la barra rossa si svuoti (altrimenti, errore grave). Infine, dopo un conto alla rovescia arriva un ispettore dell’igiene: se trova una confezione scaduta nel banco o lo sportello aperto, è un errore grave; altrimenti ricevi un premio.</string>
+    <string name="rules_fresh_5_title">Nell’app</string>
+    <string name="rules_fresh_5_body">Gioco in solitaria, in orizzontale. I punti vengono dalle confezioni sistemate, dalle vendite (con un bonus di serie), dalle confezioni scadute ritirate, dagli sportelli chiusi e dai controlli superati. Le frecce sinistra e destra sono in basso a sinistra, i pulsanti A e B in basso a destra. Con un controller o in modalità TV, la croce e i pulsanti A e B fanno lo stesso; Start mette in pausa, come il tasto indietro. Il tuo punteggio migliore viene conservato.</string>
+    <string name="fresh_ready_title">Il reparto freschi di %1$s</string>
+    <string name="fresh_ready_hint">Premi A per iniziare. Sistema le confezioni del carrello nella loro colonna, ritira o sconta quelle che stanno per scadere, chiudi lo sportello del frigo e supera il controllo igienico.</string>
+    <string name="fresh_score">Punteggio: %1$d</string>
+    <string name="fresh_over_title">CHIUSURA</string>
+    <string name="fresh_over_fired">LICENZIATO!</string>
+    <string name="fresh_over_summary">Confezioni vendute: %1$d · Scadute ritirate: %2$d · Sprecate: %3$d · Controlli superati: %4$d</string>
+    <string name="fresh_replay_hint">Premi A per rigiocare.</string>
+    <string name="fresh_label_time">TEMPO</string>
+    <string name="fresh_label_score">PUNTI</string>
+    <string name="fresh_label_faults">ERRORI</string>
+    <string name="fresh_sign">REPARTO FRESCHI</string>
+    <string name="fresh_opening">APERTURA!</string>
+    <string name="fresh_no">NO!</string>
+    <string name="fresh_cart">CARRELLO</string>
+    <string name="fresh_door_alert">SPORTELLO APERTO!</string>
+    <string name="fresh_inspector">CONTROLLO IGIENICO</string>
+    <string name="fresh_yogurt">Yogurt</string>
+    <string name="fresh_ham">Prosciutto</string>
+    <string name="fresh_cheese">Formaggio</string>
+    <string name="fresh_salad">Insalata</string>
+    <string name="fresh_chicken">Pollo</string>
+    <string name="fresh_event_stock_ok">SISTEMATA</string>
+    <string name="fresh_event_stock_late">ORDINE SBAGLIATO</string>
+    <string name="fresh_event_sale">VENDUTA</string>
+    <string name="fresh_event_sale_marked" formatted="false">VENDUTA −30 %</string>
+    <string name="fresh_event_removed">RITIRATA</string>
+    <string name="fresh_event_waste">SPRECO</string>
+    <string name="fresh_event_marked">SCONTATA</string>
+    <string name="fresh_event_sick">CLIENTE MALATO!</string>
+    <string name="fresh_event_stockout">ESAURITO</string>
+    <string name="fresh_event_wrong">POSTO SBAGLIATO</string>
+    <string name="fresh_event_door_closed">SPORTELLO CHIUSO</string>
+    <string name="fresh_event_door_fault">CATENA DEL FREDDO SPEZZATA!</string>
+    <string name="fresh_event_inspect_ok">IGIENE OK</string>
+    <string name="fresh_event_inspect_ko">NON CONFORME!</string>
+
     <string name="game_shelf">Rifornimento scaffali</string>
     <string name="rules_shelf_1_title">Obiettivo del gioco</string>
     <string name="rules_shelf_1_body">Lavori nel reparto dei prodotti secchi. I prodotti (pasta, riso, farina, scatolette, cereali, caffè) cadono dal magazzino: prendili al volo con il tuo vassoio e poi mettili sullo scaffale. Il turno dura 2 minuti e finisce prima se si rompono 5 prodotti.</string>
