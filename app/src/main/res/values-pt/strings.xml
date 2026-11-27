@@ -3689,6 +3689,53 @@
     <string name="cashier_pop_perfect">PERFEITO!</string>
     <string name="cashier_pop_left">FOI-SE!</string>
 
+    <string name="game_fresh">Secção de frescos</string>
+    <string name="rules_fresh_1_title">Objetivo do jogo</string>
+    <string name="rules_fresh_1_body">Tomas conta da secção de frescos de um supermercado. Cada embalagem tem uma data-limite, mostrada por um contador: o número de segundos que lhe restam (verde, depois laranja, depois vermelho com um «!» quando está a acabar, e uma cruz quando está fora do prazo). Arruma as embalagens, retira as que vão passar o prazo antes de um cliente as levar, e vende o mais possível. O dia dura 2 min 30. Três faltas graves e és despedido.</string>
+    <string name="rules_fresh_2_title">Arrumar as embalagens</string>
+    <string name="rules_fresh_2_body">Com as setas esquerda e direita, desloca-te ao longo da secção: o carrinho fica todo à esquerda, depois vêm as cinco colunas (iogurte, fiambre, queijo, salada, frango) e, por fim, a porta do frigorífico. No carrinho, A ou B pega na embalagem de cima (e volta a pô-la se já tiveres uma na mão). Na coluna do respetivo produto, A arruma a embalagem ao fundo (em cima) e B arruma-a à frente (em baixo): os clientes levam primeiro a embalagem da frente, por isso a que expira primeiro deve ficar à frente. Uma coluna guarda no máximo três embalagens; uma embalagem posta na coluna errada faz perder pontos. Algumas entregas chegam com data curta: essas passam para a frente.</string>
+    <string name="rules_fresh_3_title">Retirar ou baixar o preço</string>
+    <string name="rules_fresh_3_body" formatted="false">Com as mãos livres, à frente de uma coluna, um marcador indica a embalagem visada: primeiro uma fora do prazo, senão a que expira primeiro. A retira-a: retirar uma embalagem fora do prazo rende pontos, mas deitar fora uma embalagem ainda boa faz perder tanto mais quanto mais tempo de vida lhe restava. B aplica-lhe um desconto (−30 %): o próximo cliente da coluna leva-a primeiro, mesmo que esteja ao fundo, mas rende menos. Não se pode aplicar desconto a uma embalagem fora do prazo.</string>
+    <string name="rules_fresh_4_title">Clientes, porta e inspeção</string>
+    <string name="rules_fresh_4_body">Os clientes pedem um produto (indicado na sua bolha) e levam a embalagem com desconto ou, se não houver, a da frente. Coluna vazia: o cliente vai-se embora e perdes pontos. Embalagem fora do prazo vendida: falta grave. Às vezes a porta do frigorífico fica aberta: os contadores do expositor andam três vezes mais depressa; vai à frente da porta e carrega em A ou B para a fechar antes de a barra vermelha esvaziar (senão, falta grave). Por fim, um inspetor de higiene chega depois de uma contagem decrescente: se encontrar uma embalagem fora do prazo no expositor ou a porta aberta, é uma falta grave; caso contrário, recebes um bónus.</string>
+    <string name="rules_fresh_5_title">Na aplicação</string>
+    <string name="rules_fresh_5_body">Jogo a solo, na horizontal. Os pontos vêm das embalagens arrumadas, das vendas (com um bónus de série), das embalagens fora do prazo retiradas, das portas fechadas e das inspeções superadas. As setas esquerda e direita ficam em baixo à esquerda e os botões A e B em baixo à direita. Com um comando ou no modo TV, a cruz e os botões A e B fazem o mesmo; Start põe em pausa, tal como o botão de voltar. A tua melhor pontuação fica guardada.</string>
+    <string name="fresh_ready_title">Secção de frescos de %1$s</string>
+    <string name="fresh_ready_hint">Carrega em A para começar. Arruma as embalagens do carrinho na respetiva coluna, retira ou aplica desconto às que vão passar o prazo, fecha a porta do frigorífico e passa na inspeção de higiene.</string>
+    <string name="fresh_score">Pontuação: %1$d</string>
+    <string name="fresh_over_title">FECHO</string>
+    <string name="fresh_over_fired">DESPEDIDO!</string>
+    <string name="fresh_over_summary">Embalagens vendidas: %1$d · Fora do prazo retiradas: %2$d · Desperdiçadas: %3$d · Inspeções superadas: %4$d</string>
+    <string name="fresh_replay_hint">Carrega em A para jogar de novo.</string>
+    <string name="fresh_label_time">TEMPO</string>
+    <string name="fresh_label_score">PONTOS</string>
+    <string name="fresh_label_faults">FALTAS</string>
+    <string name="fresh_sign">SECÇÃO DE FRESCOS</string>
+    <string name="fresh_opening">ABERTURA!</string>
+    <string name="fresh_no">NÃO!</string>
+    <string name="fresh_cart">CARRINHO</string>
+    <string name="fresh_door_alert">PORTA ABERTA!</string>
+    <string name="fresh_inspector">INSPEÇÃO DE HIGIENE</string>
+    <string name="fresh_yogurt">Iogurte</string>
+    <string name="fresh_ham">Fiambre</string>
+    <string name="fresh_cheese">Queijo</string>
+    <string name="fresh_salad">Salada</string>
+    <string name="fresh_chicken">Frango</string>
+    <string name="fresh_event_stock_ok">ARRUMADA</string>
+    <string name="fresh_event_stock_late">ORDEM ERRADA</string>
+    <string name="fresh_event_sale">VENDIDA</string>
+    <string name="fresh_event_sale_marked" formatted="false">VENDIDA −30 %</string>
+    <string name="fresh_event_removed">RETIRADA</string>
+    <string name="fresh_event_waste">DESPERDÍCIO</string>
+    <string name="fresh_event_marked">COM DESCONTO</string>
+    <string name="fresh_event_sick">CLIENTE DOENTE!</string>
+    <string name="fresh_event_stockout">SEM STOCK</string>
+    <string name="fresh_event_wrong">LUGAR ERRADO</string>
+    <string name="fresh_event_door_closed">PORTA FECHADA</string>
+    <string name="fresh_event_door_fault">CADEIA DO FRIO QUEBRADA!</string>
+    <string name="fresh_event_inspect_ok">HIGIENE OK</string>
+    <string name="fresh_event_inspect_ko">NÃO CONFORME!</string>
+
     <string name="game_shelf">Reposição de prateleiras</string>
     <string name="rules_shelf_1_title">Objetivo do jogo</string>
     <string name="rules_shelf_1_body">Trabalhas no corredor dos produtos secos. Os produtos (massa, arroz, farinha, conservas, cereais, café) caem do armazém: apanha-os no teu tabuleiro e depois coloca-os na prateleira. O turno dura 2 minutos e termina mais cedo se 5 produtos se partirem.</string>
