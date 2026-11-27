@@ -487,6 +487,46 @@ private val BUILT_IN_RULES: Map<String, List<RulesSection>> = mapOf(
         RulesSection(R.string.rules_fish_3_title, R.string.rules_fish_3_body),
         RulesSection(R.string.rules_fish_4_title, R.string.rules_fish_4_body)
     ),
+    "builtin_accounting" to listOf(
+        RulesSection(R.string.rules_accounting_1_title, R.string.rules_accounting_1_body),
+        RulesSection(R.string.rules_accounting_2_title, R.string.rules_accounting_2_body),
+        RulesSection(R.string.rules_accounting_3_title, R.string.rules_accounting_3_body),
+        RulesSection(R.string.rules_accounting_4_title, R.string.rules_accounting_4_body),
+        RulesSection(R.string.rules_accounting_5_title, R.string.rules_accounting_5_body)
+    ),
+    "builtin_cashier" to listOf(
+        RulesSection(R.string.rules_cashier_1_title, R.string.rules_cashier_1_body),
+        RulesSection(R.string.rules_cashier_2_title, R.string.rules_cashier_2_body),
+        RulesSection(R.string.rules_cashier_3_title, R.string.rules_cashier_3_body),
+        RulesSection(R.string.rules_cashier_4_title, R.string.rules_cashier_4_body)
+    ),
+    "builtin_fresh" to listOf(
+        RulesSection(R.string.rules_fresh_1_title, R.string.rules_fresh_1_body),
+        RulesSection(R.string.rules_fresh_2_title, R.string.rules_fresh_2_body),
+        RulesSection(R.string.rules_fresh_3_title, R.string.rules_fresh_3_body),
+        RulesSection(R.string.rules_fresh_4_title, R.string.rules_fresh_4_body),
+        RulesSection(R.string.rules_fresh_5_title, R.string.rules_fresh_5_body)
+    ),
+    "builtin_shelf" to listOf(
+        RulesSection(R.string.rules_shelf_1_title, R.string.rules_shelf_1_body),
+        RulesSection(R.string.rules_shelf_2_title, R.string.rules_shelf_2_body),
+        RulesSection(R.string.rules_shelf_3_title, R.string.rules_shelf_3_body),
+        RulesSection(R.string.rules_shelf_4_title, R.string.rules_shelf_4_body)
+    ),
+    "builtin_butcher" to listOf(
+        RulesSection(R.string.rules_butcher_1_title, R.string.rules_butcher_1_body),
+        RulesSection(R.string.rules_butcher_2_title, R.string.rules_butcher_2_body),
+        RulesSection(R.string.rules_butcher_3_title, R.string.rules_butcher_3_body),
+        RulesSection(R.string.rules_butcher_4_title, R.string.rules_butcher_4_body),
+        RulesSection(R.string.rules_butcher_5_title, R.string.rules_butcher_5_body),
+        RulesSection(R.string.rules_butcher_6_title, R.string.rules_butcher_6_body)
+    ),
+    "builtin_bakery" to listOf(
+        RulesSection(R.string.rules_bakery_1_title, R.string.rules_bakery_1_body),
+        RulesSection(R.string.rules_bakery_2_title, R.string.rules_bakery_2_body),
+        RulesSection(R.string.rules_bakery_3_title, R.string.rules_bakery_3_body),
+        RulesSection(R.string.rules_bakery_4_title, R.string.rules_bakery_4_body)
+    ),
     "builtin_runner" to listOf(
         RulesSection(R.string.rules_runner_1_title, R.string.rules_runner_1_body),
         RulesSection(R.string.rules_runner_2_title, R.string.rules_runner_2_body),

@@ -480,6 +480,66 @@ internal fun specialGames(context: Context): List<GameRules> = listOf(
         allowNegativeScores = false,
         scoreMode = ScoreMode.COUNTER
     ),
+    // Comptabilité : écran à part (voir AccountingScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = ACCOUNTING_ID,
+        name = context.getString(R.string.game_accounting),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
+    // Caisse : écran à part (voir CashierScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = CASHIER_ID,
+        name = context.getString(R.string.game_cashier),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
+    // Rayon frais : écran à part (voir FreshScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = FRESH_ID,
+        name = context.getString(R.string.game_fresh),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
+    // Mise en rayon : écran à part (voir ShelfScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = SHELF_ID,
+        name = context.getString(R.string.game_shelf),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
+    // Boucherie : écran à part (voir ButcherScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = BUTCHER_ID,
+        name = context.getString(R.string.game_butcher),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
+    // Boulangerie : écran à part (voir BakeryScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
+    GameRules(
+        id = BAKERY_ID,
+        name = context.getString(R.string.game_bakery),
+        minPlayers = 1,
+        maxPlayers = 1,
+        lowestWins = false,
+        allowNegativeScores = false,
+        scoreMode = ScoreMode.COUNTER
+    ),
     // Bubble Shooter : écran à part (voir BubbleShooterScreen), seul sur son téléphone ; le mode de score n'est pas utilisé.
     GameRules(
         id = BUBBLE_ID,

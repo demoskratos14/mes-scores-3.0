@@ -145,6 +145,12 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
     DRIVE_ID to "drive",
     DRINK_ID to "drink",
     FISH_ID to "fish",
+    ACCOUNTING_ID to "accounting",
+    CASHIER_ID to "cashier",
+    FRESH_ID to "fresh",
+    SHELF_ID to "shelf",
+    BUTCHER_ID to "butcher",
+    BAKERY_ID to "bakery",
     RUNNER_ID to "runner",
     ASTEROIDS_ID to "asteroids",
     INVADERS_ID to "invaders",
@@ -156,7 +162,7 @@ internal val OWN_SCREEN_ROUTES: Map<String, String> = mapOf(
 
 /** Écrans de jeux jouables (et l'accueil de l'appli pour télé) sur lesquels le badge chronomètre / minuteur est masqué. */
 private val PLAYABLE_ROUTES_WITHOUT_TIMER = setOf(
-    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "towerdefense", "snake", "bubble", "marble", "minesweeper", "mahjong", "sudoku", "pancake", "drive", "drink", "fish", "runner", "asteroids", "invaders", "fishchase",
+    "tvHome", "battleship", "morpion", "connect4", "nim", "reflex", "emoji", "werewolf", "circles", "simon", "rhythm", "tetris", "breakout", "shmup", "xonix", "towerdefense", "snake", "bubble", "marble", "minesweeper", "mahjong", "sudoku", "pancake", "drive", "drink", "fish", "accounting", "cashier", "fresh", "shelf", "butcher", "bakery", "runner", "asteroids", "invaders", "fishchase",
     "pfc", "gomoku", "dots", "hangman", "chess", "draughts", "othello", "mastermind"
 )
 
@@ -667,6 +673,24 @@ fun ScoreApp(
             }
             composable("fish") {
                 FishScreen(players = pendingPlayerNames)
+            }
+            composable("accounting") {
+                AccountingScreen(players = pendingPlayerNames)
+            }
+            composable("cashier") {
+                CashierScreen(players = pendingPlayerNames)
+            }
+            composable("fresh") {
+                FreshScreen(players = pendingPlayerNames)
+            }
+            composable("shelf") {
+                ShelfScreen(players = pendingPlayerNames)
+            }
+            composable("butcher") {
+                ButcherScreen(players = pendingPlayerNames)
+            }
+            composable("bakery") {
+                BakeryScreen(players = pendingPlayerNames)
             }
             composable("runner") {
                 RunnerScreen(players = pendingPlayerNames)

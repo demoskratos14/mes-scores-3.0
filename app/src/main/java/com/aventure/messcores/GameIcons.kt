@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -47,7 +48,7 @@ private const val GRID_COLUMNS = 3
 
 /** Jeux jouables qui ont une icône dessinée ci-dessous (un jeu sans icône reçoit une icône générique). */
 internal val GAME_ICON_IDS = setOf(
-    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, FISHCHASE_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, FISH_ID, RUNNER_ID,
+    MASTERMIND_ID, MORPION_ID, CONNECT4_ID, BATTLESHIP_ID, NIM_ID, PFC_ID, REFLEX_ID, EMOJI_ID, CIRCLES_ID, SIMON_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, FISHCHASE_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, FISH_ID, ACCOUNTING_ID, CASHIER_ID, FRESH_ID, SHELF_ID, BUTCHER_ID, BAKERY_ID, RUNNER_ID,
     GOMOKU_ID, DOTS_ID, DRAUGHTS_ID, OTHELLO_ID, HANGMAN_ID, CHESS_ID, UNO_ID, FLIP7_ID, SKYJO_ACTION_ID, DOMINOS_ID, TRIO_ID, WEREWOLF_ID
 )
 
@@ -147,6 +148,12 @@ internal fun GameIcon(gameId: String, modifier: Modifier = Modifier, size: Dp = 
             DRIVE_ID -> drawDrive()
             DRINK_ID -> drawDrink()
             FISH_ID -> drawFish()
+            ACCOUNTING_ID -> drawAccounting()
+            CASHIER_ID -> drawCashier()
+            FRESH_ID -> drawFresh()
+            SHELF_ID -> drawShelf()
+            BUTCHER_ID -> drawButcher()
+            BAKERY_ID -> drawBakery()
             RUNNER_ID -> drawRunnerIcon()
             GOMOKU_ID -> drawGomoku()
             DOTS_ID -> drawDots()
@@ -609,6 +616,29 @@ private fun DrawScope.drawDrive() {
     drawRect(ink, Offset(s * 0.4f, s * 0.9f), Size(s * 0.5f, s * 0.03f))
 }
 
+private fun DrawScope.drawAccounting() {
+    paper(Color(0xFFF6F3E4))
+    val s = size.minDimension
+    val ink = Color(0xFF14161A)
+    val red = Color(0xFFE2001A)
+    // Une calculatrice : son écran vert avec « = », et la croix des quatre signes (+ en haut, − en bas, ÷ à gauche, × à droite).
+    drawRoundRect(Color(0xFF3A3F44), Offset(s * 0.2f, s * 0.1f), Size(s * 0.6f, s * 0.8f), CornerRadius(s * 0.07f))
+    drawRoundRect(ink, Offset(s * 0.2f, s * 0.1f), Size(s * 0.6f, s * 0.8f), CornerRadius(s * 0.07f), style = Stroke(width = s * 0.03f))
+    drawRoundRect(Color(0xFFB7E3C0), Offset(s * 0.27f, s * 0.17f), Size(s * 0.46f, s * 0.17f), CornerRadius(s * 0.03f))
+    drawRect(ink, Offset(s * 0.4f, s * 0.236f), Size(s * 0.2f, s * 0.018f))
+    drawRect(ink, Offset(s * 0.4f, s * 0.266f), Size(s * 0.2f, s * 0.018f))
+    val signs = listOf(
+        Triple(ACC_OP_ADD, 0.5f, 0.44f),
+        Triple(ACC_OP_SUB, 0.5f, 0.76f),
+        Triple(ACC_OP_DIV, 0.34f, 0.6f),
+        Triple(ACC_OP_MUL, 0.66f, 0.6f)
+    )
+    for ((op, x, y) in signs) {
+        drawCircle(if (op == ACC_OP_MUL) red else Color(0xFF25272B), s * 0.075f, Offset(s * x, s * y))
+        accSign(op, s * x, s * y, s * 0.14f, Color.White)
+    }
+}
+
 private fun DrawScope.drawFish() {
     paper(Color(0xFFEAF4F7))
     val s = size.minDimension
@@ -633,6 +663,25 @@ private fun DrawScope.drawFish() {
     drawCircle(ink, s * 0.02f, Offset(s * 0.66f, s * 0.38f))
     // Le bandeau bleu du comptoir.
     drawRect(blue, Offset(s * 0.1f, s * 0.88f), Size(s * 0.8f, s * 0.04f))
+}
+
+private fun DrawScope.drawBakery() {
+    paper(Color(0xFFF6E7C8))
+    val s = size.minDimension
+    val ink = Color(0xFF14161A)
+    val gold = Color(0xFFD38B2C)
+    // Une baguette en biais et un pain rond, sur un comptoir de bois.
+    drawRoundRect(Color(0xFF9A6B3C), Offset(s * 0.1f, s * 0.74f), Size(s * 0.8f, s * 0.14f), CornerRadius(s * 0.04f))
+    drawCircle(gold, s * 0.2f, Offset(s * 0.34f, s * 0.54f))
+    drawCircle(ink, s * 0.2f, Offset(s * 0.34f, s * 0.54f), style = Stroke(width = s * 0.03f))
+    drawLine(Color.White.copy(alpha = 0.6f), Offset(s * 0.26f, s * 0.46f), Offset(s * 0.42f, s * 0.62f), strokeWidth = s * 0.03f)
+    drawLine(Color.White.copy(alpha = 0.6f), Offset(s * 0.42f, s * 0.46f), Offset(s * 0.26f, s * 0.62f), strokeWidth = s * 0.03f)
+    withTransform({ rotate(-40f, Offset(s * 0.66f, s * 0.46f)) }) {
+        drawRoundRect(gold, Offset(s * 0.48f, s * 0.4f), Size(s * 0.36f, s * 0.12f), CornerRadius(s * 0.06f))
+        drawRoundRect(ink, Offset(s * 0.48f, s * 0.4f), Size(s * 0.36f, s * 0.12f), CornerRadius(s * 0.06f), style = Stroke(width = s * 0.03f))
+    }
+    // Le liseré rouge du bas, comme sur la console.
+    drawRect(Color(0xFFE2001A), Offset(s * 0.1f, s * 0.9f), Size(s * 0.8f, s * 0.03f))
 }
 
 private fun DrawScope.drawRunnerIcon() {
@@ -1211,4 +1260,94 @@ private fun DrawScope.drawMarbleShooter() {
     drawLine(Color(0xFF90A4AE), Offset(s * 0.5f, s * 0.35f), Offset(s * 0.6f, s * 0.27f), strokeWidth = s * 0.06f, cap = StrokeCap.Round)
     drawCircle(Color(0xFF546E7A), s * 0.075f, Offset(s * 0.5f, s * 0.35f))
     marble(0.5f, 0.35f, colors[3])
+}
+
+private fun DrawScope.drawCashier() {
+    paper(Color(0xFFF6EFE0))
+    val s = size.minDimension
+    val ink = Color(0xFF14161A)
+    // Un tapis avec un article (un pot) qui passe sous la ligne rouge du scanner, et le comptoir sombre.
+    drawRect(Color(0xFF3E4A59), Offset(0f, s * 0.74f), Size(s, s * 0.26f))
+    drawRect(Color(0xFF4A5057), Offset(s * 0.06f, s * 0.64f), Size(s * 0.88f, s * 0.1f))
+    drawRect(ink, Offset(s * 0.06f, s * 0.64f), Size(s * 0.88f, s * 0.1f), style = Stroke(width = s * 0.02f))
+    drawRoundRect(Color(0xFF8E2C6B), Offset(s * 0.3f, s * 0.34f), Size(s * 0.4f, s * 0.3f), CornerRadius(s * 0.05f))
+    drawRoundRect(ink, Offset(s * 0.3f, s * 0.34f), Size(s * 0.4f, s * 0.3f), CornerRadius(s * 0.05f), style = Stroke(width = s * 0.03f))
+    drawRect(Color(0xFFD9432F), Offset(s * 0.28f, s * 0.28f), Size(s * 0.44f, s * 0.08f))
+    drawRect(Color(0xFFE2001A), Offset(s * 0.12f, s * 0.5f - s * 0.012f), Size(s * 0.76f, s * 0.024f))
+    // Un code-barres sur le pot.
+    for (k in 0 until 5) {
+        drawRect(Color.White, Offset(s * (0.38f + k * 0.05f), s * 0.42f), Size(s * 0.025f, s * 0.14f))
+    }
+}
+
+private fun DrawScope.drawFresh() {
+    paper(Color(0xFFEAF6F1))
+    val s = size.minDimension
+    val ink = Color(0xFF14161A)
+    val green = Color(0xFF2E9E4F)
+    val red = Color(0xFFE2001A)
+    // Un meuble réfrigéré avec deux paquets (un yaourt rose, un fromage jaune) et le compteur de l'un d'eux.
+    drawRoundRect(Color(0xFFC6E0EC), Offset(s * 0.08f, s * 0.2f), Size(s * 0.84f, s * 0.62f), CornerRadius(s * 0.05f))
+    drawRoundRect(ink, Offset(s * 0.08f, s * 0.2f), Size(s * 0.84f, s * 0.62f), CornerRadius(s * 0.05f), style = Stroke(width = s * 0.03f))
+    drawRoundRect(Color(0xFFF4B6C8), Offset(s * 0.16f, s * 0.5f), Size(s * 0.34f, s * 0.22f), CornerRadius(s * 0.03f))
+    drawRoundRect(ink, Offset(s * 0.16f, s * 0.5f), Size(s * 0.34f, s * 0.22f), CornerRadius(s * 0.03f), style = Stroke(width = s * 0.025f))
+    drawRoundRect(Color(0xFFF7DE8A), Offset(s * 0.54f, s * 0.5f), Size(s * 0.3f, s * 0.22f), CornerRadius(s * 0.03f))
+    drawRoundRect(ink, Offset(s * 0.54f, s * 0.5f), Size(s * 0.3f, s * 0.22f), CornerRadius(s * 0.03f), style = Stroke(width = s * 0.025f))
+    drawRoundRect(red, Offset(s * 0.3f, s * 0.54f), Size(s * 0.16f, s * 0.1f), CornerRadius(s * 0.02f))
+    drawRoundRect(green, Offset(s * 0.6f, s * 0.54f), Size(s * 0.16f, s * 0.1f), CornerRadius(s * 0.02f))
+    // Le rebord en inox et le bandeau vert.
+    drawRect(Color(0xFFB9C4C9), Offset(s * 0.08f, s * 0.76f), Size(s * 0.84f, s * 0.06f))
+    drawRect(green, Offset(s * 0.08f, s * 0.88f), Size(s * 0.84f, s * 0.04f))
+}
+
+private fun DrawScope.drawShelf() {
+    paper(Color(0xFFF3EEE2))
+    val s = size.minDimension
+    val ink = Color(0xFF20241F)
+    val steel = Color(0xFFB9C4C9)
+    // Un plateau en équilibre, penché, avec une pile de produits secs : sac de farine, boîte de céréales, paquet de pâtes.
+    withTransform({ rotate(-7f, Offset(s * 0.5f, s * 0.78f)) }) {
+        drawRoundRect(Color(0xFFE8D8B0), Offset(s * 0.3f, s * 0.42f), Size(s * 0.24f, s * 0.3f), CornerRadius(s * 0.02f))
+        drawRoundRect(ink, Offset(s * 0.3f, s * 0.42f), Size(s * 0.24f, s * 0.3f), CornerRadius(s * 0.02f), style = Stroke(width = s * 0.025f))
+        drawRect(Color(0xFF2B6CB0), Offset(s * 0.31f, s * 0.5f), Size(s * 0.22f, s * 0.08f))
+        drawRoundRect(Color(0xFFEF8A2B), Offset(s * 0.56f, s * 0.3f), Size(s * 0.2f, s * 0.42f), CornerRadius(s * 0.02f))
+        drawRoundRect(ink, Offset(s * 0.56f, s * 0.3f), Size(s * 0.2f, s * 0.42f), CornerRadius(s * 0.02f), style = Stroke(width = s * 0.025f))
+        drawCircle(Color(0xFFFFE066), s * 0.045f, Offset(s * 0.66f, s * 0.44f))
+        drawRoundRect(Color(0xFFF2C94C), Offset(s * 0.38f, s * 0.2f), Size(s * 0.14f, s * 0.22f), CornerRadius(s * 0.02f))
+        drawRoundRect(ink, Offset(s * 0.38f, s * 0.2f), Size(s * 0.14f, s * 0.22f), CornerRadius(s * 0.02f), style = Stroke(width = s * 0.025f))
+        drawRoundRect(steel, Offset(s * 0.12f, s * 0.72f), Size(s * 0.76f, s * 0.06f), CornerRadius(s * 0.02f))
+        drawRoundRect(ink, Offset(s * 0.12f, s * 0.72f), Size(s * 0.76f, s * 0.06f), CornerRadius(s * 0.02f), style = Stroke(width = s * 0.025f))
+    }
+    // Le bandeau rouge du sol, comme sur la console.
+    drawRect(Color(0xFFE2001A), Offset(s * 0.1f, s * 0.88f), Size(s * 0.8f, s * 0.04f))
+}
+
+private fun DrawScope.drawButcher() {
+    paper(Color(0xFFF8F4EC))
+    val s = size.minDimension
+    val ink = Color(0xFF14161A)
+    val red = Color(0xFFC8102E)
+    // L'auvent rayé rouge et blanc.
+    for (i in 0 until 6) {
+        drawRect(if (i % 2 == 0) red else Color.White, Offset(s * (0.1f + i * 0.13f), s * 0.1f), Size(s * 0.13f, s * 0.1f))
+    }
+    drawRect(ink, Offset(s * 0.1f, s * 0.2f), Size(s * 0.78f, s * 0.015f))
+    // Un steak, avec son liseré de gras.
+    val steak = Path().apply {
+        moveTo(s * 0.18f, s * 0.58f)
+        cubicTo(s * 0.18f, s * 0.4f, s * 0.38f, s * 0.36f, s * 0.52f, s * 0.4f)
+        cubicTo(s * 0.68f, s * 0.44f, s * 0.7f, s * 0.64f, s * 0.56f, s * 0.72f)
+        cubicTo(s * 0.42f, s * 0.8f, s * 0.2f, s * 0.74f, s * 0.18f, s * 0.58f)
+        close()
+    }
+    drawPath(steak, Color(0xFFC8454B))
+    drawPath(steak, Color(0xFFF3D9D0), style = Stroke(width = s * 0.03f, join = StrokeJoin.Round))
+    drawPath(steak, ink, style = Stroke(width = s * 0.025f, join = StrokeJoin.Round))
+    // Un fendoir posé devant : la lame en inox et son manche en bois.
+    drawRoundRect(Color(0xFF8A6238), Offset(s * 0.78f, s * 0.58f), Size(s * 0.13f, s * 0.07f), CornerRadius(s * 0.02f))
+    drawRoundRect(Color(0xFFB9C4C9), Offset(s * 0.56f, s * 0.5f), Size(s * 0.24f, s * 0.22f), CornerRadius(s * 0.025f))
+    drawRoundRect(ink, Offset(s * 0.56f, s * 0.5f), Size(s * 0.24f, s * 0.22f), CornerRadius(s * 0.025f), style = Stroke(width = s * 0.025f))
+    drawCircle(ink, s * 0.018f, Offset(s * 0.62f, s * 0.56f))
+    // Le bandeau rouge du comptoir.
+    drawRect(red, Offset(s * 0.1f, s * 0.88f), Size(s * 0.8f, s * 0.04f))
 }

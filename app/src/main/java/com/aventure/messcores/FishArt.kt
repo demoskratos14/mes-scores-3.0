@@ -103,7 +103,7 @@ private fun Color.fade(a: Float): Color = copy(alpha = alpha * a)
 private fun groupCenterX(bin: Int): Float = FishLook.GROUP_X0 + bin * FishLook.GROUP_STEP + FishLook.GROUP_W / 2f
 
 /** Un texte centré (ou aligné) en ([x], [y]), de [px] pixels de l'écran de hauteur de police ; [align] : -1 à gauche, 0 centré, 1 à droite. */
-private fun DrawScope.fishWord(
+internal fun DrawScope.fishWord(
     measurer: TextMeasurer,
     text: String,
     x: Float,
@@ -427,7 +427,7 @@ private fun DrawScope.fishmonger(game: FishGame, sprites: DriveSprites) {
 }
 
 /** Un client debout sur le sol en [x], les pieds en [feet] ; [mood] : 1 content, -1 mécontent, 0 neutre. */
-private fun DrawScope.customer(look: Int, x: Float, feet: Float, mood: Int) {
+internal fun DrawScope.customer(look: Int, x: Float, feet: Float, mood: Int) {
     val ink = FishLook.Ink
     val coats = intArrayOf(0xFF4A7BB7.toInt(), 0xFF9B4F8E.toInt(), 0xFFB9783A.toInt(), 0xFF4F9A6B.toInt())
     val hairs = intArrayOf(0xFF3A2A1E.toInt(), 0xFFD9B04A.toInt(), 0xFF8A8A8A.toInt(), 0xFF1E1E22.toInt())

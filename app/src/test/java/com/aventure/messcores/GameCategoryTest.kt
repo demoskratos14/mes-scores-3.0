@@ -45,7 +45,7 @@ class GameCategoryTest {
                 "builtin_rummikub", "builtin_dominos", "builtin_trio", "builtin_wizard", "builtin_phase10", "builtin_splendor",
                 "builtin_dixit", "builtin_ttr", "builtin_azul", "builtin_carcassonne", "builtin_catane",
                 "builtin_sevenwonders", "builtin_wingspan", "builtin_hanabi", "builtin_scrabble", "builtin_trivial",
-                "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc", "builtin_reflex", "builtin_emoji", "builtin_circles", "builtin_simon", "builtin_rhythm", "builtin_tetris", "builtin_breakout", "builtin_asteroids", "builtin_invaders", "builtin_fishchase", "builtin_shmup", "builtin_xonix", "builtin_towerdefense", "builtin_snake", "builtin_bubble", "builtin_marble", "builtin_minesweeper", "builtin_mahjong", "builtin_sudoku", "builtin_pancake", "builtin_drive", "builtin_drink", "builtin_fish", "builtin_runner",
+                "builtin_flip7", "builtin_mastermind", "builtin_morpion", "builtin_connect4", "builtin_battleship", "builtin_nim", "builtin_pfc", "builtin_reflex", "builtin_emoji", "builtin_circles", "builtin_simon", "builtin_rhythm", "builtin_tetris", "builtin_breakout", "builtin_asteroids", "builtin_invaders", "builtin_fishchase", "builtin_shmup", "builtin_xonix", "builtin_towerdefense", "builtin_snake", "builtin_bubble", "builtin_marble", "builtin_minesweeper", "builtin_mahjong", "builtin_sudoku", "builtin_pancake", "builtin_drive", "builtin_drink", "builtin_fish", "builtin_cashier", "builtin_fresh", "builtin_shelf", "builtin_butcher", "builtin_bakery", "builtin_runner",
                 "builtin_gomoku", "builtin_dots", "builtin_draughts", "builtin_othello", "builtin_hangman", "builtin_chess", "builtin_werewolf"
             ),
             idsIn(GameCategory.SPECIAL)
@@ -74,7 +74,7 @@ class GameCategoryTest {
     fun lesJeuxSoloSontLesJeuxJouablesPourUnSeulJoueur() {
         val solo = builtIns.filter { it.isSoloGame() }.map { it.id }.toSet()
         assertEquals(
-            setOf(EMOJI_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, FISHCHASE_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, FISH_ID, RUNNER_ID, CIRCLES_ID, SIMON_ID, "builtin_yams", "builtin_shutbox"),
+            setOf(EMOJI_ID, RHYTHM_ID, TETRIS_ID, BREAKOUT_ID, ASTEROIDS_ID, INVADERS_ID, FISHCHASE_ID, SHMUP_ID, XONIX_ID, TOWER_DEFENSE_ID, SNAKE_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, MAHJONG_ID, SUDOKU_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, FISH_ID, ACCOUNTING_ID, CASHIER_ID, FRESH_ID, SHELF_ID, BUTCHER_ID, BAKERY_ID, RUNNER_ID, CIRCLES_ID, SIMON_ID, "builtin_yams", "builtin_shutbox"),
             solo
         )
         // Le Yams et le Shut the box (minPlayers = 1, dés virtuels) se jouent aussi seul : ils sont dans « Jeux solo » ET dans « Jeux jouables ».

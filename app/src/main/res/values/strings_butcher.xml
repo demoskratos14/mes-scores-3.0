@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="game_butcher">Boucherie</string>
+    <string name="rules_butcher_1_title">But du jeu</string>
+    <string name="rules_butcher_1_body">Tu tiens la boucherie le temps d’une journée. Le matin, tu découpes trois carcasses (50 secondes au plus) pour remplir la chambre froide ; ensuite tu sers les clients (1 min 30). Ton score additionne les points de la découpe et du service, moins ce qui est jeté ou raté. Trois fautes d’hygiène et la boucherie ferme.</string>
+    <string name="rules_butcher_2_title">La découpe</string>
+    <string name="rules_butcher_2_body">Une carcasse est pendue au rail et se balance de plus en plus. Déplace le couteau avec les flèches gauche et droite et appuie sur A quand le guide est vert sur un pointillé : vert foncé, c’est parfait ; vert, c’est bon ; rouge, la lame tombe sur l’os et tu perds des points. Chaque coupe nette donne une pièce, rangée dans la chambre froide (douze pièces au plus). Si tu finis les trois carcasses avant la fin du temps, chaque seconde qui reste rapporte des points.</string>
+    <string name="rules_butcher_3_title">Le comptoir</string>
+    <string name="rules_butcher_3_body">Chaque client demande une viande, de une à trois tranches et un poids par tranche. Choisis la bonne pièce dans la chambre froide avec les flèches et appuie sur A pour la prendre (une mauvaise viande fait perdre des points et de la patience ; une pièce trop petite est refusée). Tiens ensuite A : la viande avance vers la lame et le poids augmente ; relâche A pour couper dans la zone verte du bon poids. Les pièces vieillissent : leur barre de fraîcheur passe du vert au rouge, et une pièce périmée est jetée (points perdus). Vendre une pièce presque périmée rapporte une prime : sers les plus anciennes d’abord.</string>
+    <string name="rules_butcher_4_title">L’hygiène</string>
+    <string name="rules_butcher_4_body">Prendre ou découper de la volaille salit le plan de travail (tache verte et mouches). Avant de toucher une autre viande, appuie sur B pour le nettoyer (cela prend un instant) : sinon c’est une faute d’hygiène. L’inspecteur sanitaire passe aussi à l’improviste : une bannière clignote quelques secondes, puis il contrôle le plan. Plan propre : prime ; plan sale : amende et faute. À la troisième faute, c’est la fermeture sanitaire.</string>
+    <string name="rules_butcher_5_title">Bonus saucisses</string>
+    <string name="rules_butcher_5_body">Si ton score atteint 500 points avant la fin du service (et qu’il reste assez de temps), un atelier de saucisses s’ouvre entre deux clients, une seule fois. Tiens A pour remplir le boyau, puis appuie sur B pour ficeler quand la queue de la saucisse est dans la zone verte. Si le boyau est trop rempli, il éclate. Chaque saucisse réussie rapporte des points, avec une prime de série. L’atelier dure 18 secondes ; le service reprend ensuite.</string>
+    <string name="rules_butcher_6_title">Dans l’appli</string>
+    <string name="rules_butcher_6_body">Jeu en solo, à l’horizontale. Les flèches gauche et droite sont en bas à gauche, les boutons A et B en bas à droite ; une touche peut être tenue. Avec une manette ou en mode TV, la croix et les boutons A et B font la même chose ; Start met en pause, comme le bouton retour. Ton meilleur score est gardé.</string>
+    <string name="butcher_ready_title">Boucherie de %1$s</string>
+    <string name="butcher_ready_hint">Appuie sur A pour commencer. Découpe les carcasses sur les pointillés, puis sers les clients : bonne pièce, bon poids, plan propre.</string>
+    <string name="butcher_score">Score : %1$d</string>
+    <string name="butcher_over_title">FERMETURE</string>
+    <string name="butcher_over_soldout">PLUS DE VIANDE !</string>
+    <string name="butcher_over_hygiene">FERMETURE SANITAIRE !</string>
+    <string name="butcher_over_summary">Pièces découpées : %1$d · Clients servis : %2$d · Tranches parfaites : %3$d</string>
+    <string name="butcher_replay_hint">Appuie sur A pour rejouer.</string>
+    <string name="butcher_label_time">TEMPS</string>
+    <string name="butcher_label_score">SCORE</string>
+    <string name="butcher_sign">BOUCHERIE</string>
+    <string name="butcher_hygiene">HYGIÈNE</string>
+    <string name="butcher_stage_cut">DÉCOUPE</string>
+    <string name="butcher_stage_service">COMPTOIR</string>
+    <string name="butcher_stage_bonus">SAUCISSES !</string>
+    <string name="butcher_opening">OUVERTURE !</string>
+    <string name="butcher_no">NON !</string>
+    <string name="butcher_too_small">TROP PETIT</string>
+    <string name="butcher_busy">OCCUPÉ</string>
+    <string name="butcher_gram" translatable="false">g</string>
+    <string name="butcher_carcass">CARCASSE</string>
+    <string name="butcher_slice">TRANCHE</string>
+    <string name="butcher_dirty">PLAN SALE</string>
+    <string name="butcher_cleaning">NETTOYAGE…</string>
+    <string name="butcher_inspection">INSPECTION !</string>
+    <string name="butcher_inspect_ok">CONFORME</string>
+    <string name="butcher_inspect_fine">AMENDE</string>
+    <string name="butcher_fault">CONTAMINATION !</string>
+    <string name="butcher_bone">OS !</string>
+    <string name="butcher_burst">ÉCLATÉ !</string>
+    <string name="butcher_bonus_help">Tiens A pour remplir · B pour ficeler</string>
+    <string name="butcher_beef">Bœuf</string>
+    <string name="butcher_pork">Porc</string>
+    <string name="butcher_lamb">Agneau</string>
+    <string name="butcher_poultry">Volaille</string>
+    <string name="butcher_verdict_perfect">PARFAIT !</string>
+    <string name="butcher_verdict_good">BIEN</string>
+    <string name="butcher_verdict_off">LIMITE</string>
+    <string name="butcher_verdict_miss">RATÉ</string>
+    <string name="butcher_verdict_left">PARTI !</string>
+</resources>
