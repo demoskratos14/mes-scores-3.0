@@ -564,7 +564,9 @@ class ButcherTest {
     fun aCustomerWhoWaitsTooLongLeaves() {
         val g = serving()
         val before = g.points
-        advance(g, Butcher.PATIENCE_START_MS + 500f)
+        // La patience baisse dès l'arrivée du client (déjà entamée par serving()) : on attend exactement ce qu'il lui reste,
+        // sans dépasser la durée d'affichage du résultat (RESULT_MS), sinon le client suivant efface le verdict.
+        advance(g, g.patienceMs + 100f)
         assertEquals(1, g.walkouts)
         assertEquals(BUTCHER_VERDICT_LEFT, g.verdict)
         assertEquals(0, g.streak)
