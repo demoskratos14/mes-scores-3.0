@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ce qui ne concerne que l'appli « L'Inter » (variante « inter ») ; fusionné avec le manifeste commun.
+    Comme la variante télé : écran tactile et « leanback » facultatifs, entrée dans le lanceur d'une Google TV / Android TV
+    en plus de l'entrée habituelle d'un téléphone (on peut donc l'installer sur les deux).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+
+    <application
+        android:banner="@drawable/tv_banner"
+        android:label="@string/app_name_inter"
+        tools:replace="android:label">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

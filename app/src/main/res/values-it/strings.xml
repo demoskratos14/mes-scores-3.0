@@ -3170,6 +3170,7 @@
     <string name="snake_tv_resume_hint">Premi Start per riprendere.</string>
     <string name="tv_home_title">Scegli un gioco</string>
     <string name="tv_home_hint">Croce direzionale del controller per scegliere, tasto di conferma per giocare.</string>
+    <string name="tv_home_hint_inter">Tocca un gioco per giocare, oppure scegli con la croce direzionale del controller e conferma con il suo tasto.</string>
     <string name="xonix_pad_halt">Fermati (sulla terra)</string>
     <string name="pad_left">Sinistra</string>
     <string name="pad_right">Destra</string>

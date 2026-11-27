@@ -3160,6 +3160,7 @@
     <string name="snake_tv_resume_hint">Pulsa Start para reanudar.</string>
     <string name="tv_home_title">Elige un juego</string>
     <string name="tv_home_hint">Cruceta del mando para elegir, botón de confirmación para jugar.</string>
+    <string name="tv_home_hint_inter">Toca un juego para jugar, o elige con la cruceta del mando y confirma con su botón.</string>
     <string name="xonix_pad_halt">Parar (en tierra)</string>
     <string name="pad_left">Izquierda</string>
     <string name="pad_right">Derecha</string>

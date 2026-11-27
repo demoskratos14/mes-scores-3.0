@@ -353,12 +353,12 @@ fun ScoreApp(
         AppBackground()
 
         // L'appli pour télé (variante « tv ») s'ouvre sur sa grille de jeux solo, pas sur l'accueil du téléphone.
-        NavHost(navController = navController, startDestination = if (BuildConfig.IS_TV) "tvHome" else "home") {
-            if (BuildConfig.IS_TV) {
+        NavHost(navController = navController, startDestination = if (BuildConfig.IS_TV || BuildConfig.IS_INTER) "tvHome" else "home") {
+            if (BuildConfig.IS_TV || BuildConfig.IS_INTER) {
                 composable("tvHome") {
                     val tvGames = remember {
                         val all = gameRepository.builtInGames()
-                        TV_GAME_IDS.mapNotNull { id -> all.firstOrNull { it.id == id } }
+                        homeGameIds().mapNotNull { id -> all.firstOrNull { it.id == id } }
                     }
                     TvHomeScreen(
                         games = tvGames,

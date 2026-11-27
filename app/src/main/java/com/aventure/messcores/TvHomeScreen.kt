@@ -32,6 +32,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
@@ -51,8 +52,30 @@ internal val TV_GAME_IDS = listOf(
     XONIX_ID, BUBBLE_ID, MARBLE_ID, MINESWEEPER_ID, PANCAKE_ID, DRIVE_ID, DRINK_ID, FISH_ID, ACCOUNTING_ID, CASHIER_ID, FRESH_ID, SHELF_ID, BUTCHER_ID, BAKERY_ID
 )
 
+/**
+ * Les jeux de « L'Inter » (variante « inter »), dans l'ordre d'affichage : seulement les jeux de supermarché et de commerce.
+ * Tous sont aussi dans [TV_GAME_IDS] (même accueil, mêmes écrans).
+ */
+internal val INTER_GAME_IDS = listOf(
+    BUTCHER_ID, BAKERY_ID, CASHIER_ID, ACCOUNTING_ID, DRIVE_ID, SHELF_ID, FISH_ID, FRESH_ID
+)
+
+/** Les jeux affichés sur l'accueil de l'appli en cours : ceux de L'Inter, ou tous ceux de la version télé. */
+internal fun homeGameIds(): List<String> = if (BuildConfig.IS_INTER) INTER_GAME_IDS else TV_GAME_IDS
+
 /** Nombre de vignettes par ligne sur l'accueil TV. */
 private const val TV_COLUMNS = 6
+
+/**
+ * Nombre de vignettes par ligne : toujours [TV_COLUMNS] sur la télé ; dans L'Inter, selon la largeur de l'écran
+ * (2 sur un téléphone debout, 4 en paysage ou sur tablette, 6 sur une télé).
+ */
+private fun homeColumns(screenWidthDp: Int): Int = when {
+    !BuildConfig.IS_INTER -> TV_COLUMNS
+    screenWidthDp < 600 -> 2
+    screenWidthDp < 1000 -> 4
+    else -> TV_COLUMNS
+}
 
 /**
  * L'accueil de l'appli pour télé : une grille de grosses vignettes de jeux, qui se parcourt à la croix de la manette ou de
@@ -62,6 +85,7 @@ private const val TV_COLUMNS = 6
 @Composable
 internal fun TvHomeScreen(games: List<GameRules>, onGameChosen: (GameRules) -> Unit) {
     val firstTile = remember { FocusRequester() }
+    val columns = homeColumns(LocalConfiguration.current.screenWidthDp)
     // Le réglage « A et B des manettes Nintendo » doit être lu avant le premier appui (voir [padKeyCode]).
     val context = LocalContext.current
     LaunchedEffect(context) { GamepadHub.attach(context) }
@@ -77,16 +101,16 @@ internal fun TvHomeScreen(games: List<GameRules>, onGameChosen: (GameRules) -> U
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = stringResource(R.string.tv_home_title),
+            text = stringResource(if (BuildConfig.IS_INTER) R.string.tv_home_title_inter else R.string.tv_home_title),
             style = MaterialTheme.typography.displaySmall,
             color = Color.White
         )
         Text(
-            text = stringResource(R.string.tv_home_hint),
+            text = stringResource(if (BuildConfig.IS_INTER) R.string.tv_home_hint_inter else R.string.tv_home_hint),
             style = MaterialTheme.typography.titleMedium,
             color = Color.White.copy(alpha = 0.8f)
         )
-        games.chunked(TV_COLUMNS).forEachIndexed { rowIndex, rowGames ->
+        games.chunked(columns).forEachIndexed { rowIndex, rowGames ->
             // IntrinsicSize.Min : toutes les vignettes d'une ligne ont la hauteur de la plus haute (nom sur deux lignes).
             Row(
                 modifier = Modifier.height(IntrinsicSize.Min),
@@ -101,7 +125,7 @@ internal fun TvHomeScreen(games: List<GameRules>, onGameChosen: (GameRules) -> U
                     )
                 }
                 // Dernière ligne incomplète : on garde la largeur des vignettes.
-                repeat(TV_COLUMNS - rowGames.size) { Spacer(Modifier.weight(1f)) }
+                repeat(columns - rowGames.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }

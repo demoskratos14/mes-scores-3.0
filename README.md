@@ -10,13 +10,14 @@ Application Android (Kotlin + Jetpack Compose) pour noter les scores de vos jeux
 
 Le wrapper Gradle est inclus (`gradlew`, `gradlew.bat`, `gradle/wrapper/`) : aucune installation de Gradle n'est nécessaire, seulement un JDK 17.
 
-L'appli existe en deux variantes, construites à partir du même code : **phone** (l'appli habituelle) et **tv** (la version pour Google TV / Android TV, voir plus bas).
+L'appli existe en trois variantes, construites à partir du même code : **phone** (l'appli habituelle), **tv** (la version pour Google TV / Android TV, voir plus bas) et **inter** (« L'Inter », voir plus bas).
 
 ```
 ./gradlew assemblePhoneDebug    # APK de test  -> app/build/outputs/apk/phone/debug/
 ./gradlew assemblePhoneRelease  # APK minifié  -> app/build/outputs/apk/phone/release/Mes scores-phone-release.apk
 ./gradlew bundlePhoneRelease    # AAB pour le Play Store -> app/build/outputs/bundle/phoneRelease/
 ./gradlew assembleTvRelease     # APK télé     -> app/build/outputs/apk/tv/release/Mes scores-tv-release.apk
+./gradlew assembleInterRelease # APK L'Inter  -> app/build/outputs/apk/inter/release/Mes scores-inter-release.apk
 ```
 
 Le `versionCode` vaut `1` en local ; dans GitHub Actions il reprend le numéro d'exécution du workflow (`GITHUB_RUN_NUMBER`), qui ne fait qu'augmenter : chaque build publié peut donc s'installer par-dessus le précédent et être envoyé au Play Store. `versionName` (« 3.0 ») se change à la main dans `app/build.gradle.kts`, à chaque nouvelle version du projet.
@@ -28,6 +29,13 @@ La variante **tv** (identifiant `com.aventure.messcores.tv`, nom « Mes Scores T
 - Le code est commun aux deux variantes ; `BuildConfig.IS_TV` dit dans laquelle on est. Les fichiers propres à la télé (manifeste avec l'entrée du lanceur TV, bannière, nom) sont dans `app/src/tv/`.
 - Sur le téléphone, le mode TV reste un réglage de certains jeux (interrupteur « Mode TV » du Snake), pour caster l'écran sur une télé.
 - Installation sur la télé : copier l'APK `Mes scores-tv-release.apk` (par exemple avec l'application Downloader, ou `adb install`).
+
+## L'Inter (jeux de supermarché)
+
+La variante **inter** (identifiant `com.aventure.messcores.inter`, nom « L'Inter », logo : le loup) a le même accueil en grille que la version télé (2 colonnes sur un téléphone debout, 4 en paysage, 6 sur une télé) et se joue **au toucher sur téléphone** comme **à la manette sur télé** : le mode TV y reste un réglage de chaque jeu (éteint sur un téléphone, allumé tout seul sur une télé), avec une entrée dans le lanceur de la télé **et** du téléphone mais ne propose que les huit jeux de la liste `INTER_GAME_IDS` (`TvHomeScreen.kt`) : Boucherie, Boulangerie, Caisse, Comptabilité, Drive, Mise en rayon, Poissonnerie, Rayon frais. Elle s'installe à côté des deux autres.
+
+- Ses fichiers propres (manifeste, nom, logo, bannière télé) sont dans `app/src/inter/`. Pour changer le logo, remplacer les `ic_launcher_foreground.png` de `app/src/inter/res/mipmap-*` (et la couleur de fond dans `values/ic_launcher_background.xml`).
+- Elle ne se construit **que sur demande** : onglet *Actions > Construire L'Inter > Run workflow* (`.github/workflows/build-inter.yml`, déclencheur `workflow_dispatch` seul). Le workflow « Build APK » (à chaque push) ne la construit pas. L'APK est publié en artefact « L-Inter (release) » (ou « release non signée » sans les secrets de signature).
 
 ## Tests
 

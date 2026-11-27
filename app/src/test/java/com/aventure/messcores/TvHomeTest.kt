@@ -33,6 +33,20 @@ class TvHomeTest {
     }
 
     @Test
+    fun lInterNAQueLesHuitJeuxDeSupermarcheDeLaTele() {
+        // L'Inter réutilise les écrans de la version télé : chaque jeu doit y être, sans doublon.
+        assertEquals(8, INTER_GAME_IDS.size)
+        assertEquals(INTER_GAME_IDS.size, INTER_GAME_IDS.toSet().size)
+        for (id in INTER_GAME_IDS) {
+            assertTrue("$id n'est pas dans TV_GAME_IDS", id in TV_GAME_IDS)
+            assertTrue("$id n'a pas de route dans OWN_SCREEN_ROUTES", id in OWN_SCREEN_ROUTES)
+        }
+        // Les tests tournent dans la variante téléphone : l'accueil y reste celui de toute la liste télé.
+        assertFalse(BuildConfig.IS_INTER)
+        assertEquals(TV_GAME_IDS, homeGameIds())
+    }
+
+    @Test
     fun rythmeNEstPasSurLaTele() {
         // Rythme demande de choisir un fichier de musique avec le sélecteur de documents d'Android, absent des télés.
         assertFalse(RHYTHM_ID in TV_GAME_IDS)

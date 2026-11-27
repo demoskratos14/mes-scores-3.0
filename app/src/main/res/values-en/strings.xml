@@ -3128,6 +3128,7 @@
     <string name="snake_tv_resume_hint">Press Start to resume.</string>
     <string name="tv_home_title">Pick a game</string>
     <string name="tv_home_hint">Use the D-pad on the controller to choose, the confirm button to play.</string>
+    <string name="tv_home_hint_inter">Tap a game to play, or pick one with the controller\'s D-pad and confirm with its button.</string>
     <string name="xonix_pad_halt">Stop (on land)</string>
     <string name="pad_left">Left</string>
     <string name="pad_right">Right</string>

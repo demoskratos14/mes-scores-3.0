@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fond de l'icône de L'Inter (le loup se détache bien dessus) ; remplace celui de l'appli habituelle. -->
+    <color name="ic_launcher_background">#FFD54F</color>
+</resources>

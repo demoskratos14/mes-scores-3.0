@@ -30,22 +30,36 @@ android {
         versionName = "3.0"
     }
 
-    // Deux applis construites à partir du même code :
+    // Trois applis construites à partir du même code :
     //  - « phone » : l'appli habituelle, sur téléphone ;
-    //  - « tv »    : la version pour Google TV / Android TV (accueil en grille des jeux solo, jouée à la manette).
-    // Elles ont des identifiants différents : on peut installer les deux sur un même appareil. Le code est commun ;
-    // BuildConfig.IS_TV dit dans quelle version on est, et les fichiers propres à la télé sont dans app/src/tv.
+    //  - « tv »    : la version pour Google TV / Android TV (accueil en grille des jeux solo, jouée à la manette) ;
+    //  - « inter » : « L'Inter », accueil en grille comme la version télé mais avec seulement les jeux de supermarché
+    //                (voir INTER_GAME_IDS) ; se joue au toucher sur téléphone comme à la manette sur télé ;
+    //                construite uniquement à la main (workflow « Construire L'Inter »), jamais par le build habituel.
+    // Elles ont des identifiants différents : on peut installer les trois sur un même appareil. Le code est commun ;
+    // BuildConfig.IS_TV dit si l'appli est la version télé (mode TV toujours allumé), BuildConfig.IS_INTER si on est
+    // dans « L'Inter » (qui garde le mode TV réglable, allumé de lui-même sur une télé). Les fichiers propres à la télé sont dans app/src/tv, ceux de L'Inter dans app/src/inter.
     flavorDimensions += "target"
     productFlavors {
         create("phone") {
             dimension = "target"
             buildConfigField("boolean", "IS_TV", "false")
+            buildConfigField("boolean", "IS_INTER", "false")
         }
         create("tv") {
             dimension = "target"
             applicationIdSuffix = ".tv"
             versionNameSuffix = "-tv"
             buildConfigField("boolean", "IS_TV", "true")
+            buildConfigField("boolean", "IS_INTER", "false")
+        }
+        create("inter") {
+            dimension = "target"
+            applicationIdSuffix = ".inter"
+            versionNameSuffix = "-inter"
+            // Pas « TV » : le mode TV reste un réglage de chaque jeu (tactile sur téléphone, allumé tout seul sur une télé).
+            buildConfigField("boolean", "IS_TV", "false")
+            buildConfigField("boolean", "IS_INTER", "true")
         }
     }
 
@@ -82,7 +96,7 @@ android {
 
     buildFeatures {
         compose = true
-        // BuildConfig.IS_TV (voir les variantes ci-dessus).
+        // BuildConfig.IS_TV et IS_INTER (voir les variantes ci-dessus).
         buildConfig = true
     }
 

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Le nom de l'appli « L'Inter » (jeux de supermarché seulement) : le même dans toutes les langues. -->
+    <string name="app_name_inter" translatable="false">L\'Inter</string>
+</resources>

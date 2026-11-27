@@ -3177,7 +3177,10 @@
     <string name="snake_tv_pause_hint">Start : pause</string>
     <string name="snake_tv_resume_hint">Appuie sur Start pour reprendre.</string>
     <string name="tv_home_title">Choisis un jeu</string>
+    <!-- Titre de l'accueil de l'appli « L'Inter » : le nom de l'appli, le même dans toutes les langues. -->
+    <string name="tv_home_title_inter" translatable="false">L\'Inter</string>
     <string name="tv_home_hint">Croix de la manette pour choisir, bouton de validation pour jouer.</string>
+    <string name="tv_home_hint_inter">Touche un jeu pour jouer, ou choisis à la croix de la manette et valide avec son bouton.</string>
     <string name="xonix_pad_halt">Arrêter (sur la terre)</string>
     <string name="pad_left">Gauche</string>
     <string name="pad_right">Droite</string>
